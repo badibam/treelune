@@ -3173,4 +3173,7 @@
     <string name="readout_schema_core">La forme courte, montrée là où la place manque (la tuile d\'une zone, sa tuile propre à côté de son nom), chacune de ses valeurs écrite {nom} : « {fait} / {attendu} »</string>
     <string name="readout_error_core_place">Le cœur est lui-même la forme courte : {} le place dans la phrase, pas en lui-même</string>
     <string name="event_none">Aucun pour l\'instant : un événement se crée ici, ou là où une Tâche ou une routine en choisit un (« Nouvel événement… »).</string>
+    <string name="grid_mode_title">Organisation</string>
+    <string name="grid_mode_hint">Touche une tuile pour la déplacer</string>
+    <string name="grid_mode_done">Terminer</string>
 </resources>

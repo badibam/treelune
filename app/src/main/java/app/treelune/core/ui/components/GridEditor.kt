@@ -178,8 +178,10 @@ fun CloseEditOnLeave(editor: GridEditor) {
 }
 
 /**
- * The bar of a move in progress, the full width under the screen: a cross of four arrows, each
- * greyed where the tile has nowhere to go, the validation in its middle, and "Cancel" beside.
+ * The bar of the edit mode, the full width under the screen for as long as the mode lasts: what
+ * the mode is and how to move a tile, and « Done », which closes it, the move in progress written.
+ * A tile touched, a cross of four arrows, each greyed where the tile has nowhere to go, the
+ * validation in its middle, and "Cancel" beside. The phone's back key closes the mode as « Done ».
  */
 @Composable
 fun GridEditBar(editor: GridEditor) {
@@ -187,27 +189,44 @@ fun GridEditBar(editor: GridEditor) {
     val s = remember { Strings.`for`(context = context) }
     // Its arrows at the bottom of the screen, where the chat's button would float
     app.treelune.core.ui.HideChatButton()
+    // Composed after the page's header, it answers the back key before it
+    androidx.activity.compose.BackHandler { editor.close() }
     UI.Card(type = CardType.DEFAULT) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(UI.Space.S),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            @Composable
-            fun Arrow(action: ButtonAction, direction: Grid.Direction) = UI.ActionButton(
-                action = action, display = ButtonDisplay.ICON, size = Size.M,
-                enabled = editor.canMove(direction), onClick = { editor.move(direction) }
-            )
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
-                Arrow(ButtonAction.UP, Grid.Direction.UP)
-                Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.XS), verticalAlignment = Alignment.CenterVertically) {
-                    Arrow(ButtonAction.LEFT, Grid.Direction.LEFT)
-                    UI.ActionButton(action = ButtonAction.CONFIRM, display = ButtonDisplay.ICON, size = Size.M, onClick = { editor.validate() })
-                    Arrow(ButtonAction.RIGHT, Grid.Direction.RIGHT)
+        Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.S), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    UI.Text(s.shared("grid_mode_title"), app.treelune.core.ui.TextType.STRONG)
+                    if (editor.selectedId == null) UI.Text(s.shared("grid_mode_hint"), app.treelune.core.ui.TextType.CAPTION)
                 }
-                Arrow(ButtonAction.DOWN, Grid.Direction.DOWN)
+                UI.Button(type = app.treelune.core.ui.ButtonType.PRIMARY, onClick = { editor.close() }) {
+                    UI.Text(s.shared("grid_mode_done"), app.treelune.core.ui.TextType.BODY)
+                }
             }
-            UI.ActionButton(action = ButtonAction.CANCEL, display = ButtonDisplay.LABEL, onClick = { editor.cancel() })
+            if (editor.selectedId != null) Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                @Composable
+                fun Arrow(action: ButtonAction, direction: Grid.Direction) = UI.ActionButton(
+                    action = action, display = ButtonDisplay.ICON, size = Size.M,
+                    enabled = editor.canMove(direction), onClick = { editor.move(direction) }
+                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
+                    Arrow(ButtonAction.UP, Grid.Direction.UP)
+                    Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.XS), verticalAlignment = Alignment.CenterVertically) {
+                        Arrow(ButtonAction.LEFT, Grid.Direction.LEFT)
+                        UI.ActionButton(action = ButtonAction.CONFIRM, display = ButtonDisplay.ICON, size = Size.M, onClick = { editor.validate() })
+                        Arrow(ButtonAction.RIGHT, Grid.Direction.RIGHT)
+                    }
+                    Arrow(ButtonAction.DOWN, Grid.Direction.DOWN)
+                }
+                UI.ActionButton(action = ButtonAction.CANCEL, display = ButtonDisplay.LABEL, onClick = { editor.cancel() })
+            }
         }
     }
 }

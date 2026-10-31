@@ -292,7 +292,7 @@ fun ZoneScreen(zone: Zone) {
                 )
         }
     }
-    if (gridEditor.selectedId != null) app.treelune.core.ui.components.GridEditBar(gridEditor)
+    if (gridEditor.anyEditing) app.treelune.core.ui.components.GridEditBar(gridEditor)
     }
 
     if (confirmLeave) {
