@@ -30,7 +30,7 @@ Plusieurs Repères au même endroit se regroupent en une seule tuile, dans l'ord
 | Endroit | Ce qu'il prend du Repère |
 |---|---|
 | Sa tuile propre | tout, mode d'affichage et texture compris ; son nom dans l'en-tête, son cœur à côté |
-| Une tuile regroupée | l'icône, sa couleur, la phrase dans sa couleur, une ligne chacun, sur deux lignes au plus |
+| Une tuile regroupée | l'icône, sa couleur, la phrase dans sa couleur, sur deux lignes au plus ; une ligne chacun, ou deux côte à côte selon le réglage (`ReadoutColumns`) : l'accueil pour sa tête et ses groupes de zones, une zone pour sa tête et ses groupes d'outils, « Comme l'accueil » par défaut, une seule en mode 1 colonne |
 | La tuile de sa zone, assez grande | l'icône et le cœur de chacun, côte à côte, à la ligne quand la place finit, ce qui ne tient pas coupé |
 | La tuile de sa zone en Icône ou en Minimal | des points côte à côte, un par Repère qui signale, trois au plus, dans l'ordre de l'arbre, chacun dans sa couleur |
 
