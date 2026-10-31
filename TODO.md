@@ -20,6 +20,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
+- `UPDATE_VARIABLE` et `UPDATE_ZONE` (`AICommands.kt`) déclarent `icon_color`, `texture` et `description` en `"string"`, quand leur doc dit que `null` les vide : un client MCP n'envoie pas de `null` dans un champ texte, et « null » écrit en toutes lettres est refusé (« Couleur d'icône inconnue »), une variable ne se décolore donc pas par le connecteur.
 
 ## À passer sur le téléphone
 
