@@ -284,11 +284,16 @@ object UI {
     // FEEDBACK SYSTEM
     // =====================================
     
-    /** What the app says after a gesture, in the theme's band at the bottom of the screen (Toasts). */
+    /**
+     * What the app says after a gesture, in the theme's band at the bottom of the screen (Toasts);
+     * [action] the label of a button in the band that runs [onAction] (undoing the gesture).
+     */
     fun Toast(
         message: String,
-        duration: Duration = Duration.SHORT
-    ) = Toasts.show(message, duration)
+        duration: Duration = Duration.SHORT,
+        action: String? = null,
+        onAction: (() -> Unit)? = null
+    ) = Toasts.show(message, duration, action, onAction)
     
     @Composable
     fun Snackbar(

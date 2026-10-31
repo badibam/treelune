@@ -251,8 +251,7 @@ object MessageToolType : ToolTypeContract {
             toolInstanceId = toolInstanceId,
             zoneName = zoneName,
             onNavigateBack = onNavigateBack,
-            onConfigureClick = onLongClick,
-            openEntryId = (openEntry as? app.treelune.core.tools.EntryToOpen.Existing)?.id
+            onConfigureClick = onLongClick
         )
     }
 

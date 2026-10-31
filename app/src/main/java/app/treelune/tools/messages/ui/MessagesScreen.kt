@@ -74,8 +74,7 @@ fun MessagesScreen(
     toolInstanceId: String,
     zoneName: String,
     onNavigateBack: () -> Unit,
-    onConfigureClick: () -> Unit = {},
-    openEntryId: String? = null
+    onConfigureClick: () -> Unit = {}
 ) {
     LogManager.ui("MessagesScreen called with toolInstanceId: $toolInstanceId")
 
@@ -174,7 +173,6 @@ fun MessagesScreen(
                 coordinator = coordinator,
                 config = config,
                 refreshTrigger = refreshTrigger,
-                openId = openEntryId,
                 onError = { errorMessage = it }
             )
             1 -> UpcomingTab(
@@ -200,27 +198,14 @@ private fun ReceivedTab(
     coordinator: Coordinator,
     config: JSONObject,
     refreshTrigger: Int,
-    openId: String?,
     onError: (String) -> Unit
 ) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(tool = "messages", context = context) }
-    val scope = rememberCoroutineScope()
 
+    // Read means taken into account: only the user's gesture marks a message read, never opening
+    // the screen or a notification, so "Unread" stays what still waits for them
     var filter by rememberSaveable { mutableStateOf(ReceivedFilter.UNREAD) }
-
-    // A message opened from the tile: shown first whatever the filter, and read by being opened, once
-    var opened by remember { mutableStateOf<Occurrence?>(null) }
-    var markedRead by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(openId, refreshTrigger) {
-        if (openId == null) return@LaunchedEffect
-        val found = loadByStatus(context, coordinator, toolInstanceId, "sent", onError)?.find { it.id == openId } ?: return@LaunchedEffect
-        opened = found
-        if (!markedRead && !found.read) {
-            markedRead = true
-            updateFlags(context, coordinator, found, read = true, onError = onError)
-        }
-    }
     // null while read; a read that fails is said, never shown as an empty inbox
     var occurrences by remember { mutableStateOf<List<Occurrence>?>(null) }
     var failed by remember { mutableStateOf(false) }
@@ -281,16 +266,6 @@ private fun ReceivedTab(
             }
         )
 
-        opened?.let { occurrence ->
-            ReceivedCard(
-                occurrence = occurrence,
-                config = config,
-                s = s,
-                onToggleRead = { scope.launch { updateFlags(context, coordinator, occurrence, read = !occurrence.read, onError = onError) } },
-                onToggleArchived = { scope.launch { updateFlags(context, coordinator, occurrence, archived = !occurrence.archived, onError = onError) } }
-            )
-        }
-
         // No early return here: Column's content lambda is inline, so a non-local return skips
         // the rest of the lambda and leaves the composition groups unbalanced — it crashes on
         // the next recomposition rather than where the mistake is.
@@ -307,14 +282,18 @@ private fun ReceivedTab(
                 config = config,
                 s = s,
                 onToggleRead = {
-                    scope.launch {
-                        updateFlags(context, coordinator, occurrence, read = !occurrence.read, onError = onError)
-                    }
+                    changeFlags(
+                        context, coordinator, occurrence, read = !occurrence.read,
+                        done = s.tool(if (occurrence.read) "toast_marked_unread" else "toast_marked_read"),
+                        onError = onError
+                    )
                 },
                 onToggleArchived = {
-                    scope.launch {
-                        updateFlags(context, coordinator, occurrence, archived = !occurrence.archived, onError = onError)
-                    }
+                    changeFlags(
+                        context, coordinator, occurrence, archived = !occurrence.archived,
+                        done = s.tool(if (occurrence.archived) "toast_unarchived" else "toast_archived"),
+                        onError = onError
+                    )
                 }
             )
         }
@@ -560,7 +539,43 @@ internal suspend fun loadByStatus(
 }
 
 /**
- * Flips a read or archived flag on a resolved occurrence.
+ * Outlives the screen: a change's undo, offered by the band at the bottom, still runs when the
+ * screen has been left before it is touched.
+ */
+private val flagsScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Main)
+
+/**
+ * Changes a read or archived flag of a resolved occurrence, then says it in the band at the
+ * bottom with the button that puts the flag back. The message leaves the filter shown at once
+ * (each filter shows only what it promises); without the band, the next one, often the same
+ * reminder, would take its place as if nothing had happened.
+ */
+private fun changeFlags(
+    context: android.content.Context,
+    coordinator: Coordinator,
+    occurrence: Occurrence,
+    read: Boolean? = null,
+    archived: Boolean? = null,
+    done: String,
+    onError: (String) -> Unit
+) {
+    flagsScope.launch {
+        if (!updateFlags(context, coordinator, occurrence, read, archived, onError)) return@launch
+        UI.Toast(done, Duration.LONG, Strings.`for`(context = context).shared("history_undo")) {
+            flagsScope.launch {
+                updateFlags(
+                    context, coordinator, occurrence,
+                    read = read?.let { occurrence.read },
+                    archived = archived?.let { occurrence.archived },
+                    onError = onError
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Sets a read or archived flag on a resolved occurrence; false once the failure is said.
  *
  * A plain tool_data.update of the occurrence's state, like any other entry's, so it needs no
  * dedicated service operation to be marked read.
@@ -572,7 +587,7 @@ private suspend fun updateFlags(
     read: Boolean? = null,
     archived: Boolean? = null,
     onError: (String) -> Unit
-) {
+): Boolean {
     val state = JSONObject().apply {
         read?.let { put("read", it) }
         archived?.let { put("archived", it) }
@@ -586,7 +601,9 @@ private suspend fun updateFlags(
     if (!result.isSuccess) {
         LogManager.ui("Failed to update occurrence ${occurrence.id}: ${result.error}", "ERROR")
         onError(result.error ?: Strings.`for`(tool = "messages", context = context).tool("error_mark_read"))
+        return false
     }
+    return true
 }
 
 /** Recursive JSONObject to a plain map, for custom field values. */

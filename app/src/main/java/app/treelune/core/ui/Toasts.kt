@@ -22,23 +22,24 @@ import kotlinx.coroutines.delay
 /**
  * What the app says after a gesture, in a band of the theme at the bottom of the screen (UI.Toast):
  * one queue, the oldest message shown first, whole, however long, for a time that grows with it,
- * and gone at a touch. Android's toast is not used: it cuts a message at two lines.
+ * and gone at a touch. A message can bear one action (undoing the gesture), a button in the band
+ * that runs it and takes the message away. Android's toast is not used: it cuts a message at two lines.
  *
  * The page and each window open above it (a dialog, the chat) hold a [ToastLayer]; only the one of
  * the window on top shows the message, over that window, so that a dialog never hides it.
  */
 object Toasts {
 
-    data class Shown(val id: Long, val message: String, val millis: Long)
+    data class Shown(val id: Long, val message: String, val millis: Long, val action: String?, val onAction: (() -> Unit)?)
 
     private val queue = mutableStateListOf<Shown>()
     private val layers = mutableStateListOf<Long>()
     private var nextMessage = 0L
     private var nextLayer = 0L
 
-    /** [message] queued, from any thread. */
-    fun show(message: String, duration: Duration) {
-        Handler(Looper.getMainLooper()).post { queue.add(Shown(nextMessage++, message, millis(message, duration))) }
+    /** [message] queued, from any thread; [action] the label of the button that runs [onAction], if any. */
+    fun show(message: String, duration: Duration, action: String? = null, onAction: (() -> Unit)? = null) {
+        Handler(Looper.getMainLooper()).post { queue.add(Shown(nextMessage++, message, millis(message, duration), action, onAction)) }
     }
 
     /**
@@ -92,7 +93,7 @@ object Toasts {
 /**
  * The messages' place in a window: the page's, or a dialog's. Shows the current message when its
  * window is the one on top, drawn by the theme (ThemeContract.Snackbar) in a window of its own
- * above it; a touch on it takes it away.
+ * above it; a touch on it takes it away, a touch on its action runs it and takes it away.
  */
 @Composable
 fun ToastLayer() {
@@ -112,7 +113,8 @@ fun ToastLayer() {
             modifier = Modifier.fillMaxWidth().padding(UI.Space.L)
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { Toasts.dismiss(shown.id) }
         ) {
-            CurrentTheme.current.Snackbar(FeedbackType.INFO, shown.message, null, null)
+            val onAction = shown.onAction?.let { run -> { Toasts.dismiss(shown.id); run() } }
+            CurrentTheme.current.Snackbar(FeedbackType.INFO, shown.message, shown.action, onAction)
         }
     }
 }

@@ -111,6 +111,10 @@
     <string name="action_mark_unread">Marquer comme non lu</string>
     <string name="action_archive">Archiver</string>
     <string name="action_unarchive">Désarchiver</string>
+    <string name="toast_marked_read">Marqué comme lu</string>
+    <string name="toast_marked_unread">Marqué comme non lu</string>
+    <string name="toast_archived">Archivé</string>
+    <string name="toast_unarchived">Désarchivé</string>
 
     <!-- EMPTY STATES - États vides -->
     <string name="empty_received_messages">Aucun message reçu</string>
