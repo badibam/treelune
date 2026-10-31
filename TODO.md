@@ -20,6 +20,8 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
+- Un CSV envoyé par le connecteur (`upload_address`) n'est pas importable : il reste en attente qu'une entrée le prenne (`McpUploads`), et `IMPORT_PLAN` ne lit que les textes enregistrés (`Files.textOf`), « Aucun texte n'a l'id » ; l'import d'une table depuis un client du connecteur passe aujourd'hui par le téléphone.
+
 - `UPDATE_VARIABLE` et `UPDATE_ZONE` (`AICommands.kt`) déclarent `icon_color`, `texture` et `description` en `"string"`, quand leur doc dit que `null` les vide : un client MCP n'envoie pas de `null` dans un champ texte, et « null » écrit en toutes lettres est refusé (« Couleur d'icône inconnue »), une variable ne se décolore donc pas par le connecteur.
 
 ## À passer sur le téléphone
