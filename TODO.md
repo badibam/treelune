@@ -75,7 +75,6 @@ Codé, jamais vu sur l'appareil.
 
 ## À concevoir
 
-- Replier la tuyauterie d'une zone : les tuiles en Icône de chaque groupe réunies en une tuile « ⚙ N » qui se déplie sur place, tout déplié en mode organisation, pour ne plus encombrer les zones ; à trancher, le critère (le mode Icône, ou la sorte : Tâches, routines, variables, Repères), Coucher étant en Icône et touché chaque soir.
 - Le mode disposition d'une page (l'accueil, une zone) : faire glisser une tuile d'une section à l'autre, ce qui change son groupe ; aujourd'hui le groupe se choisit dans la config de la chose, et une tuile ne bouge que dans sa section.
 
 - Les zones d'une partie importée : chacune arrive seule sur sa ligne, en colonne 0 (`Grid.arrive`, comme toute tuile nouvelle), deux zones côte à côte dans le fichier empilées avec un vide à droite ; garder leur disposition entre elles.
