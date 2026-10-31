@@ -60,6 +60,7 @@ object TermFields {
             throw IllegalArgumentException(text("service_error_reading_reduction_type").format(term.reduction.name, field?.type?.name ?: "-",
                 Reduction.forField(field).joinToString(", ") { it.name }))
         }
+        Term.ifNoneProblem(term.ifNone, field, term.reduction, term.group != null, text)?.let { throw IllegalArgumentException(text("variable_error_term").format(name) + " " + it) }
         val value = if (term.reduction == Reduction.COUNT) FieldReading.COUNT_FIELD else field!!
         val group = term.group ?: return value
         group.problem(fields, value, text)?.let { throw IllegalArgumentException(text("variable_error_term").format(name) + " " + it) }

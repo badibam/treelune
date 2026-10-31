@@ -1501,6 +1501,9 @@
     <string name="reading_error_group_unit_needed">%1$s est un instant : regroupe-le par une unité (%2$s).</string>
     <string name="reading_error_group_reduction">%1$s ne réduit pas des groupes. Acceptées : %2$s.</string>
     <string name="reading_error_group_start">Regroupée par jour, semaine ou mois, une lecture a besoin du début de sa période : ses unités se comptent à partir de là.</string>
+    <string name="reading_error_if_none">Ce que vaut l\'absence d\'entrée ne se règle que sur une date et heure tirée d\'une entrée (la plus ancienne, la plus récente, la dernière), sans regroupement.</string>
+    <string name="reading_error_if_none_value">Valeur inconnue de if_none : %1$s. Connues : %2$s.</string>
+    <string name="reading_if_none_now">Sans entrée, vaut maintenant</string>
     <string name="reading_error_group_keep">La valeur à laquelle les groupes se comparent n\'a pas pu être lue : %1$s</string>
     <string name="reading_error_group_per_entry">Une formule dans chaque entrée ne se regroupe pas.</string>
     <string name="reading_failure_no_entry">%1$s : aucune entrée dans la période</string>

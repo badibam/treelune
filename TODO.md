@@ -31,6 +31,7 @@ Codé, jamais vu sur l'appareil.
 - Messages, « Reçus » : ouvert par la tuile et par une notification, rien marqué lu tout seul ; « OK », « Archiver », « Marquer comme non lu » sur une carte, la carte qui sort de son filtre, le bandeau qui le dit et son « Annuler » (le bouton dans le bandeau, dans chaque thème) ; « Annuler » touché après avoir quitté l'écran.
 - `maintenant()` dans une formule : le bouton sous la formule qui l'écrit avec ses deux parenthèses, une variable `maintenant() - dernier_repas` sur sa tuile, qui avance ; « maintenant() + dernier_repas » et « maintenant() » seul refusés en le disant.
 - Le guide de conception : une conversation (dans l'app, puis par le connecteur) où l'on demande de monter quelque chose, l'IA qui lit `DESIGN_GUIDE` d'elle-même avant de proposer ; une où l'on note une entrée, qui ne le lit pas.
+- « Sans entrée, vaut maintenant » : la case sous la réduction d'une lecture de date et heure (la plus ancienne, la plus récente, la dernière), absente ailleurs et décochée quand le champ, la réduction ou le regroupement changent ; puis, par le connecteur, la variable `jeune` de Tronc redéfinie `premier_du_jour - dernier_de_la_veille` (la date de Repas, la plus ancienne du jour réglée ainsi, la plus récente de la veille entière), lue le matin avant le premier repas et après.
 - Une entrée d'API de type liste : son outil, sa période, ses filtres et ses champs choisis dans l'étape, la case « Avec l'identifiant de chaque entrée », et ce que le service reçoit.
 - « Ajouter à la ligne » sur une étape qui modifie une entrée : la case d'un champ de texte, sa valeur ajoutée sous ce que le champ contenait, sur la fiche et à l'historique.
 - « Si une entrée a déjà la même valeur dans » sur l'étape « Créer une entrée » : « La laisser telle quelle » sur une fiche déjà là, « La modifier avec ces valeurs » sur une autre, rien de créé deux fois.
@@ -60,7 +61,6 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
-- Un terme de formule qui lit un instant, réglé « sans entrée : maintenant » (posé à la main, jamais implicite, les instants seuls) : le premier repas du jour pas encore pris vaut maintenant. Puis la variable `jeune` de la zone Tronc redéfinie `premier_du_jour - dernier_de_la_veille` (la date de Repas, la plus ancienne du jour réglée ainsi, la plus récente de la veille entière) : le jeûne en cours le matin, celui de la nuit figé au premier repas, son historique lu à la fin de chaque jour. À faire une fois finie la session qui code en parallèle.
 - Démarrer et arrêter le chronomètre d'un Suivi depuis une Tâche : le Suivi ne déclare aucune opération (`getOperations`), quand `ToolDataService` sait déjà `start_duration` et `stop_duration` ; un premier repas noté qui arrête un jeûne. Avec, une condition qui dit si un chronomètre tourne (`state.running`), non vérifiée : le toucher du coucher qui prévient quand le jeûne ne tourne pas.
 
 ## À concevoir

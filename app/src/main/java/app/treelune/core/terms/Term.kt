@@ -22,9 +22,10 @@ sealed interface Term {
      * with [perEntry], a formula computed in each entry then reduced ("quantité × aliment.kcal_100g
      * / 100", summed over the meals). The selection's period is relative to the instant the
      * term is read at. With [group], each group of entries is reduced, then the groups kept are
-     * (ReadingGroup).
+     * (ReadingGroup). With [ifNone], set by hand, what it is worth when no entry is selected
+     * (IfNone): never implied.
      */
-    data class Reading(val selection: EntrySelection, val field: String?, val reduction: Reduction, val perEntry: String? = null, val group: ReadingGroup? = null) : Term {
+    data class Reading(val selection: EntrySelection, val field: String?, val reduction: Reduction, val perEntry: String? = null, val group: ReadingGroup? = null, val ifNone: IfNone? = null) : Term {
 
         /** What readings.read takes to read it, but the instant: its stored form's keys. */
         fun params(): Map<String, Any> = buildMap {
@@ -32,6 +33,7 @@ sealed interface Term {
             field?.let { put("field", it) }
             put("reduction", reduction.name)
             group?.let { put("group", JsonUtils.toMap(it.toJson())) }
+            ifNone?.let { put(IF_NONE, it.name) }
         }
 
         /**
@@ -60,6 +62,14 @@ sealed interface Term {
     /** A variable, by its id. */
     data class Variable(val id: String) : Term
 
+    /**
+     * What a reading of an instant is worth when no entry is selected, set by hand on the term:
+     * [NOW], the instant it is read at — the first meal of today not taken yet is at the
+     * earliest now. Only a date and time reduced to one of its entries' takes it (checkIfNone);
+     * an entry without its value stays a failure, never filled.
+     */
+    enum class IfNone { NOW }
+
     fun toJson(): JSONObject = when (this) {
         is Reading -> JSONObject().put("reading", JSONObject().apply {
             put("selection", selection.toJson())
@@ -67,6 +77,7 @@ sealed interface Term {
             perEntry?.let { put("per_entry", it) }
             put("reduction", reduction.name)
             group?.let { put("group", it.toJson()) }
+            ifNone?.let { put(IF_NONE, it.name) }
         })
         is Constant -> JSONObject().put("constant", when (value) {
             is List<*> -> JsonUtils.toJSONArray(value)
@@ -77,6 +88,19 @@ sealed interface Term {
     }
 
     companion object {
+        /** The key of a reading's IfNone, in its stored form and in readings.read. */
+        const val IF_NONE = "if_none"
+
+        /**
+         * The problem with [ifNone] on a reading of [field] reduced by [reduction] (grouped when
+         * [grouped]), in words; null when it takes it: a date and time, one of its entries' kept
+         * (EARLIEST, LATEST, LAST), not grouped.
+         */
+        fun ifNoneProblem(ifNone: IfNone?, field: app.treelune.core.fields.FieldDefinition?, reduction: Reduction, grouped: Boolean, text: (String) -> String): String? =
+            if (ifNone == null || (field?.type == app.treelune.core.fields.FieldType.DATETIME &&
+                    reduction in setOf(Reduction.EARLIEST, Reduction.LATEST, Reduction.LAST) && !grouped)) null
+            else text("reading_error_if_none")
+
         /**
          * @param name What the term is called where it is used, for the error
          * @throws IllegalArgumentException naming what does not read
@@ -90,7 +114,11 @@ sealed interface Term {
                     reduction = Reduction.entries.firstOrNull { it.name == reading.optString("reduction") }
                         ?: throw IllegalArgumentException(text("service_error_reading_reduction").format(reading.optString("reduction"), Reduction.entries.joinToString(", ") { it.name })),
                     perEntry = reading.optString("per_entry").takeIf { it.isNotBlank() },
-                    group = reading.optJSONObject("group")?.let { ReadingGroup.fromJson(it, text) }
+                    group = reading.optJSONObject("group")?.let { ReadingGroup.fromJson(it, text) },
+                    ifNone = reading.optString(IF_NONE).takeIf { it.isNotEmpty() }?.let { value ->
+                        IfNone.entries.firstOrNull { it.name == value }
+                            ?: throw IllegalArgumentException(text("reading_error_if_none_value").format(value, IfNone.entries.joinToString(", ") { it.name }))
+                    }
                 )
             }
             json.has("constant") && !json.isNull("constant") -> Constant(JsonUtils.toValue(json.get("constant"))!!)

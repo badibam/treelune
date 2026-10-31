@@ -40,6 +40,9 @@ import org.json.JSONObject
  *   range at (a chart's grid, a step each); `field` once, and `values`, a value or a failure per
  *   instant in the same order, `{"at", "value" | "failure"}`. One read of the entries serves them
  *   all when the filters say no relative date: only the period then moves with the instant.
+ * - `if_none` (Term.IfNone), set by hand: `NOW` makes a date and time read from no entry the
+ *   instant read at, rather than a failure (the first meal of today not taken yet); an entry
+ *   without its value stays a failure.
  * - grouped, `group` beside (ReadingGroup): each group of entries reduced by `field` and
  *   `reduction`, the groups kept, their values reduced again; the units of a period are its
  *   groups even without entries, counted from its start (required) to its end, or to the instant
@@ -125,9 +128,16 @@ class ReadingService(private val context: Context) : ExecutableService {
             return OperationResult.error(s.shared("reading_error_group_start"))
         }
         val keep = group?.keepCondition()?.let { Condition.fromJson(it, "", { key -> s.shared(key) }) }
+        val ifNone = params.optString(app.treelune.core.terms.Term.IF_NONE).takeIf { it.isNotEmpty() }?.let { given ->
+            app.treelune.core.terms.Term.IfNone.entries.firstOrNull { it.name == given }
+                ?: return OperationResult.error(s.shared("reading_error_if_none_value").format(given, app.treelune.core.terms.Term.IfNone.entries.joinToString(", ") { it.name }))
+        }
+        app.treelune.core.terms.Term.ifNoneProblem(ifNone, field, reduction, group != null) { s.shared(it) }?.let { return OperationResult.error(it) }
 
         /** The entries of one instant's period reduced: grouped, or all at once. */
         suspend fun reduced(rows: List<Map<String, Any?>>, at: Long): ReadingResult {
+            // No entry, and the term says what that is worth: the instant read at
+            if (ifNone == app.treelune.core.terms.Term.IfNone.NOW && rows.isEmpty()) return ReadingResult.Value(at, field!!)
             group ?: return FieldReading.reduce(rows, path, field, reduction, at)
             val calendar = TimeResolver.at(at)
             val (start, end) = selection.period.instants(calendar)

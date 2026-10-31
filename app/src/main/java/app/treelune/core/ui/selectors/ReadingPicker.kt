@@ -71,8 +71,8 @@ fun ReadingPicker(reading: JSONObject, s: StringsContext, where: ReadingContext,
         draft = next
         edit {
             put("selection", if (next.level == ReferenceKind.TOOL_INSTANCE) next.selection().toJson() else JSONObject())
-            // Another tool's fields are not this one's
-            if (next.tool != current.tool) remove("field")
+            // Another tool's fields are not this one's, nor what no entry of them is worth
+            if (next.tool != current.tool) { remove("field"); remove(app.treelune.core.terms.Term.IF_NONE) }
         }
     }, READ, fields, where.reference, offerFields = false, emptyPeriod = where.emptyPeriod)
 
@@ -88,7 +88,7 @@ fun ReadingPicker(reading: JSONObject, s: StringsContext, where: ReadingContext,
         },
         onSelect = { pick ->
             edit {
-                remove("field"); remove("per_entry")
+                remove("field"); remove("per_entry"); remove(app.treelune.core.terms.Term.IF_NONE)
                 regroup()
                 when (pick) {
                     FieldPick.Other(COUNT) -> put("reduction", Reduction.COUNT.name)
@@ -118,15 +118,27 @@ fun ReadingPicker(reading: JSONObject, s: StringsContext, where: ReadingContext,
         label = s.shared("variable_reading_reduction"),
         reductions = reductions,
         selected = reductions.firstOrNull { it.name == reading.optString("reduction") },
-        onSelect = { reduction -> edit { put("reduction", reduction.name); regroup() } },
+        onSelect = { reduction -> edit { put("reduction", reduction.name); regroup(); remove(app.treelune.core.terms.Term.IF_NONE) } },
         s = s
     )
+
+    // A date and time kept from one entry: what no entry is worth, set by hand, never implied
+    val ifNoneApplies = Reduction.entries.firstOrNull { it.name == reading.optString("reduction") }?.let { reduction ->
+        app.treelune.core.terms.Term.ifNoneProblem(app.treelune.core.terms.Term.IfNone.NOW, readField, reduction, reading.has("group")) { it } == null
+    } ?: false
+    if (ifNoneApplies) {
+        UI.Checkbox(
+            checked = reading.optString(app.treelune.core.terms.Term.IF_NONE) == app.treelune.core.terms.Term.IfNone.NOW.name,
+            onCheckedChange = { on -> edit { if (on) put(app.treelune.core.terms.Term.IF_NONE, app.treelune.core.terms.Term.IfNone.NOW.name) else remove(app.treelune.core.terms.Term.IF_NONE) } },
+            label = s.shared("reading_if_none_now")
+        )
+    }
 
     // Grouped: each group reduced as above, then the groups; a formula per entry is not grouped
     val value = if (reading.has("field")) readField?.takeIf { reading.optString("reduction") != Reduction.COUNT.name } else FieldReading.COUNT_FIELD
     if (!perEntry && value != null) {
         ReadingGroupPicker(reading.optJSONObject("group"), fields, value, current.period, s, where) { group ->
-            edit { if (group == null) remove("group") else put("group", group) }
+            edit { if (group == null) remove("group") else { put("group", group); remove(app.treelune.core.terms.Term.IF_NONE) } }
         }
     }
 }

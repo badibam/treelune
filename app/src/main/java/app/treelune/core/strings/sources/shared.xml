@@ -1501,6 +1501,9 @@
     <string name="reading_error_group_unit_needed">%1$s is an instant: group it by a unit (%2$s).</string>
     <string name="reading_error_group_reduction">%1$s does not reduce groups. It takes: %2$s.</string>
     <string name="reading_error_group_start">Grouped by day, week or month, a reading needs the start of its period: its units are counted from there.</string>
+    <string name="reading_error_if_none">What no entry is worth is set only on a date and time kept from one entry (earliest, latest, last), without grouping.</string>
+    <string name="reading_error_if_none_value">Unknown value of if_none: %1$s. Known: %2$s.</string>
+    <string name="reading_if_none_now">Without an entry, worth now</string>
     <string name="reading_error_group_keep">The value the groups are compared with could not be read: %1$s</string>
     <string name="reading_error_group_per_entry">A formula per entry is not grouped.</string>
     <string name="reading_failure_no_entry">%1$s: no entry in the period</string>
