@@ -23,6 +23,14 @@ interface ToolTypeContract {
     fun getDisplayName(context: Context): String
 
     /**
+     * The subtitle of a tool's page, under its name: the type of the thing, as every page of a
+     * brick says it (a Task's, a routine's, a tool's config), then the tool's description when
+     * it has one — "Tracking · One touch per glass".
+     */
+    fun pageSubtitle(context: Context, description: String?): String =
+        listOfNotNull(getDisplayName(context), description?.takeIf { it.isNotBlank() }).joinToString(" · ")
+
+    /**
      * What this tool type is for, what it already does on its own and what it is not for: one
      * text, read by the AI in its prompt (always in English) and shown by the Guide.
      * @param context Android context for string resource access

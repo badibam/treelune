@@ -129,6 +129,7 @@ fun VariableScreen(zoneId: String, variableId: String?, onDone: () -> Unit) {
     ) {
         UI.PageHeader(
             title = look.optString("label").ifBlank { name.ifBlank { s.shared("variable_new") } },
+            subtitle = s.shared("variable_display_name"),
             leftButton = ButtonAction.BACK,
             onLeftClick = onDone
         )

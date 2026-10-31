@@ -218,7 +218,7 @@ fun NotesScreen(
                 ) {
                     UI.PageHeader(
                         title = toolName,
-                        subtitle = toolDescription.takeIf { it.isNotBlank() },
+                        subtitle = app.treelune.tools.notes.NotesToolType.pageSubtitle(context, toolDescription),
                         icon = settings.string("icon_name")!!,
                         iconColor = app.treelune.core.themes.IconColor.of(settings.string(app.treelune.core.themes.IconColor.KEY)),
                         leftButton = ButtonAction.BACK,

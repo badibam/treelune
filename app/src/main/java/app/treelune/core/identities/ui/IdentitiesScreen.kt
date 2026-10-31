@@ -267,7 +267,7 @@ fun IdentityScreen(id: String, onName: @Composable (String) -> Unit, onBack: () 
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
-        UI.PageHeader(title = shown["name"] as String, icon = iconName, iconColor = IconColor.of(iconColor),
+        UI.PageHeader(title = shown["name"] as String, subtitle = s.shared("identity_display_name"), icon = iconName, iconColor = IconColor.of(iconColor),
             leftButton = ButtonAction.BACK, onLeftClick = onBack)
 
         editingPiece?.let { key ->

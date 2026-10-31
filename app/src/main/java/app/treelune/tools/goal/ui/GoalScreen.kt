@@ -129,7 +129,7 @@ fun GoalScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
     ) {
         UI.PageHeader(
             title = settings.string("name")!!,
-            subtitle = settings.string("description")?.takeIf { it.isNotBlank() },
+            subtitle = GoalToolType.pageSubtitle(context, settings.string("description")),
             icon = settings.string("icon_name"),
             iconColor = app.treelune.core.themes.IconColor.of(settings.string(app.treelune.core.themes.IconColor.KEY)),
             leftButton = ButtonAction.BACK,

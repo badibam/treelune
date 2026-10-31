@@ -68,7 +68,7 @@ fun ChartScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureC
         val settings = loaded?.let { ToolConfigSettings.read(ChartToolType, it, context) }
         UI.PageHeader(
             title = settings?.string("name") ?: ChartToolType.getDisplayName(context),
-            subtitle = settings?.string("description")?.takeIf { it.isNotBlank() },
+            subtitle = ChartToolType.pageSubtitle(context, settings?.string("description")),
             icon = settings?.string("icon_name"),
             iconColor = app.treelune.core.themes.IconColor.of(settings?.string(app.treelune.core.themes.IconColor.KEY)),
             leftButton = ButtonAction.BACK,

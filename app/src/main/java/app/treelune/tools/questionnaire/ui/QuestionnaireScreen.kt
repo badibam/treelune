@@ -168,7 +168,7 @@ fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onCo
     ) {
         UI.PageHeader(
             title = name,
-            subtitle = settings.string("description")?.takeIf { it.isNotBlank() },
+            subtitle = QuestionnaireToolType.pageSubtitle(context, settings.string("description")),
             icon = settings.string("icon_name"),
             iconColor = app.treelune.core.themes.IconColor.of(settings.string(app.treelune.core.themes.IconColor.KEY)),
             leftButton = ButtonAction.BACK,

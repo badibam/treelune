@@ -113,7 +113,7 @@ fun FlashcardsScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
     ) {
         UI.PageHeader(
             title = name,
-            subtitle = settings?.string("description")?.takeIf { it.isNotBlank() },
+            subtitle = FlashcardsToolType.pageSubtitle(context, settings?.string("description")),
             icon = settings?.string("icon_name"),
             iconColor = app.treelune.core.themes.IconColor.of(settings?.string(app.treelune.core.themes.IconColor.KEY)),
             leftButton = ButtonAction.BACK,

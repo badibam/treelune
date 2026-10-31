@@ -46,7 +46,7 @@ import androidx.compose.foundation.verticalScroll
 **Exceptions**: only containers with LazyColumn/LazyRow (which have their own native scroll) are exempt.
 
 ### Page headers
-UI.PageHeader supports a title (one line: the header keeps its height), an optional subtitle, an icon or the app's mark (`appMark`, the home screen alone: the launcher icon drawn by the theme, `LauncherMark` or its pixels), and, in a bar above, left/right buttons with predefined actions and the breadcrumb in a place of the stack. A left BACK button also gives its action to the phone's Back key; without it, the key removes the place from the stack (`MainScreen`), and a form that must ask first sets its own `BackHandler`. The home screen asks for confirmation before closing the app.
+UI.PageHeader supports a title (one line: the header keeps its height), an optional subtitle (on the page of a brick — a tool, its config, a variable, a Task, a routine, a readout, an API, an identity — the type of the thing, a tool's followed by its description, `ToolTypeContract.pageSubtitle`), an icon or the app's mark (`appMark`, the home screen alone: the launcher icon drawn by the theme, `LauncherMark` or its pixels), and, in a bar above, left/right buttons with predefined actions and the breadcrumb in a place of the stack. A left BACK button also gives its action to the phone's Back key; without it, the key removes the place from the stack (`MainScreen`), and a form that must ask first sets its own `BackHandler`. The home screen asks for confirmation before closing the app.
 
 ## General conventions
 

@@ -195,7 +195,7 @@ fun AgendaScreen(
     ) {
         UI.PageHeader(
             title = settings.string("name")!!,
-            subtitle = settings.string("description")?.takeIf { it.isNotBlank() },
+            subtitle = AgendaToolType.pageSubtitle(context, settings.string("description")),
             icon = settings.string("icon_name")!!,
             iconColor = app.treelune.core.themes.IconColor.of(settings.string(app.treelune.core.themes.IconColor.KEY)),
             leftButton = ButtonAction.BACK,

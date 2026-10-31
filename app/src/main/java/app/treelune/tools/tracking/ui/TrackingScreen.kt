@@ -117,7 +117,7 @@ fun TrackingScreen(
             
             UI.PageHeader(
                 title = toolName,
-                subtitle = toolDescription.takeIf { it.isNotBlank() },
+                subtitle = app.treelune.tools.tracking.TrackingToolType.pageSubtitle(context, toolDescription),
                 icon = iconName,
                 iconColor = app.treelune.core.themes.IconColor.of(settings.string(app.treelune.core.themes.IconColor.KEY)),
                 leftButton = ButtonAction.BACK,

@@ -209,7 +209,7 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
     ) {
         item { UI.PageHeader(
             title = if (openId == null) settings.string("name")!! else if (openId == "") s.tool("new_sheet") else openSheet?.name ?: "",
-            subtitle = settings.string("description")?.takeIf { it.isNotBlank() && openId == null },
+            subtitle = if (openId == null) StructuredToolType.pageSubtitle(context, settings.string("description")) else null,
             icon = settings.string("icon_name"),
             iconColor = app.treelune.core.themes.IconColor.of(settings.string(app.treelune.core.themes.IconColor.KEY)),
             leftButton = ButtonAction.BACK,

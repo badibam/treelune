@@ -26,6 +26,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- Le type sous le titre de chaque page de brique : « Suivi · Un toucher par verre » sur la page d'un outil (le type seul sans description, sur deux lignes au plus quand elle est longue, dans chaque thème), « Variable » et « Identité » sous le leur ; une fiche ouverte, sans.
 - Les Repères, `docs/design/readouts.md` (vus le 2026-10-31 : le cœur et la phrase, les cœurs côte à côte sur la tuile d'une zone en Condensé, la carte en tête de zone, la tuile propre en Ligne) : un Repère créé par le « + » d'une section, sa cible préremplie par l'outil de sa première lecture, sa config (le cœur, la phrase, les valeurs, les couleurs et « Signaler ») ; les points sur la tuile d'une zone en Icône et en Minimal ; ses lignes en tête de son groupe, du groupe de sa zone et de l'accueil ; le chapitre « Les Repères » du Guide sur le Repère de l'eau de la démo, réinstallée.
 - Les événements dans la config de la zone, sous Événements : la liste, un événement créé, modifié et supprimé ; plus de carte sur la page de la zone, plus d'« Événement » dans son « + ».
 - Le mode organisation : la barre en bas pendant tout le mode, « Terminer » qui enregistre un déplacement en cours, la touche retour qui sort du mode sans quitter la page.

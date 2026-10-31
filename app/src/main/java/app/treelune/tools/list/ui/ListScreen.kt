@@ -147,7 +147,7 @@ fun ListScreen(
     ) {
         UI.PageHeader(
             title = settings.string("name")!!,
-            subtitle = settings.string("description")?.takeIf { it.isNotBlank() },
+            subtitle = ListToolType.pageSubtitle(context, settings.string("description")),
             icon = settings.string("icon_name")!!,
             iconColor = app.treelune.core.themes.IconColor.of(settings.string(app.treelune.core.themes.IconColor.KEY)),
             leftButton = ButtonAction.BACK,

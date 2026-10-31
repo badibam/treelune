@@ -2525,6 +2525,7 @@
     <string name="identity_app_ai">L'IA de l'app</string>
     <string name="ai_session_provider_gone">Le fournisseur d'IA de cette conversation a été retiré : elle se relit, mais ne peut plus continuer</string>
     <string name="settings_identities">Identités</string>
+    <string name="identity_display_name">Identité</string>
     <string name="settings_identities_description">Pour que l'IA réponde avec la voix d'un personnage, importé d'un fichier ou écrit ici.</string>
     <string name="identity_import">Importer</string>
     <string name="identity_new">Nouvelle identité</string>
