@@ -9,7 +9,7 @@ import app.treelune.core.ui.variables.VariableCard
 import app.treelune.core.ui.variables.VariableRow
 import org.json.JSONObject
 
-/** One tile of a section as the screen holds it: a tool, a variable, a routine or a Task. */
+/** One tile of a section as the screen holds it: a tool, a variable, a routine, a Task or a readout. */
 sealed interface SectionTile {
     val id: String
     val tile: app.treelune.core.grid.Grid.Tile
@@ -38,10 +38,16 @@ sealed interface SectionTile {
         override val tile get() = task.tile
         override val mode get() = task.look.displayMode
     }
+
+    data class Readout(val readout: app.treelune.core.readouts.ui.ReadoutRow) : SectionTile {
+        override val id get() = readout.id
+        override val tile get() = readout.tile
+        override val mode get() = readout.look.displayMode
+    }
 }
 
 /**
- * The tiles of one group section laid on their grid (GridLayout), tools, variables, routines and Tasks together,
+ * The tiles of one group section laid on their grid (GridLayout), tools, variables, routines, Tasks and readouts together,
  * each at its column and row as many cells as its mode takes, in edit mode when [edit] is given.
  * A tile of four cells' width with a body (EXTENDED, SQUARE, FULL) is as tall as its content
  * (GridLayout's grows), EXTENDED and SQUARE at most their cells (LookCard); in edit mode
@@ -72,6 +78,7 @@ fun SectionTiles(
             is SectionTile.Variable -> VariableCard(tile.variable, onOpen = { onOpenVariable(tile.variable.id) }, onLongClick = { onOpenVariable(tile.variable.id) })
             is SectionTile.Routine -> app.treelune.core.ai.ui.routine.RoutineTile(tile.routine, routineActions)
             is SectionTile.TaskTile -> app.treelune.core.tasks.ui.TaskTile(tile.task)
+            is SectionTile.Readout -> app.treelune.core.readouts.ui.ReadoutCard(tile.readout)
         }
     }
 }

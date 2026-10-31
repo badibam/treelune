@@ -58,6 +58,7 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
+- Un terme de formule qui lit un instant, réglé « sans entrée : maintenant » (posé à la main, jamais implicite, les instants seuls) : le premier repas du jour pas encore pris vaut maintenant. Puis la variable `jeune` de la zone Tronc redéfinie `premier_du_jour - dernier_de_la_veille` (la date de Repas, la plus ancienne du jour réglée ainsi, la plus récente de la veille entière) : le jeûne en cours le matin, celui de la nuit figé au premier repas, son historique lu à la fin de chaque jour. À faire une fois finie la session qui code en parallèle.
 - Les Repères (Readouts), `docs/design/readouts.md` : une phrase à valeurs lues, ses couleurs par condition, sa pastille, et les endroits où il remonte jusqu'à l'accueil ; la remontée des tuiles d'outil viendra ensuite par la même mécanique.
 - Démarrer et arrêter le chronomètre d'un Suivi depuis une Tâche : le Suivi ne déclare aucune opération (`getOperations`), quand `ToolDataService` sait déjà `start_duration` et `stop_duration` ; un premier repas noté qui arrête un jeûne. Avec, une condition qui dit si un chronomètre tourne (`state.running`), non vérifiée : le toucher du coucher qui prévient quand le jeûne ne tourne pas.
 

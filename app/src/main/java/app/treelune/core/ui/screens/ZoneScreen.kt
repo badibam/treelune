@@ -50,6 +50,8 @@ fun ZoneScreen(zone: Zone) {
     var isLoadingRoutines by remember { mutableStateOf(true) }
     // The zone's Tasks, among its tools as its routines are
     var tasks by remember { mutableStateOf<List<app.treelune.core.tasks.Task>>(emptyList()) }
+    // Its readouts, their own tiles among its tools, and the lines they raise to its head and its groups'
+    var readouts by remember { mutableStateOf<List<app.treelune.core.readouts.ui.ReadoutRow>>(emptyList()) }
 
     // The zone shows "loading" until its tools and routines are first read. A later reload
     // (a routine switched on, a tool changed or duplicated) keeps the content on screen and
@@ -118,6 +120,11 @@ fun ZoneScreen(zone: Zone) {
     }
     // A Task's config opened for a new one: nothing is made before it is saved
     val createTask = { Navigator.push(Place.TaskConfig(zone.id, null)) }
+    val loadReadouts: suspend () -> Unit = {
+        val result = coordinator.processUserAction("readouts.list", mapOf("zone_id" to zone.id))
+        if (result.status == CommandStatus.SUCCESS) readouts = (result.data?.get("readouts") as List<*>).map { app.treelune.core.readouts.ui.ReadoutRow.of(it as Map<*, *>) }
+        else errorMessage = result.error
+    }
 
     // Tools, variables and routines share their section's grid (SectionGrid): a write to one
     // can move the others' tiles there (a size changed, a tile placed, one leaving), so a change to
@@ -128,6 +135,7 @@ fun ZoneScreen(zone: Zone) {
         launch { loadVariables() }
         launch { loadRoutines() }
         launch { loadTasks() }
+        launch { loadReadouts() }
         DataChangeNotifier.changes.collect { event ->
             val tiles = (event is DataChangeEvent.ToolsChanged && event.zoneId == zone.id) ||
                 event is DataChangeEvent.ZonesChanged || event is DataChangeEvent.VariablesChanged
@@ -136,6 +144,7 @@ fun ZoneScreen(zone: Zone) {
                 loadVariables()
                 loadRoutines()
                 loadTasks()
+                loadReadouts()
             }
         }
     }
@@ -171,7 +180,8 @@ fun ZoneScreen(zone: Zone) {
             toolInstances.filter { ToolPositions.section(it, zoneToolGroups) == section }.map { app.treelune.core.grid.SectionItem.of(it).tile } +
                 variables.filter { ToolPositions.section(it.group, zoneToolGroups) == section }.map { it.tile } +
                 routines.filter { ToolPositions.section(it.group, zoneToolGroups) == section }.map { it.tile } +
-                tasks.filter { ToolPositions.section(it.group, zoneToolGroups) == section }.map { it.tile }
+                tasks.filter { ToolPositions.section(it.group, zoneToolGroups) == section }.map { it.tile } +
+                readouts.filter { ToolPositions.section(it.group, zoneToolGroups) == section }.map { it.tile }
         },
         onError = { errorMessage = it }
     )
@@ -207,7 +217,7 @@ fun ZoneScreen(zone: Zone) {
             // Organising and adding, once for the whole page, before its gear
             beforeRight = {
                 app.treelune.core.ui.components.GridHeaderButtons(
-                    toolInstances.isNotEmpty() || variables.isNotEmpty() || routines.isNotEmpty() || tasks.isNotEmpty(), gridEditor
+                    toolInstances.isNotEmpty() || variables.isNotEmpty() || routines.isNotEmpty() || tasks.isNotEmpty() || readouts.isNotEmpty(), gridEditor
                 ) { adding = !adding }
             }
         )
@@ -217,6 +227,9 @@ fun ZoneScreen(zone: Zone) {
         identities?.firstOrNull { it.id == zone.identity_id }?.let { app.treelune.core.identities.ui.IdentityTile(it) }
         // Its events, one card naming them, under its identity
         app.treelune.core.events.ui.EventsCard(zone.id)
+        // The readouts raised to its head, in the order of its groups
+        if (loadedOnce) app.treelune.core.readouts.ui.ReadoutLines(
+            app.treelune.core.readouts.ui.risingTo(readouts, app.treelune.core.readouts.ReadoutSettings.Place.ZONE_HEAD, listOf(zone.id)) { zoneToolGroups })
 
         // Display sections by group
         if (!loadedOnce) {
@@ -235,6 +248,7 @@ fun ZoneScreen(zone: Zone) {
                     onCreateVariable = { adding = false; openVariable("") },
                     onCreateRoutine = { adding = false; createRoutine() },
                     onCreateTask = { adding = false; createTask() },
+                    onCreateReadout = { adding = false; Navigator.push(Place.ReadoutConfig(zone.id, null)) },
                     onCreateEvent = { adding = false; creatingEvent = true },
                     onDuplicate = { type -> adding = false; duplicating = type },
                     context = context
@@ -251,6 +265,7 @@ fun ZoneScreen(zone: Zone) {
                     toolInstances = toolInstances,
                     routines = routines,
                     tasks = tasks.filter { it.group == groupName },
+                    readouts = readouts.filter { it.group == groupName },
                     onToolClick = { toolId -> openTool(toolId, waiting.oldest[toolId]?.let { app.treelune.core.tools.EntryToOpen.Existing(it) }) },
                     onOpenEntry = { tool, entry -> openTool(tool.id, entry) },
                     editor = gridEditor,
@@ -271,6 +286,7 @@ fun ZoneScreen(zone: Zone) {
                     onOpenVariable = openVariable,
                     routines = ungroupedRoutines,
                     tasks = tasks.filter { ToolPositions.section(it.group, zoneToolGroups) == null },
+                    readouts = readouts.filter { ToolPositions.section(it.group, zoneToolGroups) == null },
                     hasConfiguredGroups = zoneToolGroups.isNotEmpty(),
                     onToolClick = { toolId -> openTool(toolId, waiting.oldest[toolId]?.let { app.treelune.core.tools.EntryToOpen.Existing(it) }) },
                     onOpenEntry = { tool, entry -> openTool(tool.id, entry) },
@@ -355,7 +371,7 @@ private class AddChoice(val id: String, val icon: String, val label: String, val
 /**
  * What can be added to the zone [zoneName], titled by it: the tool types by family (ToolFamily,
  * each type saying its own, in the order the app finds them within it), then a variable, a
- * routine, a Task and an event, then a copy of a tool, a routine or a Task. Each a tile of the
+ * routine, a Task, a readout and an event, then a copy of a tool, a routine or a Task. Each a tile of the
  * settings' kind, an icon and a name two cells wide, two a row, one under the other in one column.
  */
 @Composable
@@ -365,6 +381,7 @@ private fun AddMenu(
     onCreateVariable: () -> Unit,
     onCreateRoutine: () -> Unit,
     onCreateTask: () -> Unit,
+    onCreateReadout: () -> Unit,
     onCreateEvent: () -> Unit,
     onDuplicate: (app.treelune.core.ui.selectors.DuplicateType) -> Unit,
     context: android.content.Context
@@ -380,6 +397,7 @@ private fun AddMenu(
             AddChoice("variable", "variable", s.shared("variable_display_name"), onCreateVariable),
             AddChoice("routine", "calendar-clock", s.shared("routine_display_name"), onCreateRoutine),
             AddChoice("task", app.treelune.core.tasks.TaskSettings.DEFAULT_ICON, s.shared("task_display_name"), onCreateTask),
+            AddChoice("readout", app.treelune.core.readouts.ReadoutSettings.DEFAULT_ICON, s.shared("readout_display_name"), onCreateReadout),
             AddChoice("event", "zap", s.shared("event_display_name"), onCreateEvent)
         ),
         s.shared("add_section_copy") to listOf(
@@ -417,6 +435,7 @@ private fun GroupSection(
     toolInstances: List<ToolInstance>,
     routines: List<app.treelune.core.ai.data.Routine>,
     tasks: List<app.treelune.core.tasks.Task>,
+    readouts: List<app.treelune.core.readouts.ui.ReadoutRow>,
     onToolClick: (String) -> Unit,
     onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
     editor: app.treelune.core.ui.components.GridEditor,
@@ -426,7 +445,7 @@ private fun GroupSection(
 ) {
     val groupTools = toolInstances.filter { ToolPositions.section(it, zoneToolGroups) == groupName }
     val groupRoutines = routines.filter { it.group == groupName }
-    Section(groupName, groupName, groupTools, variables, groupRoutines, tasks, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions, context)
+    Section(groupName, groupName, groupTools, variables, groupRoutines, tasks, readouts, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions, context)
     Spacer(modifier = Modifier.height(UI.Space.XL))
 }
 
@@ -438,6 +457,7 @@ private fun UngroupedSection(
     onOpenVariable: (String) -> Unit,
     routines: List<app.treelune.core.ai.data.Routine>,
     tasks: List<app.treelune.core.tasks.Task>,
+    readouts: List<app.treelune.core.readouts.ui.ReadoutRow>,
     hasConfiguredGroups: Boolean,
     onToolClick: (String) -> Unit,
     onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
@@ -448,7 +468,7 @@ private fun UngroupedSection(
 ) {
     val s = remember { Strings.`for`(context = context) }
     val title = s.shared(if (hasConfiguredGroups) "label_ungrouped" else "label_tools_and_routines")
-    Section("", title, toolInstances, variables, routines, tasks, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions, context)
+    Section("", title, toolInstances, variables, routines, tasks, readouts, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions, context)
 }
 
 /** A section [key] titled [title] over a divider, its grid, or the line saying it is empty. */
@@ -460,6 +480,7 @@ private fun Section(
     variables: List<app.treelune.core.ui.variables.VariableRow>,
     routines: List<app.treelune.core.ai.data.Routine>,
     tasks: List<app.treelune.core.tasks.Task>,
+    readouts: List<app.treelune.core.readouts.ui.ReadoutRow>,
     editor: app.treelune.core.ui.components.GridEditor,
     onToolClick: (String) -> Unit,
     onToolLongClick: (ToolInstance) -> Unit,
@@ -474,8 +495,10 @@ private fun Section(
             UI.Text(text = title, type = TextType.HEADING)
         }
     }
-    SectionGrid(key, tools, variables, routines, tasks, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions)
-    if (tools.isEmpty() && variables.isEmpty() && routines.isEmpty() && tasks.isEmpty()) {
+    // The readouts raised to the head of their group, over its grid
+    app.treelune.core.readouts.ui.ReadoutLines(readouts.filter { app.treelune.core.readouts.ReadoutSettings.Place.GROUP_HEAD in it.places }.sortedWith(compareBy({ it.gridY }, { it.gridX })))
+    SectionGrid(key, tools, variables, routines, tasks, readouts, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions)
+    if (tools.isEmpty() && variables.isEmpty() && routines.isEmpty() && tasks.isEmpty() && readouts.isEmpty()) {
         UI.Text(
             text = s.shared("message_no_items_in_group"),
             type = TextType.CAPTION,
@@ -506,6 +529,7 @@ private fun SectionGrid(
     variables: List<app.treelune.core.ui.variables.VariableRow>,
     routines: List<app.treelune.core.ai.data.Routine>,
     tasks: List<app.treelune.core.tasks.Task>,
+    readouts: List<app.treelune.core.readouts.ui.ReadoutRow>,
     editor: app.treelune.core.ui.components.GridEditor,
     onToolClick: (String) -> Unit,
     onToolLongClick: (ToolInstance) -> Unit,
@@ -516,7 +540,8 @@ private fun SectionGrid(
     val tiles = tools.map { app.treelune.core.ui.components.SectionTile.Tool(it) } +
         variables.map { app.treelune.core.ui.components.SectionTile.Variable(it) } +
         routines.map { app.treelune.core.ui.components.SectionTile.Routine(it) } +
-        tasks.map { app.treelune.core.ui.components.SectionTile.TaskTile(it) }
+        tasks.map { app.treelune.core.ui.components.SectionTile.TaskTile(it) } +
+        readouts.map { app.treelune.core.ui.components.SectionTile.Readout(it) }
     app.treelune.core.ui.components.SectionTiles(tiles, { onToolClick(it.id) }, onToolLongClick, onOpenEntry, onOpenVariable,
         routineActions, editor.gridEdit(key))
 }

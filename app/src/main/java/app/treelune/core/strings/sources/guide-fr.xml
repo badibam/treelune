@@ -56,6 +56,8 @@
     <string name="guide_path_task_run">touche l\'exécution</string>
     <string name="guide_path_task_config">touche l\'engrenage en haut à droite</string>
     <string name="guide_path_task_new">touche le + en haut de la zone, puis Tâche</string>
+    <string name="guide_path_readout_config">appuie longuement sur le Repère</string>
+    <string name="guide_path_readout_new">touche le + en haut de la zone, puis Repère</string>
     <string name="guide_path_execution">touche une exécution</string>
     <string name="guide_path_routine_config">touche l\'engrenage en haut à droite</string>
     <string name="guide_path_routine_new">touche le + en haut de la zone, puis Routine</string>

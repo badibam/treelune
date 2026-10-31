@@ -338,6 +338,10 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                     back()
                 })
             }
+            is Place.ReadoutConfig -> {
+                name(s.shared(if (place.readoutId == null) "readout_new_name" else "nav_configuration"))
+                app.treelune.core.readouts.ui.ReadoutConfigScreen(place, onDone = back)
+            }
             is Place.TaskRun -> {
                 name(s.shared("nav_execution"))
                 app.treelune.core.tasks.ui.TaskRunScreen(place, onTaskName = { Navigator.name(place.parent(), it) }, onBack = back)

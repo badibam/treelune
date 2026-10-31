@@ -99,7 +99,15 @@ class ReadoutService(private val context: Context) : ExecutableService {
         "grid_x" to readout.gridX,
         "grid_y" to readout.gridY,
         "updated_at" to readout.updatedAt,
-        "tools_read" to toolsRead(JSONObject(readout.settingsJson)).toList()
+        "tools_read" to toolsRead(JSONObject(readout.settingsJson)).toList(),
+        // A tool it opens is reached through its zone
+        "target_zone_id" to ReferenceTarget.referenceOf(JSONObject(readout.settingsJson).opt(ReadoutSettings.TARGET))?.let { target ->
+            when (target.kind) {
+                ReferenceKind.TOOL_INSTANCE -> database.toolInstanceDao().getToolInstanceById(target.id ?: "")?.zone_id
+                ReferenceKind.ZONE -> target.id
+                else -> null
+            }
+        }
     )
 
     private suspend fun create(params: JSONObject): OperationResult {

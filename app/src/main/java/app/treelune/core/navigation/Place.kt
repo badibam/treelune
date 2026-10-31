@@ -184,6 +184,13 @@ sealed class Place {
         override fun parent() = taskId?.let { Task(it, zoneId) } ?: Zone(zoneId)
     }
 
+    /** A readout's configuration: an existing readout's when [readoutId] is set, a new one's otherwise; it has no page of its own. */
+    data class ReadoutConfig(override val zoneId: String, val readoutId: String?) : Place() {
+        override val kind = "readout_config"
+        override val parameters get() = listOf(zoneId, readoutId)
+        override fun parent() = Zone(zoneId)
+    }
+
     /** One run of a Task: each step and what it gave. */
     data class TaskRun(val runId: String, val taskId: String, override val zoneId: String) : Place() {
         override val kind = "task_run"
@@ -248,6 +255,7 @@ sealed class Place {
                 "routine_config" -> RoutineConfig(r(1), p(2))
                 "task" -> Task(r(1), r(2))
                 "task_config" -> TaskConfig(r(1), p(2))
+                "readout_config" -> ReadoutConfig(r(1), p(2))
                 "task_run" -> TaskRun(r(1), r(2), r(3))
                 "guide" -> Guide
                 "chapter" -> Chapter(r(1))
