@@ -26,6 +26,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- Les séries de variables, `docs/design/variable-series.md` : « Une valeur par » Jour sur Jeûne, et sa phrase dessous ; dans un critère d'Objectif, Jeûne choisi comme source parmi les outils (seules les variables à série proposées), son filtre sur sa valeur ; « Jeûne de 16 h » et « Jeûne de 18 h » de Semaine du Tronc refaits ainsi, un repas ajouté le matin pour la veille, le compte qui suit ; une série par heure regroupée par jour dans un graphique.
 - Le type sous le titre de chaque page de brique : « Suivi · Un toucher par verre » sur la page d'un outil (le type seul sans description, sur deux lignes au plus quand elle est longue, dans chaque thème), « Variable » et « Identité » sous le leur ; une fiche ouverte, sans.
 - Les Repères, `docs/design/readouts.md` (vus le 2026-10-31 : le cœur et la phrase, les cœurs côte à côte sur la tuile d'une zone en Condensé, la carte en tête de zone, la tuile propre en Ligne) : un Repère créé par le « + » d'une section, sa cible préremplie par l'outil de sa première lecture, sa config (le cœur, la phrase, les valeurs, les couleurs et « Signaler ») ; les points sur la tuile d'une zone en Icône et en Minimal ; ses lignes en tête de son groupe, du groupe de sa zone et de l'accueil ; le chapitre « Les Repères » du Guide sur le Repère de l'eau de la démo, réinstallée.
 - Les événements dans la config de la zone, sous Événements : la liste, un événement créé, modifié et supprimé ; plus de carte sur la page de la zone, plus d'« Événement » dans son « + ».
@@ -78,6 +79,8 @@ Codé, jamais vu sur l'appareil.
 - Un type d'outil Schéma : des briques et des flèches entre elles (une organisation, une boucle, qui nourrit qui), écrit par la personne ou par l'IA. Une Note n'y suffit pas : l'app n'a aucune police à chasse fixe, un schéma en texte s'y décale. Sa forme (un texte qui se dessine, Mermaid ou autre, ou des briques posées à la main), et s'il peut viser des zones, des outils ou des groupes pour y mener.
 
 ## Dette de code
+
+- `ZoneContentsTest.theZones_comeInTheHomeScreensOrder` échoue dans `./run test` (le 2026-10-31 : « The group 'Demo' cannot be removed », la démo installée par un autre test dans la base partagée) et passe seul : il réécrit les groupes de l'accueil sans tenir compte de ce que les autres tests y ont laissé.
 
 - Une annulation attrapée comme une erreur : sur 114 fichiers qui ont un `catch (e: Exception)`, 18 laissent passer `CancellationException` ; les autres, sur un écran fermé ou une tâche arrêtée, l'écrivent en ERROR, rendent un échec et laissent le code continuer. Une passe, ou un contrôle de `./run test` qui exige la ligne qui la laisse passer avant un `catch (e: Exception)` dans une fonction `suspend`.
 - Une étape de Tâche déplacée garde les numéros d'étape que lisent les suivantes, l'enregistrement refusant alors en le disant.
