@@ -234,12 +234,14 @@ object UI {
      *
      * @param text The label
      * @param color The color's name; the theme decides what it looks like
+     * @param maxLines The lines it wraps over at most, the last cut: one for a choice's option
      */
     @Composable
     fun Tag(
         text: String,
-        color: app.treelune.core.themes.TagColor
-    ) = CurrentTheme.current.Tag(text, color)
+        color: app.treelune.core.themes.TagColor,
+        maxLines: Int = 1
+    ) = CurrentTheme.current.Tag(text, color, maxLines)
 
     /**
      * A horizontal gauge, filled to where a value stands between two bounds.
@@ -787,7 +789,9 @@ object UI {
                 summary = { },
                 glance = {
                     if (readouts.isNotEmpty() && linesHeld > 0) Column(verticalArrangement = Arrangement.spacedBy(Space.XS)) {
-                        readouts.take(linesHeld).forEach { app.treelune.core.readouts.ui.ReadoutLine(it) }
+                        // One alone wraps over every line the tile holds; several take one each
+                        val shown = readouts.take(linesHeld)
+                        shown.forEach { app.treelune.core.readouts.ui.ReadoutLine(it, maxLines = if (shown.size == 1) linesHeld else 1) }
                     }
                     else zone.description?.let { Text(it, TextType.BODY, maxLines = 2) }
                 },

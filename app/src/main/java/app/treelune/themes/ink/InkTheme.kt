@@ -343,13 +343,13 @@ object InkTheme : ThemeContract {
 
     /** A small dab of gouache of its colour before its text in the ink: the user's colours are marks, never a fill. */
     @Composable
-    override fun Tag(text: String, color: TagColor) {
+    override fun Tag(text: String, color: TagColor, maxLines: Int) {
         val size = inkSize()
         val c = inkColors
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(size.dp(6f))) {
             // A tag's mark keeps its colour whole: a mark, held to 3 on the paper
             Box(modifier = Modifier.size(size.dp(10f)).gouache(c.tag(color), color.ordinal, reach = 0.55f))
-            Line(text, size.label.copy(letterSpacing = 0.sp, fontSize = size.label.fontSize * 1.08f), LocalInkInk.current ?: c.ink, maxLines = 1)
+            Line(text, size.label.copy(letterSpacing = 0.sp, fontSize = size.label.fontSize * 1.08f), LocalInkInk.current ?: c.ink, maxLines = maxLines)
         }
     }
 

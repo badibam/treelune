@@ -345,7 +345,7 @@ object CosyTheme : ThemeContract {
 
     /** A pastel pill, its name in its own hue. */
     @Composable
-    override fun Tag(text: String, color: TagColor) {
+    override fun Tag(text: String, color: TagColor, maxLines: Int) {
         val size = cosySize()
         val c = cosyColors
         Box(
@@ -353,7 +353,7 @@ object CosyTheme : ThemeContract {
                 .background(c.tag(color).srgb, CircleShape)
                 .padding(horizontal = size.dp(10f), vertical = size.dp(1f))
         ) {
-            Line(text, size.label, c.tagInk(color).srgb, maxLines = 1)
+            Line(text, size.label, c.tagInk(color).srgb, maxLines = maxLines)
         }
     }
 

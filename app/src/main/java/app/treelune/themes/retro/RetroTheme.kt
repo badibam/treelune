@@ -371,7 +371,7 @@ object RetroTheme : ThemeContract {
 
     /** A name on its colour, no border: three pixels each side, one above and under the box. */
     @Composable
-    override fun Tag(text: String, color: TagColor) {
+    override fun Tag(text: String, color: TagColor, maxLines: Int) {
         val grid = retroGrid()
         val colors = retroColors
         Box(
@@ -379,7 +379,7 @@ object RetroTheme : ThemeContract {
                 .background(colors.tag(color).srgb)
                 .padding(start = grid.dp(3), end = grid.dp(2), top = grid.dp(1), bottom = grid.dp(1))
         ) {
-            Line(text, grid.text, colors.tagText.srgb, maxLines = 1)
+            Line(text, grid.text, colors.tagText.srgb, maxLines = maxLines)
         }
     }
 

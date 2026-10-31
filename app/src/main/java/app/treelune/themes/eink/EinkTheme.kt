@@ -363,7 +363,7 @@ object EinkTheme : ThemeContract {
 
     /** A square of its colour's pattern before its text, the whole in a frame of 1.5 dp. */
     @Composable
-    override fun Tag(text: String, color: TagColor) {
+    override fun Tag(text: String, color: TagColor, maxLines: Int) {
         val size = einkSize()
         val c = einkColors
         val ink = LocalEinkInk.current ?: c.ink
@@ -374,7 +374,7 @@ object EinkTheme : ThemeContract {
             horizontalArrangement = Arrangement.spacedBy(size.dp(5f))
         ) {
             Swatch(color, size.dp(12f), ink, ground)
-            Line(text, size.caption.copy(fontSize = size.caption.fontSize * (14f / 13f)), ink, maxLines = 1)
+            Line(text, size.caption.copy(fontSize = size.caption.fontSize * (14f / 13f)), ink, maxLines = maxLines)
         }
     }
 

@@ -360,12 +360,12 @@ object SwissTheme : ThemeContract {
 
     /** A small square of its colour before its text in the ink: the user's colours are marks, never a fill. */
     @Composable
-    override fun Tag(text: String, color: TagColor) {
+    override fun Tag(text: String, color: TagColor, maxLines: Int) {
         val size = swissSize()
         val c = swissColors
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(size.dp(6f))) {
             Box(modifier = Modifier.size(size.dp(8f)).background(c.tag(color).srgb))
-            Line(text, size.name.copy(letterSpacing = 0.sp), LocalSwissInk.current ?: c.ink.srgb, maxLines = 1)
+            Line(text, size.name.copy(letterSpacing = 0.sp), LocalSwissInk.current ?: c.ink.srgb, maxLines = maxLines)
         }
     }
 

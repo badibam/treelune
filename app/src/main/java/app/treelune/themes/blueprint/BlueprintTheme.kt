@@ -366,11 +366,11 @@ object BlueprintTheme : ThemeContract {
 
     /** An outline of its pencil, its word in the same pencil. */
     @Composable
-    override fun Tag(text: String, color: TagColor) {
+    override fun Tag(text: String, color: TagColor, maxLines: Int) {
         val size = blueprintSize()
         val crayon = blueprintColors.crayon(color).srgb
         Box(modifier = Modifier.plainFrame(blueprintStroke(LINE), crayon).padding(horizontal = size.dp(7f), vertical = size.dp(1f))) {
-            Line(text, size.tag, crayon, maxLines = 1)
+            Line(text, size.tag, crayon, maxLines = maxLines)
         }
     }
 

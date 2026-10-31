@@ -375,11 +375,11 @@ object MetroTheme : ThemeContract {
 
     /** A rectangle of its line's colour with corners of 3 dp, its word in white or the deep night blue, whichever reads. */
     @Composable
-    override fun Tag(text: String, color: TagColor) {
+    override fun Tag(text: String, color: TagColor, maxLines: Int) {
         val size = metroSize()
         val c = metroColors
         Box(modifier = Modifier.panel(c.line(color).srgb, size.dp(3f)).padding(horizontal = size.dp(8f), vertical = size.dp(2f))) {
-            Line(text, size.tag, c.onLine(color).srgb, maxLines = 1)
+            Line(text, size.tag, c.onLine(color).srgb, maxLines = maxLines)
         }
     }
 

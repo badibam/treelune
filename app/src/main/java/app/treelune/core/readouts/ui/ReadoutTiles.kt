@@ -133,7 +133,7 @@ fun ReadoutSentence(shown: ReadoutShown?, maxLines: Int = 2) {
     val s = remember { Strings.`for`(context = context) }
     when {
         shown == null -> UI.Text(s.shared("tools_loading"), TextType.BODY, maxLines = maxLines)
-        shown.color != null -> UI.Tag(shown.text, shown.color)
+        shown.color != null -> UI.Tag(shown.text, shown.color, maxLines)
         else -> UI.Text(shown.text, TextType.BODY, maxLines = maxLines)
     }
 }
@@ -178,10 +178,10 @@ fun ReadoutLines(readouts: List<ReadoutRow>, maxLines: Int? = null) {
     }
 }
 
-/** One readout on one line of a gathered card. */
+/** One readout on a line of a gathered card, its sentence wrapping over [maxLines] lines at most. */
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-fun ReadoutLine(readout: ReadoutRow) {
+fun ReadoutLine(readout: ReadoutRow, maxLines: Int = 2) {
     val shown = rememberReadoutShown(readout)
     Row(
         modifier = Modifier.fillMaxWidth().combinedClickable(onClick = { openTarget(readout) }, onLongClick = { configure(readout) }),
@@ -189,7 +189,7 @@ fun ReadoutLine(readout: ReadoutRow) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         readout.look.iconName?.let { UI.ItemIcon(it, IconColor.of(readout.look.iconColor), 20.dp) }
-        ReadoutSentence(shown, maxLines = 1)
+        ReadoutSentence(shown, maxLines)
     }
 }
 

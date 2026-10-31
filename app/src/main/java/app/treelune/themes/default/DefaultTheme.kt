@@ -743,7 +743,8 @@ object DefaultTheme : ThemeContract {
     @Composable
     override fun Tag(
         text: String,
-        color: app.treelune.core.themes.TagColor
+        color: app.treelune.core.themes.TagColor,
+        maxLines: Int
     ) {
         Box(
             modifier = Modifier
@@ -757,7 +758,9 @@ object DefaultTheme : ThemeContract {
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelMedium,
-                color = TagTextColor
+                color = TagTextColor,
+                maxLines = maxLines,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
             )
         }
     }

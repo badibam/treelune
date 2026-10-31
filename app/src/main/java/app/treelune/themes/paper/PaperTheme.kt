@@ -372,7 +372,7 @@ object PaperTheme : ThemeContract {
 
     /** A label cut from its coloured sheet, on a small shadow, tilted by its word from −3° to +3°; its word in the ink that reads on it. */
     @Composable
-    override fun Tag(text: String, color: TagColor) {
+    override fun Tag(text: String, color: TagColor, maxLines: Int) {
         val size = paperSize()
         val c = paperColors
         val tilt = ((text.hashCode() and Int.MAX_VALUE) % 7 - 3).toFloat()
@@ -381,7 +381,7 @@ object PaperTheme : ThemeContract {
                 .sheet(c.colour(color).srgb, RoundedCornerShape(size.dp(2f)), c.shadow, size.dp(1f), size.dp(2f))
                 .padding(horizontal = size.dp(8f), vertical = size.dp(1f))
         ) {
-            Line(text, size.tag, c.onColour(color).srgb, maxLines = 1)
+            Line(text, size.tag, c.onColour(color).srgb, maxLines = maxLines)
         }
     }
 
