@@ -758,28 +758,46 @@ object UI {
      * A zone's tile on the home screen (LookCard, in the theme's zone frame): its icon, or its
      * name when it has none (ICON), its icon and name (MINIMAL), its description beside them
      * (LINE) or below (CONDENSED). Something waiting or running in one of its tools or routines
-     * (LocalWaiting, LocalRunning) is marked on its icon.
+     * (LocalWaiting, LocalRunning) is marked on its icon. The readouts raised to its tile
+     * ([readouts], in the order of the tree) take its description's place where a line holds, as
+     * many as hold; where none does (ICON, MINIMAL), a dot for each that signals, in its corner.
      */
     @Composable
     fun ZoneCard(
         zone: Zone,
+        readouts: List<app.treelune.core.readouts.ui.ReadoutRow> = emptyList(),
         onClick: () -> Unit,
         onLongClick: () -> Unit = { }
     ) {
         val look = app.treelune.core.look.Look(zone.name, zone.description, zone.icon_name, zone.icon_color, zone.texture, DisplayMode.valueOf(zone.display_mode))
-        LookCard(
-            look = look,
-            subtitle = null,
-            seed = zone.id,
-            waiting = LocalWaiting.current.zone(zone.id),
-            running = LocalRunning.current.zone(zone.id),
-            onClick = onClick,
-            onLongClick = onLongClick,
-            summary = { },
-            glance = { zone.description?.let { Text(it, TextType.BODY, maxLines = 2) } },
-            body = { },
-            frame = LookFrame.ZONE
-        )
+        val linesHeld = when (look.displayMode) {
+            DisplayMode.LINE -> 1
+            DisplayMode.CONDENSED -> 2
+            else -> 0
+        }
+        Box {
+            LookCard(
+                look = look,
+                subtitle = null,
+                seed = zone.id,
+                waiting = LocalWaiting.current.zone(zone.id),
+                running = LocalRunning.current.zone(zone.id),
+                onClick = onClick,
+                onLongClick = onLongClick,
+                summary = { },
+                glance = {
+                    if (readouts.isNotEmpty() && linesHeld > 0) Column(verticalArrangement = Arrangement.spacedBy(Space.XS)) {
+                        readouts.take(linesHeld).forEach { app.treelune.core.readouts.ui.ReadoutLine(it) }
+                    }
+                    else zone.description?.let { Text(it, TextType.BODY, maxLines = 2) }
+                },
+                body = { },
+                frame = LookFrame.ZONE
+            )
+            if (readouts.isNotEmpty() && linesHeld == 0) Box(modifier = Modifier.align(Alignment.BottomEnd).padding(Space.S)) {
+                app.treelune.core.readouts.ui.ReadoutDots(readouts)
+            }
+        }
     }
 
     @Composable

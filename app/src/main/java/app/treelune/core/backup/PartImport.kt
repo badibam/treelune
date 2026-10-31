@@ -101,7 +101,7 @@ class PartImport(private val context: Context) {
         // A new id for each thing brought, the zone of arrival's for a zone going into one
         val ids = HashMap<String, String>()
         rows(data, "zones").forEach { zone -> ids[zone.getString("id")] = arrivals[zone.getString("id")] ?: newId() }
-        listOf("tool_instances", "tool_data", "variables", "routines", "tasks", "events").forEach { table -> rows(data, table).forEach { ids[it.getString("id")] = newId() } }
+        listOf("tool_instances", "tool_data", "variables", "routines", "tasks", "events", "readouts").forEach { table -> rows(data, table).forEach { ids[it.getString("id")] = newId() } }
         val images = rows(data, "files").filter { !it.has("session_id") && it.getString("id") !in missing }
         images.forEach { ids[it.getString("id")] = newId() }
         val former = images.associate { ids.getValue(it.getString("id")) to it.getString("id") }
@@ -301,13 +301,23 @@ class PartImport(private val context: Context) {
             if (task.getString("zone_id") in existing) written.inExisting += "tasks.delete" to JSONObject().put("task_id", task.getString("id"))
         }
 
-        // The tools, the variables, the routines and the Tasks of a new zone at the places they
+        // The readouts, after the tools and variables they read and open
+        rows(data, "readouts").forEach { readout ->
+            run("readouts.create", app.treelune.core.readouts.ReadoutSettings.of(BackupService.readoutOf(readout)).apply {
+                put("id", readout.getString("id"))
+                put("zone_id", readout.getString("zone_id"))
+            })
+            if (readout.getString("zone_id") in existing) written.inExisting += "readouts.delete" to JSONObject().put("readout_id", readout.getString("id"))
+        }
+
+        // The tools, the variables, the routines, the Tasks and the readouts of a new zone at the places they
         // had, section by section; a row left empty by what does not come is closed as the grid closes them
         val tiles = rows(data, "tool_instances").map { it to JSONObject(it.getString("config_json")).let { c -> c.optString("group") to c.getString("display_mode") } } +
             rows(data, "variables").map { it to (it.optString("group") to it.getString("display_mode")) } +
             rows(data, "routines").map { it to (it.optString("group") to it.getString("display_mode")) } +
             // A Task's row holds no group as null, which optString would read as "null"
-            rows(data, "tasks").map { it to ((if (it.isNull("group")) "" else it.getString("group")) to it.getString("display_mode")) }
+            rows(data, "tasks").map { it to ((if (it.isNull("group")) "" else it.getString("group")) to it.getString("display_mode")) } +
+            rows(data, "readouts").map { it to ((if (it.isNull("group")) "" else it.getString("group")) to it.getString("display_mode")) }
         tiles.filter { (item, _) -> item.getString("zone_id") !in existing }
             .groupBy({ (item, look) -> item.getString("zone_id") to look.first.takeIf { it.isNotEmpty() } }, { (item, look) -> item to look.second })
             .forEach { (section, items) ->
@@ -361,7 +371,7 @@ class PartImport(private val context: Context) {
                 .put("config", JSONObject(api.getString("config_json")).apply { secrets.forEach { name -> key.opt(name)?.let { put(name, it) } } }))
         }
 
-        return Report(newZones.size, elements.size + rows(data, "routines").size + rows(data, "tasks").size, entries.size, renamed, 0,
+        return Report(newZones.size, elements.size + rows(data, "routines").size + rows(data, "tasks").size + rows(data, "readouts").size, entries.size, renamed, 0,
             written.identities.size, replacing.size, written.apis.size, replacingApis.size, otherNames)
     }
 

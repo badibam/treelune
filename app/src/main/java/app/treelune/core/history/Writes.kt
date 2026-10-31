@@ -95,6 +95,16 @@ class Writes(private val context: Context) {
 
     suspend fun deleteEvent(id: String) = delete(CoveredTable.EVENTS, id) { database.eventDao().deleteById(id) }
 
+    // ── Readouts ──
+
+    suspend fun insertReadout(readout: app.treelune.core.readouts.ReadoutEntity) = write(CoveredTable.READOUTS, readout.id) { database.readoutDao().insert(readout) }
+
+    suspend fun updateReadout(readout: app.treelune.core.readouts.ReadoutEntity) = write(CoveredTable.READOUTS, readout.id) { database.readoutDao().update(readout) }
+
+    suspend fun moveReadout(id: String, gridX: Int, gridY: Int) = write(CoveredTable.READOUTS, id) { database.readoutDao().updatePosition(id, gridX, gridY) }
+
+    suspend fun deleteReadout(id: String) = delete(CoveredTable.READOUTS, id) { database.readoutDao().delete(id) }
+
     // ── Routines ──
 
     suspend fun insertRoutine(routine: RoutineEntity) =
@@ -325,7 +335,7 @@ class Writes(private val context: Context) {
         CoveredTable.ZONES -> Place(null, row.getString("id"))
         CoveredTable.TOOL_INSTANCES -> Place(row.getString("id"), row.getString("zone_id"))
         CoveredTable.TOOL_DATA -> toolPlace(row.getString("tool_instance_id"))
-        CoveredTable.VARIABLES, CoveredTable.ROUTINES, CoveredTable.EVENTS, CoveredTable.TASKS -> Place(null, row.getString("zone_id"))
+        CoveredTable.VARIABLES, CoveredTable.ROUTINES, CoveredTable.EVENTS, CoveredTable.TASKS, CoveredTable.READOUTS -> Place(null, row.getString("zone_id"))
         CoveredTable.AI_SESSIONS -> sessionPlace(row.getString("id"))
         CoveredTable.SESSION_MESSAGES -> sessionPlace(row.getString("session_id"))
         CoveredTable.FILES -> when {

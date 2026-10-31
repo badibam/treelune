@@ -164,6 +164,14 @@ class ValidationResolver(private val context: Context) {
             "CREATE_EVENT" -> zoneReason(params["zone_id"] as? String ?: error(s.shared("validation_reason_no_target")), levels)
             "UPDATE_EVENT", "DELETE_EVENT" -> zoneReason(read("events.get", mapOf("event_id" to (params["event_id"] as? String ?: error(s.shared("validation_reason_no_target")))), "event")["zone_id"] as? String
                 ?: error("event without its zone"), levels)
+            // A zone's readouts, as its variables: one moved changes the zone it goes to as well
+            "CREATE_READOUT" -> zoneReason(params["zone_id"] as? String ?: error(s.shared("validation_reason_no_target")), levels)
+            "UPDATE_READOUT", "DELETE_READOUT" -> {
+                val zoneId = read("readouts.get", mapOf("readout_id" to (params["readout_id"] as? String ?: error(s.shared("validation_reason_no_target")))), "readout")["zone_id"] as? String
+                    ?: error("readout without its zone")
+                val target = (params["zone_id"] as? String)?.takeIf { it != zoneId }
+                zoneReason(zoneId, levels) ?: target?.let { zoneReason(it, levels) }
+            }
             "UNDO_STEP", "REDO_STEP" -> stepReason(params["id"] as? String ?: error(s.shared("validation_reason_no_target")), levels)
 
             // An action this resolver does not know is asked rather than let through

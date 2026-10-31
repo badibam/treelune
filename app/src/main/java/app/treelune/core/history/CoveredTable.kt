@@ -20,11 +20,12 @@ enum class CoveredTable(
 ) {
     IDENTITIES("identities"),
     APIS("apis"),
-    ZONES("zones", children = listOf("tool_instances" to "zone_id", "variables" to "zone_id", "events" to "zone_id")),
+    ZONES("zones", children = listOf("tool_instances" to "zone_id", "variables" to "zone_id", "events" to "zone_id", "readouts" to "zone_id")),
     TOOL_INSTANCES("tool_instances", children = listOf("tool_data" to "tool_instance_id", "files" to "tool_instance_id")),
     TOOL_DATA("tool_data", children = listOf("files" to "entry_id")),
     VARIABLES("variables"),
     EVENTS("events"),
+    READOUTS("readouts"),
     ROUTINES("routines"),
     // A Task hangs from its zone by its column alone: zones.delete takes it out row by row
     TASKS("tasks"),

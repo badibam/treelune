@@ -276,6 +276,8 @@ class AICommandProcessor(private val context: Context) {
                 isActionCommand = true
             )
             "CREATE_API", "UPDATE_API", "DELETE_API" -> apiCommand(command, stored = true)
+            // A readout's settings written as READOUTS reads them, in the stored form
+            "CREATE_READOUT", "UPDATE_READOUT", "DELETE_READOUT" -> readoutCommand(command, stored = true)
 
             else -> {
                 LogManager.aiService("Unknown action command type: ${command.type}", "WARN")
@@ -396,6 +398,7 @@ class AICommandProcessor(private val context: Context) {
                 isActionCommand = true
             )
             "CREATE_API", "UPDATE_API", "DELETE_API" -> apiCommand(command, stored = false)
+            "CREATE_READOUT", "UPDATE_READOUT", "DELETE_READOUT" -> readoutCommand(command, stored = false)
 
             else -> {
                 LogManager.aiService("Unknown action command type for verbalization: ${command.type}", "WARN")
@@ -454,6 +457,34 @@ class AICommandProcessor(private val context: Context) {
             resource = "tasks",
             operation = command.type.substringBefore('_').lowercase(),
             params = settings + command.params.filterKeys { it in setOf("zone_id", "task_id") } + listOfNotNull(steps?.let { "steps" to it }),
+            isActionCommand = true
+        )
+    }
+
+    /**
+     * A readout's command: its settings at the top of the service's params, as READOUTS gives
+     * them; on the way in ([stored]), a date or a duration in its stored form, by the schema's
+     * marks (ModelValues) and, in its colours' conditions, by the value each side faces
+     * (ConditionValues, its values as a row's fields).
+     */
+    private suspend fun readoutCommand(command: DataCommand, stored: Boolean): ExecutableCommand {
+        val schema = JSONObject(app.treelune.core.readouts.ReadoutSettings.schema(context).content)
+        val zone = AppConfigManager.getDateTimeConfig().getZoneId()
+        val settings = when (val given = command.params["settings"]) {
+            null -> emptyMap()
+            is Map<*, *> -> {
+                val read = (if (stored) ModelValues.fromModel(given, schema, zone) as Map<*, *> else given).entries.associate { (key, value) -> key.toString() to value }
+                if (!stored) read else JsonUtils.toMap(ConditionValues(app.treelune.core.conditions.AppConditionSources(context, app.treelune.core.readouts.ReadoutRows), zone) { s.shared(it) }
+                    .toStored(app.treelune.core.readouts.ReadoutSettings.nodes(context), JsonUtils.toJSONObject(read)))
+            }
+            else -> throw IllegalArgumentException(s.shared("ai_error_param_type").format("settings", "object"))
+        }
+        val known = schema.getJSONObject("properties").keys().asSequence().toList()
+        (settings.keys - known.toSet()).firstOrNull()?.let { throw IllegalArgumentException(s.shared("service_error_param_unknown").format(it, known.joinToString(", "))) }
+        return ExecutableCommand(
+            resource = "readouts",
+            operation = command.type.substringBefore('_').lowercase(),
+            params = settings + command.params.filterKeys { it in setOf("zone_id", "readout_id") },
             isActionCommand = true
         )
     }

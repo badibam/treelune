@@ -151,6 +151,41 @@ class BackupService(private val context: Context) : ExecutableService {
             // Absent from a backup made before version 102: it emits nothing
             emitEvent = item.nullableString("emit_event")
         )
+
+        /** A readout as a backup and a part carry it: its row, its settings as stored. */
+        fun readoutJson(readout: app.treelune.core.readouts.ReadoutEntity): JSONObject = JSONObject().apply {
+            put("id", readout.id)
+            put("zone_id", readout.zoneId)
+            put("name", readout.name)
+            put("description", readout.description ?: JSONObject.NULL)
+            put("icon_name", readout.iconName)
+            put("icon_color", readout.iconColor ?: JSONObject.NULL)
+            put("texture", readout.texture ?: JSONObject.NULL)
+            put("display_mode", readout.displayMode)
+            put("group", readout.group ?: JSONObject.NULL)
+            put("grid_x", readout.gridX)
+            put("grid_y", readout.gridY)
+            put("settings_json", readout.settingsJson)
+            put("created_at", readout.createdAt)
+            put("updated_at", readout.updatedAt)
+        }
+
+        fun readoutOf(item: JSONObject): app.treelune.core.readouts.ReadoutEntity = app.treelune.core.readouts.ReadoutEntity(
+            id = item.getString("id"),
+            zoneId = item.getString("zone_id"),
+            name = item.getString("name"),
+            description = item.nullableString("description"),
+            iconName = item.getString("icon_name"),
+            iconColor = item.nullableString("icon_color"),
+            texture = item.nullableString("texture"),
+            displayMode = item.getString("display_mode"),
+            group = item.nullableString("group"),
+            gridX = item.getInt("grid_x"),
+            gridY = item.getInt("grid_y"),
+            settingsJson = item.getString("settings_json"),
+            createdAt = item.getLong("created_at"),
+            updatedAt = item.getLong("updated_at")
+        )
     }
 
     /** Both read or rewrite the whole base: never with another, the demo or an import. */
@@ -269,7 +304,7 @@ class BackupService(private val context: Context) : ExecutableService {
         }
 
         val data = built.json.getJSONObject("data")
-        val elements = listOf("tool_instances", "variables", "routines", "identities", "tasks", "apis").sumOf { data.optJSONArray(it)?.length() ?: 0 }
+        val elements = listOf("tool_instances", "variables", "routines", "identities", "tasks", "apis", "readouts").sumOf { data.optJSONArray(it)?.length() ?: 0 }
         val entries = data.optJSONArray("tool_data")?.length() ?: 0
         LogManager.service("Backup: ${written.second} written, $elements elements, $entries entries, ${built.files.size} files, ${built.missing} without their file")
         return OperationResult.success(mapOf(
@@ -413,6 +448,7 @@ class BackupService(private val context: Context) : ExecutableService {
             val apis = database.apiDao().getAll()
             val tasks = database.taskDao().getAll()
             val events = database.eventDao().getAll()
+            val readouts = database.readoutDao().getAll()
             // The files of messages, entries and tools: their rows in the JSON, their files beside it.
             // A row whose file is missing is an error the backup copies as it is, neither
             // hidden nor repaired: its row goes, named in missing_files, and the export says how many
@@ -726,6 +762,9 @@ class BackupService(private val context: Context) : ExecutableService {
                             })
                         }
                     })
+
+                    // The readouts of the zones
+                    put("readouts", JSONArray().apply { readouts.forEach { put(readoutJson(it)) } })
 
                     // The files whose file was missing at the export: their rows go without one
                     put("missing_files", JSONArray(missingFiles.map { it.id }))
@@ -1179,6 +1218,11 @@ class BackupService(private val context: Context) : ExecutableService {
                     description = if (item.has("description") && !item.isNull("description")) item.getString("description") else null
                 ))
             }
+        }
+
+        // Readouts, after their zones: absent from a backup made before version 109
+        data.optJSONArray("readouts")?.let { array ->
+            for (i in 0 until array.length()) database.readoutDao().insert(readoutOf(array.getJSONObject(i)))
         }
 
         // APIs: absent from a backup made before version 96
