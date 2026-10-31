@@ -3118,7 +3118,7 @@
     <string name="readout_schema_display_mode">How the readout\'s own tile shows among its section\'s tools: ICON and MINIMAL (its icon, to keep it small), LINE (its sentence beside its name, the default), CONDENSED (its sentence under it)</string>
     <string name="readout_schema_group">One of the tool groups of its zone, where its own tile stands</string>
     <string name="readout_text">Sentence</string>
-    <string name="readout_schema_text">The sentence it shows, each of its values written {name} where it goes: \"Water: {done} / {expected}\"</string>
+    <string name="readout_schema_text">Optional: the long form, shown where room is (the head of a group, of a zone, of the home screen), placing its core with {}: \"Water: {}\", \"Still {} glasses today\"; without it, its core shows everywhere</string>
     <string name="readout_values">Values</string>
     <string name="readout_value_name">Name</string>
     <string name="readout_schema_value_name">The name the sentence and the colours write it by: a letter or _, then letters, digits, _</string>
@@ -3166,4 +3166,7 @@
     <string name="ai_read_user_readouts">All readouts read</string>
     <string name="ai_read_user_readouts_of">\'%1$s\': readouts read</string>
     <string name="ai_read_user_readout">A readout read</string>
+    <string name="readout_core">Core</string>
+    <string name="readout_schema_core">The short form, shown where room is short (a zone\'s tile, its own tile beside its name), each of its values written {name}: \"{done} / {expected}\"</string>
+    <string name="readout_error_core_place">The core is the short form itself: {} places it in the sentence, not in itself</string>
 </resources>

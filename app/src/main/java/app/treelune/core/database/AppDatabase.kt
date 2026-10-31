@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 109
+        const val VERSION = 110
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2342,6 +2342,27 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** A readout's short form, its core: see ReadoutCoreAtV110. */
+        private val MIGRATION_109_110 = object : ConnectionMigration(109, 110) {
+            override fun migrate(database: MigrationDatabase) {
+                val v = app.treelune.core.versioning.ReadoutCoreAtV110
+                var rewritten = 0
+                database.query("SELECT id, settings_json FROM readouts").use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getString(0)
+                        // A row that cannot be read stays as it was and is logged: reading it then fails with the reason
+                        try {
+                            v.settings(cursor.getString(1))?.let { database.execSQL("UPDATE readouts SET settings_json = ? WHERE id = ?", arrayOf<Any?>(it, id)); rewritten++ }
+                        } catch (e: Exception) {
+                            LogManager.database("MIGRATION 109->110: readout $id left as it was: ${e.message}", "ERROR", e)
+                        }
+                    }
+                }
+                app.treelune.core.versioning.HistoryCopies.rewrite(database, "readouts") { v.readout(it) }
+                LogManager.database("MIGRATION 109->110: $rewritten readout(s) with their sentence as their core", "INFO")
+            }
+        }
+
         /** The readouts of the zones (docs/design/readouts.md), none so far. */
         private val MIGRATION_108_109 = object : ConnectionMigration(108, 109) {
             override fun migrate(database: MigrationDatabase) {
@@ -3466,7 +3487,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_105_106,
                     MIGRATION_106_107,
                     MIGRATION_107_108,
-                    MIGRATION_108_109
+                    MIGRATION_108_109,
+                    MIGRATION_109_110
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

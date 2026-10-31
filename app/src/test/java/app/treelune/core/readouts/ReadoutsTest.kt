@@ -56,7 +56,8 @@ class ReadoutsTest {
     private fun water(extra: Map<String, Any?> = emptyMap()): Map<String, Any?> = mapOf(
         "zone_id" to zoneId,
         "name" to "Water today",
-        "text" to "Water: {done} / {expected}",
+        "core" to "{done} / {expected}",
+        "text" to "Water: {}",
         "values" to listOf(
             mapOf("name" to "done", "value" to mapOf("reading" to mapOf("selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to waterId), "period" to today), "reduction" to "COUNT"))),
             mapOf("name" to "expected", "value" to mapOf("constant" to 2))
@@ -78,6 +79,7 @@ class ReadoutsTest {
         val id = ok("readouts.create", water())["readout_id"] as String
         val empty = read(id)
         assertEquals("Water: 0 / 2", empty["text"])
+        assertEquals("0 / 2", empty["core"])
         assertEquals("RED", empty["color"])
         assertEquals(true, empty["signal"])
 
@@ -107,6 +109,19 @@ class ReadoutsTest {
         assertEquals(listOf("zone_head", "zone_tile"), settings["places"])
         assertEquals("Water today", settings["name"])
         assertEquals("0 glasses", read(id)["text"])
+    }
+
+    @Test
+    fun withoutASentence_itsCoreShowsEverywhere() = runBlocking {
+        val id = ok("readouts.create", water() - "text")["readout_id"] as String
+        val shown = read(id)
+        assertEquals("0 / 2", shown["core"])
+        assertEquals("0 / 2", shown["text"])
+    }
+
+    @Test
+    fun aCorePlacingItself_isRefused(): Unit = runBlocking {
+        refused("readouts.create", water(mapOf("core" to "{done} {}")))
     }
 
     @Test
@@ -151,5 +166,13 @@ class ReadoutsTest {
         val settings = org.json.JSONObject(app.treelune.core.utils.JsonUtils.toJSONObject(water() - "zone_id").toString())
             .put("values", org.json.JSONArray().put(org.json.JSONObject().put("name", "goal").put("value", org.json.JSONObject().put("variable", "var-1"))))
         assertEquals(setOf(waterId, "var-1"), app.treelune.core.backup.BackupPart.readoutNames(settings))
+    }
+
+    @Test
+    fun aSentenceBefore110_becomesItsCore() {
+        val migrated = org.json.JSONObject(app.treelune.core.versioning.ReadoutCoreAtV110.settings("""{"text": "Water: {done}", "values": []}""")!!)
+        assertEquals("Water: {done}", migrated.getString("core"))
+        assertFalse(migrated.has("text"))
+        assertEquals(null, app.treelune.core.versioning.ReadoutCoreAtV110.settings(migrated.toString()))
     }
 }

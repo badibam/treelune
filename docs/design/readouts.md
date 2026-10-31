@@ -8,9 +8,9 @@ Savoir ce qui reste à faire sans avoir à s'en souvenir. La pastille dit qu'un 
 
 ## Ce qu'est un Repère
 
-Une chose nouvelle, créée dans un groupe d'outils d'une zone, au même niveau qu'un outil, une variable ou une Tâche. Il affiche une phrase dont des valeurs sont lues au moment de l'affichage. Il ne calcule rien pour les autres : une formule, une condition, un graphique lisent une variable, jamais un Repère.
+Une chose nouvelle, créée dans un groupe d'outils d'une zone, au même niveau qu'un outil, une variable ou une Tâche. Il affiche un cœur, et une phrase qui le place, dont des valeurs sont lues au moment de l'affichage. Il ne calcule rien pour les autres : une formule, une condition, un graphique lisent une variable, jamais un Repère.
 
-- **Sa phrase** : un texte où des valeurs nommées s'écrivent `{nom}` (« Verres d'eau : {fait} / {attendu} »), chaque valeur déclarée sous la phrase et étant un Terme (une constante, une variable, une Lecture), choisi par `TermPicker`. Lue avec maintenant pour référence, relue quand un outil ou une variable qu'elle lit change, comme une tuile de variable (`tools_read`).
+- **Son cœur et sa phrase** : le cœur, la forme courte, où des valeurs nommées s'écrivent `{nom}` (« {fait} / {attendu} ») ; la phrase, facultative, la forme longue, qui place le cœur avec `{}` (« Eau : {} », « Encore {} verres aujourd'hui ») et peut écrire elle aussi des valeurs ; sans phrase, le cœur se montre partout. Chaque valeur est déclarée dessous, un Terme (une constante, une variable, une Lecture), choisi par `TermPicker`. Lue avec maintenant pour référence, relue quand un outil ou une variable qu'elle lit change, comme une tuile de variable (`tools_read`).
 - **Sa cible** : une chose de l'app (`Reference` : l'app, une zone, un outil…), ouverte par le toucher. Obligatoire : la création la préremplit de l'outil que lit sa première Lecture, montré dans le formulaire et validé en enregistrant.
 - **Ses couleurs** : une liste ordonnée de lignes `condition → couleur`, la première vraie l'emportant ; aucune vraie, pas de couleur. Une condition est posée sur ses valeurs comme celle d'un Graphique sur les colonnes d'une ligne (`SettingNode.Condition.onRow`) : un côté est une de ses valeurs par son nom, `{"field": "fait"}`, ou une valeur écrite, ses valeurs servant de champs de la ligne (`ReadoutRows`) ; ni le Terme ni la Condition ne changent. La couleur est un nom de la palette des icônes (`IconColor`), que le thème dessine. Une case **« Signaler »** par ligne fait aussi allumer la pastille par cette ligne ; une ligne qui dit que tout va bien ne la coche pas, pour que la pastille reste un appel.
 - **Son habillage** : la brique Look entière (icône, sa couleur, texture, mode d'affichage), comme toute tuile. Chaque endroit en prend ce qui lui sert.
@@ -29,9 +29,9 @@ Plusieurs Repères au même endroit se regroupent en une seule tuile, dans l'ord
 
 | Endroit | Ce qu'il prend du Repère |
 |---|---|
-| Sa tuile propre | tout, mode d'affichage et texture compris |
-| Une tuile regroupée | l'icône, sa couleur, la phrase dans sa couleur, une ligne chacun |
-| La tuile de sa zone, assez grande | les lignes qui tiennent, les suivantes coupées |
+| Sa tuile propre | tout, mode d'affichage et texture compris ; son nom dans l'en-tête, son cœur à côté |
+| Une tuile regroupée | l'icône, sa couleur, la phrase dans sa couleur, une ligne chacun, sur deux lignes au plus |
+| La tuile de sa zone, assez grande | l'icône et le cœur de chacun, côte à côte, à la ligne quand la place finit, ce qui ne tient pas coupé |
 | La tuile de sa zone en Icône ou en Minimal | des points côte à côte, un par Repère qui signale, trois au plus, dans l'ordre de l'arbre, chacun dans sa couleur |
 
 ## Le créer, le modifier

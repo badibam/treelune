@@ -81,8 +81,8 @@ data class ReadoutRow(
     }
 }
 
-/** What a readout says now: its sentence, its colour, whether it signals. */
-data class ReadoutShown(val text: String, val color: TagColor?, val signal: Boolean)
+/** What a readout says now: its core, its sentence, its colour, whether it signals. */
+data class ReadoutShown(val core: String, val text: String, val color: TagColor?, val signal: Boolean)
 
 /**
  * What [readout] says now, null while it is first read; read again when an entry of a tool it
@@ -103,8 +103,9 @@ fun rememberReadoutShown(readout: ReadoutRow): ReadoutShown? {
     }
     LaunchedEffect(readout, version) {
         val result = Coordinator(context).processUserAction("readouts.read", mapOf("readout_id" to readout.id))
-        shown = if (!result.isSuccess) ReadoutShown(result.error ?: s.shared("field_reference_unreadable"), null, false)
-        else ReadoutShown(result.data?.get("text") as? String ?: "", IconColor.of(result.data?.get("color") as? String), result.data?.get("signal") == true)
+        shown = if (!result.isSuccess) (result.error ?: s.shared("field_reference_unreadable")).let { ReadoutShown(it, it, null, false) }
+        else ReadoutShown(result.data?.get("core") as? String ?: "", result.data?.get("text") as? String ?: "",
+            IconColor.of(result.data?.get("color") as? String), result.data?.get("signal") == true)
     }
     return shown
 }
@@ -126,15 +127,15 @@ fun openTarget(readout: ReadoutRow) {
 /** Opens [readout]'s config. */
 fun configure(readout: ReadoutRow) = Navigator.push(Place.ReadoutConfig(readout.zoneId, readout.id))
 
-/** A readout's sentence in its colour (UI.Tag), or plain without one. */
+/** A readout's sentence, or its core when [short], in its colour (UI.Tag), or plain without one. */
 @Composable
-fun ReadoutSentence(shown: ReadoutShown?, maxLines: Int = 2) {
+fun ReadoutSentence(shown: ReadoutShown?, maxLines: Int = 2, short: Boolean = false) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     when {
         shown == null -> UI.Text(s.shared("tools_loading"), TextType.BODY, maxLines = maxLines)
-        shown.color != null -> UI.Tag(shown.text, shown.color, maxLines)
-        else -> UI.Text(shown.text, TextType.BODY, maxLines = maxLines)
+        shown.color != null -> UI.Tag(if (short) shown.core else shown.text, shown.color, maxLines)
+        else -> UI.Text(if (short) shown.core else shown.text, TextType.BODY, maxLines = maxLines)
     }
 }
 
@@ -156,8 +157,9 @@ fun ReadoutCard(readout: ReadoutRow) {
         running = false,
         onClick = { openTarget(readout) },
         onLongClick = { configure(readout) },
-        summary = { ReadoutSentence(shown) },
-        glance = { ReadoutSentence(shown) },
+        // Its name in its header: its core says the rest
+        summary = { ReadoutSentence(shown, short = true) },
+        glance = { ReadoutSentence(shown, short = true) },
         body = { }
     )
 }
@@ -178,10 +180,10 @@ fun ReadoutLines(readouts: List<ReadoutRow>, maxLines: Int? = null) {
     }
 }
 
-/** One readout on a line of a gathered card, its sentence wrapping over [maxLines] lines at most. */
+/** One readout on a line of a gathered card, its sentence, or its core when [short], wrapping over [maxLines] lines at most. */
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-fun ReadoutLine(readout: ReadoutRow, maxLines: Int = 2) {
+fun ReadoutLine(readout: ReadoutRow, maxLines: Int = 2, short: Boolean = false) {
     val shown = rememberReadoutShown(readout)
     Row(
         modifier = Modifier.fillMaxWidth().combinedClickable(onClick = { openTarget(readout) }, onLongClick = { configure(readout) }),
@@ -189,7 +191,35 @@ fun ReadoutLine(readout: ReadoutRow, maxLines: Int = 2) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         readout.look.iconName?.let { UI.ItemIcon(it, IconColor.of(readout.look.iconColor), 20.dp) }
-        ReadoutSentence(shown, maxLines)
+        ReadoutSentence(shown, maxLines, short)
+    }
+}
+
+/**
+ * The readouts of a zone's tile, side by side and wrapping to the next line where room ends, each
+ * its icon and its core in its colour; what the tile does not hold is cut. A touch on one opens
+ * its target, a long touch its config.
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+fun ReadoutCores(readouts: List<ReadoutRow>) {
+    androidx.compose.foundation.layout.FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
+        verticalArrangement = Arrangement.spacedBy(UI.Space.XS)
+    ) {
+        readouts.forEach { readout ->
+            androidx.compose.runtime.key(readout.id) {
+                val shown = rememberReadoutShown(readout)
+                Row(
+                    modifier = Modifier.combinedClickable(onClick = { openTarget(readout) }, onLongClick = { configure(readout) }),
+                    horizontalArrangement = Arrangement.spacedBy(UI.Space.XS),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    readout.look.iconName?.let { UI.ItemIcon(it, IconColor.of(readout.look.iconColor), 20.dp) }
+                    ReadoutSentence(shown, maxLines = 1, short = true)
+                }
+            }
+        }
     }
 }
 

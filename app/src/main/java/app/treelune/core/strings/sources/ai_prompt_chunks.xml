@@ -874,14 +874,14 @@ Lists the readouts: sentences whose values are read each time they show, coloure
 - `zone_id` (string, optional): the readouts of that zone alone]]></string>
     <string name="ai_command_readout"><![CDATA[### READOUT
 
-Reads what a readout says now: its sentence with each value written in (`text`), the colour of the first condition that holds (`color`, absent when none does), whether that one signals (`signal`), and the values that gave nothing, each with why (`failures`).
+Reads what a readout says now: its core and its sentence with each value written in (`core`, `text`, the core alone without a sentence), the colour of the first condition that holds (`color`, absent when none does), whether that one signals (`signal`), and the values that gave nothing, each with why (`failures`).
 
 **Parameters**:
 
 - `id` (string, **required**): the readout\'s id]]></string>
     <string name="ai_command_create_readout"><![CDATA[### CREATE_READOUT
 
-Creates a readout in a zone, its own tile in a group of it. Its `settings`, described by SCHEMA with `id` `readout_settings`: its look (`name`, `icon_name`, `display_mode`…) and `group`; `text`, the sentence, each value written `{name}`; `values`, each `{"name", "value"}`, `value` a term (`{"constant"}`, `{"variable"}`, `{"reading"}` over a period relative to the moment it shows); `target`, what a touch opens (`{"kind": "APP"}`, a ZONE or a TOOL_INSTANCE by its id), required; `colors`, in order, each `{"when", "color", "signal"}`, `when` a condition whose sides are its values by name (`{"field": "done"}`) or written values, the first that holds giving its colour; `signal` true only where the user should look; `places`, among `group_head`, `zone_head`, `zone_tile`, `zone_group_head`, `home_head`. A value that computes a formula in each entry is a variable\'s: make one, and read it.
+Creates a readout in a zone, its own tile in a group of it. Its `settings`, described by SCHEMA with `id` `readout_settings`: its look (`name`, `icon_name`, `display_mode`…) and `group`; `core`, the short form shown where room is short, each value written `{name}` (“{done} / {expected}”); `text`, optional, the long form shown where room is, placing the core with `{}` (“Water: {}”), without it the core showing everywhere; `values`, each `{"name", "value"}`, `value` a term (`{"constant"}`, `{"variable"}`, `{"reading"}` over a period relative to the moment it shows); `target`, what a touch opens (`{"kind": "APP"}`, a ZONE or a TOOL_INSTANCE by its id), required; `colors`, in order, each `{"when", "color", "signal"}`, `when` a condition whose sides are its values by name (`{"field": "done"}`) or written values, the first that holds giving its colour; `signal` true only where the user should look; `places`, among `group_head`, `zone_head`, `zone_tile`, `zone_group_head`, `home_head`. A value that computes a formula in each entry is a variable\'s: make one, and read it.
 
 **Parameters**:
 
@@ -1711,7 +1711,7 @@ How to answer a need with the app\'s pieces. The principles come first: they say
 - **Being told when a threshold is crossed.** A Task without steps, its trigger a `condition` (“the week\'s hours > 45”), its end notified (`notify_end`).
 - **A reminder only if…** A Task whose `tool_operation` step calls `messages.execute` (send now) of a Messages tool, the step carrying `when` its condition holds. `when` exists on every step of a Task.
 - **The time between two moments.** A variable whose formula subtracts two instants: `now()` minus a term reading the latest date of a tool (the time since a meal), or two dates read (a night).
-- **What is left to do today.** A readout (`CREATE_READOUT`) whose sentence reads today\'s count of each tool to fill (“Water: {done} / {expected}”), coloured by its conditions, risen to the head of its zone or to the home screen. It also gathers in one line what lies in several groups, and gives a criterion its colour without a Goal.
+- **What is left to do today.** A readout (`CREATE_READOUT`) whose core reads today\'s count of each tool to fill (“{done} / {expected}”, its sentence “Water: {}”), coloured by its conditions, risen to the head of its zone or to the home screen. It also gathers in one line what lies in several groups, and gives a criterion its colour without a Goal.
 - **Making something with an AI and a service.** An answer starts a Task that runs a routine (`run_routine`, the entry attached); the routine gathers the context and creates a record; that record written starts a Task that calls the API (`call_api`) and writes its answer (an audio, a title) into the record (`update_entry`); a Sequence plays it.
 - **Giving a memory to a service that has none.** After each session, a routine writes a stop in a journal and rewrites a map in a note; the routine that prepares the next session reads both through its pointers.
 - **Keeping in step with an outside service.** A Task run by hand sends the API lists of entries (an input of type list, filled by a selection) and, for each element of the lists it answers (`for_each`), creates an entry, `existing` set to leave it or update it, `append` adding text under what a field holds.

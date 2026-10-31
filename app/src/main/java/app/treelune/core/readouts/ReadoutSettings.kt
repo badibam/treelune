@@ -20,7 +20,9 @@ import org.json.JSONObject
 
 /**
  * A readout's settings, declared with the fields (docs/design/readouts.md): its look and its
- * group, as any tile's; its sentence, where `{name}` stands for one of its values; its values, each
+ * group, as any tile's; its core, the short form every place shows where room is short, where
+ * `{name}` stands for one of its values; its sentence, optional, placing its core with `{}` (without
+ * one, its core shows everywhere); its values, each
  * a name and a term read when it is shown; the thing a touch opens; its colours, each a condition
  * on its values put as on a row (`{"field": "done"}`, ReadoutRows), a colour, and whether it
  * signals; the places it rises to besides its own tile. Not its zone (its place).
@@ -30,7 +32,10 @@ object ReadoutSettings {
     const val SCHEMA_ID = "readout_settings"
     const val DEFAULT_ICON = "gauge"
 
+    const val CORE = "core"
     const val TEXT = "text"
+    /** Where a sentence places its core. */
+    const val CORE_PLACE = "{}"
     const val VALUES = "values"
     const val NAME = "name"
     const val VALUE = "value"
@@ -78,8 +83,10 @@ object ReadoutSettings {
     fun body(context: Context): List<SettingNode> {
         val s = Strings.`for`(context = context)
         return listOf(
-            SettingNode.Field(FieldDefinition(TEXT, s.shared("readout_text"), s.shared("readout_schema_text"), FieldType.TEXT, false,
+            SettingNode.Field(FieldDefinition(CORE, s.shared("readout_core"), s.shared("readout_schema_core"), FieldType.TEXT, false,
                 mapOf("length" to TextLength.SHORT.name)), required = true),
+            SettingNode.Field(FieldDefinition(TEXT, s.shared("readout_text"), s.shared("readout_schema_text"), FieldType.TEXT, false,
+                mapOf("length" to TextLength.MEDIUM.name))),
             SettingNode.ListOf(VALUES, s.shared("readout_values"), SettingNode.Item.Of(listOf(
                 SettingNode.Field(FieldDefinition(NAME, s.shared("readout_value_name"), s.shared("readout_schema_value_name"), FieldType.TEXT, false,
                     mapOf("length" to TextLength.SHORT.name)), required = true),
@@ -116,7 +123,7 @@ object ReadoutSettings {
     }
 
     /** The keys of the body, which settings_json stores; the others are columns. */
-    val BODY_KEYS = listOf(TEXT, VALUES, TARGET, COLORS, PLACES)
+    val BODY_KEYS = listOf(CORE, TEXT, VALUES, TARGET, COLORS, PLACES)
 
     /** The places [settings] names, in the order of the tree. */
     fun places(settings: JSONObject): Set<Place> {

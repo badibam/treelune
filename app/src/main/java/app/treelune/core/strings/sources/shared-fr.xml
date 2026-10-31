@@ -3118,7 +3118,7 @@
     <string name="readout_schema_display_mode">Comment la tuile propre du Repère se montre parmi les outils de sa section : ICON et MINIMAL (son icône, pour qu\'elle prenne peu de place), LINE (sa phrase à côté de son nom, par défaut), CONDENSED (sa phrase dessous)</string>
     <string name="readout_schema_group">Un des groupes d\'outils de sa zone, où se tient sa tuile propre</string>
     <string name="readout_text">Phrase</string>
-    <string name="readout_schema_text">La phrase qu\'il montre, chacune de ses valeurs écrite {nom} là où elle va : « Eau : {fait} / {attendu} »</string>
+    <string name="readout_schema_text">Facultative : la forme longue, montrée là où il y a la place (la tête d\'un groupe, d\'une zone, de l\'accueil), qui place son cœur avec {} : « Eau : {} », « Encore {} verres aujourd\'hui » ; sans elle, son cœur se montre partout</string>
     <string name="readout_values">Valeurs</string>
     <string name="readout_value_name">Nom</string>
     <string name="readout_schema_value_name">Le nom sous lequel la phrase et les couleurs l\'écrivent : une lettre ou _, puis des lettres, chiffres, _</string>
@@ -3166,4 +3166,7 @@
     <string name="ai_read_user_readouts">Tous les Repères lus</string>
     <string name="ai_read_user_readouts_of">« %1$s » : Repères lus</string>
     <string name="ai_read_user_readout">Un Repère lu</string>
+    <string name="readout_core">Cœur</string>
+    <string name="readout_schema_core">La forme courte, montrée là où la place manque (la tuile d\'une zone, sa tuile propre à côté de son nom), chacune de ses valeurs écrite {nom} : « {fait} / {attendu} »</string>
+    <string name="readout_error_core_place">Le cœur est lui-même la forme courte : {} le place dans la phrase, pas en lui-même</string>
 </resources>

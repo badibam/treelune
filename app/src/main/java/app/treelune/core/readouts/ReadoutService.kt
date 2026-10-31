@@ -44,8 +44,8 @@ import java.util.UUID
  *   it reads (`tools_read`, VariableService.ANY_TOOL when one of its variables may read any)
  * - .create (zone_id, its settings at the top); .update (readout_id, what changes: a setting left
  *   out kept, one given null removed; `zone_id`); .delete (readout_id)
- * - .read (readout_id, `at`? — now when left out): its sentence with each value written as its
- *   field shows it, the colour of the first condition that holds and whether that one signals,
+ * - .read (readout_id, `at`? — now when left out): its core and its sentence (`core`, `text`, the
+ *   core alone without a sentence), each value written as its field shows it, the colour of the first condition that holds and whether that one signals,
  *   and the values that gave nothing, each with why
  *
  * A write is checked as the screen checks it: its settings against their schema, its look as
@@ -182,8 +182,10 @@ class ReadoutService(private val context: Context) : ExecutableService {
         Groups.refusal(group, ToolPositions.zoneGroups(zone.tool_groups), s)?.let { throw Refused(it) }
 
         val names = checkValues(settings)
-        // Every name its sentence writes is one of its values
-        val written = PLACEHOLDER.findAll(settings.optString(ReadoutSettings.TEXT)).map { it.groupValues[1] }.toList()
+        // Every name its core and its sentence write is one of its values; its core does not place itself
+        val core = settings.optString(ReadoutSettings.CORE)
+        if (ReadoutSettings.CORE_PLACE in core) throw Refused(s.shared("readout_error_core_place"))
+        val written = (PLACEHOLDER.findAll(core) + PLACEHOLDER.findAll(settings.optString(ReadoutSettings.TEXT))).map { it.groupValues[1] }.toList()
         written.firstOrNull { it !in names }?.let { throw Refused(s.shared("readout_error_text_name").format(it, names.joinToString(", "))) }
         ConditionCheck(AppConditionSources(context, ReadoutRows)) { s.shared(it) }.refuse(ReadoutSettings.nodes(context), settings)?.let { throw Refused(it) }
         checkTarget(settings)
@@ -284,11 +286,14 @@ class ReadoutService(private val context: Context) : ExecutableService {
             }
         }
 
-        // The sentence, each value as its field shows it; one that gave nothing as « ? »
-        val text = PLACEHOLDER.replace(settings.optString(ReadoutSettings.TEXT)) { match ->
+        // Its core and its sentence, each value as its field shows it, one that gave nothing as « ? »;
+        // the sentence with its core in its place, the core alone without one
+        fun written(template: String) = PLACEHOLDER.replace(template) { match ->
             val (value, field) = read[match.groupValues[1]] ?: (null to null)
             if (value == null) s.shared("readout_value_missing") else field?.formatValue(value, context) ?: value.toString()
         }
+        val core = written(settings.optString(ReadoutSettings.CORE))
+        val text = settings.optString(ReadoutSettings.TEXT).takeIf { it.isNotBlank() }?.let { written(it).replace(ReadoutSettings.CORE_PLACE, core) } ?: core
 
         // The first colour whose condition holds; one not knowing is not holding
         val colors = settings.optJSONArray(ReadoutSettings.COLORS) ?: JSONArray()
@@ -304,6 +309,7 @@ class ReadoutService(private val context: Context) : ExecutableService {
         }
         return OperationResult.success(buildMap {
             put("readout_id", readout.id)
+            put("core", core)
             put("text", text)
             color?.let { put("color", it) }
             put("signal", signal)

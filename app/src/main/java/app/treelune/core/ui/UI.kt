@@ -761,8 +761,9 @@ object UI {
      * name when it has none (ICON), its icon and name (MINIMAL), its description beside them
      * (LINE) or below (CONDENSED). Something waiting or running in one of its tools or routines
      * (LocalWaiting, LocalRunning) is marked on its icon. The readouts raised to its tile
-     * ([readouts], in the order of the tree) take its description's place where a line holds, as
-     * many as hold; where none does (ICON, MINIMAL), a dot for each that signals, in its corner.
+     * ([readouts], in the order of the tree) take its description's place where a line holds, each
+     * its icon and its core, side by side; where none does (ICON, MINIMAL), a dot for each that
+     * signals, in its corner.
      */
     @Composable
     fun ZoneCard(
@@ -788,11 +789,8 @@ object UI {
                 onLongClick = onLongClick,
                 summary = { },
                 glance = {
-                    if (readouts.isNotEmpty() && linesHeld > 0) Column(verticalArrangement = Arrangement.spacedBy(Space.XS)) {
-                        // One alone wraps over every line the tile holds; several take one each
-                        val shown = readouts.take(linesHeld)
-                        shown.forEach { app.treelune.core.readouts.ui.ReadoutLine(it, maxLines = if (shown.size == 1) linesHeld else 1) }
-                    }
+                    // Each by its icon and its core, side by side as many as the tile holds
+                    if (readouts.isNotEmpty() && linesHeld > 0) app.treelune.core.readouts.ui.ReadoutCores(readouts)
                     else zone.description?.let { Text(it, TextType.BODY, maxLines = 2) }
                 },
                 body = { },
