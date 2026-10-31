@@ -20,6 +20,8 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
+- L'historique nomme « l'outil « sans nom » (zone « sans nom ») » la suppression d'une entrée de Repas faite depuis l'écran (le 2026-10-31 à 21 h 54) : le nom de l'outil et de la zone d'une entrée supprimée n'est pas retrouvé.
+
 - Un CSV envoyé par le connecteur (`upload_address`) n'est pas importable : il reste en attente qu'une entrée le prenne (`McpUploads`), et `IMPORT_PLAN` ne lit que les textes enregistrés (`Files.textOf`), « Aucun texte n'a l'id » ; l'import d'une table depuis un client du connecteur passe aujourd'hui par le téléphone.
 
 - `UPDATE_VARIABLE` et `UPDATE_ZONE` (`AICommands.kt`) déclarent `icon_color`, `texture` et `description` en `"string"`, quand leur doc dit que `null` les vide : un client MCP n'envoie pas de `null` dans un champ texte, et « null » écrit en toutes lettres est refusé (« Couleur d'icône inconnue »), une variable ne se décolore donc pas par le connecteur.
@@ -76,7 +78,7 @@ Codé, jamais vu sur l'appareil.
 - Le mode disposition d'une page (l'accueil, une zone) : faire glisser une tuile d'une section à l'autre, ce qui change son groupe ; aujourd'hui le groupe se choisit dans la config de la chose, et une tuile ne bouge que dans sa section.
 
 - Les zones d'une partie importée : chacune arrive seule sur sa ligne, en colonne 0 (`Grid.arrive`, comme toute tuile nouvelle), deux zones côte à côte dans le fichier empilées avec un vide à droite ; garder leur disposition entre elles.
-- Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent, la condition d'un déclencheur qui lit un outil ou une variable), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne ; le modèle existe pour les événements (`EventUses` : le refus nomme ce qui écoute ou émet). Une fiche désignée par un raccourci de Suivi (`SettingNode.FieldValues`) en est aussi : supprimée, le raccourci la garde, lue « supprimée ».
+- Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent, la condition d'un déclencheur qui lit un outil ou une variable ; un champ qu'une variable lit, vu le 2026-10-31 : six champs retirés de Repas, trois variables du jour en échec sans un mot ; le pas d'une série changé), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne ; le modèle existe pour les événements (`EventUses` : le refus nomme ce qui écoute ou émet). Une fiche désignée par un raccourci de Suivi (`SettingNode.FieldValues`) en est aussi : supprimée, le raccourci la garde, lue « supprimée ».
 - Une réponse coupée par la limite de longueur (`max_tokens` chez Claude et DeepSeek, un `status` incomplet chez OpenAI, `finish_reason` « length » chez un autre serveur) : refusée, son texte jeté et ses tokens mis à 0, le coût affiché la compte gratuite alors qu'elle est facturée — que garder du texte, et où le montrer.
 - Un type d'outil Schéma : des briques et des flèches entre elles (une organisation, une boucle, qui nourrit qui), écrit par la personne ou par l'IA. Une Note n'y suffit pas : l'app n'a aucune police à chasse fixe, un schéma en texte s'y décale. Sa forme (un texte qui se dessine, Mermaid ou autre, ou des briques posées à la main), et s'il peut viser des zones, des outils ou des groupes pour y mener.
 
