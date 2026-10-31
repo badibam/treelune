@@ -129,6 +129,20 @@
       ]
     },
     {
+      "id": "readouts",
+      "part": "getting_started",
+      "icon": "gauge",
+      "minutes": 5,
+      "steps": [
+        {"kind": "read"},
+        {"kind": "read", "target": "zone/demo-kitchen"},
+        {"kind": "read", "target": "home"},
+        {"kind": "do", "target": "zone/demo-kitchen",
+          "await": {"operation": "readouts.update", "origin": "USER", "params": {"readout_id": "demo-readout-water"}}},
+        {"kind": "read"}
+      ]
+    },
+    {
       "id": "talk_to_ai",
       "part": "getting_started",
       "icon": "message-circle",

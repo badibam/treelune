@@ -499,5 +499,7 @@
   "event_busy_week_name": "Busy week",
   "event_busy_week_description": "This week's hours have gone past 45. Emitted by the Busy week Task.",
   "auto_lighten_name": "Lighten the week",
-  "auto_lighten_seed": "Work is heavy this week. Read this week's runs and interval sessions, then write in the Training notebook a lighter plan for the days left: fewer kilometres, no intervals, sleep first. Change nothing else."
+  "auto_lighten_seed": "Work is heavy this week. Read this week's runs and interval sessions, then write in the Training notebook a lighter plan for the days left: fewer kilometres, no intervals, sleep first. Change nothing else.",
+  "readout_water_name": "Water today",
+  "readout_water_text": "Water: {}"
 }

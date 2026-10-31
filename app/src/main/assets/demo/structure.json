@@ -3464,5 +3464,88 @@
       },
       "steps": []
     }
+  ],
+  "readouts": [
+    {
+      "id": "demo-readout-water",
+      "zone_id": "demo-kitchen",
+      "group": "@kitchen_group_meals",
+      "name": "@readout_water_name",
+      "icon_name": "glass-water",
+      "icon_color": "BLUE",
+      "display_mode": "ICON",
+      "core": "{done} / {expected}",
+      "text": "@readout_water_text",
+      "values": [
+        {
+          "name": "done",
+          "value": {
+            "reading": {
+              "selection": {
+                "target": {
+                  "kind": "TOOL_INSTANCE",
+                  "id": "demo-kitchen-water"
+                },
+                "period": {
+                  "start": {
+                    "relative": {
+                      "unit": "DAY",
+                      "offset": 0,
+                      "edge": "START"
+                    }
+                  },
+                  "end": {
+                    "relative": "NOW"
+                  }
+                }
+              },
+              "reduction": "COUNT"
+            }
+          }
+        },
+        {
+          "name": "expected",
+          "value": {
+            "constant": 6
+          }
+        }
+      ],
+      "target": {
+        "kind": "TOOL_INSTANCE",
+        "id": "demo-kitchen-water"
+      },
+      "colors": [
+        {
+          "when": {
+            "left": {
+              "field": "done"
+            },
+            "op": "<",
+            "right": {
+              "field": "expected"
+            }
+          },
+          "color": "ORANGE",
+          "signal": true
+        },
+        {
+          "when": {
+            "left": {
+              "field": "done"
+            },
+            "op": ">=",
+            "right": {
+              "field": "expected"
+            }
+          },
+          "color": "GREEN",
+          "signal": false
+        }
+      ],
+      "places": [
+        "zone_head",
+        "zone_tile"
+      ]
+    }
   ]
 }

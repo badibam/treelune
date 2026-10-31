@@ -33,6 +33,7 @@ object DemoRemoval {
             (SELECT id FROM tool_instances WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%')""",
         "tool_instances" to "SELECT id FROM tool_instances WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%'",
         "variables" to "SELECT id FROM variables WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%'",
+        "readouts" to "SELECT id FROM readouts WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%'",
         "ai_sessions" to """SELECT id FROM ai_sessions WHERE id LIKE 'demo-%' OR routine_id IN
             (SELECT id FROM routines WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%')""",
         "routines" to "SELECT id FROM routines WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%'",

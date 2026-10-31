@@ -142,6 +142,7 @@ def main():
     demo_zones = {z["id"] for z in demo["zones"]}
     demo_tools = {t["id"]: t["zone_id"] for t in demo["tools"]}
     demo_tasks = {t["id"]: t["zone_id"] for t in demo["tasks"]}
+    demo_readouts = {r["id"]: r["zone_id"] for r in demo.get("readouts", [])}
     problems = []
 
     icons = {icon["name"] for icon in json.loads(ICONS.read_text(encoding="utf-8"))["icons"]}
@@ -184,8 +185,8 @@ def main():
             target = step.get("target")
             named = [target or ""] + list((step.get("await") or {}).get("params", {}).values())
             for demo_id in (i for text in named for i in DEMO_ID.findall(text)):
-                if demo_id not in demo_zones and demo_id not in demo_tools and demo_id not in demo_tasks:
-                    problems.append(f"{where}: '{demo_id}' is no zone, tool or Task of the demo")
+                if demo_id not in demo_zones and demo_id not in demo_tools and demo_id not in demo_tasks and demo_id not in demo_readouts:
+                    problems.append(f"{where}: '{demo_id}' is no zone, tool, Task or readout of the demo")
             # A tool's place and a Task's end on their zone; a Task's run's on its Task, then its zone
             placed = {"tool": demo_tools, "task": demo_tasks, "task_run": demo_tasks}
             if target is not None and target.split("/")[0] in placed:

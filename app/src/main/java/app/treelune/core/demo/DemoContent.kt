@@ -26,6 +26,7 @@ import org.json.JSONObject
  * @property events The `events.create` parameters of each event
  * @property apis The `apis.create` parameters of each API
  * @property tasks The `tasks.create` parameters of each Task
+ * @property readouts The `readouts.create` parameters of each readout
  */
 class DemoContent(
     val group: String,
@@ -36,7 +37,8 @@ class DemoContent(
     val routines: List<JSONObject>,
     val events: List<JSONObject> = emptyList(),
     val apis: List<JSONObject> = emptyList(),
-    val tasks: List<JSONObject> = emptyList()
+    val tasks: List<JSONObject> = emptyList(),
+    val readouts: List<JSONObject> = emptyList()
 ) {
 
     companion object {
@@ -70,14 +72,15 @@ class DemoContent(
             val events = list("events")
             val apis = list("apis")
             val tasks = list("tasks")
-            ((identities + zones + tools + variables + routines + events + apis + tasks).map { it.getString("id") } + routines.map { it.getString("seed_session_id") }).forEach { id ->
+            val readouts = list("readouts")
+            ((identities + zones + tools + variables + routines + events + apis + tasks + readouts).map { it.getString("id") } + routines.map { it.getString("seed_session_id") }).forEach { id ->
                 check(id.startsWith(PREFIX)) { "Demo id '$id' lacks the prefix $PREFIX" }
             }
             variables.forEach { variable ->
                 val name = variable.getString("name")
                 check(name.endsWith(VARIABLE_SUFFIX)) { "Demo variable '$name' lacks the suffix $VARIABLE_SUFFIX" }
             }
-            return DemoContent(resolved.getString("zone_group"), identities, zones, tools, variables, routines, events, apis, tasks)
+            return DemoContent(resolved.getString("zone_group"), identities, zones, tools, variables, routines, events, apis, tasks, readouts)
         }
 
         /**

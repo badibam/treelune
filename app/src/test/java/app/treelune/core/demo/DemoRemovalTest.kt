@@ -25,6 +25,7 @@ class DemoRemovalTest {
             "CREATE TABLE tool_instances (id TEXT, zone_id TEXT)",
             "CREATE TABLE tool_data (id TEXT, tool_instance_id TEXT)",
             "CREATE TABLE variables (id TEXT, zone_id TEXT)",
+            "CREATE TABLE readouts (id TEXT, zone_id TEXT)",
             "CREATE TABLE routines (id TEXT, zone_id TEXT, identity_id TEXT)",
             "CREATE TABLE ai_sessions (id TEXT, routine_id TEXT)",
             "CREATE TABLE identities (id TEXT)",

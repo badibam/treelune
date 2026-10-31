@@ -142,6 +142,8 @@ class DemoService(private val context: Context) : ExecutableService {
      */
     private suspend fun tasks(content: DemoContent) {
         content.tasks.forEach { run("tasks.create", it) }
+        // The readouts, at the end of their section as the Tasks, once what they read is there
+        content.readouts.forEach { run("readouts.create", it) }
     }
 
     /**
