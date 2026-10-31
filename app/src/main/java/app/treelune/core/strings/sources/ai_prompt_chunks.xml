@@ -472,7 +472,7 @@ Reads the settings of a category of the app open to you.
 
 **Parameters**:
 
-- `category` (string, **required**): `main_screen`, the home screen's zone groups, `{"zone_groups": ["name", …]}` in their order on the home screen]]></string>
+- `category` (string, **required**): `main_screen`, the home screen\'s zone groups, `{"zone_groups": ["name", …]}` in their order on the home screen, and `readout_columns`, `one` or `two`, the columns of the readouts gathered at its head and its zone groups\' heads]]></string>
 
 
     <!-- C.2 Action commands: what they share; each command's own text is ai_command_*, assembled in the order of AICommands [DEGREE 1] -->
@@ -587,6 +587,7 @@ Creates a zone.
 - `display_mode` (string, optional): how its tile shows on the home screen, `ICON`, `MINIMAL`, `LINE` or `CONDENSED`; `LINE` when left out
 - `tool_groups` (array, optional): the groups its tools are sorted into
 - `identity_id` (string, optional): the identity its tile opens a conversation with (IDENTITIES); none when left out
+- `readout_columns` (string, optional): the columns of the readouts gathered at its head and its tool groups\' heads, `one` or `two`; `home`, as the home screen sets, when left out
 
 **Validation schema**:
 {{SCHEMA:zone_config}}]]></string>
@@ -607,6 +608,7 @@ Changes a zone. Only what you give changes; `null` empties a field, except the n
 - `tool_groups` (array, optional): the **whole** list, which replaces the old one. A group still held by a tool, a routine or a variable cannot be removed
 - `renames` (object, optional): the tool groups renamed in `tool_groups`, `{"tool_groups": {"former name": "new name"}}`: what holds a former name takes the new one
 - `identity_id` (string, optional): `null` removes it
+- `readout_columns` (string, optional): `one`, `two`, or `home` to follow the home screen
 
 The zone is held to the schema given with CREATE_ZONE.]]></string>
     <string name="ai_command_delete_zone"><![CDATA[### DELETE_ZONE
@@ -957,7 +959,7 @@ Changes the settings of a category open to you, written **whole**: read them fir
 **Parameters**:
 
 - `category` (string, **required**): `main_screen`
-- `settings` (object, **required**): the whole category; for `main_screen`, `{"zone_groups": [...]}`, the list that replaces the old one, in its order. A group still held by a zone cannot be removed
+- `settings` (object, **required**): the whole category; for `main_screen`, `{"zone_groups": [...], "readout_columns": "one"}`, the list that replaces the old one, in its order. A group still held by a zone cannot be removed
 - `renames` (object, optional): the groups renamed in `zone_groups`, `{"zone_groups": {"former name": "new name"}}`: the zones holding a former name take the new one]]></string>
     <!-- A routine's access (AccessMask), in Level 2 when it is set -->
     <string name="ai_prompt_access_intro"><![CDATA[## Your access

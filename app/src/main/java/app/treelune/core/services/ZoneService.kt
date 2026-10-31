@@ -1,5 +1,6 @@
 package app.treelune.core.services
 
+import app.treelune.core.readouts.ReadoutColumns
 import app.treelune.core.themes.IconColor
 import app.treelune.core.themes.Texture
 import app.treelune.core.utils.JsonUtils
@@ -97,6 +98,7 @@ class ZoneService(private val context: Context) : ExecutableService {
 
         val identityId = params.givenText("identity_id")
         identityRefusal(identityId)?.let { return OperationResult.error(it) }
+        val readoutColumns = ReadoutColumns.stored(params.givenText(ReadoutColumns.KEY))
 
         if (token.isCancelled) return OperationResult.cancelled()
 
@@ -113,7 +115,8 @@ class ZoneService(private val context: Context) : ExecutableService {
             tool_groups = toolGroupsJson,
             group = group,
             validate = validate,
-            identity_id = identityId
+            identity_id = identityId,
+            readout_columns = readoutColumns
         )
         checkZone(placing)?.let { return OperationResult.error(it) }
 
@@ -179,6 +182,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             put("display_mode", zone.display_mode)
             zone.tool_groups?.let { put("tool_groups", JsonUtils.toList(it)) }
             put("validate", zone.validate)
+            put(ReadoutColumns.KEY, zone.readout_columns ?: ReadoutColumns.HOME)
         }
         val result = app.treelune.core.validation.SchemaValidator.validate(app.treelune.core.schemas.ZoneSettings.schema(context), settings, context)
         return if (result.isValid) null else result.errorMessage ?: s.shared("message_validation_error_simple")
@@ -317,6 +321,7 @@ class ZoneService(private val context: Context) : ExecutableService {
         val identityId = if (params.has("identity_id")) params.givenText("identity_id") else existingZone.identity_id
         // Only an identity that changes is checked: a zone saved again keeps the one it has
         if (identityId != existingZone.identity_id) identityRefusal(identityId)?.let { return OperationResult.error(it) }
+        val readoutColumns = if (params.has(ReadoutColumns.KEY)) ReadoutColumns.stored(params.givenText(ReadoutColumns.KEY)) else existingZone.readout_columns
         val updatedZone = existingZone.copy(
             name = name,
             description = look.description,
@@ -328,6 +333,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             group = group,
             validate = validate,
             identity_id = identityId,
+            readout_columns = readoutColumns,
             updated_at = System.currentTimeMillis()
         )
 
@@ -445,6 +451,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             Texture.KEY to zone.texture,
             "display_mode" to zone.display_mode,
             "validate" to zone.validate,
+            ReadoutColumns.KEY to (zone.readout_columns ?: ReadoutColumns.HOME),
             "created_at" to zone.created_at,
             "updated_at" to zone.updated_at
         )
@@ -483,6 +490,7 @@ class ZoneService(private val context: Context) : ExecutableService {
                 Texture.KEY to zone.texture,
                 "display_mode" to zone.display_mode,
                 "validate" to zone.validate,
+                ReadoutColumns.KEY to (zone.readout_columns ?: ReadoutColumns.HOME),
                 "created_at" to zone.created_at,
                 "updated_at" to zone.updated_at
             )

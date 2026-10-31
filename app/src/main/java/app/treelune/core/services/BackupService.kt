@@ -504,6 +504,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                     put("group", zone.group)
                                 }
                                 put("identity_id", zone.identity_id ?: JSONObject.NULL)
+                                put("readout_columns", zone.readout_columns ?: JSONObject.NULL)
                             })
                         }
                     })
@@ -1132,7 +1133,9 @@ class BackupService(private val context: Context) : ExecutableService {
                         // Given to a backup made before version 69 by ValidationAtV69
                         validate = item.getBoolean("validate"),
                         // Absent from a backup made before version 77: no identity, as the migration does
-                        identity_id = item.nullableString("identity_id")
+                        identity_id = item.nullableString("identity_id"),
+                        // Absent from a backup made before version 111: the home screen's, as the migration does
+                        readout_columns = item.nullableString("readout_columns")
                     )
                 )
             }

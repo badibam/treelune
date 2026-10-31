@@ -486,7 +486,11 @@ private fun rememberZones(onError: (String) -> Unit): ZonesState {
  * and its own configuration, a zone's long touch the zone's configuration.
  */
 @Composable
-private fun HomeScreen(zones: ZonesState) {
+private fun HomeScreen(zones: ZonesState) = app.treelune.core.readouts.ui.ProvideReadoutColumns(null) { HomeScreenBody(zones) }
+
+/** The home screen, its gathered readouts in the columns it sets (ProvideReadoutColumns). */
+@Composable
+private fun HomeScreenBody(zones: ZonesState) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     // Whether the settings button is marked, read each time the home screen shows
@@ -709,5 +713,6 @@ private fun zoneFrom(map: Map<String, Any?>): Zone = Zone(
     tool_groups = (map["tool_groups"] as? List<*>)?.let { JsonUtils.toJSONArray(it).toString() },
     group = map["group"] as? String,
     validate = map["validate"] as Boolean,
-    identity_id = map["identity_id"] as? String
+    identity_id = map["identity_id"] as? String,
+    readout_columns = app.treelune.core.readouts.ReadoutColumns.stored(map[app.treelune.core.readouts.ReadoutColumns.KEY] as? String)
 )

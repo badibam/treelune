@@ -33,7 +33,11 @@ import kotlinx.coroutines.launch
  * Uses hybrid system: Compose layouts + UI.* visual components
  */
 @Composable
-fun ZoneScreen(zone: Zone) {
+fun ZoneScreen(zone: Zone) = app.treelune.core.readouts.ui.ProvideReadoutColumns(zone.readout_columns) { ZoneScreenBody(zone) }
+
+/** The zone's screen, its gathered readouts in the columns it sets (ProvideReadoutColumns). */
+@Composable
+private fun ZoneScreenBody(zone: Zone) {
     val onBack = { Navigator.pop() }
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }

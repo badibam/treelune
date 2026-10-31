@@ -31,7 +31,8 @@ object AppSettingsDefaults {
         AppSettingCategories.FORMAT -> FormatDefaults.toJson(context)
         AppSettingCategories.AI_LIMITS -> AILimitsConfig.default().toSettingsJson()
         AppSettingCategories.VALIDATION_CONFIG -> ValidationConfig().toSettingsJson()
-        AppSettingCategories.MAIN_SCREEN -> JSONObject().put("zone_groups", JSONArray()).toString()
+        AppSettingCategories.MAIN_SCREEN -> JSONObject().put("zone_groups", JSONArray())
+            .put(app.treelune.core.readouts.ReadoutColumns.KEY, app.treelune.core.readouts.ReadoutColumns.ONE).toString()
         AppSettingCategories.DEMO -> JSONObject().put(app.treelune.core.demo.DemoStartup.INSTALL_ON_UPDATE, true)
             .put(app.treelune.core.demo.DemoNotifications.SETTING, true).toString()
         // The default theme in its own colours, light or dark as the phone is, at its own size

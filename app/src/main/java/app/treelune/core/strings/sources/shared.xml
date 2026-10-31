@@ -2189,6 +2189,11 @@
     <string name="tools_base_schema_config_group">Organisation group of the tool</string>
     <string name="zone_schema_tool_groups">List of the tool groups available in this zone</string>
     <string name="label_zone_validate">Protect this zone\'s content</string>
+    <string name="label_zone_readout_columns">Readouts at the head of the zone and its groups</string>
+    <string name="zone_schema_readout_columns">How many columns the readouts gathered at the head of this zone and of its tool groups take: home (as the home screen sets), one (a line each) or two (side by side). One column of the app always shows one.</string>
+    <string name="readout_columns_home">As on the home screen</string>
+    <string name="readout_columns_one">One column</string>
+    <string name="readout_columns_two">Two columns</string>
     <string name="zone_schema_validate">The AI of the conversation and of the connector asks for your approval before creating, changing or deleting a tool of this zone, its tool groups, its routines or its variables. Changed in the app alone. A routine never asks.</string>
     <string name="zone_schema_display_mode">How the zone shows on the main screen: ICON (its icon), MINIMAL (icon and name), LINE (with its description beside), CONDENSED (its description below); it gives the cells the zone takes</string>
     <string name="zone_schema_icon_color">Colour of the zone\'s icon, one of RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK; null or absent for a neutral icon. A zone\'s tools do not take it</string>
@@ -2684,6 +2689,8 @@
     <!-- App, zone, routine and module settings, for the AI that reads their schema -->
     <string name="app_config_schema_relative_label_limits">Up to which distance a date is said relative to today (“in 3 days”) rather than in full</string>
     <string name="app_config_schema_zone_groups">The groups of zones on the home screen, in their order</string>
+    <string name="app_config_readout_columns">Readouts at the head of the home screen and of its groups</string>
+    <string name="app_config_schema_readout_columns">How many columns the readouts gathered at the head of the home screen and of its zone groups take: one (a line each) or two (side by side); a zone follows it unless it sets its own. One column of the app always shows one.</string>
     <string name="zone_schema_tool_groups_list">The groups the zone\'s tools are sorted into, in their order</string>
     <string name="ai_module_fields_description">The fields the user fills in; none for a plain confirmation</string>
     <string name="guide_schema_welcome_seen">Whether the first-launch screen was seen</string>

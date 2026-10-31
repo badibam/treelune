@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 110
+        const val VERSION = 111
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2342,6 +2342,14 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** A zone's columns of gathered readouts, none: it follows the home screen's. */
+        private val MIGRATION_110_111 = object : ConnectionMigration(110, 111) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("ALTER TABLE zones ADD COLUMN readout_columns TEXT")
+                LogManager.database("MIGRATION 110->111: zones' readout_columns added, following the home screen", "INFO")
+            }
+        }
+
         /** A readout's short form, its core: see ReadoutCoreAtV110. */
         private val MIGRATION_109_110 = object : ConnectionMigration(109, 110) {
             override fun migrate(database: MigrationDatabase) {
@@ -3488,7 +3496,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_106_107,
                     MIGRATION_107_108,
                     MIGRATION_108_109,
-                    MIGRATION_109_110
+                    MIGRATION_109_110,
+                    MIGRATION_110_111
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

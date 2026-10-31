@@ -55,6 +55,13 @@ object ZoneSettings {
                 SettingNode.Item.Value(FieldDefinition("tool_group", s.shared("label_tool_group"), s.shared("zone_schema_tool_groups"),
                     FieldType.TEXT, false, mapOf("length" to TextLength.SHORT.name))),
                 distinct = true, description = s.shared("zone_schema_tool_groups_list")),
+            // The columns of its gathered readouts, the home screen's unless set
+            SettingNode.Field(
+                FieldDefinition(app.treelune.core.readouts.ReadoutColumns.KEY, s.shared("label_zone_readout_columns"), s.shared("zone_schema_readout_columns"), FieldType.CHOICE, false,
+                    mapOf("options" to app.treelune.core.fields.ChoiceSettings.storedOptions(app.treelune.core.readouts.ReadoutColumns.ZONE_VALUES,
+                        app.treelune.core.readouts.ReadoutColumns.ZONE_VALUES.associateWith { s.shared("readout_columns_$it") }))),
+                required = true, default = app.treelune.core.readouts.ReadoutColumns.HOME
+            ),
             // Whether the AI asks before changing what the zone holds; a person alone changes it
             SettingNode.Field(
                 FieldDefinition("validate", s.shared("label_zone_validate"), s.shared("zone_schema_validate"), FieldType.BOOLEAN, false, null),

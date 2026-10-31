@@ -47,5 +47,11 @@ data class Zone(
     val validate: Boolean = false,
 
     /** The identity its tile opens a conversation with (docs/AI.md, « Identities »); null for none. */
-    val identity_id: String? = null
+    val identity_id: String? = null,
+
+    /**
+     * The columns of the readouts gathered at its head and at its tool groups' heads
+     * (ReadoutColumns): "one" or "two"; null follows the home screen's setting.
+     */
+    val readout_columns: String? = null
 )

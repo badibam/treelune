@@ -165,17 +165,25 @@ fun ReadoutCard(readout: ReadoutRow) {
 }
 
 /**
- * The readouts that rise to one place, gathered in one card: a line each, its icon and its
- * sentence in its colour, in the order given (the tree's). A line touched opens its target, held
- * its config. Nothing when there are none.
+ * The readouts that rise to one place, gathered in one card: each its icon and its sentence in
+ * its colour, in the order given (the tree's), a line each or two side by side in [columns]
+ * (ReadoutColumns), read along the rows. A line touched opens its target, held its config.
+ * Nothing when there are none.
  */
 @Composable
-fun ReadoutLines(readouts: List<ReadoutRow>, maxLines: Int? = null) {
+fun ReadoutLines(readouts: List<ReadoutRow>, maxLines: Int? = null, columns: Int = LocalReadoutColumns.current) {
     if (readouts.isEmpty()) return
     val shownOnes = if (maxLines != null) readouts.take(maxLines) else readouts
     UI.Card(type = CardType.DEFAULT) {
         Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.M), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-            shownOnes.forEach { readout -> ReadoutLine(readout) }
+            shownOnes.chunked(columns.coerceAtLeast(1)).forEach { row ->
+                if (columns <= 1) row.forEach { readout -> ReadoutLine(readout) }
+                else androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+                    // Each its share of the width, a row short of one keeping the empty share
+                    row.forEach { readout -> androidx.compose.foundation.layout.Box(Modifier.weight(1f)) { ReadoutLine(readout) } }
+                    repeat(columns - row.size) { androidx.compose.foundation.layout.Spacer(Modifier.weight(1f)) }
+                }
+            }
         }
     }
 }
@@ -248,3 +256,27 @@ fun risingTo(readouts: List<ReadoutRow>, place: ReadoutSettings.Place, zoneOrder
         { groupsOf(it.zoneId).indexOf(it.group).let { i -> if (i < 0) Int.MAX_VALUE else i } },
         { it.gridY }, { it.gridX }
     ))
+
+/** The columns of the cards gathering readouts on the screen being drawn (ReadoutColumns), one by default. */
+val LocalReadoutColumns = androidx.compose.runtime.compositionLocalOf { 1 }
+
+/**
+ * [content] with the columns of its gathered readouts: [zone]'s setting (null for the home
+ * screen), else the home screen's, read from its settings and again when they change; one in one
+ * column.
+ */
+@Composable
+fun ProvideReadoutColumns(zone: String?, content: @Composable () -> Unit) {
+    val context = LocalContext.current
+    var home by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        suspend fun read() {
+            val result = Coordinator(context).processUserAction("app_config.get", mapOf("category" to app.treelune.core.database.entities.AppSettingCategories.MAIN_SCREEN))
+            if (result.isSuccess) home = (result.data?.get("settings") as? Map<*, *>)?.get(app.treelune.core.readouts.ReadoutColumns.KEY) as? String
+        }
+        read()
+        app.treelune.core.utils.DataChangeNotifier.changes.collect { if (it is app.treelune.core.utils.DataChangeEvent.AppConfigChanged) read() }
+    }
+    val columns = app.treelune.core.readouts.ReadoutColumns.of(zone, home, app.treelune.core.themes.CurrentTheme.oneColumn)
+    androidx.compose.runtime.CompositionLocalProvider(LocalReadoutColumns provides columns, content = content)
+}

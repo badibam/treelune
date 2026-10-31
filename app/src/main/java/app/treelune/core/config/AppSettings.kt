@@ -219,6 +219,12 @@ object AppSettings {
                     SettingNode.Item.Value(FieldDefinition("zone_group", text("label_group"), text("message_zone_groups_description"),
                         FieldType.TEXT, false, mapOf("length" to TextLength.SHORT.name))),
                     required = true, distinct = true, description = text("app_config_schema_zone_groups"))
+                ,
+                // The columns of the readouts gathered at its head and its zone groups' heads; one when absent
+                SettingNode.Field(FieldDefinition(app.treelune.core.readouts.ReadoutColumns.KEY, text("app_config_readout_columns"), text("app_config_schema_readout_columns"),
+                    FieldType.CHOICE, false, mapOf("options" to ChoiceSettings.storedOptions(app.treelune.core.readouts.ReadoutColumns.HOME_VALUES,
+                        app.treelune.core.readouts.ReadoutColumns.HOME_VALUES.associateWith { text("readout_columns_$it") }))),
+                    default = app.treelune.core.readouts.ReadoutColumns.ONE)
             )
             // The relay's address and secret are shown in the relay mode only, and kept under
             // Tailscale: going back to the relay finds them as they were

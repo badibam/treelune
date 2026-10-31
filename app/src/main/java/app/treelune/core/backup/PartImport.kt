@@ -167,7 +167,7 @@ class PartImport(private val context: Context) {
         newZones.forEach { zone ->
             run("zones.create", JSONObject().apply {
                 put("id", zone.getString("id"))
-                listOf("name", "description", "icon_name", "icon_color", "texture", "display_mode", "group").forEach { key ->
+                listOf("name", "description", "icon_name", "icon_color", "texture", "display_mode", "group", "readout_columns").forEach { key ->
                     if (zone.has(key) && !zone.isNull(key)) put(key, zone.get(key))
                 }
                 put("validate", zone.optBoolean("validate", false))

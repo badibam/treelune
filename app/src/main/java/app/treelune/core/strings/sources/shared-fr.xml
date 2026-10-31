@@ -2189,6 +2189,11 @@
     <string name="tools_base_schema_config_group">Groupe d\'organisation de l\'outil</string>
     <string name="zone_schema_tool_groups">Liste des groupes d\'outils disponibles dans cette zone</string>
     <string name="label_zone_validate">Protéger le contenu de cette zone</string>
+    <string name="label_zone_readout_columns">Repères en tête de la zone et de ses groupes</string>
+    <string name="zone_schema_readout_columns">Combien de colonnes prennent les repères regroupés en tête de cette zone et de ses groupes d\'outils : home (comme l\'accueil le règle), one (une ligne chacun) ou two (côte à côte). Le mode 1 colonne de l\'app en montre toujours une.</string>
+    <string name="readout_columns_home">Comme l\'accueil</string>
+    <string name="readout_columns_one">Une colonne</string>
+    <string name="readout_columns_two">Deux colonnes</string>
     <string name="zone_schema_validate">L\'IA de la conversation et du connecteur demande ton accord avant de créer, modifier ou supprimer un outil de cette zone, ses groupes d\'outils, ses routines ou ses variables. Réglable seulement dans l\'app. Une routine ne demande jamais.</string>
     <string name="zone_schema_display_mode">Comment la zone s\'affiche sur l\'accueil : ICON (son icône), MINIMAL (icône et nom), LINE (sa description à côté), CONDENSED (sa description dessous) ; il donne les cases que la zone occupe</string>
     <string name="zone_schema_icon_color">Couleur de l\'icône de la zone, parmi RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK ; null ou absente pour une icône neutre. Les outils de la zone ne la prennent pas</string>
@@ -2684,6 +2689,8 @@
     <!-- App, zone, routine and module settings, for the AI that reads their schema -->
     <string name="app_config_schema_relative_label_limits">Jusqu\'à quelle distance une date se dit par rapport à aujourd\'hui (« dans 3 jours ») plutôt qu\'en entier</string>
     <string name="app_config_schema_zone_groups">Les groupes de zones de l\'accueil, dans leur ordre</string>
+    <string name="app_config_readout_columns">Repères en tête de l\'accueil et de ses groupes</string>
+    <string name="app_config_schema_readout_columns">Combien de colonnes prennent les repères regroupés en tête de l\'accueil et de ses groupes de zones : one (une ligne chacun) ou two (côte à côte) ; une zone le suit sauf si elle règle le sien. Le mode 1 colonne de l\'app en montre toujours une.</string>
     <string name="zone_schema_tool_groups_list">Les groupes dans lesquels les outils de la zone sont rangés, dans leur ordre</string>
     <string name="ai_module_fields_description">Les champs que l\'utilisateur remplit ; aucun pour une simple confirmation</string>
     <string name="guide_schema_welcome_seen">Si l\'écran du premier lancement a été vu</string>
