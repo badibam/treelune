@@ -20,7 +20,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
-- L'historique nomme « l'outil « sans nom » (zone « sans nom ») » la suppression d'une entrée de Repas faite depuis l'écran (le 2026-10-31 à 21 h 54) : le nom de l'outil et de la zone d'une entrée supprimée n'est pas retrouvé.
+- L'historique des écritures nomme « l'outil « sans nom » (zone « sans nom ») » toute écriture d'une entrée faite depuis l'écran d'historique d'un outil (le 2026-10-31 dans Repas : une suppression, deux dates changées), où un ajout par la tuile dit « Repas » (zone « Tronc ») : cet écran écrit sans dire son outil et sa zone.
 
 - Un CSV envoyé par le connecteur (`upload_address`) n'est pas importable : il reste en attente qu'une entrée le prenne (`McpUploads`), et `IMPORT_PLAN` ne lit que les textes enregistrés (`Files.textOf`), « Aucun texte n'a l'id » ; l'import d'une table depuis un client du connecteur passe aujourd'hui par le téléphone.
 
