@@ -27,7 +27,8 @@ import org.json.JSONObject
  *   given: at the app, the zones, or when only such restricted entries are taken, those tools
  *   directly; in the zone `zone_id`, its tools and its variables, each with its group (null outside
  *   the zone's groups), and the zone's groups in order; in the tool `tool_instance_id`, its entries,
- *   their label holding `query` when one is given. A tool comes with its type and its zone.
+ *   their label holding `query` when one is given. A tool comes with its type and its zone. With
+ *   `series`, only the variables that have a series (a reading's source).
  */
 class ReferenceService(private val context: Context) : ExecutableService {
 
@@ -80,7 +81,10 @@ class ReferenceService(private val context: Context) : ExecutableService {
         val zones = database.zoneDao().getAllZones()
         val zoneNames = zones.associate { it.id to it.name }
         val tools = database.toolInstanceDao().getAllToolInstances()
-        val variables = if (ReferenceKind.VARIABLE in kinds) database.variableDao().getAll() else emptyList()
+        // `series`: only the variables with a series, which a reading selects (VariableSeries)
+        val variables = if (ReferenceKind.VARIABLE in kinds) database.variableDao().getAll().filter { variable ->
+            !params.optBoolean("series") || JSONObject(variable.definitionJson).has(app.treelune.core.variables.VariableDefinition.SERIES)
+        } else emptyList()
         val events = if (ReferenceKind.EVENT in kinds) database.eventDao().getAll() else emptyList()
         // A tool leads somewhere when it is taken itself, or when its entries are
         fun leads(tool: ToolInstance) = ReferenceKind.TOOL_INSTANCE in kinds ||

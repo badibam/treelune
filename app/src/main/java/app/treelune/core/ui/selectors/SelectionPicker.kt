@@ -69,12 +69,12 @@ fun SelectionPicker(
             ThingBrowser(open, { path ->
                 if (path.kind in target.kinds || path.kind == ReferenceKind.APP) onChange(draft.at(path))
                 browsing = if (final(path)) null else path
-            }, target)
+            }, target, series = ReferenceKind.VARIABLE in target.kinds)
         } else {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
                 Box(modifier = Modifier.weight(1f)) {
                     UI.Text(text = draft.entry?.let { s.shared("selection_entry_in_tool").format(it.name, draft.tool?.name ?: "") }
-                        ?: listOfNotNull(draft.tool?.name, draft.zone?.name).let { names ->
+                        ?: listOfNotNull(draft.tool?.name ?: draft.variable?.name, draft.zone?.name).let { names ->
                             if (names.size == 2) s.shared("selection_place_in_zone").format(names[0], names[1]) else names.firstOrNull() ?: ""
                         }, type = TextType.SUBTITLE)
                 }
@@ -92,7 +92,8 @@ fun SelectionPicker(
             PeriodPicker(draft.period, { onChange(draft.copy(period = it)) }, FieldType.DATETIME, reference)
         }
 
-        val tool = draft.tool
+        // A tool's entries, or a variable's series, are narrowed by conditions on their fields
+        val tool = draft.tool ?: draft.variable
         if (tool != null) {
             var editing by rememberSaveable { mutableStateOf(false) }
             UI.Button(type = ButtonType.DEFAULT, onClick = { editing = true }) {

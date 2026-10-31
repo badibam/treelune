@@ -46,10 +46,10 @@ private data class Place(
  * the kinds expected), one of which the path then reaches.
  *
  * It only moves [path]: what the place reached means, and whether it can be chosen, is the
- * caller's.
+ * caller's. With [series], the variables offered are those with a series, a reading's source.
  */
 @Composable
-fun ThingBrowser(path: ThingPath, onPath: (ThingPath) -> Unit, target: ReferenceTarget, fields: ((app.treelune.core.fields.FieldDefinition) -> Boolean)? = null) {
+fun ThingBrowser(path: ThingPath, onPath: (ThingPath) -> Unit, target: ReferenceTarget, fields: ((app.treelune.core.fields.FieldDefinition) -> Boolean)? = null, series: Boolean = false) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     var query by rememberSaveable(path.tool?.id) { mutableStateOf("") }
@@ -80,6 +80,7 @@ fun ThingBrowser(path: ThingPath, onPath: (ThingPath) -> Unit, target: Reference
             path.zone?.let { put("zone_id", it.id) }
             path.tool?.let { put("tool_instance_id", it.id) }
             if (query.isNotBlank()) put("query", query)
+            if (series) put("series", true)
         })
         if (!result.isSuccess) {
             LogManager.ui("ThingBrowser: places under ${path.reference} not read: ${result.error}", "ERROR")
@@ -248,6 +249,34 @@ suspend fun toolPath(toolInstanceId: String, context: android.content.Context): 
         Named(row["zone_id"] as String, row["zone_name"] as? String ?: ""),
         Named(toolInstanceId, row["name"] as? String ?: "", row["tooltype"] as? String)
     )
+}
+
+/**
+ * The fields of the entries [source] holds by path (ToolFields.ofTarget: a tool's, a variable's
+ * series'), none while it is null or read; a read that fails is logged and said by a toast.
+ */
+@Composable
+fun rememberSourceFields(source: app.treelune.core.selection.Reference?): Map<String, app.treelune.core.fields.FieldDefinition> {
+    val context = LocalContext.current
+    val s = remember { Strings.`for`(context = context) }
+    var fields by remember { mutableStateOf<Map<String, app.treelune.core.fields.FieldDefinition>>(emptyMap()) }
+    LaunchedEffect(source) {
+        fields = if (source == null) emptyMap() else try {
+            app.treelune.core.fields.ToolFields.ofTarget(source, context, s)
+        } catch (e: Exception) {
+            LogManager.ui("rememberSourceFields: fields of $source not loaded: ${e.message}", "ERROR", e)
+            UI.Toast(e.message ?: s.shared("error_loading_options"))
+            emptyMap()
+        }
+    }
+    return fields
+}
+
+/** Where the variable [variableId] stands for the browser: its zone, and it; null when it is gone. */
+suspend fun variablePath(variableId: String, context: android.content.Context): ThingPath? {
+    val variable = app.treelune.core.database.AppDatabase.getDatabase(context).variableDao().getById(variableId) ?: return null
+    val zone = app.treelune.core.database.AppDatabase.getDatabase(context).zoneDao().getZoneById(variable.zoneId) ?: return null
+    return ThingPath(Named(zone.id, zone.name), variable = Named(variable.id, variable.label))
 }
 
 /**

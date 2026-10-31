@@ -31,7 +31,8 @@ import org.json.JSONObject
  *
  * - read, a variable: `variable` (its name) and `at`, the instants to read it at (milliseconds);
  *   a value or a failure per instant, in the same order (the variables service computes it).
- * - read, a field: `selection` (a tool instance, its period and filters, relative dates resolved against
+ * - read, a field: `selection` (a tool instance, one entry, or a variable's series — one entry per
+ *   step, VariableSeries, its period needing a start —, its period and filters, relative dates resolved against
  *   `reference`, milliseconds, which the reader gives: a goal's attempt end, the instant a
  *   variable is read at), `field` (a path, absent to count) and `reduction`. It gives `value` with
  *   `field`, the type and settings of the result, or `failure` with its causes as data: a reading

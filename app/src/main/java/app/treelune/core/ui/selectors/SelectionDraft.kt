@@ -14,6 +14,8 @@ import org.json.JSONObject
  * A zone takes a period, applied to each of its tools; a tool a period, conditions on its entries
  * and a choice of fields, which are a tool's own: they have no sense across the tools of a zone.
  * An entry, where its context takes one (a message's pointer), is that entry alone: nothing narrows it.
+ * A variable, where its context takes one (a reading), stands for its series' entries
+ * (VariableSeries): a period and conditions, as a tool.
  *
  * @property filters Conditions put on each entry (Conditions), the period apart
  * @property fields The fields kept, all of them when null
@@ -24,18 +26,20 @@ data class SelectionDraft(
     val entry: Named? = null,
     val period: EntryPeriod = EntryPeriod(),
     val filters: JSONArray = JSONArray(),
-    val fields: List<String>? = null
+    val fields: List<String>? = null,
+    val variable: Named? = null
 ) {
     /** The kind of the deepest place reached: the app until a zone is chosen. */
     val level: ReferenceKind get() = when {
         entry != null -> ReferenceKind.ENTRY
+        variable != null -> ReferenceKind.VARIABLE
         tool != null -> ReferenceKind.TOOL_INSTANCE
         zone != null -> ReferenceKind.ZONE
         else -> ReferenceKind.APP
     }
 
     /** Where the picker stands, for its browser. */
-    val path: ThingPath get() = ThingPath(zone, tool, entry)
+    val path: ThingPath get() = ThingPath(zone, tool, entry, variable)
 
     /** Whether the entries are narrowed, by a period or a condition. */
     val narrowed: Boolean get() = !period.isEmpty || filters.length() > 0
@@ -43,6 +47,8 @@ data class SelectionDraft(
     /** Moved to [path] by the browser: going up or into another place leaves what they leave. */
     fun at(path: ThingPath): SelectionDraft = when {
         path.zone == null -> upTo(ReferenceKind.APP)
+        // A variable's series: its conditions its own, kept only for the same variable
+        path.variable != null -> if (path.variable == variable) this else SelectionDraft(zone = path.zone, variable = path.variable, period = period)
         path.tool == null -> if (path.zone == zone) upTo(ReferenceKind.ZONE) else intoZone(path.zone)
         path.tool == tool -> if (path.entry == null) copy(entry = null) else copy(entry = path.entry)
         else -> (if (path.zone == zone) this else intoZone(path.zone)).intoTool(path.tool).copy(entry = path.entry)
@@ -69,6 +75,7 @@ data class SelectionDraft(
      */
     fun selection(): EntrySelection {
         val isTool = level == ReferenceKind.TOOL_INSTANCE
+        if (level == ReferenceKind.VARIABLE) return EntrySelection(Reference(ReferenceKind.VARIABLE, variable!!.id), period, filters)
         // One entry is that entry: no period, no condition, all its fields
         if (level == ReferenceKind.ENTRY) return EntrySelection(Reference(ReferenceKind.ENTRY, entry!!.id))
         return EntrySelection(
@@ -87,6 +94,7 @@ data class SelectionDraft(
         zone?.let { put("zone", it.toJson()) }
         tool?.let { put("tool", it.toJson()) }
         entry?.let { put("entry", it.toJson()) }
+        variable?.let { put("variable", it.toJson()) }
         put("period", period.toJson())
         put("filters", filters)
         fields?.let { put("fields", JSONArray(it)) }
@@ -100,7 +108,8 @@ data class SelectionDraft(
             // The picker's own state, written by toJson: its dates read
             period = EntryPeriod.fromJson(json.getJSONObject("period")) { it },
             filters = json.getJSONArray("filters"),
-            fields = json.optJSONArray("fields")?.let { a -> (0 until a.length()).map { a.getString(it) } }
+            fields = json.optJSONArray("fields")?.let { a -> (0 until a.length()).map { a.getString(it) } },
+            variable = json.optJSONObject("variable")?.let { Named.fromJson(it) }
         )
 
         /** A stored [selection] to edit again, the places of [path] named as they are now. */
@@ -110,7 +119,8 @@ data class SelectionDraft(
             entry = path.entry,
             period = selection.period,
             filters = selection.filters,
-            fields = selection.fields
+            fields = selection.fields,
+            variable = path.variable
         )
     }
 }

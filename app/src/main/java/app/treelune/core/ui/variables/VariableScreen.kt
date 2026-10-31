@@ -154,9 +154,12 @@ fun VariableScreen(zoneId: String, variableId: String?, onDone: () -> Unit) {
             selected = kinds.first { it.first == json.optString("kind") }.second,
             onSelect = { label ->
                 val kind = kinds.first { it.second == label }.first
-                draft = if (kind == "CONSTANT") JSONObject().put("kind", "CONSTANT").put("value", 0)
-                    .put("field", JSONObject().put("type", "NUMERIC").put("config", JSONObject().put("decimals", 0))).toString()
-                else JSONObject().put("kind", "FORMULA").put("formula", "").put("terms", JSONObject()).toString()
+                val series = json.optJSONObject(app.treelune.core.variables.VariableDefinition.SERIES)
+                draft = (if (kind == "CONSTANT") JSONObject().put("kind", "CONSTANT").put("value", 0)
+                    .put("field", JSONObject().put("type", "NUMERIC").put("config", JSONObject().put("decimals", 0)))
+                else JSONObject().put("kind", "FORMULA").put("formula", "").put("terms", JSONObject()))
+                    // Its series kept across the change of kind
+                    .apply { series?.let { put(app.treelune.core.variables.VariableDefinition.SERIES, it) } }.toString()
             },
             required = true
         )
@@ -191,6 +194,9 @@ fun VariableScreen(zoneId: String, variableId: String?, onDone: () -> Unit) {
         }
 
         ValueTypeEditor(json.optJSONObject("field"), isFormula, s) { field -> edit { if (field == null) remove("field") else put("field", field) } }
+        SeriesEditor(json.optJSONObject(app.treelune.core.variables.VariableDefinition.SERIES)?.optString(app.treelune.core.variables.VariableDefinition.UNIT), s) { unit ->
+            edit { if (unit == null) remove(app.treelune.core.variables.VariableDefinition.SERIES) else put(app.treelune.core.variables.VariableDefinition.SERIES, JSONObject().put(app.treelune.core.variables.VariableDefinition.UNIT, unit)) }
+        }
 
         error?.let { UI.Text(text = it, type = TextType.ERROR) }
 
@@ -221,6 +227,24 @@ fun VariableScreen(zoneId: String, variableId: String?, onDone: () -> Unit) {
             }
         }) { UI.Text(text = s.shared("variable_delete_confirm").format(name), type = TextType.BODY) }
     }
+}
+
+/**
+ * Whether the variable has a value per step of a unit (docs/design/variable-series.md), and what
+ * that means for its terms, said under the choice.
+ */
+@Composable
+private fun SeriesEditor(unit: String?, s: StringsContext, onChange: (String?) -> Unit) {
+    val units = app.treelune.core.selection.PeriodType.entries.map { it.name to s.shared("period_type_${it.name.lowercase()}") }
+    val none = s.shared("variable_series_none")
+    UI.FormSelection(
+        label = s.shared("variable_series"),
+        options = listOf(none) + units.map { it.second },
+        selected = units.firstOrNull { it.first == unit }?.second ?: none,
+        onSelect = { label -> onChange(units.firstOrNull { it.second == label }?.first) },
+        required = false
+    )
+    units.firstOrNull { it.first == unit }?.let { (_, name) -> UI.Text(text = s.shared("variable_series_hint").format(name.lowercase()), type = TextType.CAPTION) }
 }
 
 /**

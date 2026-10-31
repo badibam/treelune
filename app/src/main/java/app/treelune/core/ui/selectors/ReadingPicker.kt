@@ -22,8 +22,8 @@ import org.json.JSONObject
 private const val COUNT = "count"
 private const val PER_ENTRY = "per_entry"
 
-/** What a reading reads: the entries of a tool. */
-private val READ = ReferenceTarget(setOf(ReferenceKind.TOOL_INSTANCE), emptyList())
+/** What a reading reads: the entries of a tool, or a variable's series (VariableSeries). */
+private val READ = ReferenceTarget(setOf(ReferenceKind.TOOL_INSTANCE, ReferenceKind.VARIABLE), emptyList())
 
 /** The selection being edited across a rotation, null before the stored one is named. */
 private val DraftSaver: Saver<SelectionDraft?, String> = Saver(
@@ -62,17 +62,18 @@ fun ReadingPicker(reading: JSONObject, s: StringsContext, where: ReadingContext,
     LaunchedEffect(Unit) {
         if (draft != null) return@LaunchedEffect
         val stored = reading.optJSONObject("selection")?.takeIf { it.has("target") }?.let { EntrySelection.fromJson(it) { key -> s.shared(key) } }
-        draft = stored?.target?.id?.let { toolPath(it, context) }?.let { SelectionDraft.of(stored, it) } ?: SelectionDraft()
+        draft = stored?.target?.id?.let { id -> if (stored.target.kind == ReferenceKind.VARIABLE) variablePath(id, context) else toolPath(id, context) }
+            ?.let { SelectionDraft.of(stored, it) } ?: SelectionDraft()
     }
     val current = draft ?: return UI.LoadingIndicator()
-    val fields = rememberToolFields(current.tool?.id)
+    val fields = rememberSourceFields(current.takeIf { it.level in READ.kinds }?.selection()?.target)
 
     SelectionPicker(current, { next ->
         draft = next
         edit {
-            put("selection", if (next.level == ReferenceKind.TOOL_INSTANCE) next.selection().toJson() else JSONObject())
-            // Another tool's fields are not this one's, nor what no entry of them is worth
-            if (next.tool != current.tool) { remove("field"); remove(app.treelune.core.terms.Term.IF_NONE) }
+            put("selection", if (next.level in READ.kinds) next.selection().toJson() else JSONObject())
+            // Another source's fields are not this one's, nor what no entry of them is worth
+            if (next.tool != current.tool || next.variable != current.variable) { remove("field"); remove(app.treelune.core.terms.Term.IF_NONE) }
         }
     }, READ, fields, where.reference, offerFields = false, emptyPeriod = where.emptyPeriod)
 
@@ -102,7 +103,7 @@ fun ReadingPicker(reading: JSONObject, s: StringsContext, where: ReadingContext,
             }
         },
         accepts = { Reduction.forField(it).isNotEmpty() },
-        others = mapOf(COUNT to s.shared("variable_reading_count")) + (if (where.perEntry) mapOf(PER_ENTRY to s.shared("variable_reading_per_entry")) else emptyMap())
+        others = mapOf(COUNT to s.shared("variable_reading_count")) + (if (where.perEntry && current.variable == null) mapOf(PER_ENTRY to s.shared("variable_reading_per_entry")) else emptyMap())
     )
     if (perEntry) {
         UI.FormField(label = s.shared("variable_reading_per_entry"), value = reading.optString("per_entry"), onChange = { v -> edit { put("per_entry", v) } }, required = true)
