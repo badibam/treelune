@@ -73,6 +73,8 @@ object CommandTransformer {
                     "ZONES" -> transformZonesCommand(command)
                     "TOOL_INSTANCES" -> transformToolInstancesCommand(command)
                     "CURRENT_DATETIME" -> transformCurrentDatetimeCommand(command)
+                    // The design guide (ai_design_guide), the same text for every caller
+                    "DESIGN_GUIDE" -> ExecutableCommand(resource = "app_config", operation = "design_guide", params = emptyMap())
                     "ICONS" -> transformIconsCommand(command)
                     "VARIABLES" -> ExecutableCommand(
                         resource = "variables",

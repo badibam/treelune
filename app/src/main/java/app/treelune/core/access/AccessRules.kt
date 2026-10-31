@@ -199,7 +199,7 @@ object AccessRules {
                 ?: Reach.Unknown("$resource.$operation")) +
                 // What its filters compare with, read too
                 filterTerms((params["selection"] as? Map<*, *>)?.get("filters"), "$resource.$operation")
-            "app_config" -> if (operation == "get_current_datetime") listOf(Reach.Free) else listOf(Reach.App)
+            "app_config" -> if (operation == "get_current_datetime" || operation == "design_guide") listOf(Reach.Free) else listOf(Reach.App)
             "imports" -> when (operation) {
                 "detect" -> listOf(toolAt(AccessLevel.READ))
                 "apply" -> listOf(toolAt(AccessLevel.USE))

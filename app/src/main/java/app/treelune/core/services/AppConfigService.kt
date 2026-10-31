@@ -187,6 +187,8 @@ class AppConfigService(private val context: Context) : ExecutableService {
                 setSettings(category, settings, Groups.renames(params, "zone_groups"))?.let { return OperationResult.error(it) }
                 OperationResult.success(mapOf("category" to category))
             }
+            // The principles and setups the AI reads before it builds an organisation (DESIGN_GUIDE)
+            "design_guide" -> OperationResult.success(mapOf("guide" to s.shared("ai_design_guide")))
             "get_current_datetime" -> {
                 // Milliseconds, as everything inside speaks: CommandExecutor turns the timestamp
                 // into the ISO 8601 the model reads, in the app's timezone

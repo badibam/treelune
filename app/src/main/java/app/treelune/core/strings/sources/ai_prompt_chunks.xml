@@ -439,6 +439,11 @@ Retrieves the current date and time.
 **Parameters**: none
 
 **Returns** `timestamp`: ISO 8601 with a timezone offset (e.g. `"2025-11-23T14:30:00+01:00"`). Use it before writing an entry dated "now" or "yesterday".]]></string>
+    <string name="ai_command_design_guide"><![CDATA[### DESIGN_GUIDE
+
+Retrieves the design guide: the principles for choosing pieces, then setups that answer a need with the pieces the app has and how they connect. Read it before you propose or build an organisation: a zone, a tool, a variable, a Task or a routine created, moved or rewired.
+
+**Parameters**: none]]></string>
     <string name="ai_command_schema"><![CDATA[### SCHEMA
 
 Retrieves a JSON schema, asked for by what it describes. A tool type's schema, its config's or a tool's entries', comes after the description of an entry of that type: what its name, timestamp, data, extra and state are in the type, sent once in a session. **Exactly one** parameter:
@@ -1641,7 +1646,43 @@ Every tool type can also take custom fields, be filled in by the AI, and be read
     <!-- Header of the app's pieces beyond the tool types (Pieces) -->
     <string name="ai_chunk_pieces_header"><![CDATA[## The pieces and what the user does with them
 
-What the app offers beyond the tool types, each with what it is for and what the user does with it on screen; their texts address the user. A setup answers a need with these pieces and the tools: propose the one that fits the need, the simplest first, and tell the user what they will touch, a button, a tile, a notification that comes by itself, and where. What already exists in the app is shown before anything is built.]]></string>
+What the app offers beyond the tool types, each with what it is for and what the user does with it on screen; their texts address the user. A setup answers a need with these pieces and the tools: propose the one that fits the need, the simplest first, and tell the user what they will touch, a button, a tile, a notification that comes by itself, and where. What already exists in the app is shown before anything is built. Before you propose or build an organisation (a zone, a tool, a variable, a Task or a routine created, moved or rewired), read DESIGN_GUIDE: its principles say which piece to choose, its setups how the pieces connect.]]></string>
+
+    <!-- The design guide the AI reads with DESIGN_GUIDE (docs/AI.md, « Design guide »): principles, then
+         setups; every name between backticks is checked by scripts/check_design_guide.py -->
+    <string name="ai_design_guide"><![CDATA[# Design guide
+
+How to answer a need with the app\'s pieces. The principles come first: they say which piece to choose and when not to build. Each setup then says the need, the pieces and how they connect; the commands that write each piece say how to fill it in.
+
+## Principles
+
+1. A fact is written once, in one place. What can be computed from it is a variable, never a copy kept in step by hand: the time fasted is read from the meals, not from a stopwatch started and stopped around them.
+2. Entering happens where it is easy, storing where it is read: a questionnaire is a door, and a Task puts each answer in the tool of its subject. That is not a copy. Do not also give a tracking a shortcut for what already comes in through that door: it would be noted twice.
+3. Each piece has one job. A tool keeps facts. A variable computes. A Task acts, always the same way, free, without an AI. A routine acts with judgement: writes, sorts, sums up.
+4. In a chain, the Task wires, the routine writes, the API makes: let each keep its job.
+5. A routine remembers nothing from one run to the next. What it must know, it reads again through the pointers of its message; what it learns, it writes in a tool that the next run reads.
+6. A Task that listens to writes says which ones, by the filters of its trigger: a questionnaire filled (`state.status` in `filled`), a session `done`, a field `present`. A corrected entry is written again and starts it again: a Task that files something must allow for it (a step that finds the entry already there with `existing`, a routine that checks before writing).
+7. The simplest first: a tool alone, then a variable, then a Task, then a routine. Show what already exists before building.
+8. A zone is a subject of life; a group in it, a question or a rhythm: today, this week, the horizon and the reviews.
+
+## Setups
+
+- **Filing a questionnaire.** A Task triggered by `entry_written` on the questionnaire, filtered on `state.status` in `filled`; one `create_entry` step per answer into the tool of its subject, each with `when` the answer is `present`, its date the one received.
+- **One practice counted in two places.** A session `done`, or a journal entry of one kind (a filter on its choice field), starts a Task whose `create_entry` step writes an entry in a tracking that gathers these practices, at the date received.
+- **Being told when a threshold is crossed.** A Task without steps, its trigger a `condition` (“the week\'s hours > 45”), its end notified (`notify_end`).
+- **A reminder only if…** A Task whose `tool_operation` step calls `messages.execute` (send now) of a Messages tool, the step carrying `when` its condition holds. `when` exists on every step of a Task.
+- **The time between two moments.** A variable whose formula subtracts two instants: `now()` minus a term reading the latest date of a tool (the time since a meal), or two dates read (a night).
+- **What is left to do today.** A variable counting today\'s entries of a tool (COUNT, from the start of the day to now), its tile in a group at the head of the zone.
+- **Making something with an AI and a service.** An answer starts a Task that runs a routine (`run_routine`, the entry attached); the routine gathers the context and creates a record; that record written starts a Task that calls the API (`call_api`) and writes its answer (an audio, a title) into the record (`update_entry`); a Sequence plays it.
+- **Giving a memory to a service that has none.** After each session, a routine writes a stop in a journal and rewrites a map in a note; the routine that prepares the next session reads both through its pointers.
+- **Keeping in step with an outside service.** A Task run by hand sends the API lists of entries (an input of type list, filled by a selection) and, for each element of the lists it answers (`for_each`), creates an entry, `existing` set to leave it or update it, `append` adding text under what a field holds.
+- **A library and its player.** A table of records, each with its audio, and a Sequence that plays the one chosen; done, it is counted in a tracking.
+- **A list kept by a routine.** A routine adds to a List what crossed a threshold (who has not heard from the user for too long); checking an item stands for the gesture made.
+- **Reminders rewritten by a routine.** A routine on a weekly schedule rewrites the times and texts of a Messages tool from what the week showed.
+- **The context always sent.** One Notes tool sent to the AI in every conversation: who the user is, the season, how to speak to them. One, not one per subject.
+- **A drop box, distilled.** A journal where everything arrives unsorted, sorted each week into the tools of their subjects.
+- **The week\'s ritual.** A questionnaire that opens the conversation with the AI, a Goal per zone judged each week, a review per zone in a journal, a summary of the week.
+- **Connecting without a write.** An `event`, emitted by a step (`emit_event`), a reminder or the end of a routine, starts the Tasks and routines that listen to it: when what happened is no entry written.]]></string>
 
     <!-- Header of the operations a tool's entries schema comes with (CommandExecutor) -->
     <string name="ai_chunk_tool_operations_header">Operations (TOOL_OPERATION)</string>

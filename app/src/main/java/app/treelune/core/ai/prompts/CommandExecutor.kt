@@ -575,6 +575,7 @@ class CommandExecutor(private val context: Context) {
             "files.show_images" -> line("images", (data["images"] as? List<*>)?.size ?: 0)
             "imports.detect" -> line("import_plan")
             "app_config.get_current_datetime" -> line("datetime")
+            "app_config.design_guide" -> line("design_guide")
             "app_config.get" -> line("settings")
             "icons.overview", "icons.search" -> line("icons")
             "identities.list" -> line("identities")
@@ -722,6 +723,7 @@ class CommandExecutor(private val context: Context) {
                 val zone = (command.params["zone_id"] as? String)?.let { " of zone '${resolveZoneName(it)}'" }
                 "Steps of the history${tool ?: zone ?: ""}, the most recent first"
             }
+            "app_config" -> if (command.operation == "design_guide") "Design guide" else "Data from ${command.resource}.${command.operation}"
             "icons" -> when (command.operation) {
                 "overview" -> "Icons: overview"
                 else -> {
@@ -777,6 +779,9 @@ class CommandExecutor(private val context: Context) {
 
         // An identity is read as its texts are written, never as escaped JSON
         if (command.resource == "identities") IdentityPrompt.forModel(command.operation, data)?.let { return it }
+
+        // The design guide is a text written for the model, read as written
+        if (command.resource == "app_config" && command.operation == "design_guide") return data["guide"] as String
 
         // A schema is read in its notation, not as the JSON the app validates against
         (data["content"] as? String)?.takeIf { command.resource == "schemas" }?.let { content ->

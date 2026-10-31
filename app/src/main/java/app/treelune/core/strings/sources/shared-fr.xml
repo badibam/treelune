@@ -2137,6 +2137,7 @@
     <string name="ai_read_user_import_plan">Fichier lu pour l\'import</string>
     <string name="ai_read_user_datetime">Date et heure lues</string>
     <string name="ai_read_user_settings">Réglages lus</string>
+    <string name="ai_read_user_design_guide">Guide de conception lu</string>
     <string name="ai_read_user_icons">Icônes lues</string>
     <string name="ai_read_user_identities">Identités lues</string>
     <string name="ai_read_user_identity">« %1$s » : identité lue</string>

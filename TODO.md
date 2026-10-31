@@ -58,6 +58,7 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
+- Le guide de conception (`ai_design_guide`) avec les Repères, une fois `readouts` fusionnée : la pièce (montrer ce qui reste à faire, regrouper ce qui est éparpillé, des critères sans Objectif) et le montage « ce qui reste à faire aujourd'hui », qui y passe d'une variable qui compte à un Repère.
 - Les Repères (Readouts), `docs/design/readouts.md` : une phrase à valeurs lues, ses couleurs par condition, sa pastille, et les endroits où il remonte jusqu'à l'accueil ; la remontée des tuiles d'outil viendra ensuite par la même mécanique.
 - Démarrer et arrêter le chronomètre d'un Suivi depuis une Tâche : le Suivi ne déclare aucune opération (`getOperations`), quand `ToolDataService` sait déjà `start_duration` et `stop_duration` ; un premier repas noté qui arrête un jeûne. Avec, une condition qui dit si un chronomètre tourne (`state.running`), non vérifiée : le toucher du coucher qui prévient quand le jeûne ne tourne pas.
 
@@ -65,7 +66,6 @@ Codé, jamais vu sur l'appareil.
 
 - Le mode disposition d'une page (l'accueil, une zone) : faire glisser une tuile d'une section à l'autre, ce qui change son groupe ; aujourd'hui le groupe se choisit dans la config de la chose, et une tuile ne bouge que dans sa section.
 - Un déclencheur « une entrée devient conforme au filtre » (`entry_written`), comme « une condition devient vraie » pour une Condition : les filtres jugés sur la copie d'avant l'écriture et sur celle d'après (l'historique des écritures les garde), le départ seulement au passage de non conforme à conforme. Une séance terminée qu'on corrige, un questionnaire rempli qu'on retouche relancent aujourd'hui leurs Tâches (vu le 2026-10-29 : un doublon dans Décrochage) ; une routine s'en garde par un champ Référence qu'elle relit (« Préparer la séance »).
-- Des montages types pour l'IA (une discussion qui revient, une alerte sur un seuil, un bilan fait seul…) : un catalogue lu à la demande par une commande, le texte de départ n'en gardant qu'une ligne par montage (besoin → nom) ; chaque montage dit le besoin, les pièces et leur liaison, ses noms (commandes, réglages, types d'étape) vérifiés par un script comme le Guide ; la matière tirée du montage réel de l'utilisateur, l'effet mesuré au banc par des scénarios de conception.
 
 - Les zones d'une partie importée : chacune arrive seule sur sa ligne, en colonne 0 (`Grid.arrive`, comme toute tuile nouvelle), deux zones côte à côte dans le fichier empilées avec un vide à droite ; garder leur disposition entre elles.
 - Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent, la condition d'un déclencheur qui lit un outil ou une variable), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne ; le modèle existe pour les événements (`EventUses` : le refus nomme ce qui écoute ou émet). Une fiche désignée par un raccourci de Suivi (`SettingNode.FieldValues`) en est aussi : supprimée, le raccourci la garde, lue « supprimée ».

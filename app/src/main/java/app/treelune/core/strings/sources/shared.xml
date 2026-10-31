@@ -2137,6 +2137,7 @@
     <string name="ai_read_user_import_plan">File read for the import</string>
     <string name="ai_read_user_datetime">Date and time read</string>
     <string name="ai_read_user_settings">Settings read</string>
+    <string name="ai_read_user_design_guide">Design guide read</string>
     <string name="ai_read_user_icons">Icons read</string>
     <string name="ai_read_user_identities">Identities read</string>
     <string name="ai_read_user_identity">'%1$s': identity read</string>

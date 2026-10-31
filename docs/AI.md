@@ -585,6 +585,10 @@ class EnrichmentProcessor {
 **Enrichments**: stored as a SessionMessage sender=SYSTEM, included in the history.
 **RichComposer UI**: the message is a sequence of typed blocks, one per segment (text, pointer, text file, image, sound or video), in the order they go. A new block is inserted after the active block and becomes active; the blocks are reordered by their handle (`UI.ReorderableColumn`); the list is never empty, and an empty text does not go. The rules live in `ComposerBlocks`, tested by `ComposerBlocksTest`.
 
+### Design guide
+
+The principles for choosing pieces, then setups that answer a need with them and how they connect (`ai_design_guide`, English, the AI's alone): read on demand with `DESIGN_GUIDE`, a free read (`app_config.design_guide`), returned as written. The pieces' header of the L1 says when: before proposing or building an organisation, a zone, a tool, a variable, a Task or a routine created, moved or rewired. It is not in the L1 itself, which most conversations, writing an entry or reading a value, would carry for nothing. One level while it stays short; past some thirty setups, the L1 would carry an index (need → name) and the command one setup at a time. Nothing personal goes in it, the app being published: a user's real setup is told without its names. Every name it cites between backticks (a command, a step kind, a tool operation, a formula function, a value the code writes) is checked against the code by `scripts/check_design_guide.py`, at each `./run test`. We read it in a session too, before designing a feature: it says what the app already assembles.
+
 ### The L1 is a contract, checked on what changes
 
 `ai_prompt_chunks.xml` is the only description of the command API the AI receives. Nothing compiles or tests it: a divergence from the code produces no error, just a parameter ignored silently and a wrong result on the AI's side.

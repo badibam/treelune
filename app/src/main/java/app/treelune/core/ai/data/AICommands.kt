@@ -111,6 +111,7 @@ object AICommands {
         query("IMAGES", p("ids", "array", true)),
         query("IMPORT_PLAN", p("file", "string", true), p("tool_instance_id", "string", true)),
         query("CURRENT_DATETIME"),
+        query("DESIGN_GUIDE"),
         query("SCHEMA", p("tooltype", "string"), p("tool_instance_id", "string"), p("id", "string")),
         query("ICONS", p("categories", "array"), p("query", "array")),
         query("APP_CONFIG", p("category", "string", true)),
