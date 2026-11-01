@@ -10,5 +10,5 @@
 ! b2320db  no fastlane store listing yet; en-US text and screenshots come with the English default, before the first submission
 ## pixel-ui @ a85a2c3
 ## ia-service-distant @ 4ab1831
-## php-heberge-leger @
+## php-heberge-leger @ dc78ce2
 - 500a48b3  getSiteText has no default: a text missing from one language fails the page, the project allowing no fallback without validation
