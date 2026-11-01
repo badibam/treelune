@@ -43,7 +43,7 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
 - **Direction** : `TD` (de haut en bas) ou `BT` (de bas en haut). Pas de `LR` ni de `RL` : de gauche à droite, un schéma déborde en portrait.
 - **Formes** : rectangle, coins arrondis, pilule, cercle, losange, sous les noms de la syntaxe `@{ shape: … }` de Mermaid 11 (à vérifier).
 - **Flèches** : un trait normal, pointillé ou épais, avec ou sans pointe, un texte facultatif.
-- **Groupes** : imbriquables, un titre.
+- **Groupes** : imbriquables, un titre, `folded` pour s'ouvrir replié.
 - **Couleur et texture** : sur une boîte ou un groupe, au plus une couleur d'étiquette et une texture, par leurs noms enregistrés ; le thème les dessine, jamais une couleur écrite en dur. Dans le thème E-reader, où une couleur est un motif, couleur et texture vont sur deux surfaces différentes de la boîte, comme pour une icône colorée.
 - **Le lien d'une boîte** : la brique Chose (`Reference`, `{"kind", "id"}`), choisie par le navigateur des choses. Une boîte liée sans `label` porte le nom actuel de sa chose, « supprimée » si elle n'est plus ; avec `label`, le sien.
 - Une flèche ou un groupe qui nomme une boîte absente est refusé, le refus nommant l'id.
@@ -52,8 +52,8 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
 
 - Le formulaire tiré de la config : les listes des boîtes, des flèches et des groupes.
 - L'IA, qui écrit le JSON.
-- **Importer du Mermaid** : un texte flowchart collé ou tapé, converti en une fois. La conversion dit ce qu'elle change ou laisse : `LR` et `RL` réécrits en `TD`, `style`, `classDef` et `linkStyle` ignorés. Sur un schéma existant, une boîte dont l'id reste garde sa chose, sa couleur et sa texture.
-- **Copier en Mermaid** : le texte flowchart du schéma, sans les liens.
+- **Importer du Mermaid**, dans une section « Mermaid » en tête de la config : un texte flowchart collé ou tapé, converti en une fois, son bilan montré avant (« 12 boîtes, 15 flèches, 2 groupes »), rien d'enregistré avant « Enregistrer » ; une erreur de syntaxe refusée en nommant sa ligne. La conversion dit ce qu'elle change ou laisse : `LR` et `RL` réécrits en `TD`, `style`, `classDef` et `linkStyle` ignorés. Sur un schéma existant, une boîte dont l'id reste garde sa chose, sa couleur et sa texture.
+- **Copier en Mermaid**, dans la même section : le texte flowchart du schéma, sans les liens.
 - Pas d'éditeur textuel. Le geste sur le dessin (toucher une boîte pour la modifier, tirer une flèche) est à concevoir une fois le dessin là.
 
 ## Le dessin
@@ -65,6 +65,12 @@ Par l'app, sans vue web, chaque thème à sa manière (`core/drawing`, comme le 
 - Un groupe se replie en une boîte, qu'on touche pour le déplier.
 - Pas de zoom par pincement.
 
+## L'écran
+
+Une page de lecture : le schéma sur toute la page, comme en FULL. Une boîte liée ouvre sa chose ; une boîte sans lien montre son texte entier s'il est coupé. Un groupe se replie et se déplie le temps de la visite, sans rien écrire. Ce qui modifie passe par la config, la roue dentée. Vide : « Ce schéma est vide. Ajoute ses boîtes dans sa config, importe un texte Mermaid, ou demande-le à l'IA. »
+
+Qu'un formulaire de config tiré de la déclaration accepte une section de boutons d'action est à vérifier (« Essayer » d'une API).
+
 ## La tuile
 
 - **Résumé** : le nombre de boîtes et de flèches (« 7 boîtes · 9 flèches ») ; le même en LINE, CONDENSED et EXTENDED.
@@ -73,6 +79,5 @@ Par l'app, sans vue web, chaque thème à sa manière (`core/drawing`, comme le 
 
 ## Ouvert
 
-- L'écran de l'outil.
 - Le placement des boîtes et le tracé des flèches (en couches), les groupes compris.
 - La carte de l'installation : le service des liens, sa portée, la forme de chaque sorte de chose, ce qu'elle replie d'elle-même.

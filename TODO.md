@@ -86,7 +86,7 @@ Codé, jamais vu sur l'appareil.
 ## À concevoir
 
 
-- Un type d'outil Schéma, `docs/design/schema.md` : l'écran de l'outil, le placement des boîtes et des flèches, puis la carte de l'installation.
+- Un type d'outil Schéma, `docs/design/schema.md` : le placement des boîtes et des flèches, puis la carte de l'installation.
 
 ## Dette de code
 
