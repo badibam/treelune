@@ -17,7 +17,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 (titre à laisser en place, même une fois la section vidée - section ciblée par le script d'import depuis l'appareil :)
 ## En provenance du tel
 
-- Dans agenda, possibilité de rndre récurrent un eent serait pratique. — Outils — Amélioration
 
 ## Bugs
 
@@ -31,6 +30,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- « Se répète » sur la fiche d'un événement isolé de l'Agenda : le planning choisi, l'événement devenu la première occurrence (ses champs gardés, « Modifier la série » sur sa fiche), les suivantes après lui sans doublon ; un événement toute la journée, sans occurrence le même jour ; par l'IA, « rends ce rendez-vous hebdomadaire ».
 - Une séance prévue lancée, une autre marquée « Fait », un questionnaire prévu rempli en retard : chacun daté du lancement ou du remplissage dans l'historique et ses graphiques, « Prévue pour » (« Prévu pour ») qui garde l'heure prévue, aucune séance ni invitation recréée au créneau au passage suivant.
 - Un champ date et un champ date et heure d'une entrée (le début d'un événement de l'Agenda, un champ ajouté d'un Suivi) : le calendrier et l'heure seuls, sans « Personnalisée / Relative / Maintenant » ; un champ facultatif vidé par sa croix ; la période d'un export, toujours avec ses dates relatives.
 - Les séries de variables, `docs/design/variable-series.md` : « Une valeur par » Jour sur Jeûne, et sa phrase dessous ; dans un critère d'Objectif, Jeûne choisi comme source parmi les outils (seules les variables à série proposées), son filtre sur sa valeur ; « Jeûne de 16 h » et « Jeûne de 18 h » de Semaine du Tronc refaits ainsi, un repas ajouté le matin pour la veille, le compte qui suit ; une série par heure regroupée par jour dans un graphique.
