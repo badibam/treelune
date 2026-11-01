@@ -100,7 +100,7 @@ The content of tutorials 2 to 4 is written at their building: it names screens t
 1. **Go**: open the Demo group, then the zone Running. The explanation presents Camille, their zone, their tools sorted by groups.
 2. **Do**: add a run in *Runs* (`tool_data.create` on `demo-course-runs`, of user origin).
 3. **Go, then read**: open *Km per week* — your run is there, and the goal *Training week* counted it. The tools feed each other.
-4. **Do**: create your own zone, outside the demo: the explanation sends to the "Ungrouped" section, at the very bottom of the home screen, and to its +, the Demo group being Camille's.
+4. **Do**: create your own zone, outside the demo: the explanation sends to the + at the top of the home screen, the zone left without a group (the "Ungrouped" section, shown beside the groups once it holds one), the Demo group being Camille's.
 5. **Do**: add a tool to it; the explanation guides to a List, where an entry is only a name to tick, and says that only the name is to fill in (the Tracking and its shortcuts are seen at step 2, in the demo; without a shortcut, its entry intimidates).
 6. **Do**: add a first entry to it, in step 5's tool: an item of the List.
 

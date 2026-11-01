@@ -46,7 +46,7 @@
     <string name="guide_path_then">, then\u0020</string>
     <string name="guide_path_zone">open the zone %1$s</string>
     <string name="guide_path_zone_config">touch the gear at the top right</string>
-    <string name="guide_path_zone_new">scroll down to “Ungrouped” and touch its +</string>
+    <string name="guide_path_zone_new">touch the + at the top of the home screen</string>
     <string name="guide_path_tool">touch %1$s</string>
     <string name="guide_path_tool_new">touch the + at the top of the zone, then a tool type</string>
     <string name="guide_path_tool_config">touch and hold the tool\'s title</string>
@@ -168,7 +168,7 @@
     <string name="guide_organize_intro">When zones and tools pile up, you can sort them. Sorting works the same way at two levels: zones in groups on the home screen, and tools in groups within a zone.</string>
     <string name="guide_organize_outro">Zones and tools are now sorted your way. Everything can be changed at any time, with the same gestures.</string>
     <string name="guide_organize_1_goal">Two levels of sorting</string>
-    <string name="guide_organize_1_text">On the home screen, zones are sorted into groups, each in its own section. In a zone, tools, variables and routines are sorted the same way. A zone or a tool without a group goes into the “Ungrouped” section.\n\nIn each section, tiles are placed on a grid, and their size depends on their display mode.</string>
+    <string name="guide_organize_1_text">On the home screen, zones are sorted into groups, each in its own section. In a zone, tools, variables and routines are sorted the same way. A zone or a tool without a group goes into the “Ungrouped” section, which shows beside the groups once it holds one.\n\nIn each section, tiles are placed on a grid, and their size depends on their display mode.</string>
     <string name="guide_organize_2_goal">Create a group of zones</string>
     <string name="guide_organize_2_text">On the home screen, touch the gear at the top right to open the Home settings. Under Zone groups, add a Group, for example “Health”, then save. The home screen now shows one section per group.\n\nThe same settings hold Readouts at the head of the home screen and of its groups: one column, a line each, or two, side by side.</string>
     <string name="guide_organize_3_goal">Put a zone in that group</string>

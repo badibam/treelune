@@ -278,14 +278,19 @@ private fun ZoneScreenBody(zone: Zone) {
             val ungroupedTools = toolInstances.filter { ToolPositions.section(it, zoneToolGroups) == null }
             val ungroupedRoutines = routines.filter { ToolPositions.section(it.group, zoneToolGroups) == null }
 
-            // Always shown, even if empty: what is made without a group lands there
-            UngroupedSection(
+            val ungroupedVariables = variables.filter { it.group == null || it.group !in zoneToolGroups }
+            val ungroupedTasks = tasks.filter { ToolPositions.section(it.group, zoneToolGroups) == null }
+            val ungroupedReadouts = readouts.filter { ToolPositions.section(it.group, zoneToolGroups) == null }
+            // Beside groups, shown only when it holds something: what is made is added from the
+            // page's header, not from its section. Without groups it is the page's one section, kept
+            val ungroupedHolds = listOf(ungroupedTools, ungroupedVariables, ungroupedRoutines, ungroupedTasks, ungroupedReadouts).any { it.isNotEmpty() }
+            if (zoneToolGroups.isEmpty() || ungroupedHolds) UngroupedSection(
                     toolInstances = ungroupedTools,
-                    variables = variables.filter { it.group == null || it.group !in zoneToolGroups },
+                    variables = ungroupedVariables,
                     onOpenVariable = openVariable,
                     routines = ungroupedRoutines,
-                    tasks = tasks.filter { ToolPositions.section(it.group, zoneToolGroups) == null },
-                    readouts = readouts.filter { ToolPositions.section(it.group, zoneToolGroups) == null },
+                    tasks = ungroupedTasks,
+                    readouts = ungroupedReadouts,
                     hasConfiguredGroups = zoneToolGroups.isNotEmpty(),
                     onToolClick = { toolId -> openTool(toolId, waiting.oldest[toolId]?.let { app.treelune.core.tools.EntryToOpen.Existing(it) }) },
                     onOpenEntry = { tool, entry -> openTool(tool.id, entry) },

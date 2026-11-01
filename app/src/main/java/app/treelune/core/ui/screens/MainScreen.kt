@@ -582,9 +582,11 @@ private fun HomeScreenBody(zones: ZonesState) {
                     )
                 }
 
-                // "Ungrouped" section (always shown, even if empty)
-                // Includes zones with null group OR zones with group not in zoneGroups list
-                ZoneGroupSection(
+                // The "Ungrouped" section: zones with no group, or a group the home screen no longer
+                // has. Beside groups, shown only when it holds one: a zone is added from the page's
+                // header, not from its section. Without groups it is the page's one section, kept
+                val ungroupedHolds = zones.list.any { app.treelune.core.grid.ZonePositions.section(it.group, zoneGroups) == null }
+                if (zoneGroups.isEmpty() || ungroupedHolds) ZoneGroupSection(
                     groupName = null, // null = ungrouped
                     zones = zones.list,
                     groupHead = rising(app.treelune.core.readouts.ReadoutSettings.Place.ZONE_GROUP_HEAD),
