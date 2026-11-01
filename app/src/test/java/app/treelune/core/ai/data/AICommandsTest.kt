@@ -40,7 +40,17 @@ class AICommandsTest {
     @Test
     fun aTextDocumentsExactlyTheParametersItsCommandTakes() {
         for (command in AICommands.ALL) {
-            assertEquals("${command.type}, as ${command.docKey} documents it", command.params.sortedBy { it.name }, documented(texts.getValue(command.docKey)).sortedBy { it.name })
+            assertEquals("${command.type}, as ${command.docKey} documents it", command.params.map { it.copy(nullable = false) }.sortedBy { it.name }, documented(texts.getValue(command.docKey)).sortedBy { it.name })
+        }
+    }
+
+    /** A parameter `null` empties says so, on its line or in its command's text, which the model reads. */
+    @Test
+    fun aParameterTakingNullIsSaidToTakeIt() {
+        for (command in AICommands.ALL) for (param in command.params.filter { it.nullable }) {
+            val text = texts.getValue(command.docKey)
+            val line = text.lineSequence().first { it.startsWith("- `${param.name}` (") }
+            assertTrue("${command.type}.${param.name} takes null, which ${command.docKey} does not say", "null" in line || "`null` empties" in text)
         }
     }
 

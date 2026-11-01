@@ -12,7 +12,12 @@ enum class CommandKind { QUERY, ACTION }
  * What lies inside an array or an object is the business of the transformer and the service
  * the command goes to, which know the tool it names.
  */
-data class CommandParam(val name: String, val type: String, val required: Boolean = false)
+/**
+ * A parameter of a command: its name, its JSON type, whether it is required, and whether `null`
+ * is a value it takes ([nullable]: an update's field that `null` empties), which its schema then says
+ * — a client following the schema sends no `null` where it reads a type alone.
+ */
+data class CommandParam(val name: String, val type: String, val required: Boolean = false, val nullable: Boolean = false)
 
 /**
  * A command the AI may send: its type, what it does to the data, and its parameters.
@@ -33,7 +38,7 @@ data class AICommand(
     /** Its params as a JSON schema: each parameter typed, the required ones listed, no other one accepted. */
     fun schema(): JSONObject = JSONObject().apply {
         put("type", "object")
-        put("properties", JSONObject().apply { params.forEach { put(it.name, JSONObject().put("type", it.type)) } })
+        put("properties", JSONObject().apply { params.forEach { put(it.name, JSONObject().put("type", if (it.nullable) JSONArray(listOf(it.type, "null")) else it.type)) } })
         val required = params.filter { it.required }.map { it.name }
         if (required.isNotEmpty()) put("required", JSONArray(required))
         put("additionalProperties", false)
@@ -84,6 +89,9 @@ data class AICommand(
 object AICommands {
 
     private fun p(name: String, type: String, required: Boolean = false) = CommandParam(name, type, required)
+
+    /** An optional text that `null` empties. */
+    private fun emptiable(name: String) = CommandParam(name, "string", nullable = true)
     private fun query(type: String, vararg params: CommandParam) = AICommand(type, CommandKind.QUERY, params.toList())
     private fun action(type: String, vararg params: CommandParam, docKey: String? = null, writesEntries: Boolean = false) =
         AICommand(type, CommandKind.ACTION, params.toList(), docKey ?: "ai_command_${type.lowercase()}", writesEntries)
@@ -139,15 +147,15 @@ object AICommands {
             p("name", "string", true), p("description", "string"), p("icon_name", "string"), p("icon_color", "string"), p("texture", "string"),
             p("group", "string"), p("display_mode", "string"), p("tool_groups", "array"), p("identity_id", "string"), p("readout_columns", "string")),
         action("UPDATE_ZONE",
-            p("zone_id", "string", true), p("name", "string"), p("description", "string"), p("icon_name", "string"),
-            p("icon_color", "string"), p("texture", "string"), p("group", "string"), p("display_mode", "string"), p("tool_groups", "array"), p("renames", "object"),
-            p("identity_id", "string"), p("readout_columns", "string")),
+            p("zone_id", "string", true), p("name", "string"), emptiable("description"), p("icon_name", "string"),
+            emptiable("icon_color"), emptiable("texture"), p("group", "string"), p("display_mode", "string"), p("tool_groups", "array"), p("renames", "object"),
+            emptiable("identity_id"), p("readout_columns", "string")),
         action("DELETE_ZONE", p("zone_id", "string", true)),
         action("CREATE_VARIABLE", p("zone_id", "string", true), p("name", "string", true), p("label", "string", true), p("description", "string"),
             p("icon_name", "string"), p("icon_color", "string"), p("texture", "string"), p("display_mode", "string"), p("group", "string"), p("definition", "object", true)),
         action("UPDATE_VARIABLE",
-            p("variable_id", "string", true), p("name", "string"), p("label", "string"), p("description", "string"), p("icon_name", "string"),
-            p("icon_color", "string"), p("texture", "string"), p("display_mode", "string"), p("definition", "object"), p("group", "string"), p("zone_id", "string")),
+            p("variable_id", "string", true), p("name", "string"), p("label", "string"), emptiable("description"), p("icon_name", "string"),
+            emptiable("icon_color"), emptiable("texture"), p("display_mode", "string"), p("definition", "object"), p("group", "string"), p("zone_id", "string")),
         action("DELETE_VARIABLE", p("variable_id", "string", true)),
         action("CREATE_ROUTINE", p("zone_id", "string", true), p("settings", "object", true), p("message", "array", true), p("access", "array")),
         action("UPDATE_ROUTINE",
@@ -160,7 +168,7 @@ object AICommands {
         action("RUN_ROUTINE", p("routine_id", "string", true), p("joined", "array")),
         action("EMIT_EVENT", p("event_id", "string", true), p("values", "object")),
         action("CREATE_EVENT", p("zone_id", "string", true), p("name", "string", true), p("description", "string"), p("values", "array")),
-        action("UPDATE_EVENT", p("event_id", "string", true), p("name", "string"), p("description", "string"), p("values", "array")),
+        action("UPDATE_EVENT", p("event_id", "string", true), p("name", "string"), emptiable("description"), p("values", "array")),
         action("DELETE_EVENT", p("event_id", "string", true)),
         action("CREATE_READOUT", p("zone_id", "string", true), p("settings", "object", true)),
         action("UPDATE_READOUT", p("readout_id", "string", true), p("zone_id", "string"), p("settings", "object")),
@@ -173,7 +181,7 @@ object AICommands {
         action("UPDATE_APP_CONFIG", p("category", "string", true), p("settings", "object", true), p("renames", "object")),
         action("CREATE_IDENTITY", p("name", "string", true), p("language", "string", true), p("icon_name", "string"), p("icon_color", "string")),
         action("UPDATE_IDENTITY",
-            p("identity_id", "string", true), p("name", "string"), p("icon_name", "string"), p("icon_color", "string"),
+            p("identity_id", "string", true), p("name", "string"), p("icon_name", "string"), emptiable("icon_color"),
             p("language", "string"), p("section", "string"), p("voice", "string"), p("mind", "string"), p("portrait", "string"),
             p("resources", "object")),
         action("DELETE_IDENTITY", p("identity_id", "string", true)),
