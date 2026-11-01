@@ -114,6 +114,8 @@
     <string name="field_test">When</string>
     <string name="field_stack">Stacking</string>
     <string name="schema_stack">Required on bars and areas split by a category: none lays them over one another, zero piles them up, normalize brings each place to a hundred percent</string>
+    <string name="field_band_position">Place in its step (bandPosition)</string>
+    <string name="schema_band_position">On a time axis, where the row of a grid stands in its step, from 0 its start (the default) to 1 its end: 0.5 puts a line\'s point in the middle of its day, over the middle of a bar</string>
     <string name="stack_none">Over one another</string>
     <string name="stack_zero">Stacked</string>
     <string name="stack_normalize">In percent</string>

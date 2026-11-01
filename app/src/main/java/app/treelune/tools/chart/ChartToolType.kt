@@ -227,7 +227,9 @@ object ChartToolType : ToolTypeContract {
                     SettingNode.Field(field(ChartKeys.ORIENT, s.tool("field_orient"), FieldType.CHOICE, s.tool("schema_orient"),
                         choice(Orient.entries.map { it.key }) { s.tool("orient_$it") })).takeIf { channel == Channel.Y }
                 )),
-                stack
+                stack,
+                SettingNode.Field(field(ChartKeys.BAND_POSITION, s.tool("field_band_position"), FieldType.NUMERIC, s.tool("schema_band_position"),
+                    mapOf("decimals" to 2, "min" to 0, "max" to 1)))
             )
             Channel.COLOR -> {
                 val colorValue = SettingNode.Field(colorChoice(ChartKeys.VALUE, s.tool("field_color"), s.tool("schema_value_color"), context))

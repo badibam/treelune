@@ -95,6 +95,25 @@ class ChartSceneBuilderTest {
     }
 
     @Test
+    fun `a point at the middle of its step stands over the middle of its bar, at its start without bandPosition`() {
+        val table = ChartTable(mapOf("timestamp" to timestamp, "kcal" to numeric("kcal")),
+            (1..3).map { d -> Row(mapOf("timestamp" to Cell.Value(day(d)), "kcal" to Cell.Value(1500.0)), day(d) to day(d + 1) - 1) })
+        fun layers(band: String) = """{"source": "grid", "step": "day", "columns": [{"name": "a", "term": {"variable": "v"}}],
+            "mark": {"type": "bar"}, "encoding": {"x": {"field": "timestamp", "type": "temporal"}, "y": {"field": "kcal"}, "color": {"value": "GREEN"}}},
+            {"source": "grid", "step": "day", "columns": [{"name": "a", "term": {"variable": "v"}}],
+            "mark": {"type": "point"}, "encoding": {"x": {"field": "timestamp", "type": "temporal"$band}, "y": {"field": "kcal"}, "color": {"value": "RED"}}}"""
+        fun placed(band: String): Pair<List<DrawShape.Box>, List<DrawShape.Symbol>> {
+            val marks = marks(builder().build(spec(layers(band)), listOf(table, table), day(1) to day(4) - 1, 400f))
+            return marks.filterIsInstance<DrawShape.Box>() to marks.filterIsInstance<DrawShape.Symbol>()
+        }
+        val (bars, middle) = placed(""", "bandPosition": 0.5""")
+        bars.zip(middle).forEach { (bar, point) -> assertEquals((bar.rect.left + bar.rect.right) / 2, point.center.x, 1f) }
+        // Without it, at the step's start: halfway between the middles of the day before and its own
+        val (_, start) = placed("")
+        (1 until start.size).forEach { i -> assertEquals((middle[i - 1].center.x + middle[i].center.x) / 2, start[i].center.x, 1f) }
+    }
+
+    @Test
     fun `a condition's today is the user's day, still the day before past midnight`() {
         // Shown on the 3rd at 1:00, days starting at 4:00: today began on the 2nd at 4:00
         val calendar = app.treelune.core.selection.TimeResolver(day(3) + 3_600_000L, zone, 4, "monday")

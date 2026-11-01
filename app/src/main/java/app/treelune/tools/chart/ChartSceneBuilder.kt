@@ -262,6 +262,11 @@ class ChartSceneBuilder(
         private fun pos(def: ChannelDef?, field: FieldDefinition?, measure: Measure?, row: Row): Pos? {
             val name = def?.field ?: return null
             val value = row.value(name) ?: return null
+            // A grid's row at its place in its step (bandPosition), its step's start otherwise
+            val span = row.span
+            if (def.bandPosition != null && measure == Measure.TEMPORAL && span != null && (value as? Number)?.toLong() == span.first) {
+                return Pos.Num(span.first + def.bandPosition * (span.second + 1 - span.first).toDouble())
+            }
             return if (isBand(measure)) ChartValues.category(value)?.let { Pos.Cat(it) }
             else ChartValues.number(field ?: return null, value, calendar)?.let { Pos.Num(it) }
         }

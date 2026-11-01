@@ -37,7 +37,7 @@ FOREIGN = {
     "minItems", "minLength", "minProperties", "multipleOf", "oneOf", "patternProperties",
     "propertyNames", "uniqueItems",
     # Vega-Lite's, which a chart's config speaks so that the AI writes it as it knows it
-    "strokeDash", "strokeWidth",
+    "strokeDash", "strokeWidth", "bandPosition",
     # MCP's, which the app's MCP server speaks to its clients (core/mcp)
     "protocolVersion", "serverInfo", "inputSchema", "readOnlyHint", "isError",
     # Tailscale's, in the access policy block the external access screen gives to copy

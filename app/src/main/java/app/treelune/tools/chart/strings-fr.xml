@@ -114,6 +114,8 @@
     <string name="field_test">Quand</string>
     <string name="field_stack">Empilement</string>
     <string name="schema_stack">Obligatoire sur des barres et des aires séparées par une catégorie : none les superpose, zero les empile, normalize ramène chaque place à cent pour cent</string>
+    <string name="field_band_position">Place dans son pas (bandPosition)</string>
+    <string name="schema_band_position">Sur un axe du temps, où se place la ligne d\'une grille dans son pas, de 0 son début (par défaut) à 1 sa fin : 0,5 met le point d\'une ligne au milieu de son jour, au-dessus du milieu d\'une barre</string>
     <string name="stack_none">Superposées</string>
     <string name="stack_zero">Empilées</string>
     <string name="stack_normalize">En pourcentage</string>

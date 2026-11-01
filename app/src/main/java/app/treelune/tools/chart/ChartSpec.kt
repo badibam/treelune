@@ -146,6 +146,8 @@ enum class Orient(val key: String) { LEFT("left"), RIGHT("right") }
  * meant), or a [value] written for every row; [condition] gives another value to the rows it holds on.
  *
  * @property legend Whether the channel's legend is shown, at the bottom
+ * @property bandPosition Where in its step a grid's row stands on a time axis, from 0 its start
+ *   to 1 its end, as Vega-Lite's; null for its start
  */
 data class ChannelDef(
     val field: String? = null,
@@ -155,7 +157,8 @@ data class ChannelDef(
     val legend: Boolean = true,
     val stack: Stack? = null,
     val condition: ChannelCondition? = null,
-    val value: Any? = null
+    val value: Any? = null,
+    val bandPosition: Float? = null
 )
 
 /**
@@ -204,6 +207,7 @@ object ChartKeys {
     const val INTERPOLATE = "interpolate"
     const val POINT = "point"
     const val STROKE_DASH = "strokeDash"
+    const val BAND_POSITION = "bandPosition"
     const val STROKE_WIDTH = "strokeWidth"
     const val OPACITY = "opacity"
     const val SIZE = "size"
@@ -364,7 +368,10 @@ private class ChartReader(private val text: (String) -> String, private val own:
                     value = value(channel, condition.opt(ChartKeys.VALUE) ?: refuse("error_missing", "${channel.key}.${ChartKeys.CONDITION}.${ChartKeys.VALUE}"))
                 )
             },
-            value = json.opt(ChartKeys.VALUE)?.takeIf { it != JSONObject.NULL }?.let { value(channel, it) }
+            value = json.opt(ChartKeys.VALUE)?.takeIf { it != JSONObject.NULL }?.let { value(channel, it) },
+            bandPosition = json.opt(ChartKeys.BAND_POSITION)?.takeIf { it != JSONObject.NULL }?.let { raw ->
+                (raw as? Number)?.toFloat()?.takeIf { it in 0f..1f } ?: refuse("error_value", "${channel.key}.${ChartKeys.BAND_POSITION}", raw)
+            }
         )
     }
 
