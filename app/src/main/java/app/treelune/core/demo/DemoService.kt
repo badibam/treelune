@@ -118,8 +118,7 @@ class DemoService(private val context: Context) : ExecutableService {
             .forEach { (section, items) ->
                 run("zones.place_section", JSONObject()
                     .put("zone_id", section.first)
-                    .apply { section.second?.let { put("group", it) } }
-                    .put("places", places(items)))
+                    .put("sections", org.json.JSONArray().put(JSONObject().apply { section.second?.let { put("group", it) } }.put("places", places(items)))))
             }
     }
 
@@ -252,7 +251,7 @@ class DemoService(private val context: Context) : ExecutableService {
         }
         val places = JSONObject()
         tiles.forEach { places.put(it.id, JSONObject().put("grid_x", it.column).put("grid_y", it.row)) }
-        run("zones.place", JSONObject().put("group", content.group).put("places", places))
+        run("zones.place", JSONObject().put("sections", org.json.JSONArray().put(JSONObject().put("group", content.group).put("places", places))))
     }
 
     private fun places(items: List<JSONObject>): JSONObject = JSONObject().also { places ->

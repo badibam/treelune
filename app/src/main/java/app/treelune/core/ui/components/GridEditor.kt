@@ -31,13 +31,15 @@ import kotlinx.coroutines.launch
 
 /**
  * The edit mode of a screen's grids: the tools of a zone, the zones of the home screen. On for the
- * whole page, every group section at once; the tile being moved stays in its own section, named
- * by its key (its group, "" for the ungrouped one), at the places of the move in progress.
+ * whole page, every group section at once. The tile being moved goes about its section by the
+ * arrows; past its section's top or bottom it crosses into the section above or below, in the
+ * page's order ([sectionOrder]), arriving by the side it crossed (Grid.enter), its group to change
+ * with it. A section is named by its key (its group, "" for the ungrouped one).
  *
  * A move is written when it is validated, when another tile is touched or when the edit mode is
- * closed, in one write ([placeOperation], given [placeParams], the section's group and its
- * places); "Cancel" puts the section back as it was when the tile was touched. What is being
- * edited survives recreation.
+ * closed, in one write ([placeOperation], given [placeParams] and `sections`, each touched
+ * section's group and places); "Cancel" puts every section it touched back as it was when the
+ * tile was touched. What is being edited survives recreation.
  */
 class GridEditor internal constructor(
     private val placeOperation: String,
@@ -45,6 +47,7 @@ class GridEditor internal constructor(
     private val coordinator: Coordinator,
     private val scope: CoroutineScope,
     private val sectionTiles: (String) -> List<Grid.Tile>,
+    private val sectionOrder: () -> List<String>,
     private val onError: (String) -> Unit,
     private val on: MutableState<Boolean>,
     private val section: MutableState<String?>,
@@ -59,9 +62,15 @@ class GridEditor internal constructor(
     /** Whether the tile touched has moved since. */
     val moving: Boolean get() = draft.value != null && draft.value != original.value
 
-    /** The places of the section [key] while one of its tiles is moved, else null (the stored ones). */
-    fun places(key: String): List<Grid.Tile>? =
-        if (on.value && section.value == key) draft.value?.let { decode(it, sectionTiles(key)) } else null
+    /** The places of the section [key] while the move in progress touches it, else null (the stored ones). */
+    fun places(key: String): List<Grid.Tile>? = if (on.value) sections(draft.value)[key] else null
+
+    /**
+     * The section a tile stands in while the move in progress places it, or null when the move
+     * does not touch it: what the page shows in each section follows it, the moved tile included.
+     */
+    fun sectionOf(id: String): String? =
+        if (!on.value) null else sections(draft.value).entries.firstOrNull { (_, tiles) -> tiles.any { it.id == id } }?.key
 
     /** What the grid of section [key] shows in edit mode, or null outside it. */
     fun gridEdit(key: String): GridEdit? =
@@ -74,7 +83,7 @@ class GridEditor internal constructor(
     private fun select(key: String, id: String) {
         if (selected.value == id) return
         afterCommit {
-            val tiles = encode(sectionTiles(key))
+            val tiles = encode(mapOf(key to sectionTiles(key)))
             section.value = key
             selected.value = id
             original.value = tiles
@@ -85,17 +94,29 @@ class GridEditor internal constructor(
     /** The tile moved by an arrow, or nothing when it has nowhere to go that way. */
     fun move(direction: Grid.Direction) {
         val next = next(direction) ?: return
-        draft.value = encode(next)
+        section.value = next.first
+        draft.value = encode(next.second)
     }
 
     fun canMove(direction: Grid.Direction): Boolean = next(direction) != null
 
-    private fun next(direction: Grid.Direction): List<Grid.Tile>? {
+    /** The section the tile ends in and every touched section's places, after [direction]; null when it cannot go. */
+    private fun next(direction: Grid.Direction): Pair<String, Map<String, List<Grid.Tile>>>? {
         val key = section.value ?: return null
         val id = selected.value ?: return null
-        val places = places(key) ?: return null
+        val touched = sections(draft.value)
+        val places = touched[key] ?: return null
+        val oneColumn = app.treelune.core.themes.CurrentTheme.oneColumn
         // In one column the arrows move along the column (Grid.moveInOneColumn)
-        return if (app.treelune.core.themes.CurrentTheme.oneColumn) Grid.moveInOneColumn(places, id, direction) else Grid.move(places, id, direction)
+        val within = if (oneColumn) Grid.moveInOneColumn(places, id, direction) else Grid.move(places, id, direction)
+        if (within != null) return key to touched + (key to within)
+        // Past the section's top or bottom: into the section above or below, entering by the side it crossed
+        if (direction != Grid.Direction.UP && direction != Grid.Direction.DOWN) return null
+        val order = sectionOrder()
+        val target = order.getOrNull(order.indexOf(key) + if (direction == Grid.Direction.UP) -1 else 1) ?: return null
+        val tile = places.single { it.id == id }
+        val entered = Grid.enter(touched[target] ?: sectionTiles(target), tile, fromBelow = direction == Grid.Direction.UP, oneColumn = oneColumn)
+        return target to touched + mapOf(key to Grid.exit(places, id, oneColumn), target to entered)
     }
 
     /** The edit mode closed, the move in progress written. */
@@ -104,26 +125,27 @@ class GridEditor internal constructor(
     /** The move written, the tile unselected; the edit mode stays. */
     fun validate() = afterCommit {}
 
-    /** The section as it was when the tile was touched, the tile unselected. */
+    /** The sections as they were when the tile was touched, the tile unselected. */
     fun cancel() {
         selected.value = null
+        section.value = null
         draft.value = null
         original.value = null
     }
 
     /** Runs [then] once the move in progress is written; a write refused keeps it, its error said. */
     private fun afterCommit(then: () -> Unit) {
-        val key = section.value
-        val places = key?.let { places(it) }
-        if (key == null || places == null || !moving) {
+        val touched = sections(draft.value)
+        if (touched.isEmpty() || !moving) {
             cancel()
             then()
             return
         }
         scope.launch {
             val result = coordinator.processUserAction(placeOperation, placeParams + mapOf(
-                "group" to key,
-                "places" to places.associate { it.id to mapOf("grid_x" to it.column, "grid_y" to it.row) }
+                "sections" to touched.map { (key, places) ->
+                    mapOf("group" to key, "places" to places.associate { it.id to mapOf("grid_x" to it.column, "grid_y" to it.row) })
+                }
             ))
             if (!result.isSuccess) {
                 onError(result.error ?: "")
@@ -134,24 +156,27 @@ class GridEditor internal constructor(
         }
     }
 
-    private fun encode(tiles: List<Grid.Tile>): String = tiles.sortedBy { it.id }.joinToString(";") { "${it.id},${it.column},${it.row}" }
-
-    /** Places kept as text, the sizes read again from the stored tiles. */
-    private fun decode(text: String, stored: List<Grid.Tile>): List<Grid.Tile> {
-        val byId = stored.associateBy { it.id }
-        return text.split(";").filter { it.isNotEmpty() }.mapNotNull { part ->
-            val (id, column, row) = part.split(",")
-            byId[id]?.copy(column = column.toInt(), row = row.toInt())
-        }
+    /** Places by section kept as text, each tile with its size: "key|id,column,row,width,height;…" a section a line. */
+    private fun encode(sections: Map<String, List<Grid.Tile>>): String = sections.entries.sortedBy { it.key }.joinToString("\n") { (key, tiles) ->
+        key + "|" + tiles.sortedBy { it.id }.joinToString(";") { "${it.id},${it.column},${it.row},${it.width},${it.height}" }
     }
+
+    private fun sections(text: String?): Map<String, List<Grid.Tile>> = text?.split("\n")?.filter { it.isNotEmpty() }?.associate { line ->
+        val key = line.substringBefore("|")
+        key to line.substringAfter("|").split(";").filter { it.isNotEmpty() }.map { part ->
+            val (id, column, row, width, height) = part.split(",")
+            Grid.Tile(id, column.toInt(), row.toInt(), width.toInt(), height.toInt())
+        }
+    } ?: emptyMap()
 }
 
 /**
  * The edit mode of a screen's grids, [sectionTiles] giving the stored tiles of a section by its
- * key, a move written by [placeOperation] with [placeParams].
+ * key and [sectionOrder] the page's sections in order, a move written by [placeOperation] with
+ * [placeParams].
  */
 @Composable
-fun rememberGridEditor(placeOperation: String, placeParams: Map<String, Any>, sectionTiles: (String) -> List<Grid.Tile>, onError: (String) -> Unit): GridEditor {
+fun rememberGridEditor(placeOperation: String, placeParams: Map<String, Any>, sectionTiles: (String) -> List<Grid.Tile>, sectionOrder: () -> List<String>, onError: (String) -> Unit): GridEditor {
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val scope = rememberCoroutineScope()
@@ -160,7 +185,7 @@ fun rememberGridEditor(placeOperation: String, placeParams: Map<String, Any>, se
     val selected = rememberSaveable { mutableStateOf<String?>(null) }
     val draft = rememberSaveable { mutableStateOf<String?>(null) }
     val original = rememberSaveable { mutableStateOf<String?>(null) }
-    return GridEditor(placeOperation, placeParams, coordinator, scope, sectionTiles, onError, on, section, selected, draft, original)
+    return GridEditor(placeOperation, placeParams, coordinator, scope, sectionTiles, sectionOrder, onError, on, section, selected, draft, original)
 }
 
 /**

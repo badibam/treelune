@@ -409,8 +409,8 @@
     <string name="action_verbalize_schema_list">Récupération de la liste des schémas</string>
     <string name="action_verbalize_unknown">Action inconnue</string>
     <string name="action_verbalize_tools_running">Recherche des chronomètres en cours dans les outils</string>
-    <string name="action_verbalize_zones_place">Déplacement de zones dans leur groupe</string>
-    <string name="action_verbalize_zones_place_section">Déplacement d\'outils et de variables dans leur groupe</string>
+    <string name="action_verbalize_zones_place">Disposition des zones</string>
+    <string name="action_verbalize_zones_place_section">Disposition des tuiles d\'une zone</string>
     <string name="action_verbalize_tools_waiting">Compte de ce qui attend dans les outils</string>
     <string name="action_verbalize_routines_waiting">Compte des exécutions de routines pas encore lues</string>
 

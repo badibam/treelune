@@ -409,8 +409,8 @@
     <string name="action_verbalize_schema_list">Retrieval of the list of schemas</string>
     <string name="action_verbalize_unknown">Unknown action</string>
     <string name="action_verbalize_tools_running">Find the running stopwatches in the tools</string>
-    <string name="action_verbalize_zones_place">Move zones in their group</string>
-    <string name="action_verbalize_zones_place_section">Move tools and variables in their group</string>
+    <string name="action_verbalize_zones_place">Arrangement of the zones</string>
+    <string name="action_verbalize_zones_place_section">Arrangement of a zone\'s tiles</string>
     <string name="action_verbalize_tools_waiting">Count what waits in the tools</string>
     <string name="action_verbalize_routines_waiting">Count the routines\' runs not yet read</string>
 

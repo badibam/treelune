@@ -329,8 +329,8 @@ class PartImport(private val context: Context) {
                 })
                 run("zones.place_section", JSONObject()
                     .put("zone_id", section.first)
-                    .apply { section.second?.let { put("group", it) } }
-                    .put("places", JSONObject().apply { placed.forEach { put(it.id, JSONObject().put("grid_x", it.column).put("grid_y", it.row)) } }))
+                    .put("sections", org.json.JSONArray().put(JSONObject().apply { section.second?.let { put("group", it) } }
+                        .put("places", JSONObject().apply { placed.forEach { put(it.id, JSONObject().put("grid_x", it.column).put("grid_y", it.row)) } }))))
             }
 
         // The entries, each after the ones it designates, a tool's together

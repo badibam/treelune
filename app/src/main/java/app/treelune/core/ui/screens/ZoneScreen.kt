@@ -185,6 +185,8 @@ private fun ZoneScreenBody(zone: Zone) {
                 tasks.filter { ToolPositions.section(it.group, zoneToolGroups) == section }.map { it.tile } +
                 readouts.filter { ToolPositions.section(it.group, zoneToolGroups) == section }.map { it.tile }
         },
+        // Its groups, then the ungrouped section: what an arrow crosses into
+        sectionOrder = { zoneToolGroups + "" },
         onError = { errorMessage = it }
     )
 
@@ -254,17 +256,22 @@ private fun ZoneScreenBody(zone: Zone) {
                 )
             }
 
+            // The section a tile is shown in: its group's, or the ungrouped one (""); while a move
+            // crosses sections, where it puts it (GridEditor.sectionOf)
+            fun keyOf(id: String, stored: String?): String = gridEditor.sectionOf(id) ?: (stored ?: "")
+            fun toolKey(tool: ToolInstance) = keyOf(tool.id, ToolPositions.section(tool, zoneToolGroups))
+            fun groupKey(id: String, group: String?) = keyOf(id, ToolPositions.section(group, zoneToolGroups))
+
             // For each defined group, display its section (always shown, even if empty)
             zoneToolGroups.forEach { groupName ->
                 GroupSection(
                     groupName = groupName,
-                    zoneToolGroups = zoneToolGroups,
-                    variables = variables.filter { it.group == groupName },
+                    variables = variables.filter { groupKey(it.id, it.group) == groupName },
                     onOpenVariable = openVariable,
-                    toolInstances = toolInstances,
-                    routines = routines,
-                    tasks = tasks.filter { it.group == groupName },
-                    readouts = readouts.filter { it.group == groupName },
+                    toolInstances = toolInstances.filter { toolKey(it) == groupName },
+                    routines = routines.filter { groupKey(it.id, it.group) == groupName },
+                    tasks = tasks.filter { groupKey(it.id, it.group) == groupName },
+                    readouts = readouts.filter { groupKey(it.id, it.group) == groupName },
                     onToolClick = { toolId -> openTool(toolId, waiting.oldest[toolId]?.let { app.treelune.core.tools.EntryToOpen.Existing(it) }) },
                     onOpenEntry = { tool, entry -> openTool(tool.id, entry) },
                     editor = gridEditor,
@@ -275,16 +282,16 @@ private fun ZoneScreenBody(zone: Zone) {
             }
 
             // Ungrouped section: items with no group, or a group the zone does not have
-            val ungroupedTools = toolInstances.filter { ToolPositions.section(it, zoneToolGroups) == null }
-            val ungroupedRoutines = routines.filter { ToolPositions.section(it.group, zoneToolGroups) == null }
-
-            val ungroupedVariables = variables.filter { it.group == null || it.group !in zoneToolGroups }
-            val ungroupedTasks = tasks.filter { ToolPositions.section(it.group, zoneToolGroups) == null }
-            val ungroupedReadouts = readouts.filter { ToolPositions.section(it.group, zoneToolGroups) == null }
+            val ungroupedTools = toolInstances.filter { toolKey(it) == "" }
+            val ungroupedRoutines = routines.filter { groupKey(it.id, it.group) == "" }
+            val ungroupedVariables = variables.filter { groupKey(it.id, it.group) == "" }
+            val ungroupedTasks = tasks.filter { groupKey(it.id, it.group) == "" }
+            val ungroupedReadouts = readouts.filter { groupKey(it.id, it.group) == "" }
             // Beside groups, shown only when it holds something: what is made is added from the
             // page's header, not from its section. Without groups it is the page's one section, kept
             val ungroupedHolds = listOf(ungroupedTools, ungroupedVariables, ungroupedRoutines, ungroupedTasks, ungroupedReadouts).any { it.isNotEmpty() }
-            if (zoneToolGroups.isEmpty() || ungroupedHolds) UngroupedSection(
+            // In edit mode it is always there, last: a tile crosses into it
+            if (zoneToolGroups.isEmpty() || ungroupedHolds || gridEditor.anyEditing) UngroupedSection(
                     toolInstances = ungroupedTools,
                     variables = ungroupedVariables,
                     onOpenVariable = openVariable,
@@ -431,7 +438,6 @@ private fun AddMenu(
 @Composable
 private fun GroupSection(
     groupName: String,
-    zoneToolGroups: List<String>,
     variables: List<app.treelune.core.ui.variables.VariableRow>,
     onOpenVariable: (String) -> Unit,
     toolInstances: List<ToolInstance>,
@@ -445,9 +451,7 @@ private fun GroupSection(
     routineActions: app.treelune.core.ai.ui.routine.RoutineActions,
     context: android.content.Context
 ) {
-    val groupTools = toolInstances.filter { ToolPositions.section(it, zoneToolGroups) == groupName }
-    val groupRoutines = routines.filter { it.group == groupName }
-    Section(groupName, groupName, groupTools, variables, groupRoutines, tasks, readouts, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions, context)
+    Section(groupName, groupName, toolInstances, variables, routines, tasks, readouts, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions, context)
     Spacer(modifier = Modifier.height(UI.Space.XL))
 }
 

@@ -518,6 +518,8 @@ private fun HomeScreenBody(zones: ZonesState) {
         placeOperation = "zones.place",
         placeParams = emptyMap(),
         sectionTiles = { key -> app.treelune.core.grid.ZonePositions.tiles(zones.list, zoneGroups, key.ifEmpty { null }) },
+        // Its groups, then the ungrouped section: what an arrow crosses into
+        sectionOrder = { zoneGroups + "" },
         onError = { errorMessage = it }
     )
     app.treelune.core.ui.components.CloseEditOnLeave(gridEditor)
@@ -586,7 +588,8 @@ private fun HomeScreenBody(zones: ZonesState) {
                 // has. Beside groups, shown only when it holds one: a zone is added from the page's
                 // header, not from its section. Without groups it is the page's one section, kept
                 val ungroupedHolds = zones.list.any { app.treelune.core.grid.ZonePositions.section(it.group, zoneGroups) == null }
-                if (zoneGroups.isEmpty() || ungroupedHolds) ZoneGroupSection(
+                // In edit mode it is always there, last: a zone crosses into it
+                if (zoneGroups.isEmpty() || ungroupedHolds || gridEditor.anyEditing) ZoneGroupSection(
                     groupName = null, // null = ungrouped
                     zones = zones.list,
                     groupHead = rising(app.treelune.core.readouts.ReadoutSettings.Place.ZONE_GROUP_HEAD),
@@ -633,9 +636,10 @@ private fun ZoneGroupSection(
 ) {
     val s = remember { Strings.`for`(context = context) }
 
-    // The zones shown here: of this group, or for the ungrouped section of none the home screen has
-    val groupZones = zones.filter { app.treelune.core.grid.ZonePositions.section(it.group, configuredGroups) == groupName }
+    // The zones shown here: of this group, or for the ungrouped section of none the home screen has;
+    // while a move crosses sections, where it puts them (GridEditor.sectionOf)
     val key = groupName ?: ""
+    val groupZones = zones.filter { (editor.sectionOf(it.id) ?: (app.treelune.core.grid.ZonePositions.section(it.group, configuredGroups) ?: "")) == key }
 
     // Determine section label
     val sectionLabel = when {

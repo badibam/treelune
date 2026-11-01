@@ -166,6 +166,28 @@ object Grid {
         }
     }
 
+    /**
+     * [tile], come from the section above or below, entering [target] by the side it crossed: from
+     * below ([fromBelow], an up arrow past its own section's top), at the bottom of [target], on a
+     * new row under its last, in its column; from above, at the top, in its column, every tile of
+     * [target] moving down by its height. Its column is brought left if it would cross the edge.
+     * In one column ([oneColumn]) it is put last or first in the column's order, then packed
+     * ([pack]), as a move in one column does.
+     */
+    fun enter(target: List<Tile>, tile: Tile, fromBelow: Boolean, oneColumn: Boolean = false): List<Tile> {
+        if (oneColumn) {
+            val order = readingOrder(target)
+            return pack(if (fromBelow) order + tile else listOf(tile) + order)
+        }
+        val column = minOf(tile.column, COLUMNS - tile.width)
+        return if (fromBelow) target + tile.copy(column = column, row = rowCount(target))
+        else target.map { it.copy(row = it.row + tile.height) } + tile.copy(column = column, row = 0)
+    }
+
+    /** [tiles] without tile [id], gone to another section: [leave], or in one column packed again in its order. */
+    fun exit(tiles: List<Tile>, id: String, oneColumn: Boolean = false): List<Tile> =
+        if (oneColumn) pack(readingOrder(tiles).filter { it.id != id }) else leave(tiles, id)
+
     /** [tiles] in the order a screen reads them: by row, then by column. */
     fun readingOrder(tiles: List<Tile>): List<Tile> = tiles.sortedWith(compareBy({ it.row }, { it.column }))
 

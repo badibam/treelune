@@ -145,6 +145,39 @@ class SectionGrid(context: Context) {
         return true
     }
 
+    /**
+     * The tiles of several sections put where the grid editor leaves them ([sections], each a
+     * section — null the ungrouped one — and its places): a tile named in a section it is not
+     * shown in crosses into it, its group becoming that section's (none for the ungrouped one),
+     * then each section is placed as [place] does. Throws when a section's places do not name
+     * each of its tiles once or do not lay them out, for the caller's transaction to undo it all.
+     */
+    suspend fun placeSections(zoneId: String, zoneGroups: List<String>, sections: List<Pair<String?, Map<String, Pair<Int, Int>>>>) {
+        val byId = items(zoneId).associateBy { it.id }
+        for ((section, places) in sections) for (id in places.keys) {
+            val item = byId[id] ?: throw IllegalStateException("tile $id is not of zone $zoneId")
+            if (ToolPositions.section(item.group, zoneGroups) != section) regroup(item, section)
+        }
+        for ((section, places) in sections) {
+            if (!place(zoneId, zoneGroups, section, places)) throw IllegalStateException("section ${section ?: "(ungrouped)"} not laid out")
+        }
+    }
+
+    /** [item] given [group] (null for none), as its own kind keeps it. */
+    private suspend fun regroup(item: SectionItem, group: String?) {
+        val now = System.currentTimeMillis()
+        when (item.kind) {
+            SectionItem.Kind.TOOL -> database.toolInstanceDao().getToolInstanceById(item.id)?.let { tool ->
+                val config = org.json.JSONObject(tool.config_json).apply { if (group == null) remove("group") else put("group", group) }
+                writes.updateTool(tool.copy(config_json = config.toString(), updated_at = now))
+            }
+            SectionItem.Kind.VARIABLE -> database.variableDao().getById(item.id)?.let { writes.updateVariable(it.copy(group = group, updatedAt = now)) }
+            SectionItem.Kind.ROUTINE -> database.aiDao().getRoutineById(item.id)?.let { writes.updateRoutine(it.copy(group = group, updatedAt = now)) }
+            SectionItem.Kind.TASK -> database.taskDao().get(item.id)?.let { writes.updateTask(it.copy(group = group, updatedAt = now)) }
+            SectionItem.Kind.READOUT -> database.readoutDao().get(item.id)?.let { writes.updateReadout(it.copy(group = group, updatedAt = now)) }
+        }
+    }
+
     /** The items of [items] that [tiles] put elsewhere, written at their new place; their ids. */
     private suspend fun write(items: List<SectionItem>, tiles: List<Grid.Tile>): List<String> = save(SectionPlaces.moved(items, tiles))
 

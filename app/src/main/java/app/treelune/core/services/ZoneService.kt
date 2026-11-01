@@ -238,39 +238,77 @@ class ZoneService(private val context: Context) : ExecutableService {
      * every zone of the section. Written in one go, or refused when they do not lay the section
      * out (Grid.isLaidOut). The screen alone moves tiles: the AI has no command for it.
      */
+    /**
+     * The zones of the home screen's sections put where the grid editor leaves them: `sections`,
+     * each `group` (none: the ungrouped section) and `places` (each zone's id -> `grid_x`,
+     * `grid_y`), every zone of the section named once; a zone named in a section it is not shown
+     * in crosses into it, its group becoming that section's. All or nothing.
+     */
     private suspend fun handlePlace(params: JSONObject): OperationResult {
         val groups = zoneGroups()
-        val section = ZonePositions.section(params.optString("group").takeIf { it.isNotEmpty() }, groups)
-        val places = params.optJSONObject("places") ?: return OperationResult.error(s.shared("service_error_grid_places"))
-        val zones = zoneDao.getAllZones().filter { ZonePositions.section(it.group, groups) == section }
-        if (places.keys().asSequence().toSet() != zones.map { it.id }.toSet()) return OperationResult.error(s.shared("service_error_grid_places"))
-        val placed = zones.map { zone ->
-            val place = places.getJSONObject(zone.id)
-            ZonePositions.tile(zone).copy(column = place.getInt("grid_x"), row = place.getInt("grid_y"))
+        val sections = sectionsOf(params) ?: return OperationResult.error(s.shared("service_error_grid_places"))
+        val count = try {
+            database.transaction {
+                val byId = zoneDao.getAllZones().associateBy { it.id }
+                // A zone that crossed takes its new section's group first
+                for ((group, places) in sections) for (id in places.keys) {
+                    val zone = byId[id] ?: throw IllegalStateException("zone $id")
+                    val section = ZonePositions.section(group, groups)
+                    if (ZonePositions.section(zone.group, groups) != section) writes.updateZone(zone.copy(group = section, updated_at = System.currentTimeMillis()))
+                }
+                sections.sumOf { (group, places) ->
+                    val section = ZonePositions.section(group, groups)
+                    val zones = zoneDao.getAllZones().filter { ZonePositions.section(it.group, groups) == section }
+                    if (places.keys != zones.map { it.id }.toSet()) throw IllegalStateException("section $section")
+                    val placed = zones.map { zone -> places.getValue(zone.id).let { (x, y) -> ZonePositions.tile(zone).copy(column = x, row = y) } }
+                    if (!Grid.isLaidOut(placed)) throw IllegalStateException("section $section")
+                    write(ZonePositions.moved(zones, placed))
+                    placed.size
+                }
+            }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            return OperationResult.error(s.shared("service_error_grid_places"))
         }
-        if (!Grid.isLaidOut(placed)) return OperationResult.error(s.shared("service_error_grid_places"))
-        database.transaction { write(ZonePositions.moved(zones, placed)) }
         DataChangeNotifier.notifyZonesChanged()
-        return OperationResult.success(mapOf("count" to placed.size))
+        return OperationResult.success(mapOf("count" to count))
+    }
+
+    /** The `sections` a placement gives, each its group (null for none) and its places; null when they do not read. */
+    private fun sectionsOf(params: JSONObject): List<Pair<String?, Map<String, Pair<Int, Int>>>>? {
+        val array = params.optJSONArray("sections") ?: return null
+        return (0 until array.length()).map { i ->
+            val section = array.optJSONObject(i) ?: return null
+            val places = section.optJSONObject("places") ?: return null
+            section.optString("group").takeIf { it.isNotEmpty() } to
+                places.keys().asSequence().associateWith { id -> places.getJSONObject(id).let { it.getInt("grid_x") to it.getInt("grid_y") } }
+        }
     }
 
     /**
-     * The tiles of one of a zone's sections put where the grid editor leaves them, tools and
-     * variables together (SectionGrid): `zone_id`, `group` (none: the ungrouped section),
-     * `places` (each tile's id -> `grid_x`, `grid_y`), every tile of the section named once.
+     * The tiles of a zone's sections put where the grid editor leaves them, tools, variables,
+     * routines, Tasks and readouts together (SectionGrid.placeSections): `zone_id`, `sections`, each
+     * `group` (none: the ungrouped section) and `places` (each tile's id -> `grid_x`, `grid_y`),
+     * every tile of the section named once; a tile named in a section it is not shown in crosses
+     * into it, its group becoming that section's. All or nothing.
      */
     private suspend fun handlePlaceSection(params: JSONObject): OperationResult {
         val zone = zoneDao.getZoneById(params.optString("zone_id"))
             ?: return OperationResult.error(s.shared("service_error_zone_not_found"))
         val groups = ToolPositions.zoneGroups(zone.tool_groups)
-        val section = ToolPositions.section(params.optString("group").takeIf { it.isNotEmpty() }, groups)
-        val places = params.optJSONObject("places") ?: return OperationResult.error(s.shared("service_error_grid_places"))
-        val given = places.keys().asSequence().associateWith { id -> places.getJSONObject(id).let { it.getInt("grid_x") to it.getInt("grid_y") } }
-        val placed = database.transaction { app.treelune.core.grid.SectionGrid(context).place(zone.id, groups, section, given) }
-        if (!placed) return OperationResult.error(s.shared("service_error_grid_places"))
+        val sections = sectionsOf(params)?.map { (group, places) -> ToolPositions.section(group, groups) to places }
+            ?: return OperationResult.error(s.shared("service_error_grid_places"))
+        try {
+            database.transaction { app.treelune.core.grid.SectionGrid(context).placeSections(zone.id, groups, sections) }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            return OperationResult.error(s.shared("service_error_grid_places"))
+        }
         DataChangeNotifier.notifyToolsChanged(zone.id)
         DataChangeNotifier.notifyVariablesChanged()
-        return OperationResult.success(mapOf("zone_id" to zone.id, "count" to given.size))
+        return OperationResult.success(mapOf("zone_id" to zone.id, "count" to sections.sumOf { it.second.size }))
     }
 
     /**
