@@ -89,7 +89,6 @@ Codé, jamais vu sur l'appareil.
 - Un graphique lit lentement ce qui relit une config : « Macros, 4 semaines » (7 couches, 28 jours) en 2,3 à 3,4 s le 2026-10-31, avec 167 `readings.read`, 347 `tool_data.get`, 326 `tools.get` et 198 `references.names` par lecture ; mesurer d'abord le temps par sorte d'opération (les horodatages du journal), puis, si la relecture des configs pèse, la retenir le temps d'une lecture de graphique, à travers le répartiteur, jamais en contournant ses contrôles.
 - `bandPosition` dans les graphiques, comme Vega-Lite : une ligne sur une grille de jours place son point au début du jour, au bord gauche d'une barre ; 0,5 la mettrait au milieu.
 
-- Une annulation attrapée comme une erreur : sur 114 fichiers qui ont un `catch (e: Exception)`, 18 laissent passer `CancellationException` ; les autres, sur un écran fermé ou une tâche arrêtée, l'écrivent en ERROR, rendent un échec et laissent le code continuer. Une passe, ou un contrôle de `./run test` qui exige la ligne qui la laisse passer avant un `catch (e: Exception)` dans une fonction `suspend`.
 - Une étape de Tâche déplacée garde les numéros d'étape que lisent les suivantes, l'enregistrement refusant alors en le disant.
 - Des écrans encore ouverts à l'intérieur d'un lieu, hors de la pile (`Place`, `docs/UI.md`) : la config d'un fournisseur d'IA, les pages d'un formulaire de config, les écrans internes d'un outil (fiche, historique), l'historique des conversations — à passer en lieux, au plus tard quand un tutoriel, une notification ou un pointeur doit les viser.
 
