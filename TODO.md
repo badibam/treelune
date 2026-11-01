@@ -27,6 +27,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- La conversation ouverte par la tuile d'une routine à identité et à fournisseur : l'identité en tête de la conversation, le fournisseur dans ses paramètres, le message dans la zone de saisie ; une routine sans fournisseur, le fournisseur par défaut.
 - Le Questionnaire sans « Avec l'IA » : la migration 111 → 112 passée sur l'appareil, les questionnaires réglés puis enregistrés sans refus, l'écran sans le bouton ; le rituel de la semaine monté par l'IA avec une routine à côté.
 - « Se répète » sur la fiche d'un événement isolé de l'Agenda : le planning choisi, l'événement devenu la première occurrence (ses champs gardés, « Modifier la série » sur sa fiche), les suivantes après lui sans doublon ; un événement toute la journée, sans occurrence le même jour ; par l'IA, « rends ce rendez-vous hebdomadaire ».
 - Une séance prévue lancée, une autre marquée « Fait », un questionnaire prévu rempli en retard : chacun daté du lancement ou du remplissage dans l'historique et ses graphiques, « Prévue pour » (« Prévu pour ») qui garde l'heure prévue, aucune séance ni invitation recréée au créneau au passage suivant.
