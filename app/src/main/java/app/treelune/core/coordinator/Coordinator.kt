@@ -166,7 +166,10 @@ class Coordinator(private val context: Context) {
                 isStep = !command.byTheApp,
                 sessionId = kotlin.coroutines.coroutineContext[app.treelune.core.history.StepSession]?.sessionId
             )
+            val began = System.nanoTime()
             val result = kotlinx.coroutines.withContext(Origin(command.source, command.byTheApp) + step) { service.execute(operation, params, token) }
+            // Its own time, the operations it called included: what a slow screen is measured by
+            val took = (System.nanoTime() - began) / 1_000_000
             if (running == null) app.treelune.core.history.Steps.close(context, step) {
                 // A write's result names what its params alone may not, which may be gone by now: a
                 // deletion's name, the tool of entries written by their ids
@@ -187,8 +190,8 @@ class Coordinator(private val context: Context) {
                 }
             }
             // One line per operation, which it names: the commonest line of the log, a failure kept longer
-            if (result.success) LogManager.coordination("${command.action}: ok", "VERBOSE")
-            else LogManager.coordination("${command.action} failed: ${result.error}", "INFO")
+            if (result.success) LogManager.coordination("${command.action}: ok in $took ms", "VERBOSE")
+            else LogManager.coordination("${command.action} failed in $took ms: ${result.error}", "INFO")
             // Asked from outside and done: said to whoever waits for it (the Guide's steps)
             if (result.success && !command.byTheApp) {
                 PassedOperations.pass(PassedOperations.Passed(command.action, command.source, command.params, result.data ?: emptyMap()))
