@@ -68,7 +68,7 @@ object QuestionnaireScheduler : ToolScheduler {
         val entries = coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to id))
         if (!entries.isSuccess) throw IllegalStateException(entries.error ?: "tool_data.get")
         val dated = (entries.data?.get("entries") as? List<*> ?: emptyList<Any>()).filterIsInstance<Map<*, *>>()
-            .mapNotNull { (it["timestamp"] as? Number)?.toLong() }.toSet()
+            .mapNotNull { app.treelune.core.tools.PlannedTime.slotOf(it) }.toSet()
         // Every time the schedule gave since the questionnaire was made, without its entry yet; an
         // entry filled on demand is dated from its passing, which no time of the schedule matches
         val now = System.currentTimeMillis()

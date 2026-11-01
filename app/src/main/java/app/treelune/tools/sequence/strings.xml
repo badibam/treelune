@@ -66,6 +66,7 @@
     <string name="status_ignored">Ignored</string>
     <string name="status_expired">Expired</string>
     <string name="field_started_at">Started</string>
+    <string name="field_planned_at">Planned for</string>
     <string name="field_ended_at">Ended</string>
     <string name="field_run">Run</string>
     <string name="schema_run">The session running as the app follows it; gone once it is over</string>
@@ -159,7 +160,7 @@
     <string name="error_no_kept_steps">This session does not keep its steps, finished before they were kept: correct its counts</string>
 
     <!-- What each part of an entry is in this type (EntryMeanings) -->
-    <string name="entry_timestamp">When the session started, or its planned time</string>
+    <string name="entry_timestamp">When the session started or was done; a planned one's planned time while it waits</string>
     <string name="entry_data">How the session went, written by the app when it ends: its duration, its pauses, its steps done, skipped or not done</string>
     <string name="entry_extra">The user\'s fields, filled in when a session is finished, such as how it went or the effort felt</string>
     <string name="entry_state">Where the session stands: planned, running, to finish, done, stopped or ignored; its start and end, and while it runs, its course</string>
@@ -183,6 +184,7 @@
     <string name="schema_step_statuses_list">The state of each step, in order</string>
 
     <string name="schema_started_at">When the session started</string>
+    <string name="schema_planned_at">The time the session was planned for: a session started or done is dated when it was, its planned time kept here</string>
     <string name="schema_ended_at">When the session ended</string>
     <string name="field_notify">Notify</string>
     <string name="schema_notify">A notification at each planned session</string>

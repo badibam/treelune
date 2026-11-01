@@ -30,7 +30,8 @@ import java.time.LocalTime
 /**
  * A session planned every day (SequenceScheduler): back from an absence, one entry « planned » for
  * each time passed, dated from it, one notification and the tool waiting on its tile; « Done » on
- * one marks it done at its planned time, « Start » takes the latest one, « Ignore all » the others.
+ * one marks it done, dated then, « Start » takes the latest one, dated at its start, each keeping
+ * its planned time, which no pass plans again; « Ignore all » the others.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -68,6 +69,8 @@ class SequenceScheduleTest {
     }
 
     private fun status(entry: ToolDataEntity) = JSONObject(entry.state!!).getString(SequenceToolType.STATUS)
+
+    private fun plannedAt(entry: ToolDataEntity) = JSONObject(entry.state!!).getLong(app.treelune.core.tools.PlannedTime.KEY)
     /** This test's notifications: an earlier test's tools, still in the base, may be told of by a pass of theirs. */
     private fun shown() = shadowOf(context.getSystemService(NotificationManager::class.java)).allNotifications
         .count { it.extras.getString(android.app.Notification.EXTRA_TITLE) == "Intervals" }
@@ -107,18 +110,27 @@ class SequenceScheduleTest {
         val waiting = coordinator.processUserAction("tools.waiting", emptyMap())
         assertEquals("the tile's dot", entries.size, (waiting.data!!["tools"] as Map<*, *>)[toolId])
 
-        // « Done » on the oldest: done, at its planned time
+        // « Done » on the oldest: done, dated when it was marked, its planned time kept
         val oldest = entries.first()
+        val beforeDone = System.currentTimeMillis()
         val done = coordinator.processUserAction("sequence.complete", mapOf("tool_instance_id" to toolId, "id" to oldest.id))
         assertTrue(done.error, done.isSuccess)
         val marked = database.toolDataDao().getById(oldest.id)!!
         assertEquals(SequenceToolType.Status.DONE, status(marked))
-        assertEquals(oldest.timestamp, marked.timestamp)
+        assertTrue("dated when marked done", marked.timestamp!! >= beforeDone)
+        assertEquals(oldest.timestamp, plannedAt(marked))
 
-        // « Start » takes the latest planned one
+        // « Start » takes the latest planned one, dated at its start, its planned time kept
         val started = coordinator.processUserAction("sequence.start", mapOf("tool_instance_id" to toolId))
         assertTrue(started.error, started.isSuccess)
         assertEquals(entries.last().id, started.data!!["id"])
+        val running = database.toolDataDao().getById(entries.last().id)!!
+        assertEquals(JSONObject(running.state!!).getLong(SequenceToolType.STARTED_AT), running.timestamp)
+        assertEquals(entries.last().timestamp, plannedAt(running))
+
+        // Their times taken still: another pass plans none of them again
+        tick()
+        assertEquals(entries.size, database.toolDataDao().getByToolInstance(toolId).size)
 
         // « Ignore all »: the ones still planned
         val ignored = coordinator.processUserAction("sequence.ignore_all", mapOf("tool_instance_id" to toolId))

@@ -84,7 +84,8 @@ object QuestionnaireToolType : ToolTypeContract {
             state = listOf(
                 StateField(FieldDefinition(STATUS, s.tool("field_status"), s.tool("schema_status"), FieldType.CHOICE, false,
                     mapOf("options" to ChoiceSettings.storedOptions(Status.ALL, Status.ALL.associateWith { s.tool("status_$it") }, emptyMap()))), filterable = true),
-                StateField(FieldDefinition(FILLED_AT, s.tool("field_filled_at"), s.tool("schema_filled_at"), FieldType.DATETIME, false, null), filterable = false)
+                StateField(FieldDefinition(FILLED_AT, s.tool("field_filled_at"), s.tool("schema_filled_at"), FieldType.DATETIME, false, null), filterable = false),
+                StateField(FieldDefinition(app.treelune.core.tools.PlannedTime.KEY, s.tool("field_planned_at"), s.tool("schema_planned_at"), FieldType.DATETIME, false, null), filterable = false)
             ),
             start = START
         )

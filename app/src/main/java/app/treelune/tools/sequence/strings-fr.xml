@@ -66,6 +66,7 @@
     <string name="status_ignored">Ignorée</string>
     <string name="status_expired">Expirée</string>
     <string name="field_started_at">Commencée</string>
+    <string name="field_planned_at">Prévue pour</string>
     <string name="field_ended_at">Finie</string>
     <string name="field_run">Déroulement</string>
     <string name="schema_run">La séance en cours telle que l\'app la suit ; effacé une fois finie</string>
@@ -159,7 +160,7 @@
     <string name="error_no_kept_steps">Cette séance ne garde pas ses étapes, finie avant qu\'elles soient gardées : corrige ses comptes</string>
 
     <!-- What each part of an entry is in this type (EntryMeanings) -->
-    <string name="entry_timestamp">Quand la séance a commencé, ou son heure prévue</string>
+    <string name="entry_timestamp">Quand la séance a commencé ou a été faite ; l\'heure prévue d\'une séance prévue tant qu\'elle attend</string>
     <string name="entry_data">Comment la séance s\'est passée, écrit par l\'app à sa fin : sa durée, ses pauses, ses étapes faites, passées ou pas faites</string>
     <string name="entry_extra">Les champs de l\'utilisateur, remplis quand une séance est terminée, par exemple comment elle s\'est passée ou l\'effort ressenti</string>
     <string name="entry_state">Où en est la séance : prévue, en cours, à terminer, faite, arrêtée ou ignorée ; son début et sa fin, et pendant qu\'elle se déroule, son parcours</string>
@@ -183,6 +184,7 @@
     <string name="schema_step_statuses_list">L\'état de chaque étape, dans l\'ordre</string>
 
     <string name="schema_started_at">Quand la séance a commencé</string>
+    <string name="schema_planned_at">L\'heure à laquelle la séance était prévue : une séance commencée ou faite est datée du moment où elle l\'a été, son heure prévue gardée ici</string>
     <string name="schema_ended_at">Quand la séance s\'est terminée</string>
     <string name="field_notify">Prévenir</string>
     <string name="schema_notify">Une notification à chaque séance prévue</string>

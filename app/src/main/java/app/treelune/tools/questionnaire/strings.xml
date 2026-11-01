@@ -22,7 +22,9 @@
     <string name="status_ignored">Ignored</string>
     <string name="status_expired">Expired</string>
     <string name="field_filled_at">Filled on</string>
-    <string name="schema_filled_at">When the entry was filled, which can be later than the moment it is about</string>
+    <string name="field_planned_at">Planned for</string>
+    <string name="schema_filled_at">When the entry was filled, which can be later than the moment chosen for one filled in without an invitation</string>
+    <string name="schema_planned_at">The time the invitation was planned for: an invitation filled is dated when it was filled, its planned time kept here</string>
     <string name="field_entry">Entry</string>
     <string name="operation_complete">Marks an entry filled, once its answers are written (UPDATE_DATA); gaps are allowed</string>
     <string name="operation_ignore">Marks an entry ignored: a gap chosen, kept in the history</string>
@@ -53,7 +55,7 @@
     <string name="tile_last">Last: %1$s</string>
 
     <!-- What each part of an entry is in this type (EntryMeanings) -->
-    <string name="entry_timestamp">The moment the sitting is about: the planned time of an invitation, or the moment chosen when it is filled in without one</string>
+    <string name="entry_timestamp">When the sitting was filled: an invitation's planned time while it waits, the moment chosen when it is filled in without one</string>
     <string name="entry_extra">The answers: each of the user\'s fields is a question of the questionnaire, asked one per screen</string>
     <string name="entry_state">Whether the sitting is to fill, filled or ignored, and when it was filled</string>
     <string name="field_notify">Notify</string>

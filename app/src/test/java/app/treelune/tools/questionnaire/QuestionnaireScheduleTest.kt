@@ -120,9 +120,20 @@ class QuestionnaireScheduleTest {
         assertEquals(12, JSONObject(kept.extra!!).getInt("words"))
         assertEquals(QuestionnaireToolType.Status.TO_FILL, status(kept))
 
+        // Filled: dated when it was filled, its planned time kept, which no pass plans again
+        val beforeFilled = System.currentTimeMillis()
+        val filled = coordinator.processUserAction("questionnaire.complete", mapOf("id" to latest.id))
+        assertTrue(filled.error, filled.isSuccess)
+        val passed = database.toolDataDao().getById(latest.id)!!
+        assertEquals(QuestionnaireToolType.Status.FILLED, status(passed))
+        assertTrue("dated when filled", passed.timestamp!! >= beforeFilled)
+        assertEquals(latest.timestamp, JSONObject(passed.state!!).getLong(app.treelune.core.tools.PlannedTime.KEY))
+        tick()
+        assertEquals(entries.size, database.toolDataDao().getByToolInstance(toolId).size)
+
         val ignored = coordinator.processUserAction("questionnaire.ignore_all", mapOf("tool_instance_id" to toolId))
         assertTrue(ignored.error, ignored.isSuccess)
-        assertTrue(database.toolDataDao().getByToolInstance(toolId).all { status(it) == QuestionnaireToolType.Status.IGNORED })
+        assertTrue(database.toolDataDao().getByToolInstance(toolId).filter { it.id != latest.id }.all { status(it) == QuestionnaireToolType.Status.IGNORED })
         }
     }
 }

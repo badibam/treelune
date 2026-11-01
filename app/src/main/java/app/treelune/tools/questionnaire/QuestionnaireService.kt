@@ -4,6 +4,7 @@ import android.content.Context
 import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
+import app.treelune.core.database.AppDatabase
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.services.OperationResult
 import app.treelune.core.strings.Strings
@@ -11,8 +12,9 @@ import org.json.JSONObject
 
 /**
  * A questionnaire's operations, for the screen and the AI alike:
- * - complete: `id` — the entry is filled, when it was filled kept; its answers are written as any
- *   field before (tool_data.update), gaps allowed
+ * - complete: `id` — the entry is filled, when it was filled kept; one the app planned is dated
+ *   at that moment, its planned time kept in `planned_at` (PlannedTime); its answers
+ *   are written as any field before (tool_data.update), gaps allowed
  * - ignore: `id` — a gap chosen, which stays in the history
  * - ignore_all: every entry still to fill, back from an absence
  */
@@ -34,9 +36,21 @@ class QuestionnaireService(private val context: Context) : ExecutableService {
 
     private suspend fun setStatus(id: String, status: String): OperationResult {
         if (id.isEmpty()) return OperationResult.error(s.shared("service_error_missing_id"))
+        val now = System.currentTimeMillis()
         val state = mutableMapOf<String, Any>(QuestionnaireToolType.STATUS to status)
-        if (status == QuestionnaireToolType.Status.FILLED) state[QuestionnaireToolType.FILLED_AT] = System.currentTimeMillis()
-        val result = coordinator.processUserAction("tool_data.update", mapOf("id" to id, "state" to state))
+        val update = mutableMapOf<String, Any>("id" to id, "state" to state)
+        if (status == QuestionnaireToolType.Status.FILLED) {
+            state[QuestionnaireToolType.FILLED_AT] = now
+            // An invitation filled is dated when it was filled, its planned time kept apart
+            val entry = AppDatabase.getDatabase(context).toolDataDao().getById(id)
+                ?: return OperationResult.error(s.shared("service_error_entry_not_found").format(id))
+            val waiting = entry.state?.let { JSONObject(it).optString(QuestionnaireToolType.STATUS) } == QuestionnaireToolType.Status.TO_FILL
+            if (waiting) entry.timestamp?.let { planned ->
+                state[app.treelune.core.tools.PlannedTime.KEY] = planned
+                update["timestamp"] = now
+            }
+        }
+        val result = coordinator.processUserAction("tool_data.update", update)
         return if (result.isSuccess) OperationResult.success(mapOf("id" to id, "status" to status)) else OperationResult.error(result.error ?: "")
     }
 

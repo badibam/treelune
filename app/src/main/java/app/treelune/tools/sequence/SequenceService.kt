@@ -19,8 +19,8 @@ import org.json.JSONObject
  *
  * For the screen, the notification and the AI:
  * - complete: `id`, `timestamp`, `duration`, `entry` — a session done without following the
- *   screen, all its steps counted done: the planned one `id`, at its planned time unless
- *   `timestamp` is given; without `id`, one that was not planned, at `timestamp`, then required.
+ *   screen, all its steps counted done: the planned one `id`, at the moment of the call unless
+ *   `timestamp` is given, its planned time kept in `planned_at`; without `id`, one that was not planned, at `timestamp`, then required.
  *   What its variant asks at launch is given as for `start` (SequenceVariants): a timer's
  *   `duration`, its config's without one; a medium's `entry`, required, its length the
  *   session's without a `duration`
@@ -110,10 +110,12 @@ class SequenceService(private val context: Context) : ExecutableService {
             SequenceToolType.STARTED_AT to now,
             SequenceToolType.RUN to run.toJson().toString()
         )
-        // The planned session waiting, the latest, is the one done; without one, a new entry
+        // The planned session waiting, the latest, is the one done: dated at its start, its planned
+        // time kept apart (PlannedTime); without one, a new entry
         val planned = entriesOf(toolInstanceId, SequenceToolType.Status.PLANNED).maxByOrNull { it.timestamp ?: 0L }
         val result = if (planned != null) {
-            coordinator.processUserAction("tool_data.update", mapOf("id" to planned.id, "state" to state))
+            coordinator.processUserAction("tool_data.update", mapOf("id" to planned.id, "timestamp" to now,
+                "state" to state + (app.treelune.core.tools.PlannedTime.KEY to planned.timestamp)))
         } else {
             coordinator.processUserAction("tool_data.create", mapOf(
                 "tool_instance_id" to toolInstanceId,
@@ -211,7 +213,7 @@ class SequenceService(private val context: Context) : ExecutableService {
 
     /**
      * A session done without following the screen, all its steps counted done: a planned one
-     * ([id]), at its planned time unless a time is given, or one that was not planned, at the
+     * ([id]), now unless a time is given, its planned time kept in its state (PlannedTime), or one that was not planned, at the
      * time given, which it cannot do without.
      */
     private suspend fun complete(params: JSONObject): OperationResult {
@@ -241,10 +243,11 @@ class SequenceService(private val context: Context) : ExecutableService {
         val result = if (plannedId != null) {
             val planned = entryOf(plannedId) ?: return OperationResult.error(s.shared("service_error_entry_not_found").format(plannedId))
             if (planned.toolInstanceId != toolInstanceId || statusOf(planned) != SequenceToolType.Status.PLANNED) return OperationResult.error(s.tool("error_not_planned"))
-            coordinator.processUserAction("tool_data.update", buildMap {
-                put("id", plannedId); put("data", data); put("state", state)
-                timestamp?.let { put("timestamp", it) }
-            })
+            // Done now unless a time is given, its planned time kept apart (PlannedTime)
+            coordinator.processUserAction("tool_data.update", mapOf(
+                "id" to plannedId, "data" to data, "timestamp" to (timestamp ?: System.currentTimeMillis()),
+                "state" to state + (app.treelune.core.tools.PlannedTime.KEY to planned.timestamp)
+            ))
         } else {
             coordinator.processUserAction("tool_data.create", mapOf("tool_instance_id" to toolInstanceId, "timestamp" to timestamp, "data" to data, "state" to state))
         }

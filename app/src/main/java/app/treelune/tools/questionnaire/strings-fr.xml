@@ -22,7 +22,9 @@
     <string name="status_ignored">Ignoré</string>
     <string name="status_expired">Expiré</string>
     <string name="field_filled_at">Rempli le</string>
-    <string name="schema_filled_at">Quand l\'entrée a été remplie, qui peut être plus tard que le moment qu\'elle décrit</string>
+    <string name="field_planned_at">Prévu pour</string>
+    <string name="schema_filled_at">Quand l\'entrée a été remplie, qui peut être plus tard que le moment choisi pour une entrée remplie sans invitation</string>
+    <string name="schema_planned_at">L\'heure à laquelle l\'invitation était prévue : une invitation remplie est datée du moment où elle l\'a été, son heure prévue gardée ici</string>
     <string name="field_entry">Entrée</string>
     <string name="operation_complete">Marque une entrée remplie, une fois ses réponses écrites (UPDATE_DATA) ; les trous sont permis</string>
     <string name="operation_ignore">Marque une entrée ignorée : un trou assumé, gardé dans l\'historique</string>
@@ -53,7 +55,7 @@
     <string name="tile_last">Dernier : %1$s</string>
 
     <!-- What each part of an entry is in this type (EntryMeanings) -->
-    <string name="entry_timestamp">Le moment dont parle la passation : l\'heure prévue d\'une invitation, ou le moment choisi quand elle est remplie sans invitation</string>
+    <string name="entry_timestamp">Quand la passation a été remplie : l\'heure prévue d\'une invitation tant qu\'elle attend, le moment choisi quand elle est remplie sans invitation</string>
     <string name="entry_extra">Les réponses : chaque champ de l\'utilisateur est une question du questionnaire, posée une par écran</string>
     <string name="entry_state">Si la passation est à remplir, remplie ou ignorée, et quand elle a été remplie</string>
     <string name="field_notify">Prévenir</string>
