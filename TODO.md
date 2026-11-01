@@ -29,6 +29,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- « Hors groupe » vide masqué à côté des groupes, sur l'accueil et dans une zone ; une zone ou un outil sans groupe qui le fait apparaître ; sans groupe du tout, la section seule toujours là ; l'étape « Crée ta propre zone » du Guide qui montre le + en haut.
 - Une réponse de l'IA coupée par sa longueur maximale (un fournisseur réglé bas, une demande de dix entrées longues) : « coupée… relancée une fois », la reprise plus courte, son coût compté ; coupée deux fois, l'arrêt et le renvoi au réglage ; dans une routine aussi.
 - Ce qui dépend d'une chose qu'on supprime, `docs/design/dependents.md` : la confirmation d'un outil, d'une variable, d'une fiche de table nomme ce qui les lit ; un champ retiré d'une config, la fenêtre qui nomme ce qui le lit avant d'enregistrer ; par le connecteur, une suppression refusée en nommant les dépendances puis passée avec `confirm_dependents` ; un raccourci qui désigne une entrée supprimée, « l'entrée qu'il désigne a été supprimée » à son toucher.
 - Les textures du rétro redessinées (biais, zigzag, vagues, écailles, losanges, anneaux, étoiles, croix, points, lignes, quadrillage) : sur une tuile et en fond de page, en Subtil et en Marqué, à chaque taille.
