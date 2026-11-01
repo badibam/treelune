@@ -218,9 +218,9 @@ fun TaskConfigScreen(place: Place.TaskConfig, onDone: () -> Unit, onDeleted: () 
                             Box(modifier = Modifier.weight(1f).clickable { open = if (open == index) null else index }) {
                                 UI.Text(s.shared("task_step_line").format(index + 1, s.shared("task_kind_${step.optString(TaskSteps.KIND)}")), TextType.STRONG)
                             }
-                            if (index > 0) UI.ActionButton(action = ButtonAction.UP, display = ButtonDisplay.ICON, size = Size.S, onClick = { edit(moved(steps, index, index - 1)); open = null })
+                            if (index > 0) UI.ActionButton(action = ButtonAction.UP, display = ButtonDisplay.ICON, size = Size.S, onClick = { edit(TaskSteps.moved(steps, index, index - 1)); open = null })
                             UI.ActionButton(action = ButtonAction.DELETE, display = ButtonDisplay.ICON, size = Size.S, requireConfirmation = true, onClick = {
-                                edit(JSONArray().apply { for (i in 0 until steps.length()) if (i != index) put(steps.get(i)) })
+                                edit(TaskSteps.removed(steps, index))
                                 open = null
                             })
                         }
@@ -273,9 +273,3 @@ fun TaskConfigScreen(place: Place.TaskConfig, onDone: () -> Unit, onDeleted: () 
     }
 }
 
-/** [steps] with the step at [from] put at [to]. */
-private fun moved(steps: JSONArray, from: Int, to: Int): JSONArray {
-    val list = (0 until steps.length()).map { steps.get(it) }.toMutableList()
-    list.add(to, list.removeAt(from))
-    return JSONArray(list)
-}

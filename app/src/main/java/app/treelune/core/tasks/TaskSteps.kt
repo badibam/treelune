@@ -93,6 +93,61 @@ object TaskSteps {
     /** The paths of an entry a step writes, beside its fields under data and extra. */
     private val WRITTEN_TOP = setOf("name", "timestamp")
 
+    /**
+     * [steps] with the step at [from] put at [to], what each step reads of another
+     * (`{"result": {"step"}}`) following the step it reads to its new place.
+     */
+    fun moved(steps: JSONArray, from: Int, to: Int): JSONArray {
+        val order = (0 until steps.length()).toMutableList().apply { add(to, removeAt(from)) }
+        val placeOf = order.withIndex().associate { (place, old) -> old to place }
+        return JSONArray(order.map { renumbered(steps.get(it), placeOf) })
+    }
+
+    /**
+     * [steps] without the step at [index], what the steps after it read of another following the
+     * step it reads one place up; what read the removed step is emptied, never left to read the
+     * step that takes its place: its input is then empty, which the editor shows and saving refuses;
+     * a step repeated for each element of its list keeps its `for_each`, on no step, which saving
+     * refuses too, rather than being made once without a word.
+     */
+    fun removed(steps: JSONArray, index: Int): JSONArray {
+        val placeOf = (0 until steps.length()).filter { it != index }.withIndex().associate { (place, old) -> old to place }
+        return JSONArray((0 until steps.length()).filter { it != index }.map { renumbered(steps.get(it), placeOf) })
+    }
+
+    /**
+     * [json] with each step it reads (`{"result": {"step": n}}`, at any depth) given its place in
+     * [placeOf]; a read of a step [placeOf] does not hold is taken out, from its object or its list,
+     * but for a `for_each`, kept on step -1.
+     */
+    private fun renumbered(json: Any?, placeOf: Map<Int, Int>): Any? = when (json) {
+        is JSONObject -> JSONObject().also { copy ->
+            for (key in json.keys()) {
+                val value = json.get(key)
+                if (value is JSONObject && readsGone(value, placeOf)) {
+                    if (key == FOR_EACH) copy.put(key, JSONObject(value.toString()).apply { getJSONObject(RESULT).put(STEP, -1) })
+                    continue
+                }
+                copy.put(key, renumbered(value, placeOf))
+            }
+            json.optJSONObject(RESULT)?.takeIf { it.has(STEP) }?.let { result ->
+                copy.put(RESULT, JSONObject(result.toString()).put(STEP, placeOf.getValue(result.getInt(STEP))))
+            }
+        }
+        is JSONArray -> JSONArray().also { copy ->
+            for (i in 0 until json.length()) {
+                val value = json.get(i)
+                if (value is JSONObject && readsGone(value, placeOf)) continue
+                copy.put(renumbered(value, placeOf))
+            }
+        }
+        else -> json
+    }
+
+    /** Whether [json] reads a step that [placeOf] no longer holds. */
+    private fun readsGone(json: JSONObject, placeOf: Map<Int, Int>): Boolean =
+        json.optJSONObject(RESULT)?.takeIf { it.has(STEP) }?.let { it.getInt(STEP) !in placeOf } ?: false
+
     /** Whether the path [path] of an entry is one a step may write. */
     fun writable(path: String): Boolean = path in WRITTEN_TOP || path.startsWith("data.") || path.startsWith("extra.")
 
