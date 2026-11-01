@@ -186,21 +186,9 @@ class ReadingService(private val context: Context) : ExecutableService {
             if (selection.filtersMove || series != null) {
                 instants.map { at -> at to reduced(entries(toolInstanceId, selection.storedFilters(fields, TimeResolver.at(at)) { s.shared(it) }, at), at) }
             } else {
-                val ranges = instants.map { at -> at to selection.period.instants(TimeResolver.at(at)) }
-                // Every period at once: from the earliest start to the latest end, a side without
-                // limit at one instant being without limit for all
-                val union = EntryPeriod(
-                    start = ranges.map { it.second.first }.takeIf { starts -> starts.none { it == null } }?.minOfOrNull { it!! }?.let { TimePoint.Fixed(it) },
-                    end = ranges.map { it.second.second }.takeIf { ends -> ends.none { it == null } }?.maxOfOrNull { it!! }?.let { TimePoint.Fixed(it) }
-                )
-                val rows = entries(toolInstanceId, selection.copy(period = union).storedFilters(fields, TimeResolver.at(instants.first())) { s.shared(it) }, instants.first())
-                ranges.map { (at, range) ->
-                    val (start, end) = range
-                    at to reduced(rows.filter { row ->
-                        val timestamp = (row["timestamp"] as? Number)?.toLong() ?: return@filter false
-                        (start == null || timestamp >= start) && (end == null || timestamp <= end)
-                    }, at)
-                }
+                val shared = app.treelune.core.selection.SharedRead.of(selection.period, instants)
+                val rows = entries(toolInstanceId, selection.copy(period = shared.union).storedFilters(fields, TimeResolver.at(instants.first())) { s.shared(it) }, instants.first())
+                instants.mapIndexed { i, at -> at to reduced(shared.at(i, rows), at) }
             }
         } catch (e: IllegalArgumentException) {
             return OperationResult.error(e.message ?: "")

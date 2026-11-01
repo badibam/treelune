@@ -528,7 +528,29 @@ class VariableService(private val context: Context) : ExecutableService {
         override suspend fun entries(selection: EntrySelection, at: Long): List<Map<String, Any?>>? {
             val toolId = selection.target.id ?: return null
             if (gone("TOOL_INSTANCE", toolId)) return null
-            val fields = ToolFields.filterable(toolId, context, s)
+            val fields = fieldsOf(toolId)
+            // An instant of the evaluation, filters that do not move with it: the entries of every
+            // instant's period read once, each keeping those of its own (SharedRead)
+            val index = instants.indexOf(at)
+            if (index >= 0 && instants.size > 1 && !selection.filtersMove) {
+                val key = selection.toJson().toString()
+                val (shared, rows) = sharedRead[key] ?: run {
+                    val shared = app.treelune.core.selection.SharedRead.of(selection.period, instants)
+                    val read = readEntries(toolId, selection.copy(period = shared.union), fields, instants.first())
+                    (shared to read).also { sharedRead[key] = it }
+                }
+                return shared.at(index, rows)
+            }
+            return readEntries(toolId, selection, fields, at)
+        }
+
+        /** A tool's filterable fields, read once per evaluation rather than at each instant. */
+        private suspend fun fieldsOf(toolId: String) = fieldsRead.getOrPut(toolId) { ToolFields.filterable(toolId, context, s) }
+        private val fieldsRead = mutableMapOf<String, Map<String, app.treelune.core.fields.FieldDefinition>>()
+        private val sharedRead = mutableMapOf<String, Pair<app.treelune.core.selection.SharedRead, List<Map<String, Any?>>>>()
+
+        /** The entries [selection] keeps, its filters resolved at [at]. */
+        private suspend fun readEntries(toolId: String, selection: EntrySelection, fields: Map<String, app.treelune.core.fields.FieldDefinition>, at: Long): List<Map<String, Any?>> {
             val result = coordinator.processUserAction("tool_data.get", mapOf(
                 "tool_instance_id" to toolId,
                 "filters" to JsonUtils.toList(selection.storedFilters(fields, TimeResolver.at(at)) { s.shared(it) }),
@@ -536,8 +558,7 @@ class VariableService(private val context: Context) : ExecutableService {
                 "reference" to at
             ))
             if (!result.isSuccess) throw IllegalStateException(result.error ?: "tool_data.get")
-            @Suppress("UNCHECKED_CAST")
-            return (result.data?.get("entries") as? List<*>)?.filterIsInstance<Map<String, Any?>>()
+            return (result.data?.get("entries") as? List<*>).orEmpty().filterIsInstance<Map<String, Any?>>()
         }
 
         // Not getOrPut: an entry gone is kept as null, which getOrPut would read again

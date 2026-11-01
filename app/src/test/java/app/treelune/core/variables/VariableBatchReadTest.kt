@@ -16,8 +16,9 @@ import java.time.LocalDateTime
 
 /**
  * A variable evaluated at several instants at once reads each of its terms at them all in one
- * call (VariableService's sources); what it gives is what each instant read alone gives: the
- * night's fast, its terms relative to the instant, one up to now, one falling back on it.
+ * call (VariableService's sources), and the entries of a formula per entry once (SharedRead);
+ * what it gives is what each instant read alone gives: the night's fast, its terms relative to
+ * the instant, one up to now, one falling back on it; meals doubled per entry, today up to now.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -59,8 +60,20 @@ class VariableBatchReadTest {
 
         // Before a meal, after it, a day without any, a day without the day before's
         val instants = listOf(at(11, 7), at(11, 12), at(12, 12), at(13, 12), at(14, 23))
-        val together = ok("variables.evaluate", mapOf("variable_id" to variable, "at" to instants))["values"] as List<*>
-        val alone = instants.map { instant -> (ok("variables.evaluate", mapOf("variable_id" to variable, "at" to listOf(instant)))["values"] as List<*>).single() }
-        assertEquals(alone, together)
+        // A formula per entry over today's meals, whose entries the evaluator reads itself
+        val doubled = ok("variables.create", mapOf("zone_id" to zone, "name" to "meals_doubled", "label" to "Doubled", "definition" to mapOf(
+            "kind" to "FORMULA", "formula" to "today",
+            "terms" to mapOf("today" to mapOf("reading" to mapOf(
+                "selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to meals),
+                    "period" to mapOf("start" to day(0, "START"), "end" to mapOf("relative" to "NOW"))),
+                "per_entry" to "value × 2", "reduction" to "SUM"
+            ))),
+            "field" to mapOf("type" to "NUMERIC", "config" to mapOf("decimals" to 0))
+        )))["variable_id"] as String
+        for (id in listOf(variable, doubled)) {
+            val together = ok("variables.evaluate", mapOf("variable_id" to id, "at" to instants))["values"] as List<*>
+            val alone = instants.map { instant -> (ok("variables.evaluate", mapOf("variable_id" to id, "at" to listOf(instant)))["values"] as List<*>).single() }
+            assertEquals(alone, together)
+        }
     }
 }
