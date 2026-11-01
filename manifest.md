@@ -1,14 +1,14 @@
 # manifest — treelune
 
-## dev_base @ b263dd7
+## dev_base @ 58bbaf8
 ## universel @ 5f92093
 - f6a60f3  generated files stay versioned (icon drawables and index, from scripts/generate_icons.py over third_party/lucide): the build must never need the generator or its inputs
-## android @ a500d4f
+## android @ a85a2c3
 ! 9b59e58  targetSdk stays 34: target 35+ forces edge-to-edge, every screen to rework and check on a phone
 - 9b59e58  screens call the command dispatcher (Coordinator) directly and keep only view state; the dispatcher and its services are the controller layer
 ## fdroid @ a85a2c3
 ! b2320db  no fastlane store listing yet; en-US text and screenshots come with the English default, before the first submission
-## pixel-ui @ 0db9979
-## ia-service-distant @ 85554e4
+## pixel-ui @ a85a2c3
+## ia-service-distant @ 4ab1831
 ## php-heberge-leger @
 - 500a48b3  getSiteText has no default: a text missing from one language fails the page, the project allowing no fallback without validation
