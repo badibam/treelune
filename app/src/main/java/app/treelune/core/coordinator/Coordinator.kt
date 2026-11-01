@@ -168,9 +168,11 @@ class Coordinator(private val context: Context) {
             )
             val result = kotlinx.coroutines.withContext(Origin(command.source, command.byTheApp) + step) { service.execute(operation, params, token) }
             if (running == null) app.treelune.core.history.Steps.close(context, step) {
-                // A deletion's result names what is gone, which its params alone may not
-                val gone = (result.data?.get("name") as? String)?.takeIf { operation == "delete" }
-                val named = gone?.let { JSONObject(params.toString()).put("name", it) } ?: params
+                // A write's result names what its params alone may not, which may be gone by now: a
+                // deletion's name, the tool of entries written by their ids
+                val named = JSONObject(params.toString())
+                (result.data?.get("name") as? String)?.takeIf { operation == "delete" }?.let { named.put("name", it) }
+                (result.data?.get("tool_instance_id") as? String)?.takeIf { !named.has("tool_instance_id") }?.let { named.put("tool_instance_id", it) }
                 service.verbalize(operation, named, context)
             }
             // The entries the step wrote start what listens to them, in the writer's context for

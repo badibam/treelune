@@ -467,6 +467,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
         return OperationResult.success(
             data = mapOf(
                 "id" to written.id,
+                "tool_instance_id" to existingEntity.toolInstanceId,
                 "updated_at" to written.updatedAt
             )
         )
@@ -499,8 +500,11 @@ class ToolDataService(private val context: Context) : ExecutableService {
             DataChangeNotifier.notifyToolDataChanged(entity.toolInstanceId, zoneId)
         }
 
+        // The entry's tool, which a deletion by its id alone does not name, and which its words
+        // in the history can no longer read once it is gone (Coordinator)
         return OperationResult.success(mapOf(
             "id" to entryId,
+            "tool_instance_id" to entity.toolInstanceId,
             "deleted_at" to System.currentTimeMillis()
         ))
     }
@@ -930,6 +934,8 @@ class ToolDataService(private val context: Context) : ExecutableService {
         var failureCount = 0
         // Each refusal by the entry's place in the batch
         val refusals = mutableListOf<Map<String, Any>>()
+        // The tool of the entries, when they share one, read before they are gone (deleteEntry)
+        val sharedTool = (0 until idsArray.length()).mapNotNull { dao.getById(idsArray.optString(it))?.toolInstanceId }.distinct().singleOrNull()
 
         // Process each ID
         for (i in 0 until idsArray.length()) {
@@ -998,7 +1004,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
         return OperationResult.success(mapOf(
             "deleted_count" to successCount,
             "failed_count" to failureCount
-        ))
+        ) + (sharedTool?.let { mapOf("tool_instance_id" to it) } ?: emptyMap()))
     }
 
     /**
@@ -1126,6 +1132,8 @@ class ToolDataService(private val context: Context) : ExecutableService {
      */
     override suspend fun verbalize(operation: String, params: JSONObject, context: Context): String {
         val s = Strings.`for`(context = context)
+        // A write by the entries' ids alone names no tool: theirs, when they share one
+        if (params.optString("tool_instance_id").isBlank()) entriesTool(params)?.let { return verbalize(operation, JSONObject(params.toString()).put("tool_instance_id", it), context) }
 
         return when (operation) {
             "create", "batch_create" -> {
@@ -1176,6 +1184,21 @@ class ToolDataService(private val context: Context) : ExecutableService {
             }
             else -> s.shared("action_verbalize_unknown")
         }
+    }
+
+    /**
+     * The tool the entries [params] designate by id belong to (`id`, `ids`, the `id` of each of
+     * `entries`), when they all belong to one; null for none found or several.
+     */
+    private suspend fun entriesTool(params: JSONObject): String? {
+        val ids = buildList {
+            params.optString("id").takeIf { it.isNotEmpty() }?.let { add(it) }
+            params.optJSONArray("ids")?.let { list -> for (i in 0 until list.length()) add(list.optString(i)) }
+            params.optJSONArray("entries")?.let { list -> for (i in 0 until list.length()) list.optJSONObject(i)?.optString("id")?.takeIf { it.isNotEmpty() }?.let { add(it) } }
+        }
+        if (ids.isEmpty()) return null
+        val dao = getToolDataDao()
+        return ids.mapNotNull { dao.getById(it)?.toolInstanceId }.distinct().singleOrNull()
     }
 
     /**
