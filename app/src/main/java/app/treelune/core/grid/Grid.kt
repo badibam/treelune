@@ -184,6 +184,16 @@ object Grid {
         else target.map { it.copy(row = it.row + tile.height) } + tile.copy(column = column, row = 0)
     }
 
+    /**
+     * [block], tiles laid out elsewhere (zones brought by an import), set under the last row of
+     * [tiles] as one block: their columns and their order down kept, the rows they leave empty
+     * closed ([closeEmptyRows]); [tiles] stay where they are. [tiles] then the block, moved down.
+     */
+    fun blockUnder(tiles: List<Tile>, block: List<Tile>): List<Tile> {
+        val below = rowCount(tiles)
+        return tiles + closeEmptyRows(block).map { it.copy(row = it.row + below) }
+    }
+
     /** [tiles] without tile [id], gone to another section: [leave], or in one column packed again in its order. */
     fun exit(tiles: List<Tile>, id: String, oneColumn: Boolean = false): List<Tile> =
         if (oneColumn) pack(readingOrder(tiles).filter { it.id != id }) else leave(tiles, id)
