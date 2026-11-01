@@ -27,6 +27,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- Une étape de Tâche montée ou supprimée : ce que les autres lisent d'elle qui suit (le résultat d'une API, l'entrée créée), et ce qui lisait une étape supprimée vidé, l'enregistrement qui le dit.
 - Un fournisseur supprimé alors qu'une routine l'utilise : la confirmation qui nomme les routines (et, pour le fournisseur par défaut, la fenêtre du successeur), puis leurs tuiles « Aucun fournisseur d'IA », coupées.
 - La conversation ouverte par la tuile d'une routine à identité et à fournisseur : l'identité en tête de la conversation, le fournisseur dans ses paramètres, le message dans la zone de saisie ; une routine sans fournisseur, le fournisseur par défaut.
 - Le Questionnaire sans « Avec l'IA » : la migration 111 → 112 passée sur l'appareil, les questionnaires réglés puis enregistrés sans refus, l'écran sans le bouton ; le rituel de la semaine monté par l'IA avec une routine à côté.
@@ -89,7 +90,6 @@ Codé, jamais vu sur l'appareil.
 
 - `bandPosition` dans les graphiques, comme Vega-Lite : une ligne sur une grille de jours place son point au début du jour, au bord gauche d'une barre ; 0,5 la mettrait au milieu.
 
-- Une étape de Tâche déplacée garde les numéros d'étape que lisent les suivantes, l'enregistrement refusant alors en le disant.
 - Des écrans encore ouverts à l'intérieur d'un lieu, hors de la pile (`Place`, `docs/UI.md`) : la config d'un fournisseur d'IA, les pages d'un formulaire de config, les écrans internes d'un outil (fiche, historique), l'historique des conversations — à passer en lieux, au plus tard quand un tutoriel, une notification ou un pointeur doit les viser.
 
 ## Sagesse
