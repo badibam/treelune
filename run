@@ -118,6 +118,10 @@ FRENCH_ADDRESS_CHECK = ROOT / "scripts" / "check_french_address.py"
 # renamed would send the AI to a command, a step or an operation that no longer exists.
 DESIGN_GUIDE_CHECK = ROOT / "scripts" / "check_design_guide.py"
 
+# And on cancellation: a catch of every exception in coroutine code that lets no cancellation
+# through logs an ERROR and goes on when a screen closes or a Task stops, which no test sees.
+CANCELLATION_CHECK = ROOT / "scripts" / "check_cancellation.py"
+
 # And on the themes' sounds: what a theme plays, its credits and its sound choice agree, and every
 # sound comes from a source whose licence the app takes; a file swapped by hand would not say so.
 THEME_SOUNDS = ROOT / "scripts" / "theme_sounds.py"
@@ -467,6 +471,15 @@ def design_guide_check():
     return process.returncode
 
 
+def cancellation_check():
+    """Report a catch of every exception in coroutine code that lets no cancellation through.
+
+    Returns the script's exit code, 0 when every such catch lets it through.
+    """
+    process = subprocess.run([sys.executable, str(CANCELLATION_CHECK)], cwd=ROOT)
+    return process.returncode
+
+
 def history_writes_check():
     """Report a write to a table the history covers made past its one door (Writes).
 
@@ -514,6 +527,7 @@ def task_test():
     theme_sounds = theme_sounds_check()
     history_writes = history_writes_check()
     design_guide = design_guide_check()
+    cancellation = cancellation_check()
     # Noted before the run, so that results left by the run before cannot be read as this
     # one's. A filesystem timestamp can lag by a second, hence the margin.
     started = time.time() - 1
@@ -524,7 +538,7 @@ def task_test():
     # gradle skipped the task because nothing had changed. Otherwise there is no answer.
     if tally is None or (not tally[3] and code != 0):
         print("no results from this run -- it did not get as far as the tests")
-        return code or key_case or prompt or locales or timezones or day_bounds or string_keys or font_copy or spacing or readme or guide or chat_space or go_vendor or french_address or theme_sounds or history_writes or design_guide or 1
+        return code or key_case or prompt or locales or timezones or day_bounds or string_keys or font_copy or spacing or readme or guide or chat_space or go_vendor or french_address or theme_sounds or history_writes or design_guide or cancellation or 1
 
     tests, failures, errors, fresh = tally
     bad = failures + errors
@@ -534,10 +548,10 @@ def task_test():
         print(f"report: {TEST_REPORT}")
     # The checks print first, and a green test count below them reads as a verdict. Say
     # again, last, that the tree is not fit to commit.
-    failed_checks = sum(1 for c in (key_case, prompt, locales, timezones, day_bounds, string_keys, font_copy, spacing, readme, guide, chat_space, go_vendor, french_address, theme_sounds, history_writes, design_guide) if c)
+    failed_checks = sum(1 for c in (key_case, prompt, locales, timezones, day_bounds, string_keys, font_copy, spacing, readme, guide, chat_space, go_vendor, french_address, theme_sounds, history_writes, design_guide, cancellation) if c)
     if failed_checks:
         print(f"{failed_checks} source check(s) failed -- see above")
-    return code or key_case or prompt or locales or timezones or day_bounds or string_keys or font_copy or spacing or readme or guide or chat_space or go_vendor or french_address or theme_sounds or history_writes or design_guide
+    return code or key_case or prompt or locales or timezones or day_bounds or string_keys or font_copy or spacing or readme or guide or chat_space or go_vendor or french_address or theme_sounds or history_writes or design_guide or cancellation
 
 
 def task_strings():
