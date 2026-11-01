@@ -50,7 +50,7 @@ Each tool can be set up: its fields, its units, its reminders, how it shows on t
 
 ### What links them
 
-A **variable** is a figure worked out from the entries, such as the day's calories or the week's kilometres. A Goal compares it to its target, a Chart draws it, the AI reads it. An entry can also **point** to another one, a meal to the food's sheet, a harvest to its plant.
+A **variable** is a figure worked out from the entries, such as the day's calories or the week's kilometres. A Goal compares it to its target, a Chart draws it, the AI reads it. A **readout** puts figures in a short sentence, at the head of a zone or of the home screen, such as “3 glasses left today”, coloured when something needs doing. An entry can also **point** to another one, a meal to the food's sheet, a harvest to its plant.
 
 ### What happens by itself
 
@@ -111,7 +111,7 @@ On first launch, a **demo** is waiting: twelve weeks in the life of Camille, who
 The app is in active development. It is used every day, but anything may still change, the shape of the data included. Keep backups.
 
 <!-- status -->
-- Version 0.9.5
+- Version 0.9.6
 - Android 8.0 or later
 - A 64-bit phone (arm64)
 - Languages: English, French

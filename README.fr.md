@@ -50,7 +50,7 @@ Chaque outil se règle : ses champs, ses unités, ses rappels, son affichage sur
 
 ### Ce qui les relie
 
-Une **variable** est un chiffre calculé à partir des entrées, comme les calories du jour ou les kilomètres de la semaine. Un Objectif la compare à sa cible, un Graphique la dessine, l'IA la lit. Une entrée peut aussi **pointer** vers une autre, un repas vers la fiche de l'aliment, une récolte vers sa plante.
+Une **variable** est un chiffre calculé à partir des entrées, comme les calories du jour ou les kilomètres de la semaine. Un Objectif la compare à sa cible, un Graphique la dessine, l'IA la lit. Un **repère** met des chiffres dans une courte phrase, en tête d'une zone ou de l'accueil, comme « encore 3 verres aujourd'hui », coloré quand quelque chose est à faire. Une entrée peut aussi **pointer** vers une autre, un repas vers la fiche de l'aliment, une récolte vers sa plante.
 
 ### Ce qui part tout seul
 
@@ -111,7 +111,7 @@ Au premier lancement, une **démo** t'attend : douze semaines de la vie de Camil
 L'app est en développement actif. Elle sert tous les jours, mais tout peut encore changer, la forme des données comprise. Garde des sauvegardes.
 
 <!-- status -->
-- Version 0.9.5
+- Version 0.9.6
 - Android 8.0 ou plus récent
 - Un téléphone 64 bits (arm64)
 - Langues : anglais, français
