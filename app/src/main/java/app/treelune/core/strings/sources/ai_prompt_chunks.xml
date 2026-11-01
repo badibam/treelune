@@ -1718,7 +1718,7 @@ How to answer a need with the app\'s pieces. The principles come first: they say
 - **Reminders rewritten by a routine.** A routine on a weekly schedule rewrites the times and texts of a Messages tool from what the week showed.
 - **The context always sent.** One Notes tool sent to the AI in every conversation: who the user is, the season, how to speak to them. One, not one per subject.
 - **A drop box, distilled.** A journal where everything arrives unsorted, sorted each week into the tools of their subjects.
-- **The week\'s ritual.** A questionnaire that opens the conversation with the AI, a Goal per zone judged each week, a review per zone in a journal, a summary of the week.
+- **The week\'s ritual.** A questionnaire, and a routine beside it whose message points to it, opened as a conversation from its tile, a Goal per zone judged each week, a review per zone in a journal, a summary of the week.
 - **Connecting without a write.** An `event`, emitted by a step (`emit_event`), a reminder or the end of a routine, starts the Tasks and routines that listen to it: when what happened is no entry written.]]></string>
 
     <!-- Header of the operations a tool's entries schema comes with (CommandExecutor) -->

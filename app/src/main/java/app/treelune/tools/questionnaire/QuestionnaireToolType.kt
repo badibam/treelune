@@ -44,7 +44,6 @@ object QuestionnaireToolType : ToolTypeContract {
 
     const val STATUS = "status"
     const val FILLED_AT = "filled_at"
-    const val AI_MESSAGE = "ai_message"
 
     private fun s(context: Context) = Strings.`for`(tool = "questionnaire", context = context)
 
@@ -69,9 +68,7 @@ object QuestionnaireToolType : ToolTypeContract {
             app.treelune.core.events.EventPoints.node(shared::shared),
             SettingNode.Field(FieldDefinition("enabled", s.tool("field_enabled"), s.tool("schema_enabled"), FieldType.BOOLEAN, false, null), required = true, default = true),
             // When one left to fill expires: never by default
-            app.treelune.core.tools.WaitingExpiry.node(shared::shared),
-            SettingNode.Field(FieldDefinition(AI_MESSAGE, s.tool("field_ai_message"), s.tool("schema_ai_message"), FieldType.TEXT, false,
-                mapOf("length" to TextLength.LONG.name)), required = true, default = s.tool("ai_message_default"))
+            app.treelune.core.tools.WaitingExpiry.node(shared::shared)
         )
     }
 

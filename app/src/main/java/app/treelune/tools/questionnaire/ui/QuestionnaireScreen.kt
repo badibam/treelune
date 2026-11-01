@@ -23,10 +23,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import app.treelune.core.ai.data.EnrichmentType
-import app.treelune.core.ai.data.MessageSegment
-import app.treelune.core.ai.enrichments.PointerConfig
-import app.treelune.core.ai.orchestration.ChatRequests
 import app.treelune.core.commands.CommandResult
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
@@ -36,9 +32,6 @@ import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldInput
 import app.treelune.core.fields.FieldsLayout
 import app.treelune.core.fields.toFieldDefinitions
-import app.treelune.core.selection.EntrySelection
-import app.treelune.core.selection.Reference
-import app.treelune.core.selection.ReferenceKind
 import app.treelune.core.strings.Strings
 import app.treelune.core.strings.StringsContext
 import app.treelune.core.tools.ToolConfigSettings
@@ -126,17 +119,6 @@ fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onCo
     val questions: List<FieldDefinition> = loadedConfig.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList()
     fun title(entry: QuestionnaireEntry) = "$name · ${FormatUtils.formatRelativeTimePast(entry.timestamp, context)}"
 
-    /** With the AI: a chat opened with the questionnaire's message and a pointer to what to fill. */
-    fun withAi(entry: QuestionnaireEntry?) {
-        fun pointer(kind: ReferenceKind, id: String) = MessageSegment.EnrichmentBlock(EnrichmentType.POINTER,
-            PointerConfig(EntrySelection(Reference(kind, id))).toJson().toString())
-        ChatRequests.open(listOfNotNull(
-            MessageSegment.Text(settings.string(QuestionnaireToolType.AI_MESSAGE) ?: ""),
-            pointer(ReferenceKind.TOOL_INSTANCE, toolInstanceId),
-            entry?.let { pointer(ReferenceKind.ENTRY, it.id) }
-        ))
-    }
-
     val current = passing
     if (current != null) {
         val entry = loaded.find { it.id == current }
@@ -206,7 +188,6 @@ fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onCo
                             UI.Text(title(entry), TextType.BODY)
                             ButtonRow {
                                 UI.Button(type = ButtonType.PRIMARY, onClick = { passing = entry.id }) { UI.Text(s.tool("action_fill"), TextType.LABEL) }
-                                UI.Button(type = ButtonType.SECONDARY, onClick = { withAi(entry) }) { UI.Text(s.tool("action_with_ai"), TextType.LABEL) }
                                 UI.Button(type = ButtonType.DEFAULT, onClick = {
                                     write({ coordinator.processUserAction("questionnaire.ignore", mapOf("tool_instance_id" to toolInstanceId, "id" to entry.id)) })
                                 }) { UI.Text(s.tool("action_ignore"), TextType.LABEL) }
@@ -216,7 +197,6 @@ fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onCo
                 }
                 ButtonRow {
                     UI.Button(type = ButtonType.PRIMARY, onClick = { passing = "" }) { UI.Text(s.tool("action_fill_now"), TextType.LABEL) }
-                    UI.Button(type = ButtonType.SECONDARY, onClick = { withAi(null) }) { UI.Text(s.tool("action_with_ai"), TextType.LABEL) }
                 }
             }
             else -> {

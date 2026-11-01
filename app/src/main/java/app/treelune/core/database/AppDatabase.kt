@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 111
+        const val VERSION = 112
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2342,6 +2342,27 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** A Questionnaire's config without its message to the AI: see QuestionnaireAiMessageAtV112. */
+        private val MIGRATION_111_112 = object : ConnectionMigration(111, 112) {
+            override fun migrate(database: MigrationDatabase) {
+                val v = app.treelune.core.versioning.QuestionnaireAiMessageAtV112
+                var rewritten = 0
+                database.query("SELECT id, tooltype, config_json FROM tool_instances").use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getString(0)
+                        // A config that cannot be read stays as it was and is logged: reading it then fails with the reason
+                        try {
+                            v.toolConfig(cursor.getString(1), cursor.getString(2))?.let { database.execSQL("UPDATE tool_instances SET config_json = ? WHERE id = ?", arrayOf<Any?>(it, id)); rewritten++ }
+                        } catch (e: Exception) {
+                            LogManager.database("MIGRATION 111->112: tool $id left as it was: ${e.message}", "ERROR", e)
+                        }
+                    }
+                }
+                app.treelune.core.versioning.HistoryCopies.rewrite(database, "tool_instances") { v.historyCopy(it) }
+                LogManager.database("MIGRATION 111->112: $rewritten questionnaire(s) without their message to the AI", "INFO")
+            }
+        }
+
         /** A zone's columns of gathered readouts, none: it follows the home screen's. */
         private val MIGRATION_110_111 = object : ConnectionMigration(110, 111) {
             override fun migrate(database: MigrationDatabase) {
@@ -3497,7 +3518,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_107_108,
                     MIGRATION_108_109,
                     MIGRATION_109_110,
-                    MIGRATION_110_111
+                    MIGRATION_110_111,
+                    MIGRATION_111_112
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the
