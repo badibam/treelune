@@ -86,7 +86,7 @@ Codé, jamais vu sur l'appareil.
 ## À concevoir
 
 
-- Un type d'outil Schéma : des briques et des flèches entre elles (une organisation, une boucle, qui nourrit qui), écrit par la personne ou par l'IA. Une Note n'y suffit pas : l'app n'a aucune police à chasse fixe, un schéma en texte s'y décale. Sa forme (un texte qui se dessine, Mermaid ou autre, ou des briques posées à la main), et s'il peut viser des zones, des outils ou des groupes pour y mener.
+- Un type d'outil Schéma, `docs/design/schema.md` : l'écran de l'outil, le placement des boîtes et des flèches, puis la carte de l'installation.
 
 ## Dette de code
 
