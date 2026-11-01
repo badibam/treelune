@@ -82,6 +82,7 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
+- Une variable dans le message d'une routine : proposée par le sélecteur de pointeurs (aujourd'hui zone, outil, entrée), sa valeur jointe au départ de l'exécution, et décrite à l'IA (`EnrichmentText.place` et `EnrichmentProcessor.generatePointerQueries` refusent ou ignorent `VARIABLE`) ; le pointeur d'une zone ne joint pas ses variables non plus. Vu au rituel du 2026-11-01 : les constantes du pied sain, que l'IA disait manquantes.
 - L'outil Schéma, le schéma écrit : `docs/design/schema.md` (config JSON au vocabulaire de Mermaid, placement par ELK, largeur, tuile, écran), ses vérifications d'abord (« Ouvert »).
 
 ## À concevoir
