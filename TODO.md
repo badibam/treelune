@@ -87,7 +87,6 @@ Codé, jamais vu sur l'appareil.
 
 ## Dette de code
 
-- Un graphique lit lentement ce qui relit une config : « Macros, 4 semaines » (7 couches, 28 jours) en 2,3 à 3,4 s le 2026-10-31, avec 167 `readings.read`, 347 `tool_data.get`, 326 `tools.get` et 198 `references.names` par lecture ; mesurer d'abord le temps par sorte d'opération (les horodatages du journal), puis, si la relecture des configs pèse, la retenir le temps d'une lecture de graphique, à travers le répartiteur, jamais en contournant ses contrôles.
 - `bandPosition` dans les graphiques, comme Vega-Lite : une ligne sur une grille de jours place son point au début du jour, au bord gauche d'une barre ; 0,5 la mettrait au milieu.
 
 - Une étape de Tâche déplacée garde les numéros d'étape que lisent les suivantes, l'enregistrement refusant alors en le disant.
