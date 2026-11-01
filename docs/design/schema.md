@@ -71,6 +71,16 @@ Une page de lecture : le schéma sur toute la page, comme en FULL. Une boîte li
 
 Qu'un formulaire de config tiré de la déclaration accepte une section de boutons d'action est à vérifier (« Essayer » d'une API).
 
+## Le placement : ELK
+
+Le placement des boîtes et le tracé des flèches viennent d'ELK (Eclipse Layout Kernel, `org.eclipse.elk.alg.layered`, EPL-2.0), algorithme en couches, `HierarchyHandling.INCLUDE_CHILDREN` pour les groupes, traits à angles droits ; l'app mesure les boîtes et leurs textes, ELK rend des positions, le thème dessine. Mesuré le 2026-11-01 :
+
+- l'APK : +2,76 Mo (37,40 → 40,16) ;
+- sous R8, sur le téléphone, sans règle de conservation : il tourne, 30 boîtes à deux groupes imbriqués et une boucle placées en 65 ms la première fois, 20 à 30 ms ensuite, 7 ms d'initialisation ;
+- sur l'ordinateur, cinq schémas types (une boucle, une chaîne Repas → Coach, un arbre à 8 enfants, des groupes imbriqués, la carte d'une zone de 30 choses) : les trois sans largeur sont nets et tiennent en 340 dp ; l'arbre (721 dp) et la carte (1195 dp) débordent, avec ou sans borne du nombre de boîtes par couche (Coffman-Graham), qui les étale en escalier.
+
+Son intégration demande : les fichiers propres à Eclipse en double laissés à un seul (`pickFirsts` : `plugin.xml`, `about.*`…) et `META-INF/services/org.eclipse.elk.core.data.ILayoutMetaDataProvider` fusionné (`merges`) ; `org.eclipse.xtext.xbase.lib`, qu'ELK utilise sans le déclarer ; `-dontwarn org.eclipse.**`, qui cacherait aussi un autre manque, sur un chemin non essayé : chaque option employée se vérifie dans la release sur le téléphone.
+
 ## La tuile
 
 - **Résumé** : le nombre de boîtes et de flèches (« 7 boîtes · 9 flèches ») ; le même en LINE, CONDENSED et EXTENDED.
@@ -79,5 +89,5 @@ Qu'un formulaire de config tiré de la déclaration accepte une section de bouto
 
 ## Ouvert
 
-- Le placement des boîtes et le tracé des flèches (en couches), les groupes compris.
+- La largeur : un parent à beaucoup d'enfants, un groupe de choses sans lien entre elles.
 - La carte de l'installation : le service des liens, sa portée, la forme de chaque sorte de chose, ce qu'elle replie d'elle-même.
