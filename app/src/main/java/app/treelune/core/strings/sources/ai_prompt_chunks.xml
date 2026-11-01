@@ -1838,4 +1838,6 @@ You remain the app's AI for everything else: the JSON, the commands, the validat
     <string name="ai_identity_bagage_title">Bagage</string>
     <string name="ai_identity_bagage"><![CDATA[Resources %1$s may read when they need one, with IDENTITY_RESOURCE (`id`: `%2$s`, `key`), each once in the session:]]></string>
     <string name="ai_identity_bagage_none">None.</string>
+    <!-- What the AI is told of its own answer cut at the length limit (AIEventProcessor, AIFailure.CUT) -->
+    <string name="ai_answer_cut_notice"><![CDATA[Your last answer was cut at the length limit, after %1$d tokens: its JSON was not whole, and none of its commands was carried out. Answer again, shorter: fewer or smaller commands, and the rest in the next rounds.]]></string>
 </resources>

@@ -166,7 +166,7 @@ object PromptManager {
     /** Whether [message] is the app telling a failure: a command failed, an answer did not read, data was refused, the limit reached. */
     private fun tellsAFailure(message: SessionMessage): Boolean {
         val system = message.systemMessage ?: return false
-        return system.type in setOf(SystemMessageType.FORMAT_ERROR, SystemMessageType.DATA_REFUSED, SystemMessageType.LIMIT_REACHED) ||
+        return system.type in setOf(SystemMessageType.FORMAT_ERROR, SystemMessageType.DATA_REFUSED, SystemMessageType.LIMIT_REACHED, SystemMessageType.ANSWER_CUT) ||
             system.commandResults.any { it.status == CommandStatus.FAILED }
     }
 
@@ -211,7 +211,7 @@ object PromptManager {
             }
                 // Text the AI wrote around its JSON reaches it only as the notice that it was set
                 // aside: quoted back, it would read as part of what it said
-                ?: message.systemMessage?.takeIf { it.type == SystemMessageType.TEXT_OUTSIDE_JSON }?.let { system ->
+                ?: message.systemMessage?.takeIf { it.type == SystemMessageType.TEXT_OUTSIDE_JSON || it.type == SystemMessageType.ANSWER_CUT }?.let { system ->
                     message.copy(systemMessage = system.copy(summary = system.formattedData ?: "", formattedData = null))
                 }
                 // Images of entries IMAGES brought in follow the data that names them, as if the

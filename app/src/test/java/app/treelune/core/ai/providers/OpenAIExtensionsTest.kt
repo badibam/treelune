@@ -106,10 +106,24 @@ class OpenAIExtensionsTest {
         assertEquals(90, response.tokensUsed)
     }
 
-    /** An answer that did not complete is cut, and its JSON unusable. */
+    /** An answer cut by max_output_tokens is a cut, its JSON unusable, billed: its usage counted. */
     @Test
-    fun anIncompleteAnswer_isAConfigFailure() {
-        val response = answer("""{"status":"incomplete","output":[]}""")
+    fun anAnswerCutByTheOutputLimit_isACutWithItsUsage() {
+        val response = answer("""{"status":"incomplete","incomplete_details":{"reason":"max_output_tokens"},"output":[],
+            "usage":{"input_tokens":100,"output_tokens":4000,"input_tokens_details":{"cached_tokens":40}}}""")
+
+        assertFalse(response.success)
+        assertEquals(AIFailure.CUT, response.failure)
+        assertEquals(4000, response.tokensUsed)
+        assertEquals(60, response.inputTokens)
+        assertEquals(40, response.cacheReadTokens)
+    }
+
+    /** An answer that did not complete for another reason is the config's. */
+    @Test
+    fun anIncompleteAnswerForAnotherReason_isAConfigFailure() {
+        val response = answer("""{"status":"incomplete","incomplete_details":{"reason":"content_filter"},"output":[],
+            "usage":{"input_tokens":100,"output_tokens":10}}""")
 
         assertFalse(response.success)
         assertEquals(AIFailure.CONFIG, response.failure)

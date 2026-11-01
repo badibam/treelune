@@ -263,20 +263,7 @@ internal fun JsonElement.toClaudeAIResponse(): AIResponse {
         )
     }
 
-    // A response cut by max_tokens carries incomplete JSON, unusable by the parser.
     val stopReason = jsonObj["stop_reason"]?.jsonPrimitive?.contentOrNull
-    if (stopReason == "max_tokens") {
-        return AIResponse(
-            success = false,
-            content = "",
-            errorMessage = "Response truncated (stop_reason: max_tokens). Increase max_tokens in provider config.",
-            failure = AIFailure.CONFIG,
-            tokensUsed = 0,
-            cacheWriteTokens = 0,
-            cacheReadTokens = 0,
-            inputTokens = 0
-        )
-    }
 
     // Usage: input and output counts are required, since the cost is computed from them and a
     // missing one would show a paid call as free. The cache counts are optional: a provider
@@ -299,6 +286,20 @@ internal fun JsonElement.toClaudeAIResponse(): AIResponse {
     }
     val cacheWriteTokens = usage["cache_creation_input_tokens"]?.jsonPrimitive?.intOrNull ?: 0
     val cacheReadTokens = usage["cache_read_input_tokens"]?.jsonPrimitive?.intOrNull ?: 0
+
+    // Cut by max_tokens: its JSON is not whole, nothing of it carried out; billed, so counted
+    if (stopReason == "max_tokens") {
+        return AIResponse(
+            success = false,
+            content = "",
+            errorMessage = "Response cut by max_tokens after $outputTokens tokens.",
+            failure = AIFailure.CUT,
+            tokensUsed = outputTokens,
+            cacheWriteTokens = cacheWriteTokens,
+            cacheReadTokens = cacheReadTokens,
+            inputTokens = inputTokens
+        )
+    }
 
     // Extract content from the text block: with thinking enabled, a "thinking" block comes first
     val contentArray = jsonObj["content"]?.jsonArray

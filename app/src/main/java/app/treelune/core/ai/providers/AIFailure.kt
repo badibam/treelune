@@ -39,6 +39,13 @@ enum class AIFailure {
     EMPTY,
 
     /**
+     * The provider answered, billed, and cut the answer at its length limit: the JSON is not
+     * whole, nothing of it is carried out. The AI is told and asked again once, to say less or
+     * work in several rounds; a second cut stops the session.
+     */
+    CUT,
+
+    /**
      * Configuration, credentials, or a request the provider cannot honour as built. No retry
      * changes it; the user has to act.
      */

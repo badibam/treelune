@@ -151,15 +151,17 @@ class OpenAICompatibleExtensionsTest {
         assertEquals(0, response.cacheReadTokens)
     }
 
-    /** A JSON cut by the length limit is unusable: refused, never passed on. */
+    /** A JSON cut by the length limit is unusable, never passed on: a cut, billed, its usage counted. */
     @Test
-    fun anAnswerCutByTheLimit_isRefused() {
+    fun anAnswerCutByTheLimit_isACutWithItsUsage() {
         val response = answer("""
             {"choices": [{"message": {"content": "{\"pre_text\":"}, "finish_reason": "length"}], "usage": {"prompt_tokens": 10, "completion_tokens": 2}}
         """)
 
         assertFalse(response.success)
-        assertEquals(AIFailure.CONFIG, response.failure)
+        assertEquals(AIFailure.CUT, response.failure)
+        assertEquals(2, response.tokensUsed)
+        assertEquals(10, response.inputTokens)
     }
 
     /** Without its counts, a paid call would show as free. */

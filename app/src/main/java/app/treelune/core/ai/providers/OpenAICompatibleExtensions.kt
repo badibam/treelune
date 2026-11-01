@@ -91,7 +91,8 @@ internal fun PromptData.toChatCompletionsJson(
  *   "error": { "message": "..." }  // if error, some servers in a 200 body
  * }
  *
- * An answer cut by the length limit ("length") is refused: incomplete JSON is unusable.
+ * An answer cut by the length limit ("length") fails as CUT, its usage counted: incomplete JSON
+ * is unusable, and it was billed.
  */
 internal fun JsonElement.toChatCompletionsResponse(): AIResponse {
     val jsonObj = this.jsonObject
@@ -116,12 +117,6 @@ internal fun JsonElement.toChatCompletionsResponse(): AIResponse {
         ?: return failed("Provider response has no choices.", AIFailure.CONFIG)
 
     val finishReason = choice["finish_reason"]?.jsonPrimitive?.contentOrNull
-    if (finishReason == "length") {
-        return failed("Response cut by the length limit. Increase max_output_tokens in provider config.", AIFailure.CONFIG)
-    }
-
-    val text = ((choice["message"] as? JsonObject)?.get("content") as? JsonPrimitive)?.contentOrNull
-        ?: return failed("Provider response has no message content in its first choice.", AIFailure.CONFIG)
 
     // Usage: prompt and completion counts are required, since the cost is computed from them and a
     // missing one would show a paid call as free. The cached count is optional: none reported
@@ -133,6 +128,15 @@ internal fun JsonElement.toChatCompletionsResponse(): AIResponse {
         return failed("Provider response has no prompt_tokens or completion_tokens in its usage.", AIFailure.CONFIG)
     }
     val cachedTokens = (usage["prompt_tokens_details"] as? JsonObject)?.get("cached_tokens")?.jsonPrimitive?.intOrNull ?: 0
+
+    // Cut by the length limit: its JSON is not whole, nothing of it carried out; billed, so counted
+    if (finishReason == "length") {
+        return AIResponse(success = false, content = "", errorMessage = "Response cut by the length limit after $completionTokens tokens.",
+            failure = AIFailure.CUT, tokensUsed = completionTokens, cacheWriteTokens = 0, cacheReadTokens = cachedTokens, inputTokens = promptTokens - cachedTokens)
+    }
+
+    val text = ((choice["message"] as? JsonObject)?.get("content") as? JsonPrimitive)?.contentOrNull
+        ?: return failed("Provider response has no message content in its first choice.", AIFailure.CONFIG)
 
     // prompt_tokens includes the cached ones: inputTokens holds the uncached input only, as for Claude
     return AIResponse(

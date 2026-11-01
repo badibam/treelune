@@ -160,6 +160,7 @@ enum class SystemMessageType {
     PROVIDER_ERROR, // Provider not configured/invalid → filtered from the prompt, visible in the UI (audit + transparency)
     SESSION_TIMEOUT, // Session watchdog timeout → filtered from the prompt, visible in the UI (audit + transparency)
     TEXT_OUTSIDE_JSON, // Text written around the answer's JSON, set aside → quoted to the user (summary), the AI receives only the mention (formattedData)
+    ANSWER_CUT, // The answer cut at its length limit (AIFailure.CUT), nothing of it carried out, its usage counted → the first: the AI receives the notice (formattedData) and is asked again at once; cut again: the session stops, the message out of the prompt
     COMPLETED_CONFIRMATION, // The AI says it has finished → the request for confirmation it receives (formattedData)
     ROUTINE_NO_COMMANDS, // A routine answers without a command → the reminder it receives (formattedData)
     APP_ERROR // An error of the app stops the turn → its cause (formattedData), filtered from the prompt

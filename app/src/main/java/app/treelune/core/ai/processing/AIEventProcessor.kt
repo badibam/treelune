@@ -810,7 +810,39 @@ class AIEventProcessor(
                 val failure = response.failure ?: AIFailure.REFUSED
                 LogManager.aiSession("callAI: AI provider error ($failure): $errorMessage", "ERROR")
 
-                if (failure == AIFailure.EMPTY) {
+                if (failure == AIFailure.CUT) {
+                    // Cut at its length limit: nothing of it carried out. The AI is told, and asked
+                    // again once to say less or work in several rounds; cut again, the session stops
+                    val previous = messageRepository.loadMessages(sessionId).lastOrNull()
+                    val again = previous?.systemMessage?.type == SystemMessageType.ANSWER_CUT
+                    messageRepository.storeMessage(sessionId, SessionMessage(
+                        id = java.util.UUID.randomUUID().toString(),
+                        timestamp = System.currentTimeMillis(),
+                        sender = MessageSender.SYSTEM,
+                        richContent = null,
+                        textContent = null,
+                        aiMessage = null,
+                        aiMessageJson = null,
+                        systemMessage = app.treelune.core.ai.data.SystemMessage(
+                            type = SystemMessageType.ANSWER_CUT,
+                            commandResults = emptyList(),
+                            summary = s.shared(if (again) "ai_error_answer_cut_again" else "ai_error_answer_cut_retried").format(response.tokensUsed),
+                            formattedData = s.shared("ai_answer_cut_notice").format(response.tokensUsed)
+                        ),
+                        executionMetadata = null,
+                        // The first reaches the AI, the notice in place of the summary (PromptManager)
+                        excludeFromPrompt = again,
+                        // Answered, so billed: its usage counts in the session's cost
+                        inputTokens = response.inputTokens,
+                        cacheWriteTokens = response.cacheWriteTokens,
+                        cacheReadTokens = response.cacheReadTokens,
+                        outputTokens = response.tokensUsed,
+                        pricing = callPricing(providerId, response)
+                    ))
+                    app.treelune.core.ai.budget.Budget.afterCall(context)
+                    if (again) emit(AIEvent.ProviderErrorOccurred(errorMessage))
+                    else emit(AIEvent.ParseErrorOccurred(errorMessage)) // Asked again at once, as after a format error
+                } else if (failure == AIFailure.EMPTY) {
                     // Answered with no text: asked again once, at once. The previous message
                     // being the notice of a first empty answer, this one is the second.
                     val previous = messageRepository.loadMessages(sessionId).lastOrNull()
@@ -1703,7 +1735,7 @@ class AIEventProcessor(
             AIFailure.NETWORK -> s.shared("ai_failure_network_shown")
             AIFailure.LOST -> s.shared("ai_error_response_lost")
             AIFailure.REFUSED, AIFailure.EMPTY -> s.shared("ai_failure_refused_shown")
-            AIFailure.CONFIG -> s.shared("ai_failure_config_shown")
+            AIFailure.CONFIG, AIFailure.CUT -> s.shared("ai_failure_config_shown")
         }
     }
 

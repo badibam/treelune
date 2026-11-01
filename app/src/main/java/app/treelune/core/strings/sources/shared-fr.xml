@@ -150,6 +150,8 @@
     <string name="ai_response_refused">Réponse refusée : le message suivant dit pourquoi.</string>
     <string name="ai_error_empty_answer_retried">L\'IA a répondu sans texte : la demande lui est renvoyée, une fois.</string>
     <string name="ai_error_empty_answer_again">L\'IA a répondu sans texte une seconde fois : renvoie ton message pour réessayer.</string>
+    <string name="ai_error_answer_cut_retried">La réponse de l\'IA a été coupée à sa longueur maximale (%1$d tokens) et rien n\'en a été fait : elle est relancée une fois, pour dire moins ou travailler en plusieurs fois.</string>
+    <string name="ai_error_answer_cut_again">La réponse de l\'IA a été coupée une seconde fois (%1$d tokens). Augmente la longueur maximale du fournisseur dans Réglages › Fournisseurs IA, ou demande moins à la fois.</string>
     <string name="ai_module_add_note">Ajouter une précision</string>
     <string name="ai_module_note">Précision</string>
     <string name="ai_module_note_prefix">Précision de l\'utilisateur :</string>

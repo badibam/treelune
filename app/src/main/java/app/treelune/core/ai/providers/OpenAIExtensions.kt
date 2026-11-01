@@ -216,46 +216,6 @@ internal fun JsonElement.toOpenAIResponse(): AIResponse {
         )
     }
 
-    // Check status - reject non-completed responses (incomplete JSON is unusable)
-    val status = jsonObj["status"]?.jsonPrimitive?.content
-    if (status != "completed") {
-        LogManager.aiService(
-            "OpenAI response status '$status'. This typically means max_output_tokens limit was reached. " +
-            "Increase max_output_tokens in provider configuration to allow longer responses.",
-            "ERROR"
-        )
-        return AIResponse(
-            success = false,
-            content = "",
-            errorMessage = "Response incomplete (status: $status). Increase max_output_tokens in provider config.",
-            failure = AIFailure.CONFIG,
-            tokensUsed = 0,
-            cacheWriteTokens = 0,
-            cacheReadTokens = 0,
-            inputTokens = 0
-        )
-    }
-
-    // Extract content from output array: an optional reasoning element, then the message,
-    // whose text is the output_text block
-    val messageOutput = (jsonObj["output"] as? JsonArray)?.firstOrNull { element ->
-        (element as? JsonObject)?.get("type")?.jsonPrimitive?.contentOrNull == "message"
-    } as? JsonObject
-    val textContent = (messageOutput?.get("content") as? JsonArray)?.firstOrNull { element ->
-        (element as? JsonObject)?.get("type")?.jsonPrimitive?.contentOrNull == "output_text"
-    } as? JsonObject
-    val text = textContent?.get("text")?.jsonPrimitive?.contentOrNull
-        ?: return AIResponse(
-            success = false,
-            content = "",
-            errorMessage = "Provider response has no output_text in a message element.",
-            failure = AIFailure.CONFIG,
-            tokensUsed = 0,
-            cacheWriteTokens = 0,
-            cacheReadTokens = 0,
-            inputTokens = 0
-        )
-
     // Usage: input and output counts are required, since the cost is computed from them and a
     // missing one would show a paid call as free. The cached count is optional: none reported
     // means none was read from the cache.
@@ -280,6 +240,48 @@ internal fun JsonElement.toOpenAIResponse(): AIResponse {
     // OpenAI's input_tokens includes cached tokens, so we subtract to get uncached (new) tokens
     // This matches Claude's semantic where inputTokens = uncached input only
     val uncachedInputTokens = totalInputTokens - cachedTokens
+
+    // Check status - reject non-completed responses (incomplete JSON is unusable). Cut by the
+    // output limit, it fails as CUT with its usage, billed; any other status is the config's
+    val status = jsonObj["status"]?.jsonPrimitive?.content
+    if (status != "completed") {
+        val reason = (jsonObj["incomplete_details"] as? JsonObject)?.get("reason")?.jsonPrimitive?.contentOrNull
+        if (status == "incomplete" && reason == "max_output_tokens") {
+            return AIResponse(success = false, content = "", errorMessage = "Response cut by max_output_tokens after $outputTokens tokens.",
+                failure = AIFailure.CUT, tokensUsed = outputTokens, cacheWriteTokens = 0, cacheReadTokens = cachedTokens, inputTokens = uncachedInputTokens)
+        }
+        LogManager.aiService("OpenAI response status '$status' (reason: $reason)", "ERROR")
+        return AIResponse(
+            success = false,
+            content = "",
+            errorMessage = "Response incomplete (status: $status, reason: $reason).",
+            failure = AIFailure.CONFIG,
+            tokensUsed = outputTokens,
+            cacheWriteTokens = 0,
+            cacheReadTokens = cachedTokens,
+            inputTokens = uncachedInputTokens
+        )
+    }
+
+    // Extract content from output array: an optional reasoning element, then the message,
+    // whose text is the output_text block
+    val messageOutput = (jsonObj["output"] as? JsonArray)?.firstOrNull { element ->
+        (element as? JsonObject)?.get("type")?.jsonPrimitive?.contentOrNull == "message"
+    } as? JsonObject
+    val textContent = (messageOutput?.get("content") as? JsonArray)?.firstOrNull { element ->
+        (element as? JsonObject)?.get("type")?.jsonPrimitive?.contentOrNull == "output_text"
+    } as? JsonObject
+    val text = textContent?.get("text")?.jsonPrimitive?.contentOrNull
+        ?: return AIResponse(
+            success = false,
+            content = "",
+            errorMessage = "Provider response has no output_text in a message element.",
+            failure = AIFailure.CONFIG,
+            tokensUsed = 0,
+            cacheWriteTokens = 0,
+            cacheReadTokens = 0,
+            inputTokens = 0
+        )
 
     // OpenAI doesn't distinguish between cache write and cache read like Claude
     // We map cached_tokens to cacheReadTokens for consistency

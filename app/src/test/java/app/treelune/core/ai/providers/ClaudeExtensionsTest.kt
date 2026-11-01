@@ -193,13 +193,17 @@ class ClaudeExtensionsTest {
         assertEquals("the answer", response.content)
     }
 
-    /** An answer cut by max_tokens is unusable JSON: a configuration failure, not a success. */
+    /** An answer cut by max_tokens is unusable JSON, never a success: a cut, billed, its usage counted. */
     @Test
-    fun anAnswerCutByMaxTokens_isAConfigFailure() {
-        val response = answer("""{"content":[{"type":"text","text":"{\"preT"}],"stop_reason":"max_tokens"}""")
+    fun anAnswerCutByMaxTokens_isACutWithItsUsage() {
+        val response = answer("""{"content":[{"type":"text","text":"{\"preT"}],"stop_reason":"max_tokens",
+            "usage":{"input_tokens":120,"output_tokens":4096,"cache_read_input_tokens":30}}""")
 
         assertFalse(response.success)
-        assertEquals(AIFailure.CONFIG, response.failure)
+        assertEquals(AIFailure.CUT, response.failure)
+        assertEquals(4096, response.tokensUsed)
+        assertEquals(120, response.inputTokens)
+        assertEquals(30, response.cacheReadTokens)
     }
 
     /**
