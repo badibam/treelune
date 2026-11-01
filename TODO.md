@@ -31,6 +31,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- Une séance prévue lancée, une autre marquée « Fait », un questionnaire prévu rempli en retard : chacun daté du lancement ou du remplissage dans l'historique et ses graphiques, « Prévue pour » (« Prévu pour ») qui garde l'heure prévue, aucune séance ni invitation recréée au créneau au passage suivant.
 - Un champ date et un champ date et heure d'une entrée (le début d'un événement de l'Agenda, un champ ajouté d'un Suivi) : le calendrier et l'heure seuls, sans « Personnalisée / Relative / Maintenant » ; un champ facultatif vidé par sa croix ; la période d'un export, toujours avec ses dates relatives.
 - Les séries de variables, `docs/design/variable-series.md` : « Une valeur par » Jour sur Jeûne, et sa phrase dessous ; dans un critère d'Objectif, Jeûne choisi comme source parmi les outils (seules les variables à série proposées), son filtre sur sa valeur ; « Jeûne de 16 h » et « Jeûne de 18 h » de Semaine du Tronc refaits ainsi, un repas ajouté le matin pour la veille, le compte qui suit ; une série par heure regroupée par jour dans un graphique.
 - Le type sous le titre de chaque page de brique : « Suivi · Un toucher par verre » sur la page d'un outil (le type seul sans description, sur deux lignes au plus quand elle est longue, dans chaque thème), « Variable » et « Identité » sous le leur ; une fiche ouverte, sans.
@@ -75,7 +76,6 @@ Codé, jamais vu sur l'appareil.
 
 - Démarrer et arrêter le chronomètre d'un Suivi depuis une Tâche : le Suivi ne déclare aucune opération (`getOperations`), quand `ToolDataService` sait déjà `start_duration` et `stop_duration` ; un premier repas noté qui arrête un jeûne. Avec, une condition qui dit si un chronomètre tourne (`state.running`), non vérifiée : le toucher du coucher qui prévient quand le jeûne ne tourne pas.
 
-- Une séance prévue de Séquence, lancée, garde l'heure où elle a été prévue (`SequenceService.start`) : le 2026-10-31, une hypnose prévue à 19:15 par la Tâche qui la fabrique, lancée à 23:25, inscrite au Décrochage à 19:15. Lancée, elle prend l'heure du lancement ; l'heure prévue, gardée dans son état (`planned_at`), reste celle que le planificateur compare aux créneaux de son planning (`SequenceScheduler`), sans quoi il recrée le créneau.
 
 ## À concevoir
 
