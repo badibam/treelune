@@ -430,7 +430,7 @@ class VariableService(private val context: Context) : ExecutableService {
     private suspend fun evaluate(params: JSONObject): OperationResult {
         val at = params.optJSONArray("at")?.let { a -> (0 until a.length()).map { (a.get(it) as? Number)?.toLong() ?: throw Refused(s.shared("variable_error_param").format("at")) } }
             ?: throw Refused(s.shared("variable_error_param").format("at"))
-        val evaluator = VariableEvaluator(Sources())
+        val evaluator = VariableEvaluator(Sources(at))
         return try {
             params.optJSONArray("variable_ids")?.let { ids ->
                 OperationResult.success(mapOf("variables" to (0 until ids.length()).map { i ->
@@ -479,24 +479,47 @@ class VariableService(private val context: Context) : ExecutableService {
 
     /**
      * What the evaluator reads: the variables here, the entries through the core's services. One
-     * per evaluation, at all its instants: an entry reached through a reference, and whether a
-     * thing still exists, are read once in it, however many entries name them.
+     * per evaluation, at all its instants ([instants]): an entry reached through a reference, and
+     * whether a thing still exists, are read once in it, however many entries name them; a
+     * reading, at all of them at its first read (readings.read with `at`, one read of the entries
+     * serving them all), where a chart's 28 days read each term 28 times.
      */
-    private inner class Sources : VariableSources {
+    private inner class Sources(private val instants: List<Long> = emptyList()) : VariableSources {
         private val coordinator = Coordinator(context)
         private val entriesRead = mutableMapOf<String, Map<String, Any?>?>()
         private val goneRead = mutableMapOf<Pair<String, String>, Boolean>()
+        private val readingsRead = mutableMapOf<String, Map<Long, Outcome>>()
 
         override suspend fun variable(id: String): StoredVariable? = dao.getById(id)?.let { stored(it) }
 
         override suspend fun read(term: Term.Reading, at: Long): Outcome {
+            // An instant of the evaluation: the term read at them all once; another (a series'
+            // step, a variable read elsewhere), alone
+            if (at in instants && instants.size > 1) {
+                val key = term.params().toString()
+                val read = readingsRead[key] ?: readAll(term).also { readingsRead[key] = it }
+                read[at]?.let { return it }
+            }
             val result = coordinator.processUserAction("readings.read", term.params() + ("reference" to at))
             if (!result.isSuccess) throw IllegalStateException(result.error ?: "readings.read")
-            (result.data?.get("failure") as? Map<*, *>)?.let { f ->
+            return outcome(term, result.data.orEmpty())
+        }
+
+        /** [term] read at every instant of the evaluation, in one call. */
+        private suspend fun readAll(term: Term.Reading): Map<Long, Outcome> {
+            val result = coordinator.processUserAction("readings.read", term.params() + ("at" to instants))
+            if (!result.isSuccess) throw IllegalStateException(result.error ?: "readings.read")
+            return (result.data?.get("values") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
+                .associate { (it["at"] as Number).toLong() to outcome(term, it) }
+        }
+
+        /** A reading's answer at one instant, `value` or `failure`, as the evaluator takes it. */
+        private fun outcome(term: Term.Reading, answer: Map<*, *>): Outcome {
+            (answer["failure"] as? Map<*, *>)?.let { f ->
                 return Outcome.Failed(listOf(Cause(f["reason"] as String, field = f["field"] as? String,
                     entries = (f["entries"] as? List<*>)?.map { it.toString() } ?: emptyList())))
             }
-            return (result.data?.get("value") as? Number)?.let { Outcome.Value(it.toDouble()) }
+            return (answer["value"] as? Number)?.let { Outcome.Value(it.toDouble()) }
                 ?: Outcome.Failed(listOf(Cause(Cause.NOT_A_NUMBER, field = term.field)))
         }
 
