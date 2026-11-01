@@ -86,7 +86,7 @@ Codé, jamais vu sur l'appareil.
 ## À concevoir
 
 
-- Un type d'outil Schéma, `docs/design/schema.md` : la largeur d'un schéma en portrait, puis la carte de l'installation.
+- Un type d'outil Schéma, `docs/design/schema.md` : la carte de l'installation.
 
 ## Dette de code
 

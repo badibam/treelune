@@ -60,9 +60,9 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
 
 Par l'app, sans vue web, chaque thème à sa manière (`core/drawing`, comme le Graphique).
 
-- Une dizaine de boîtes se lisent d'un coup d'œil en portrait, sans toucher.
-- Au-delà, on défile verticalement, jamais horizontalement : une couche trop large passe sur deux lignes.
-- Un groupe se replie en une boîte, qu'on touche pour le déplier.
+- Une dizaine de boîtes se lisent d'un coup d'œil en portrait, sans toucher ; au-delà, on défile verticalement.
+- Les enfants sans suite d'une même boîte, qu'elle atteint par des flèches identiques (même texte, même trait), forment un bloc rangé en lignes à la largeur de l'écran, à cadre discret, qu'une seule flèche atteint ; un groupe dont les boîtes n'ont aucune flèche entre elles, ni avec l'extérieur, se range de même (`rectpacking` d'ELK, qui refuse un groupe traversé par des flèches). Mesuré : l'arbre à 8 enfants passe de 721 à 534 dp, la carte de 30 choses de 1195 à 1179 dp ; un schéma fait de beaucoup de chaînes indépendantes reste large, quelle que soit la règle.
+- Encore trop large, dans l'ordre : l'app replie des blocs et des groupes, le plus large d'abord, chacun devenant une boîte (« + 6 autres », le titre du groupe) qu'on touche pour la déplier, et le dit sous le schéma (« 2 groupes repliés pour tenir dans l'écran ») ; puis le dessin rétrécit, jusqu'à un seuil où le texte reste lisible (75 %, à juger sur le téléphone) ; en dernier recours, il défile horizontalement.
 - Pas de zoom par pincement.
 
 ## L'écran
@@ -89,5 +89,4 @@ Son intégration demande : les fichiers propres à Eclipse en double laissés à
 
 ## Ouvert
 
-- La largeur : un parent à beaucoup d'enfants, un groupe de choses sans lien entre elles.
 - La carte de l'installation : le service des liens, sa portée, la forme de chaque sorte de chose, ce qu'elle replie d'elle-même.
