@@ -137,13 +137,18 @@ internal fun NewEventDialog(
 /**
  * An event opened: its fields and the calendar's, saved together; cancelling or restoring it;
  * deleting it, or removing it for an occurrence of a series, which also offers its series.
- * What is typed survives a recreation, kept by the event's id.
+ * An event of its own also offers « Repeats »: checked, the schedule, and what is saved makes it
+ * the first occurrence of a new series ([onRepeat]). What is typed survives a recreation, kept
+ * by the event's id.
+ *
+ * @param onRepeat The event saved, then made to repeat on the schedule typed
  */
 @Composable
 internal fun EventDialog(
     event: AgendaEvent,
     fields: List<FieldDefinition>,
     onSave: (EventDraft, Map<String, Any?>) -> Unit,
+    onRepeat: (EventDraft, Map<String, Any?>, JSONObject) -> Unit,
     onCancelEvent: () -> Unit,
     onRestore: () -> Unit,
     onDelete: () -> Unit,
@@ -157,17 +162,24 @@ internal fun EventDialog(
         mutableStateOf(EventDraft(event.name, event.allDay, event.start, event.duration, event.days))
     }
     var extra by rememberSaveable(event.id, stateSaver = FieldValuesSaver) { mutableStateOf(event.extra) }
+    var repeats by rememberSaveable(event.id) { mutableStateOf(false) }
+    var schedule by rememberSaveable(event.id, stateSaver = NullableJsonObjectSaver) { mutableStateOf<JSONObject?>(null) }
 
     UI.Dialog(
         type = DialogType.EDIT,
-        onConfirm = { onSave(draft, extra) },
+        onConfirm = { if (repeats) onRepeat(draft, extra, schedule!!) else onSave(draft, extra) },
         onCancel = onCancel,
-        confirmEnabled = draft.name.isNotBlank() && draft.start != null
+        confirmEnabled = draft.name.isNotBlank() && draft.start != null && (!repeats || schedule != null)
     ) {
         Column(modifier = Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
             UI.Text(s.tool("edit_event_title"), TextType.SUBTITLE)
             if (!event.isPlanned) UI.Text(s.tool("status_${event.status}"), TextType.WARNING)
             DraftFields(draft, withStart = true, context = context) { draft = it }
+            // An occurrence already repeats: its series is changed, through « Edit the series »
+            if (event.series == null) {
+                UI.Checkbox(checked = repeats, onCheckedChange = { repeats = it }, label = s.tool("field_repeats"))
+                if (repeats) remember { ScheduleSettingEditor(s.tool("field_series_schedule"), s) }.Edit(schedule) { schedule = it as? JSONObject }
+            }
             if (fields.isNotEmpty()) {
                 UI.Divider()
                 CustomFieldsInput(customFieldsMetadata = fields, values = extra, onValuesChange = { extra = it }, context = context)

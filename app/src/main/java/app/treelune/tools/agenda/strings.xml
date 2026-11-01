@@ -46,9 +46,11 @@
     <string name="operation_cancel">Cancels an event: it stays, marked cancelled, without reminders</string>
     <string name="operation_remove">Removes an occurrence of a series from the calendar, kept so that the series does not give it again; an event of its own is deleted instead</string>
     <string name="operation_restore">Plans again an event cancelled or removed</string>
+    <string name="operation_repeat">Makes an event of its own repeat: the first occurrence of a new series of its name and its duration, on the schedule given, which gives the next ones after it</string>
     <string name="verbalize_cancel">Cancelling an event</string>
     <string name="verbalize_remove">Removing an occurrence</string>
     <string name="verbalize_restore">Planning an event again</string>
+    <string name="verbalize_repeat">Making an event repeat</string>
     <string name="error_all_day_duration">A whole day event lasts days (days), not a duration: send one or the other</string>
     <string name="error_days_without_all_day">Days (days) go with a whole day event (all_day): an event at a time has a duration</string>
     <string name="error_series_all_day_duration">The series “%1$s” takes whole days: it lasts days, not a duration</string>
@@ -56,6 +58,8 @@
     <string name="error_reminder_not_relative">A reminder is relative to the start of the event, never a fixed date</string>
     <string name="error_delete_occurrence">An occurrence of a series is not deleted, its series would give it again: remove it (agenda.remove)</string>
     <string name="error_remove_single">Only an occurrence of a series is removed; an event of its own is deleted</string>
+    <string name="error_repeat_occurrence">This event already belongs to a series: change the series instead</string>
+    <string name="error_repeat_without_schedule">Making an event repeat needs a schedule</string>
     <string name="error_not_an_event">%1$s is not an event of a calendar</string>
     <string name="view_upcoming">Upcoming</string>
     <string name="view_day">Day</string>

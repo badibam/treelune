@@ -209,7 +209,9 @@ object AgendaToolType : ToolTypeContract {
         return listOf(
             ToolOperation("cancel", s.tool("operation_cancel"), listOf(id)),
             ToolOperation("remove", s.tool("operation_remove"), listOf(id)),
-            ToolOperation("restore", s.tool("operation_restore"), listOf(id))
+            ToolOperation("restore", s.tool("operation_restore"), listOf(id)),
+            ToolOperation("repeat", s.tool("operation_repeat"), listOf(id,
+                ScheduleSettings.group(s.tool("field_series_schedule"), Strings.`for`(context = context)::shared).copy(required = true)))
         )
     }
 

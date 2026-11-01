@@ -42,9 +42,11 @@
     <string name="operation_cancel">Annule un événement : il reste, marqué annulé, sans rappel</string>
     <string name="operation_remove">Retire une occurrence de série de l\'Agenda, gardée pour que la série ne la redonne pas ; un événement isolé se supprime</string>
     <string name="operation_restore">Remet prévu un événement annulé ou retiré</string>
+    <string name="operation_repeat">Fait se répéter un événement isolé : la première occurrence d\'une nouvelle série de son nom et de sa durée, sur le planning donné, qui donne les suivantes après lui</string>
     <string name="verbalize_cancel">Annulation d\'un événement</string>
     <string name="verbalize_remove">Retrait d\'une occurrence</string>
     <string name="verbalize_restore">Événement remis prévu</string>
+    <string name="verbalize_repeat">Événement qui se répète</string>
     <string name="error_all_day_duration">Un événement sur des journées entières dure des jours (days), pas une durée : envoie l\'un ou l\'autre</string>
     <string name="error_days_without_all_day">Les jours (days) vont avec une journée entière (all_day) : un événement à heure a une durée</string>
     <string name="error_series_all_day_duration">La série « %1$s » prend des journées entières : elle dure des jours, pas une durée</string>
@@ -52,6 +54,8 @@
     <string name="error_reminder_not_relative">Un rappel se règle par rapport au début de l\'événement, jamais à une date fixe</string>
     <string name="error_delete_occurrence">Une occurrence de série ne se supprime pas, sa série la redonnerait : retire-la (agenda.remove)</string>
     <string name="error_remove_single">Seule une occurrence de série se retire ; un événement isolé se supprime</string>
+    <string name="error_repeat_occurrence">Cet événement fait déjà partie d\'une série : c\'est la série qui se modifie</string>
+    <string name="error_repeat_without_schedule">Pour qu\'un événement se répète, il faut un planning</string>
     <string name="error_not_an_event">%1$s n\'est pas un événement d\'un Agenda</string>
     <string name="view_upcoming">À venir</string>
     <string name="view_day">Jour</string>

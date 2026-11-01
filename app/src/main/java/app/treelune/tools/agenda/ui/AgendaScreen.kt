@@ -284,6 +284,19 @@ fun AgendaScreen(
                     ))
                 }) { openEventId = null }
             },
+            onRepeat = { draft, extra, schedule ->
+                write({
+                    val saved = coordinator.processUserAction("tool_data.update", mapOf(
+                        "id" to openEvent.id,
+                        "name" to draft.name.trim(),
+                        "timestamp" to draft.start!!,
+                        "data" to draft.data(),
+                        "extra" to extra
+                    ))
+                    if (!saved.isSuccess) saved
+                    else coordinator.processUserAction("agenda.repeat", mapOf("id" to openEvent.id, "schedule" to schedule))
+                }) { openEventId = null }
+            },
             onCancelEvent = { write({ coordinator.processUserAction("agenda.cancel", mapOf("id" to openEvent.id)) }) { openEventId = null } },
             onRestore = { write({ restore(coordinator, openEvent.id) }) { openEventId = null } },
             onDelete = { write({ coordinator.processUserAction("tool_data.delete", mapOf("id" to openEvent.id)) }) { openEventId = null } },
