@@ -452,7 +452,6 @@ private fun GroupSection(
     context: android.content.Context
 ) {
     Section(groupName, groupName, toolInstances, variables, routines, tasks, readouts, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions, context)
-    Spacer(modifier = Modifier.height(UI.Space.XL))
 }
 
 /** The ungrouped section: titled « Ungrouped » beside groups, « Tools and routines » without any. */
@@ -496,6 +495,9 @@ private fun Section(
     context: android.content.Context
 ) {
     val s = remember { Strings.`for`(context = context) }
+    // One block: its title, its readouts, its grid, close together; the page puts one space
+    // between two sections, never its own between each of their parts
+    Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
     UI.Card(type = CardType.SECTION_HEADER) {
         Box(modifier = Modifier.fillMaxWidth().padding(UI.Space.M)) {
             UI.Text(text = title, type = TextType.HEADING)
@@ -511,6 +513,7 @@ private fun Section(
             fillMaxWidth = true,
             textAlign = TextAlign.Center
         )
+    }
     }
 }
 

@@ -648,6 +648,9 @@ private fun ZoneGroupSection(
         else -> s.shared("label_zones")
     }
 
+    // One block: its title, its readouts, its grid, close together; the page puts one space
+    // between two sections, never its own between each of their parts
+    Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
     // Section header: its title over a divider (SECTION_HEADER)
     UI.Card(type = CardType.SECTION_HEADER) {
         Row(
@@ -697,6 +700,7 @@ private fun ZoneGroupSection(
                 onLongClick = { onZoneLongClick(zone) }
             )
         }
+    }
     }
 }
 
