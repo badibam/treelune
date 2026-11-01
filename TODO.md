@@ -17,6 +17,9 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 (titre à laisser en place, même une fois la section vidée - section ciblée par le script d'import depuis l'appareil :)
 ## En provenance du tel
 
+- Graphique qui montre l'évolution des diamètre de l'orteil, avec comme référence les mensurations de celui qui n'est pas blessé : 8.5cm et 15cm — Amélioration
+- Orga : la séance d'hypnose devrait être ajoitee au decrochage après sn lancement, pas dès sa création. Le 19h15 d'hier vient de quoi ? Horaire prévu de la sénce créée ? Discutons en. — Amélioration
+- Dans agenda, possibilité de rndre récurrent un eent serait pratique. — Outils — Amélioration
 
 ## Bugs
 
@@ -30,6 +33,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- Un champ date et un champ date et heure d'une entrée (le début d'un événement de l'Agenda, un champ ajouté d'un Suivi) : le calendrier et l'heure seuls, sans « Personnalisée / Relative / Maintenant » ; un champ facultatif vidé par sa croix ; la période d'un export, toujours avec ses dates relatives.
 - Les séries de variables, `docs/design/variable-series.md` : « Une valeur par » Jour sur Jeûne, et sa phrase dessous ; dans un critère d'Objectif, Jeûne choisi comme source parmi les outils (seules les variables à série proposées), son filtre sur sa valeur ; « Jeûne de 16 h » et « Jeûne de 18 h » de Semaine du Tronc refaits ainsi, un repas ajouté le matin pour la veille, le compte qui suit ; une série par heure regroupée par jour dans un graphique.
 - Le type sous le titre de chaque page de brique : « Suivi · Un toucher par verre » sur la page d'un outil (le type seul sans description, sur deux lignes au plus quand elle est longue, dans chaque thème), « Variable » et « Identité » sous le leur ; une fiche ouverte, sans.
 - Les Repères, `docs/design/readouts.md` (vus le 2026-10-31 : le cœur et la phrase, les cœurs côte à côte sur la tuile d'une zone en Condensé, la carte en tête de zone, la tuile propre en Ligne) : un Repère créé par le « + » d'une section, sa cible préremplie par l'outil de sa première lecture, sa config (le cœur, la phrase, les valeurs, les couleurs et « Signaler ») ; les points sur la tuile d'une zone en Icône et en Minimal ; ses lignes en tête de son groupe, du groupe de sa zone et de l'accueil ; le chapitre « Les Repères » du Guide sur le Repère de l'eau de la démo, réinstallée.
