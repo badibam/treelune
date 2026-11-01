@@ -38,7 +38,7 @@ A filter is not a brick of its own: it is a Condition put on each entry.
 
 A brick does not know the screen that uses it; the screen gives it what it needs:
 
-- **the reference**: the instant of reading, against which relative dates, the periods of Readings and the variables resolve — the planned time of a run, now, "now, or the end of the attempt once over" for a Goal, the instant of its row for the Chart. The selector shows it ("Relative to: the instant read"), it never makes the user choose it. Without a reference (the chat, the input of an entry), the clock resolves at the moment of choosing and the date obtained is what is stored;
+- **the reference**: the instant of reading, against which relative dates, the periods of Readings and the variables resolve — the planned time of a run, now, "now, or the end of the attempt once over" for a Goal, the instant of its row for the Chart. The selector shows it ("Relative to: the instant read"), it never makes the user choose it. Without a reference (the chat, an export, a table's filters), the clock resolves at the moment of choosing and the date obtained is what is stored; an entry's DATE or DATETIME field, a single instant, offers no relative date: the calendar alone (`DateInput`);
 - **the entry judged**, when a condition is put on each entry: its fields become possible sides of the condition;
 - **the kinds allowed** (a zone, a tool, a variable, an entry…);
 - **the types allowed** (a numeric field, a date…) and **the precision** (day or instant);
@@ -84,7 +84,7 @@ A brick does not know the screen that uses it; the screen gives it what it needs
 | Use | Assembly | State |
 |---|---|---|
 | REFERENCE field of an entry | Thing | done |
-| DATE or DATETIME field of an entry | Instant, without reference | done |
+| DATE or DATETIME field of an entry | Instant, a fixed date alone (`DateInput`) | done |
 | Pointer of a message to the AI | Thing (zone, tool, or one entry, read by its id) + Period + Filters + fields + attach or mention | done, its selection assembled by hand |
 | Access mask of a routine or of a connector's client | a list of Things (zone, tool), each with a level (`AccessMask`, `{"target", "level"}`) | done, chosen by the REFERENCE field's selector |
 | Term of a variable | Term, the period of its Reading relative to the instant read | done, with its own selectors |

@@ -40,7 +40,9 @@ private enum class Moment { START, END, SAME, AT }
 private val STORED_TIME = DateTimeFormatter.ofPattern("HH:mm")
 
 /**
- * The one input of a date or an instant in the app (docs/BRICKS.md, « Instant »): an entry's DATE or DATETIME field, each bound of a period.
+ * The one input of an instant in the app (docs/BRICKS.md, « Instant »): each bound of a period, an
+ * instant against a reference. An entry's DATE or DATETIME field, a single instant against nothing,
+ * takes the calendar alone (DateInput).
  *
  * It offers a custom date, always absolute, with the time for a DATETIME; a relative date, a unit
  * and an offset ("the day before") with its moment, the start or the end of that period; now;
@@ -317,6 +319,24 @@ fun shiftLabel(point: TimePoint.Shift, s: StringsContext): String {
         at != null -> s.shared("instant_shift_at").format(offset, DateUtils.formatTimeOfDay(at))
         point.unit == ShiftUnit.MINUTE || point.unit == ShiftUnit.HOUR -> offset
         else -> s.shared("instant_shift_same").format(offset)
+    }
+}
+
+/**
+ * A date that nothing resolves against, an entry's DATE or DATETIME field (a meeting, a meal):
+ * the calendar, with the time for a DATETIME, and no choice of mode — a relative date would only
+ * be resolved at once against the clock, its edges meaning nothing for a single instant.
+ *
+ * @param value The field's stored form: a day ("2026-09-15") or milliseconds, null for none
+ * @param precision DATE or DATETIME
+ * @param required Whether the value must be answered; an optional one chosen can be emptied
+ */
+@Composable
+fun DateInput(label: String, value: Any?, onChange: (Any?) -> Unit, precision: FieldType, required: Boolean) {
+    require(precision == FieldType.DATE || precision == FieldType.DATETIME) { "a date is a DATE or a DATETIME, not $precision" }
+    Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+        if (label.isNotEmpty()) UI.FieldLabel(label, required)
+        CustomDate(value?.let { TimePoint.Fixed(it) }, precision, clearable = !required) { point -> onChange((point as? TimePoint.Fixed)?.value) }
     }
 }
 

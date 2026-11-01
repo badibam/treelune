@@ -12,8 +12,7 @@ import app.treelune.core.ui.TextType
 import app.treelune.core.ui.FieldType as UIFieldType
 import app.treelune.core.utils.DateUtils
 import app.treelune.core.utils.LogManager
-import app.treelune.core.selection.TimePoint
-import app.treelune.core.ui.components.InstantPicker
+import app.treelune.core.ui.components.DateInput
 
 /**
  * Renders a single custom field input component.
@@ -179,17 +178,10 @@ fun FieldInput(
             }
         }
 
-        // A day or an instant, through the app's one date input: without a reference, a relative
-        // choice or now is stored as the date it gives
+        // A day or an instant on the calendar: an entry's date resolves against nothing, a relative
+        // choice would only be a detour to the same fixed date
         app.treelune.core.fields.FieldType.DATE, app.treelune.core.fields.FieldType.DATETIME -> {
-            InstantPicker(
-                label = fieldDef.displayName,
-                value = value?.let { TimePoint.Fixed(it) },
-                onChange = { point -> onChange((point as? TimePoint.Fixed)?.value) },
-                precision = fieldDef.type,
-                hasReference = false,
-                required = required
-            )
+            DateInput(label = fieldDef.displayName, value = value, onChange = onChange, precision = fieldDef.type, required = required)
         }
 
         app.treelune.core.fields.FieldType.TIME -> {
