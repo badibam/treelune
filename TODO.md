@@ -78,7 +78,6 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
-- Démarrer et arrêter le chronomètre d'un Suivi depuis une Tâche : le Suivi ne déclare aucune opération (`getOperations`), quand `ToolDataService` sait déjà `start_duration` et `stop_duration` ; un premier repas noté qui arrête un jeûne. Avec, une condition qui dit si un chronomètre tourne (`state.running`), non vérifiée : le toucher du coucher qui prévient quand le jeûne ne tourne pas.
 
 ## À concevoir
 
@@ -126,6 +125,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 
 ## Idée sans besoin
 
+- Démarrer et arrêter le chronomètre d'un Suivi depuis une Tâche : le Suivi ne déclare aucune opération (`getOperations`), quand `ToolDataService` sait déjà `start_duration` et `stop_duration` ; un premier repas noté qui arrête un jeûne. Avec, une condition qui dit si un chronomètre tourne (`state.running`), non vérifiée : le toucher du coucher qui prévient quand le jeûne ne tourne pas.
 - Les liens d'un événement dans la config de sa zone : sous chacun, ce qui l'émet et ce qui l'écoute (les Tâches, les routines, les outils qui préviennent), que l'app connaît déjà (`EventUses`, qui refuse la suppression d'un événement utilisé).
 - L'occurrence d'un questionnaire ouvert par sa notification ou sa tuile, dite quand plusieurs attendent (deux en retard, on croit répondre à la dernière) : sur l'écran de saisie (« Prévu il y a 2 jours · 1 sur 2 à remplir »), ou un écran intermédiaire, la liste « À remplir », quand plusieurs attendent.
 - Le champ Image : la galerie comme affichage d'un outil (la grille des premières images de ses entrées), les images d'une entrée lues par le connecteur MCP.
