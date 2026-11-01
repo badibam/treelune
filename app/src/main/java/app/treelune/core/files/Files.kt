@@ -90,9 +90,17 @@ object Files {
         return file.readText(Charsets.UTF_8)
     }
 
-    /** The text of the TEXT file [id], read whole; null when no text bears that id. */
-    suspend fun textOf(context: Context, id: String): String? =
-        AppDatabase.getDatabase(context).fileDao().getById(id)?.takeIf { it.fileKind == FileKind.TEXT }?.let { text(context, it) }
+    /**
+     * The text of the TEXT file [id], read whole: one kept (joined to a message), or one set aside
+     * and written by no entry yet (sent through the connector, McpUploads), which stays where it
+     * is until the startup sweep, to be read again; null when no text bears that id.
+     */
+    suspend fun textOf(context: Context, id: String): String? {
+        AppDatabase.getDatabase(context).fileDao().getById(id)?.let { row ->
+            return row.takeIf { it.fileKind == FileKind.TEXT }?.let { text(context, it) }
+        }
+        return pendingFile(context, id)?.takeIf { FileFormat.ofExtension(it.extension)?.kind == FileKind.TEXT }?.readText(Charsets.UTF_8)
+    }
 
     /**
      * [bytes] written as [target]: first as `<name>.part`, then renamed, so a final file is always

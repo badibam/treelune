@@ -417,7 +417,7 @@ Shows you images of entries: they join the conversation after this answer, as if
 Refused when the model of this conversation does not read images. To file an image of the conversation in an entry, write its id in the entry's FILE field: the entry gets its own copy.]]></string>
     <string name="ai_command_import_plan"><![CDATA[### IMPORT_PLAN
 
-Proposes how to import a joined file (a CSV) into a tool: what IMPORT_DATA will need, column by column.
+Proposes how to import a joined file (a CSV), or one sent through `upload_address` (kind `TEXT`), into a tool: what IMPORT_DATA will need, column by column.
 
 **Parameters**:
 
