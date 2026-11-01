@@ -70,6 +70,8 @@ object SequenceMedia {
         val source = designated?.let {
             try {
                 (loadReferenceNames(listOf(it), context)[it] as? ReferenceName.Named)?.name
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: IllegalStateException) {
                 LogManager.service("Sequence: the name of $it not read: ${e.message}", "WARN")
                 null

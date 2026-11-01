@@ -80,6 +80,8 @@ class ImportService(private val context: Context) : ExecutableService {
         // What a column may fill, and the fields the app writes itself, as tool_data says it writes them
         val targets = try {
             ImportTargets.read(coordinator, toolInstanceId)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             return OperationResult.error(e.message ?: "")
         }

@@ -27,7 +27,7 @@ object ChartRowFields : RowFields {
         val reads = reads(root, path)
         val sources = ChartSources(context)
         val found = reads.fold(emptyMap<String, FieldDefinition>()) { all, layer ->
-            all + try { columns(sources, layer) } catch (e: IllegalStateException) {
+            all + try { columns(sources, layer) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) {
                 LogManager.ui("ChartRowFields: columns not read: ${e.message}", "WARN")
                 emptyMap()
             }

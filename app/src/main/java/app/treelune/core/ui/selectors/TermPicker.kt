@@ -80,6 +80,8 @@ private fun FollowedField(reading: JSONObject, value: FieldDefinition, s: String
                     is app.treelune.core.fields.ReferenceName.Named -> s.shared("term_follows").format(named.name)
                     else -> s.shared("term_source_deleted")
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: IllegalStateException) {
                 app.treelune.core.utils.LogManager.ui("FollowedField: ${e.message}", "ERROR")
                 null

@@ -31,10 +31,10 @@ class ChartCheck(private val context: Context) {
             val name = s.tool("layer_name").format(i + 1)
             (layer.source as? Source.Grid)?.let { grid -> gridColumns(grid)?.let { return "$name : $it" } }
             layer.transforms.forEachIndexed { k, transform ->
-                val before = try { sources.columns(layer, k) } catch (e: IllegalStateException) { return "$name : ${e.message}" }
+                val before = try { sources.columns(layer, k) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { return "$name : ${e.message}" }
                 transform(transform, before)?.let { return "$name : $it" }
             }
-            val columns = try { sources.columns(layer) } catch (e: IllegalStateException) { return "$name : ${e.message}" }
+            val columns = try { sources.columns(layer) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { return "$name : ${e.message}" }
             channels(layer, columns, repeat)?.let { return "$name : $it" }
             columns
         }

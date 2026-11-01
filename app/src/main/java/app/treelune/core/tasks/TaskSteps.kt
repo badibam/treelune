@@ -186,6 +186,8 @@ object TaskSteps {
         val each = tools.map { id ->
             try {
                 ToolFields.filterable(id, context, s)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: IllegalStateException) {
                 emptyMap()
             }
@@ -390,6 +392,8 @@ object TaskSteps {
                     database.toolInstanceDao().getToolInstanceById(toolId) ?: return s.shared("task_error_tool").format(number, toolId)
                     val fields = try {
                         writableFields(toolId, context, s)
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
                     } catch (e: IllegalStateException) {
                         return s.shared("task_error_tool").format(number, toolId)
                     }
@@ -456,6 +460,8 @@ object TaskSteps {
         if (selection.target.kind != app.treelune.core.selection.ReferenceKind.TOOL_INSTANCE || toolId == null) return s.shared("task_error_list_selection").format(name)
         val fields = try {
             ToolFields.filterable(toolId, context, s)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             return s.shared("task_error_tool").format(name, toolId)
         }

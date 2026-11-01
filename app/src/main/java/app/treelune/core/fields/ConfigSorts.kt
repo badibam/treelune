@@ -42,6 +42,8 @@ object ConfigSorts {
             ?: return s.shared("sort_error_without_selection").format(node.label)
         val fields = try {
             ToolFields.filterable(toolId, context, s)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             return s.shared("sort_error_source").format(node.label, e.message ?: "")
         }

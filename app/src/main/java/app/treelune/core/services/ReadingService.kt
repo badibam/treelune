@@ -108,7 +108,7 @@ class ReadingService(private val context: Context) : ExecutableService {
         } else null
         // A variable's series: its unit and its steps' fields, its entries computed at each read
         val series = if (selection.target.kind == ReferenceKind.VARIABLE) {
-            try { ToolFields.series(selection.target.id!!, context, s) } catch (e: IllegalStateException) { return OperationResult.error(e.message ?: "") }
+            try { ToolFields.series(selection.target.id!!, context, s) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { return OperationResult.error(e.message ?: "") }
         } else null
         // It has no first entry: « the whole history » means nothing
         if (series != null && selection.period.start == null) return OperationResult.error(s.shared("reading_error_series_start"))
@@ -168,9 +168,11 @@ class ReadingService(private val context: Context) : ExecutableService {
         if (instants == null) {
             val rows = try { entries(toolInstanceId, selection.storedFilters(fields, TimeResolver.at(reference!!)) { s.shared(it) }, reference) }
                 catch (e: IllegalArgumentException) { return OperationResult.error(e.message ?: "") }
-                catch (e: IllegalStateException) { return OperationResult.error(e.message ?: "") }
+                catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { return OperationResult.error(e.message ?: "") }
             return try {
                 OperationResult.success(result(reduced(rows, reference)))
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: IllegalStateException) {
                 OperationResult.error(e.message ?: "")
             }
@@ -202,6 +204,8 @@ class ReadingService(private val context: Context) : ExecutableService {
             }
         } catch (e: IllegalArgumentException) {
             return OperationResult.error(e.message ?: "")
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             return OperationResult.error(e.message ?: "")
         }

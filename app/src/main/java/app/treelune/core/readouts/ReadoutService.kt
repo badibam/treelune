@@ -280,7 +280,7 @@ class ReadoutService(private val context: Context) : ExecutableService {
             val value = values.getJSONObject(index)
             val name = value.getString(ReadoutSettings.NAME)
             val term = Term.fromJson(value.getJSONObject(ReadoutSettings.VALUE), name) { s.shared(it) }
-            when (val got = try { reader.read(term, at, null) } catch (e: IllegalStateException) { TermReader.Read.Failed(e.message ?: "", broken = true) }) {
+            when (val got = try { reader.read(term, at, null) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { TermReader.Read.Failed(e.message ?: "", broken = true) }) {
                 is TermReader.Read.Value -> read[name] = got.value to (got.field ?: ReadoutRows.constantField(term, name))
                 is TermReader.Read.Failed -> {
                     read[name] = null to null

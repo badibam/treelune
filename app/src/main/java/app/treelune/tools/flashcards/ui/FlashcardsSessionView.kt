@@ -67,7 +67,7 @@ fun FlashcardsSessionView(
     val sourceId = config.optJSONObject(FlashcardsDeck.SOURCE)?.optJSONObject("target")?.optString("id")
     var fields by remember { mutableStateOf<Map<String, FieldDefinition>?>(null) }
     LaunchedEffect(sourceId) {
-        fields = try { ToolFields.filterable(sourceId ?: return@LaunchedEffect, context, s) } catch (e: IllegalStateException) {
+        fields = try { ToolFields.filterable(sourceId ?: return@LaunchedEffect, context, s) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) {
             UI.Toast(e.message ?: s.shared("message_error_simple"), Duration.LONG)
             null
         }

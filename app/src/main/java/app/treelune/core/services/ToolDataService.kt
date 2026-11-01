@@ -566,6 +566,8 @@ class ToolDataService(private val context: Context) : ExecutableService {
             val given = try {
                 app.treelune.core.fields.FilterTerms.resolved(params.optJSONArray("filters") ?: JSONArray(),
                     params.optLong("reference").takeIf { params.has("reference") } ?: System.currentTimeMillis(), context) { s.shared(it) }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: IllegalStateException) {
                 return OperationResult.error(e.message ?: s.shared("error_unknown"))
             }

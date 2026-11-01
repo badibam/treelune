@@ -46,6 +46,8 @@ class FlashcardsService(private val context: Context) : ExecutableService {
                 "review" -> review(deckId, deck, params)
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             // A source or a field gone, named by the error
             OperationResult.error(e.message ?: s.shared("service_error_operation_failed"))

@@ -459,7 +459,7 @@ private fun brickPhrases(nodes: List<SettingNode>, config: JSONObject, context: 
     val phrases by androidx.compose.runtime.produceState(emptyList<String>(), key) {
         val s = Strings.`for`(context = context)
         value = bricks.map { (label, brick) ->
-            s.shared("settings_count").format(label, try { brickPhrase(brick, context) } catch (e: IllegalStateException) { e.message ?: "" })
+            s.shared("settings_count").format(label, try { brickPhrase(brick, context) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { e.message ?: "" })
         }
     }
     return phrases
@@ -1062,6 +1062,8 @@ private fun ToolFieldChoice(node: SettingNode.Field, tool: Any?, stored: String?
         error = null
         fields = if (toolId == null) null else try {
             app.treelune.core.fields.ToolFields.filterable(toolId, context, s)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) { error = e.message; null }
     }
     val loaded = fields

@@ -56,6 +56,8 @@ object TermFields {
         }
         val fields = try {
             targetFields(term.selection.target)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             throw IllegalArgumentException(text("variable_error_term").format(name) + " " + (e.message ?: ""))
         }

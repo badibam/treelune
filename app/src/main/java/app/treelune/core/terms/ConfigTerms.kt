@@ -56,6 +56,8 @@ object ConfigTerms {
             if (term.selection.target.kind != ReferenceKind.ENTRY || term.field == null) return s.shared("term_error_file_follow").format(label)
             val fields = try {
                 ToolFields.ofTarget(term.selection.target, context, s)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: IllegalStateException) {
                 return s.shared("term_error_file_source").format(label, e.message ?: "")
             }

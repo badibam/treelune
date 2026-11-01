@@ -137,7 +137,7 @@ object FlashcardsToolType : ToolTypeContract {
             ?: return s.tool("error_source_gone")
         val type = app.treelune.core.tools.ToolTypeManager.getToolType(tool["tooltype"] as? String ?: "")
         if (type == null || type === this || !type.keepsEntries()) return s.tool("error_source_kind").format(tool["name"])
-        val fields = try { ToolFields.filterable(deck.sourceId, context, s) } catch (e: IllegalStateException) { return e.message }
+        val fields = try { ToolFields.filterable(deck.sourceId, context, s) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { return e.message }
         deck.goneField({ it in fields }, tool["name"] as? String ?: "", s::tool)?.let { return it }
         val names = deck.directions.map { it.name.trim().lowercase() }
         if (names.size != names.toSet().size) return s.tool("error_direction_names")

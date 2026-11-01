@@ -75,7 +75,7 @@ object SequenceVariants {
             MEDIA -> {
                 val id = (answer as? Answer.Entry)?.id ?: return Made.Refused(s.tool("error_media_entry_missing"))
                 // A selection whose tool cannot be read says why
-                val step = try { mediaStep(context, config, id, s) } catch (e: IllegalStateException) { return Made.Refused(e.message ?: "") }
+                val step = try { mediaStep(context, config, id, s) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { return Made.Refused(e.message ?: "") }
                 listOf(step ?: return Made.Refused(s.tool("error_media_entry_outside")))
             }
             else -> SequencePlan.unroll(config)

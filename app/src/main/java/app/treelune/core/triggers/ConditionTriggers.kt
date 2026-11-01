@@ -157,6 +157,8 @@ object ConditionTriggers {
             Judged.Answer(holds, given(read.op, left, right), said(field, read.op, left, right, s))
         } catch (e: IllegalArgumentException) {
             Judged.Failed(e.message ?: s.shared("message_validation_error_simple"))
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             Judged.Failed(e.message ?: s.shared("message_validation_error_simple"))
         }

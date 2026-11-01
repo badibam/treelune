@@ -33,6 +33,8 @@ sealed interface ChartReading {
                 Drawn(spec, tables, spec.period.instants(TimeResolver.at(now)), now)
             } catch (e: IllegalArgumentException) {
                 Problem(e.message ?: "")
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: IllegalStateException) {
                 LogManager.ui("Chart not read: ${e.message}", "WARN")
                 Problem(e.message ?: "")

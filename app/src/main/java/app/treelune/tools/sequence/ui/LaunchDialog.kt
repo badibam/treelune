@@ -71,6 +71,8 @@ private fun MediaDialog(config: JSONObject, history: List<SequenceEntry>, s: Str
     LaunchedEffect(config.toString()) {
         offered = try {
             SequenceVariants.offered(context, config)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             LogManager.ui("Sequence: the entries to play not read: ${e.message}", "ERROR")
             error = e.message

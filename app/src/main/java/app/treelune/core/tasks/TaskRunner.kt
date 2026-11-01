@@ -485,6 +485,8 @@ object TaskRunner {
         val toolId = selection.target.id ?: throw StepFailed(s.shared("task_error_list_selection").format(""))
         val fields = try {
             app.treelune.core.fields.ToolFields.filterable(toolId, context, s)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             throw StepFailed(s.shared("task_error_tool").format("", toolId))
         }
@@ -594,6 +596,8 @@ object TaskRunner {
                         is TermReader.Read.Value -> read.value
                         is TermReader.Read.Failed -> throw StepFailed(read.message)
                     }
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: IllegalStateException) {
                     throw StepFailed(e.message ?: "")
                 }
@@ -613,6 +617,8 @@ object TaskRunner {
         val file = File(dir, "${UUID.randomUUID()}-$name")
         val request = try {
             apiId?.let { ApiService(context).fileRequest(it, address) } ?: Request.Builder().url(address).get().build()
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             throw StepFailed(s.shared("task_error_download").format(address, e.message ?: ""))
         }

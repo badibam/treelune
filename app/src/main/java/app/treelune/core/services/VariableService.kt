@@ -442,6 +442,8 @@ class VariableService(private val context: Context) : ExecutableService {
                     ?: throw Refused(s.shared("variable_error_not_found").format(params.optString("variable_id").ifEmpty { params.optString("name") }))
                 OperationResult.success(evaluated(entity, at, evaluator))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             OperationResult.error(e.message ?: "")
         }

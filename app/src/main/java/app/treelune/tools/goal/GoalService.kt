@@ -58,6 +58,8 @@ class GoalService(private val context: Context) : ExecutableService {
                 "reopen" -> reopen(attempt)
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             // A read that failed: the operation's error, never a criterion's cause
             OperationResult.error(e.message ?: "")

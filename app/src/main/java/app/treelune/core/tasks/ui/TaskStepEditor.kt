@@ -185,6 +185,8 @@ private fun WriteEntry(step: JSONObject, earlier: Earlier, s: StringsContext, wi
     LaunchedEffect(toolId) {
         fields = try {
             TaskSteps.writableFields(toolId, context, s).map { (path, field) -> field.copy(name = path) }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             emptyList()
         }

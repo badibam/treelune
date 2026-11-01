@@ -133,7 +133,7 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
         @Suppress("UNCHECKED_CAST")
         config = JsonUtils.toJSONObject((result.data?.get("tool_instance") as Map<*, *>)["config"] as Map<String, Any?>)
         // The fields not read are said: filters and sorting would otherwise offer nothing in silence
-        filterable = try { ToolFields.filterable(toolInstanceId, context, s) } catch (e: IllegalStateException) { errorMessage = e.message; emptyMap() }
+        filterable = try { ToolFields.filterable(toolInstanceId, context, s) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { errorMessage = e.message; emptyMap() }
     }
     LaunchedEffect(toolInstanceId, sheetsVersion, search, filters) {
         val all = JSONArray(filters)

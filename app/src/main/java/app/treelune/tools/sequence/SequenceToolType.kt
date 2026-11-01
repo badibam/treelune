@@ -328,6 +328,8 @@ object SequenceToolType : ToolTypeContract {
         val path = config.optString(SequenceVariants.MEDIA_FIELD)
         val fields = try {
             app.treelune.core.fields.ToolFields.filterable(toolId, context, s)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             return e.message
         }

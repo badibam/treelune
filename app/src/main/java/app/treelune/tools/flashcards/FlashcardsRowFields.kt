@@ -20,6 +20,8 @@ object FlashcardsRowFields : RowFields {
         val source = sourceId(root) ?: return emptyMap()
         return try {
             ToolFields.filterable(source, context, Strings.`for`(tool = "flashcards", context = context))
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             LogManager.ui("FlashcardsRowFields: fields of $source not read: ${e.message}", "WARN")
             emptyMap()

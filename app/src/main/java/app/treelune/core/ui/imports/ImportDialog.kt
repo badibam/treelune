@@ -67,6 +67,8 @@ fun ImportDialog(toolInstanceId: String, csv: String, onDismiss: () -> Unit) {
     LaunchedEffect(toolInstanceId) {
         targets = try {
             ImportTargets.read(coordinator, toolInstanceId)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) { error = e.message; ImportTargets(emptyMap(), emptyMap()) }
         if (columns != null) return@LaunchedEffect
         val result = coordinator.processUserAction("imports.detect", mapOf("tool_instance_id" to toolInstanceId, "csv" to csv))

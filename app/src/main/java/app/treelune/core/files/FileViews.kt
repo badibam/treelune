@@ -133,6 +133,8 @@ private fun VideoFrame(file: File, durationMs: Long?, height: Dp, onClick: (() -
             try {
                 retriever.setDataSource(file.path)
                 retriever.frameAtTime
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: RuntimeException) {
                 LogManager.service("Video ${file.name}: no frame read: ${e.message}", "WARN")
                 null

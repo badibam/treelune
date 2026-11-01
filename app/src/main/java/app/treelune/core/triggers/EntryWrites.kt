@@ -58,6 +58,8 @@ object EntryWrites {
         val fields = ToolFields.filterable(toolInstanceId, context, s)
         val given = try {
             app.treelune.core.fields.FilterTerms.resolved(filters, System.currentTimeMillis(), context) { s.shared(it) }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             app.treelune.core.utils.LogManager.service("Trigger filters on ${toolInstanceId} not read: ${e.message}", "WARN")
             return false

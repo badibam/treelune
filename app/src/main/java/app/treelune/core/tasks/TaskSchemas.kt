@@ -86,6 +86,8 @@ object TaskSchemas {
             whenConstants(step, index, given, received, values, context, s, convert)
             val fields = try {
                 fieldsOf(step, context, s)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: IllegalStateException) {
                 // A tool that does not read leaves the step as it is: the service refuses it, naming it
                 emptyMap()

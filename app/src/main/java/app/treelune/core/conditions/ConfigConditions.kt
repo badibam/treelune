@@ -175,7 +175,7 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
         val reduction = Reduction.entries.firstOrNull { it.name == reading.optString("reduction") } ?: return null
         if (reduction == Reduction.COUNT) return FieldReading.COUNT_FIELD
         val target = reading.optJSONObject("selection")?.optJSONObject("target")?.let { app.treelune.core.selection.Reference.fromJson(it) } ?: return null
-        val fields = try { sources.targetFields(target) } catch (e: IllegalStateException) { return null } catch (e: IllegalArgumentException) { return null }
+        val fields = try { sources.targetFields(target) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { return null } catch (e: IllegalArgumentException) { return null }
         return fields[reading.optString("field")]
     }
 
@@ -190,6 +190,8 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
         val fields = id?.let {
             try {
                 sources.targetFields(app.treelune.core.selection.Reference(ReferenceKind.valueOf(kind!!), it))
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: IllegalStateException) {
                 throw IllegalArgumentException("$label : ${e.message}")
             }
