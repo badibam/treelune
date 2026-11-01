@@ -73,7 +73,6 @@ Codé, jamais vu sur l'appareil.
 ## Décidé, à coder
 
 - Démarrer et arrêter le chronomètre d'un Suivi depuis une Tâche : le Suivi ne déclare aucune opération (`getOperations`), quand `ToolDataService` sait déjà `start_duration` et `stop_duration` ; un premier repas noté qui arrête un jeûne. Avec, une condition qui dit si un chronomètre tourne (`state.running`), non vérifiée : le toucher du coucher qui prévient quand le jeûne ne tourne pas.
-- Une routine a deux usages égaux, une exécution seule et une conversation ouverte sur son message, et les textes de l'IA la définissent par le premier, le second ajouté après « also » : `ai_command_create_routine` (« An AI works on it alone… ; the user also opens a conversation »), `ai_chunk_session_types` (« ROUTINE_RUN : … the user's screen calls it a routine »), le guide de conception (principes 3 et 5, ses montages tous seuls) ; `docs/AI.md` § 6 de même (« ROUTINE_RUN sessions created from a SEED »). Seule `piece_routine_usage` dit les deux. Le 2026-11-01, un rituel du dimanche pensé en questionnaire « avec l'IA » faute d'y voir une routine.
 
 ## À concevoir
 
