@@ -2,8 +2,8 @@
 """Check that no coroutine code catches its own cancellation as an error.
 
 A coroutine is stopped by a CancellationException: a screen closed, a Task stopped, a timeout
-reached. A `catch (e: Exception)` or `catch (e: Throwable)` around a suspending call catches it
-too, and then logs an ERROR, answers a failure and lets the code go on, where the coroutine should
+reached. A `catch` of Exception, Throwable, RuntimeException or IllegalStateException (whose
+subclass it is) around a suspending call catches it too, and then logs an ERROR, answers a failure and lets the code go on, where the coroutine should
 have stopped. Such a catch is preceded, in the same try, by a catch that lets the cancellation
 through (`catch (e: CancellationException) { throw e }`), or rethrows it first in its own body
 (`if (e is CancellationException) throw e`).
@@ -24,7 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SOURCES = ROOT / "app" / "src" / "main" / "java"
 
-BROAD = re.compile(r"\bcatch\s*\(\s*\w+\s*:\s*(?:kotlin\.|java\.lang\.)?(?:Exception|Throwable)\s*\)")
+BROAD = re.compile(r"\bcatch\s*\(\s*\w+\s*:\s*(?:kotlin\.|java\.lang\.)?(?:Exception|Throwable|RuntimeException|IllegalStateException)\s*\)")
 CANCEL_CATCH = re.compile(r"catch\s*\(\s*\w+\s*:\s*[\w.]*CancellationException\s*\)\s*$")
 RETHROWN = re.compile(r"^\s*\{\s*(?://[^\n]*\n\s*)*if\s*\(\s*\w+\s+is\s+[\w.]*CancellationException\s*\)\s*throw\b")
 SUSPEND_FUN = re.compile(r"\bsuspend\s+fun\b")
