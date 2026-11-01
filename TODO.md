@@ -27,6 +27,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- Le Questionnaire sans « Avec l'IA » : la migration 111 → 112 passée sur l'appareil, les questionnaires réglés puis enregistrés sans refus, l'écran sans le bouton ; le rituel de la semaine monté par l'IA avec une routine à côté.
 - « Se répète » sur la fiche d'un événement isolé de l'Agenda : le planning choisi, l'événement devenu la première occurrence (ses champs gardés, « Modifier la série » sur sa fiche), les suivantes après lui sans doublon ; un événement toute la journée, sans occurrence le même jour ; par l'IA, « rends ce rendez-vous hebdomadaire ».
 - Une séance prévue lancée, une autre marquée « Fait », un questionnaire prévu rempli en retard : chacun daté du lancement ou du remplissage dans l'historique et ses graphiques, « Prévue pour » (« Prévu pour ») qui garde l'heure prévue, aucune séance ni invitation recréée au créneau au passage suivant.
 - Un champ date et un champ date et heure d'une entrée (le début d'un événement de l'Agenda, un champ ajouté d'un Suivi) : le calendrier et l'heure seuls, sans « Personnalisée / Relative / Maintenant » ; un champ facultatif vidé par sa croix ; la période d'un export, toujours avec ses dates relatives.
