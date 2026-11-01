@@ -229,8 +229,8 @@ object LogManager {
     /**
      * Bring each class of log back under its own ceiling.
      *
-     * The cutoff is found with an OFFSET query rather than by loading the rows, so the purge
-     * costs the same whatever the table holds.
+     * The rows beyond the ceiling are deleted in one query, ordered by time then by row, without
+     * loading them: lines of the same millisecond at the cut cannot hold the purge back.
      */
     private suspend fun purgeOldLogsIfNeeded(database: AppDatabase) {
         try {
@@ -248,15 +248,8 @@ object LogManager {
         val count = database.logDao().getLogCountForLevels(levels)
         if (count <= ceiling) return
 
-        val cutoffTimestamp = database.logDao().getTimestampAtOffsetForLevels(levels, ceiling - 1)
-        if (cutoffTimestamp == null) {
-            println("LogManager: Purge skipped for $levels - could not determine cutoff timestamp")
-            return
-        }
-
-        database.logDao().deleteLogsOlderThanForLevels(levels, cutoffTimestamp)
-        val remaining = database.logDao().getLogCountForLevels(levels)
-        println("LogManager: Purged $levels. Deleted ${count - remaining} entries. Kept $remaining.")
+        val deleted = database.logDao().deleteBeyondForLevels(levels, ceiling)
+        println("LogManager: Purged $levels. Deleted $deleted entries. Kept ${count - deleted}.")
     }
 
     /**

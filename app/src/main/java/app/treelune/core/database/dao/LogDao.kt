@@ -61,18 +61,17 @@ interface LogDao {
     suspend fun getLogCountForLevels(levels: List<String>): Int
 
     /**
-     * Timestamp of the nth most recent log of the given levels, used as a purge cutoff.
+     * Deletes the logs of the given levels beyond the [keep] most recent, ordered by time then by
+     * row: lines written within the same millisecond are told apart, so a purge always reaches
+     * its ceiling. Returns how many went.
      */
     @Query("""
-        SELECT timestamp FROM log_entries
-        WHERE level IN (:levels)
-        ORDER BY timestamp DESC
-        LIMIT 1 OFFSET :offset
+        DELETE FROM log_entries
+        WHERE level IN (:levels) AND id NOT IN (
+            SELECT id FROM log_entries WHERE level IN (:levels) ORDER BY timestamp DESC, id DESC LIMIT :keep
+        )
     """)
-    suspend fun getTimestampAtOffsetForLevels(levels: List<String>, offset: Int): Long?
-
-    @Query("DELETE FROM log_entries WHERE level IN (:levels) AND timestamp < :olderThan")
-    suspend fun deleteLogsOlderThanForLevels(levels: List<String>, olderThan: Long)
+    suspend fun deleteBeyondForLevels(levels: List<String>, keep: Int): Int
 
     @Query("DELETE FROM log_entries")
     suspend fun deleteAllLogs()
