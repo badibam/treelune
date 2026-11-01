@@ -63,7 +63,11 @@ class ZoneContentsTest {
 
     @Test
     fun theZones_comeInTheHomeScreensOrder() = runBlocking {
-        ok("app_config.set", mapOf("category" to "main_screen", "settings" to mapOf("zone_groups" to listOf("First", "Second"))))
+        // The groups the shared test database already holds kept (a group still held by a zone
+        // cannot be removed: the demo another test installed), the two of this test after them
+        val held = ((ok("app_config.get", mapOf("category" to "main_screen"))["settings"] as Map<*, *>)["zone_groups"] as? List<*>).orEmpty()
+            .map { it as String }.filter { it != "First" && it != "Second" }
+        ok("app_config.set", mapOf("category" to "main_screen", "settings" to mapOf("zone_groups" to held + listOf("First", "Second"))))
         ok("zones.create", mapOf("name" to "Loose"))
         ok("zones.create", mapOf("name" to "Second one", "group" to "Second"))
         ok("zones.create", mapOf("name" to "First one", "group" to "First"))
