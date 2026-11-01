@@ -169,6 +169,8 @@ fun RoutineScreen(
                         val phaseStr = sessionMap["phase"] as? String ?: "IDLE"
                         val phase = try {
                             Phase.valueOf(phaseStr)
+                        } catch (e: kotlinx.coroutines.CancellationException) {
+                            throw e
                         } catch (e: Exception) {
                             Phase.IDLE
                         }

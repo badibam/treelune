@@ -51,6 +51,8 @@ class MessageService(private val context: Context) : ExecutableService {
                 "execute" -> executeNow(params, token)
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("MessageService.execute($operation) failed: ${e.message}", "ERROR", e)
             OperationResult.error("${s.shared("service_error_operation_failed")}: ${e.message}")

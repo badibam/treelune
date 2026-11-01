@@ -98,6 +98,8 @@ fun TrackingHistory(
                 try {
                     toolConfig = configJson
                     LogManager.tracking("TrackingHistory - Loaded tool config")
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     LogManager.tracking("Error parsing tool config: ${e.message}", "ERROR")
                 }
@@ -217,6 +219,8 @@ fun TrackingHistory(
                         UI.Toast(result.error ?: s.tool("error_entry_update"), Duration.LONG)
                     }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 UI.Toast(s.shared("message_error").format(e.message ?: ""), Duration.LONG)
             }
@@ -245,6 +249,8 @@ fun TrackingHistory(
                         UI.Toast(result.error ?: s.tool("error_entry_deletion"), Duration.LONG)
                     }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 UI.Toast(s.shared("message_error").format(e.message ?: ""), Duration.LONG)
             }

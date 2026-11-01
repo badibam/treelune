@@ -84,6 +84,8 @@ fun EditNoteDialog(
                         customFieldsDefinitions = customFieldsArray.toFieldDefinitions()
                         LogManager.ui("Loaded ${customFieldsDefinitions.size} custom field definitions")
                     }
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     LogManager.ui("Error parsing custom fields definitions: ${e.message}", "ERROR")
                 }
@@ -167,6 +169,8 @@ fun EditNoteDialog(
                                 // Saved, the screen closes the dialog; refused, the reason is shown
                                 onConfirm(if (titles) title.trim() else null, content.trim(), insertPosition, customFieldsValues)
                                     ?.let { errorMessage = it }
+                            } catch (e: kotlinx.coroutines.CancellationException) {
+                                throw e
                             } catch (e: Exception) {
                                 LogManager.ui("Error saving note: ${e.message}", "ERROR")
                                 errorMessage = s.shared("message_error").format(e.message ?: "")

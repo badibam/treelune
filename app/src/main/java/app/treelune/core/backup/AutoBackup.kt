@@ -83,6 +83,8 @@ object AutoBackup {
         _pending.value = try {
             val settings = settings(context)
             attention(context, settings)?.let { it != settings.optString(AppSettings.DATA_SEEN) } ?: false
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("AutoBackup: the mark not read: ${e.message}", "WARN")
             false
@@ -109,7 +111,7 @@ object AutoBackup {
         val folder = settings.optString(AppSettings.DATA_FOLDER).takeIf { it.isNotEmpty() }?.let { Uri.parse(it) } ?: return State.NoFolder
         if (!settings.optBoolean(AppSettings.DATA_AUTO_BACKUP, true)) return State.Off(folder)
         if (!writable(context, folder)) return State.Lost(folder)
-        val listed = try { list(context, folder) } catch (e: Exception) {
+        val listed = try { list(context, folder) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) {
             LogManager.service("AutoBackup: the folder cannot be read: ${e.message}", "WARN")
             return State.Lost(folder)
         }

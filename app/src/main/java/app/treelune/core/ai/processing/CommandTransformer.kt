@@ -164,6 +164,8 @@ object CommandTransformer {
                     executableCommand?.let { executableCommands.add(it) }
                 }
 
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 val error = e.message ?: s.shared("ai_error_command_unexpected")
                 LogManager.aiPrompt("Failed to transform command ${command.type}: $error", "ERROR", e)

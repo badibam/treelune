@@ -118,6 +118,8 @@ class PartImport(private val context: Context) {
         } catch (e: Refused) {
             undo(written)
             throw e
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             undo(written)
             LogManager.service("Part import failed: ${e.message}", "ERROR", e)
@@ -428,6 +430,8 @@ class PartImport(private val context: Context) {
                 run("zones.update", JSONObject().put("zone_id", zone).put("tool_groups", groups?.let { JSONArray(it) } ?: JSONObject.NULL))
             }
             HomeGroups(::run).remove(written.homeGroups.toSet())
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("Part import: what it wrote not all taken out again: ${e.message}", "ERROR", e)
         }

@@ -598,6 +598,8 @@ private fun WrittenEntries(action: app.treelune.core.ai.data.DataCommand) {
     val entries by produceState<List<app.treelune.core.ai.validation.ProposedEntry>?>(initialValue = null, action) {
         value = try {
             app.treelune.core.ai.validation.ProposedEntries.read(action, context)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiUI("Written entries not read: ${e.message}", "WARN")
             failed = true

@@ -111,6 +111,8 @@ class SequenceRunService : Service() {
                 follow(id)
                 // The end's sound plays out before the service, and its sounds, go
                 delay(END_LINGER)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.service("SequenceRunService: the session $id stopped running: ${e.message}", "ERROR", e)
             } finally {

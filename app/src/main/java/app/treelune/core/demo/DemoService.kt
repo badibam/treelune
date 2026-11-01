@@ -66,6 +66,8 @@ class DemoService(private val context: Context) : ExecutableService {
         val content = try {
             texts = asset("demo/${s.shared("demo_texts_file")}")
             DemoContent.read(asset("demo/structure.json"), texts)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("Demo not read: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("demo_error_unreadable").format(e.message ?: ""))

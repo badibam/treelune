@@ -115,6 +115,8 @@ object CoreScheduler {
             AIOrchestrator.initialize(context)
             AIOrchestrator.tick()
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("CoreScheduler: AI scheduling error: ${e.message}", "ERROR", e)
             // Continue to tool scheduling despite AI error
@@ -131,6 +133,8 @@ object CoreScheduler {
                     if (scheduler != null) {
                         scheduler.checkScheduled(context)
                     }
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     LogManager.service(
                         "CoreScheduler: Error in scheduler for tool type '$toolTypeName': ${e.message}",
@@ -141,6 +145,8 @@ object CoreScheduler {
                 }
             }
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("CoreScheduler: Tool scheduling error: ${e.message}", "ERROR", e)
         }
@@ -148,6 +154,8 @@ object CoreScheduler {
         try {
             // The Tasks: runs cut or waiting on an API, occurrences due (TaskScheduler)
             app.treelune.core.tasks.TaskScheduler.tick(context)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("CoreScheduler: task scheduling error: ${e.message}", "ERROR", e)
         }
@@ -168,6 +176,8 @@ object CoreScheduler {
         try {
             // The history of writes kept to its depth
             app.treelune.core.history.HistoryDepth.prune(context)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("CoreScheduler: history pruning error: ${e.message}", "ERROR", e)
         }
@@ -175,6 +185,8 @@ object CoreScheduler {
         try {
             // 3. The automatic backup, last: the tick's other work is due at its minute, a copy within the hour
             app.treelune.core.backup.AutoBackup.tick(context)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("CoreScheduler: automatic backup error: ${e.message}", "ERROR", e)
         }
@@ -195,6 +207,8 @@ object CoreScheduler {
         kotlinx.coroutines.withContext(app.treelune.core.coordinator.Origin(app.treelune.core.coordinator.Source.SCHEDULER)) {
             try {
                 scheduler.checkScheduled(appContext)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.service("CoreScheduler: scheduler of tool type '$tooltype' run at once failed: ${e.message}", "ERROR", e)
             }
@@ -210,6 +224,8 @@ object CoreScheduler {
         val next = ToolTypeManager.getAllToolTypes().mapNotNull { (toolTypeName, toolType) ->
             try {
                 toolType.getScheduler()?.nextAction(appContext)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.service("CoreScheduler: next action of tool type '$toolTypeName' unknown: ${e.message}", "ERROR", e)
                 null

@@ -44,6 +44,8 @@ internal fun rememberReferenceName(reference: Reference?, context: Context): Str
                 is ReferenceName.Named -> name.name
                 ReferenceName.Deleted, null -> s.shared("pointer_target_deleted")
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.ui("Reference $reference: name not read: ${e.message}", "ERROR", e)
             s.shared("field_reference_unreadable")

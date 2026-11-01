@@ -80,6 +80,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
                 "running" -> handleRunning(params)
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             OperationResult.error(s.shared("service_error_tool_instance_service").format(e.message ?: ""))
         }
@@ -93,6 +95,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             scope.launch {
                 try {
                     CoreScheduler.tick()
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     LogManager.service("ToolInstanceService: Error calling tick(): ${e.message}", "ERROR", e)
                 }
@@ -176,6 +180,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
                 arrive(ToolInstance(id = toolId, zone_id = zoneId, tooltype = toolType, config_json = writtenConfigJson, grid_x = 0, grid_y = 0), zone.tool_groups)
                     .also { writes.insertTool(it); images.store() }
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             images.undo()
             throw e
@@ -348,6 +354,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
                 if (migration != null) applyMigration(existingTool, migration)
                 placed
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             images?.undo()
             throw e
@@ -695,6 +703,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         // Extract name from config for verbalization
         val toolName = try {
             JSONObject(existingTool.config_json).optString("name", "")
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             ""
         }
@@ -748,6 +758,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         // Parse and modify config
         val sourceConfig = try {
             JSONObject(sourceTool.config_json)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("Failed to parse source config: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("duplicate_error").format(e.message ?: "Invalid config"))
@@ -789,6 +801,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
                 arrive(ToolInstance(id = copyId, zone_id = targetZoneId, tooltype = sourceTool.tooltype, config_json = sourceConfig.toString(), grid_x = 0, grid_y = 0), targetZone.tool_groups)
                     .also { writes.insertTool(it); images.store() }
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             images.undo()
             throw e
@@ -899,6 +913,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
                 val configJson = JSONObject(tool.config_json)
                 name = configJson.optString("name", "")
                 description = configJson.optString("description", "")
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 // Keep empty strings
             }
@@ -968,6 +984,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
                 val configJson = JSONObject(tool.config_json)
                 name = configJson.optString("name", "")
                 description = configJson.optString("description", "")
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 // Keep empty strings
             }
@@ -1024,6 +1042,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         // Extract name from config JSON
         val name = try {
             JSONObject(toolInstance.config_json).optString("name", "")
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             ""
         }
@@ -1245,6 +1265,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         } catch (e: ValidationException) {
             LogManager.service("Custom fields validation error: ${e.message}", "ERROR", e)
             return OperationResult.error("Custom fields validation error: ${e.message}")
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("Failed to process custom fields: ${e.message}", "ERROR", e)
             return OperationResult.error("Failed to process custom fields: ${e.message}")

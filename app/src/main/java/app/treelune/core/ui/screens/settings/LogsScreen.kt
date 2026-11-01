@@ -109,6 +109,8 @@ fun LogsScreen(
                 )
 
                 isLoading = false
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.ui("Failed to load logs: ${e.message}", "ERROR", e)
                 errorMessage = "${s.shared("error_unknown")}: ${e.message}"

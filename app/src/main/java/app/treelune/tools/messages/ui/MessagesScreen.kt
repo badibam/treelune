@@ -532,6 +532,8 @@ internal suspend fun loadByStatus(
                 notificationSent = state.optBoolean("notification_sent", true),
                 extra = customFields
             )
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.ui("Unreadable occurrence $id, skipped: ${e.message}", "ERROR", e)
             null

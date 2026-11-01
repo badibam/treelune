@@ -40,6 +40,8 @@ class McpClientService(private val context: Context) : ExecutableService {
                 // Read as the server reads it: a mask it could not read is refused here
                 try {
                     AccessMask.fromJson(access)
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     return OperationResult.error(s.shared("service_error_mcp_client_access_unreadable").format(e.message ?: ""))
                 }

@@ -99,6 +99,8 @@ object MessageScheduler : ToolScheduler {
                 val toolInstanceId = instance["id"] as? String ?: continue
                 try {
                     processInstance(context, coordinator, toolInstanceId, instance, now)
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     // One broken template must not stop the others
                     LogManager.service("Failed to process message template $toolInstanceId: ${e.message}", "ERROR", e)
@@ -106,6 +108,8 @@ object MessageScheduler : ToolScheduler {
             }
 
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("MessageScheduler.checkScheduled() failed: ${e.message}", "ERROR", e)
         } finally {
@@ -511,6 +515,8 @@ object MessageScheduler : ToolScheduler {
                     triggeredBy = state.optString("triggered_by", "MANUAL"),
                     data = data
                 )
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.service("Unreadable pending occurrence $id, skipped: ${e.message}", "ERROR", e)
                 null

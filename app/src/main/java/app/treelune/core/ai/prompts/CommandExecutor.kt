@@ -294,6 +294,8 @@ class CommandExecutor(private val context: Context) {
                     // handed raw, its dates would reach the model as milliseconds, unannounced
                     val formattedData = if (command.isActionCommand) "" else try {
                         formatResultData(command, data)
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         LogManager.aiPrompt("Result of $commandString could not be formatted: ${e.message}", "ERROR", e)
                         return@withContext InternalCommandResult(
@@ -373,6 +375,8 @@ class CommandExecutor(private val context: Context) {
                     )
                 }
 
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.aiPrompt("Command execution failed: ${e.message}", "ERROR", e)
                 return@withContext null
@@ -396,6 +400,8 @@ class CommandExecutor(private val context: Context) {
                 // Fallback if service doesn't implement ExecutableService
                 "${command.resource}.${command.operation}"
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiPrompt("Failed to verbalize command ${command.resource}.${command.operation}: ${e.message}", "WARN", e)
             "${command.resource}.${command.operation}"
@@ -1273,6 +1279,8 @@ class CommandExecutor(private val context: Context) {
             val messageRepository = app.treelune.core.ai.state.AIMessageRepository(appDatabase.aiDao())
             SessionReads.sent(messageRepository.loadMessages(sessionId))
                 .also { LogManager.aiPrompt("Loaded ${it.size} reads sent in session $sessionId", "DEBUG") }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiPrompt("Failed to load the reads sent in session $sessionId: ${e.message}", "WARN", e)
             emptyMap()

@@ -56,6 +56,8 @@ class ApiService(private val context: Context) : ExecutableService {
             }
         } catch (e: ApiCall.Failure) {
             OperationResult.error(failure(e))
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("ApiService.$operation failed: ${e.message}", "ERROR", e)
             OperationResult.error(s.shared("api_error").format(e.message ?: ""))

@@ -42,6 +42,8 @@ class SequenceAudio(private val context: Context) {
                     prepare()
                     seekTo(elapsed.toInt())
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.service("Sequence: the sound ${media.id} not played: ${e.message}", "ERROR", e)
                 null

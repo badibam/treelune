@@ -1156,6 +1156,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                         } else {
                             text
                         }
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         LogManager.aiSession("Failed to parse richContentJson for preview: ${e.message}", "WARN")
                         ""

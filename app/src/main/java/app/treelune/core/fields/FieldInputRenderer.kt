@@ -567,6 +567,8 @@ private fun loadFieldDefinitionsFromConfig(
                     }
                 }
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.ui("Failed to load custom fields from config: ${e.message}", "ERROR", e)
             fields = emptyList()

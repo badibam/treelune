@@ -98,6 +98,8 @@ fun AIScreen(
                 } else {
                     errorMessage = result.error ?: s.shared("ai_error_load_session")
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.aiUI("Failed to load session $sessionId: ${e.message}", "ERROR")
                 errorMessage = s.shared("ai_error_load_session")
@@ -356,6 +358,8 @@ private fun ChatMode(
                                 AIOrchestrator.sendMessage(richMessage)
                                 segments = emptyList() // Clear composer on success
                                 AIOrchestrator.clearDraftMessage(session.id) // Clear draft on success
+                            } catch (e: kotlinx.coroutines.CancellationException) {
+                                throw e
                             } catch (e: Exception) {
                                 errorMessage = e.message ?: s.shared("ai_error_send_message")
                                 LogManager.aiUI("ChatMode sendMessage failed: ${e.message}", "ERROR", e)

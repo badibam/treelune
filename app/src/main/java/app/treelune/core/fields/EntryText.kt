@@ -30,6 +30,8 @@ object EntryText {
         val references = fields.filter { it.type == FieldType.REFERENCE }.flatMap { ReferenceTarget.referencesOf(extra[it.name]) }
         val names = try {
             loadReferenceNames(references, context)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.ui("Entry text: reference names not read: ${e.message}", "ERROR", e)
             null

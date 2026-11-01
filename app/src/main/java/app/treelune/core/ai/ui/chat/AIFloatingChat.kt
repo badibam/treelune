@@ -73,6 +73,8 @@ fun AIFloatingChat(
                         scope.launch {
                             try {
                                 AIOrchestrator.requestChatSession()
+                            } catch (e: kotlinx.coroutines.CancellationException) {
+                                throw e
                             } catch (e: Exception) {
                                 errorMessage = e.message
                             }

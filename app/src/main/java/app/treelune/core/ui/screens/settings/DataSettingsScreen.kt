@@ -78,6 +78,8 @@ fun DataSettingsScreen(
                 app.treelune.core.backup.AutoBackup.seen(context)
                 app.treelune.core.backup.AutoBackup.state(context)
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) { errorMessage = e.message; null }
     }
     /** The app's folder kept, the automatic backup switched [on], then read again. */
@@ -266,6 +268,8 @@ fun DataSettingsScreen(
                         } else {
                             errorMessage = result.error ?: s.shared("backup_reset_failed")
                         }
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         errorMessage = "${s.shared("backup_reset_failed")}: ${e.message}"
                     } finally {

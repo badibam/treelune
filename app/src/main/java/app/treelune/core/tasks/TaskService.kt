@@ -253,6 +253,8 @@ class TaskService(private val context: Context) : ExecutableService {
         schedule?.let {
             try {
                 json.decodeFromString<ScheduleConfig>(it.toString())
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 return refused("Invalid schedule: ${e.message}")
             }

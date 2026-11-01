@@ -119,6 +119,8 @@ fun NotesScreen(
 
                         LogManager.ui("Parsing note: id=$id, timestamp=$timestamp, content=$content, position=$position, customFields=${customFields.size}")
                         NoteEntry(id, title, content, timestamp, position, customFields)
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         LogManager.ui("Error parsing note entry: ${e.message}", "ERROR")
                         null

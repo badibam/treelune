@@ -37,6 +37,8 @@ object ListDueScheduler : ToolScheduler {
                 // One list that fails must not stop the others
                 try {
                     notifyDue(context, coordinator, tool["id"] as String, config, now)
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     LogManager.service("ListDueScheduler: list ${tool["id"]} failed: ${e.message}", "ERROR", e)
                 }

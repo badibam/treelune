@@ -146,6 +146,8 @@ class AICommandProcessor(private val context: Context) {
                 } else {
                     executableCommands.add(executableCommand)
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 val error = e.message ?: s.shared("ai_error_command_unexpected")
                 LogManager.aiService("Failed to transform action command ${command.type}: $error", "ERROR", e)
@@ -446,6 +448,8 @@ class AICommandProcessor(private val context: Context) {
                     else (command.params["task_id"] as? String)?.let { app.treelune.core.database.AppDatabase.getDatabase(context).taskDao().get(it)?.triggersJson }
                 val triggers = try {
                     app.treelune.core.triggers.Triggers.read(triggersJson)
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     // Triggers that do not read are refused by the service, naming them
                     emptyList()

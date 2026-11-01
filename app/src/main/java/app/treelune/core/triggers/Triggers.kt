@@ -141,6 +141,8 @@ object Triggers {
     suspend fun refusal(settings: JSONObject, nodes: List<SettingNode>, context: android.content.Context, s: app.treelune.core.strings.StringsContext): String? {
         val read = try {
             read(of(settings))
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             return e.message ?: s.shared("message_validation_error_simple")
         }

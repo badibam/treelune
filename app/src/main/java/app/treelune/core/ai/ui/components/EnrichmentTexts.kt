@@ -52,6 +52,8 @@ fun rememberDisplayText(block: MessageSegment.EnrichmentBlock): String {
         whileNamesHold {
             value = try {
                 EnrichmentText.load(context, listOf(block)).display(block)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.aiUI("Enrichment text not read: ${e.message}", "ERROR", e)
                 s.shared("ai_enrichment_unreadable")

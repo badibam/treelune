@@ -298,6 +298,8 @@ class IdentityService(private val context: Context) : ExecutableService {
         }
         val written = try {
             app.treelune.core.exports.AppFolder.write(context, folder, base, "json") { it.write(text.toByteArray(Charsets.UTF_8)) }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             app.treelune.core.utils.LogManager.service("Identities: ${identity.id} not exported: ${e.message}", "ERROR", e)
             throw Refused(s.shared("export_error_write").format(base))

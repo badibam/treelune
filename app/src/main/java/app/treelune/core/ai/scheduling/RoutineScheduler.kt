@@ -169,6 +169,8 @@ class RoutineScheduler(private val context: Context) {
                 // Parse schedule
                 val schedule = try {
                     json.decodeFromString<ScheduleConfig>(routine.scheduleJson!!)
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     LogManager.aiSession("RoutineScheduler: Failed to parse schedule for routine ${routine.id}: ${e.message}", "ERROR", e)
                     continue
@@ -258,6 +260,8 @@ class RoutineScheduler(private val context: Context) {
                     }
                 }
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("RoutineScheduler: Error calculating next session: ${e.message}", "ERROR", e)
             return NextSession.None

@@ -224,6 +224,8 @@ fun JournalEntryScreen(
                     } else {
                         errorMessage = s.tool("error_entry_save")
                     }
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     LogManager.ui("Error during save: ${e.message}", "ERROR")
                     errorMessage = s.tool("error_entry_save")

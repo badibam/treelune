@@ -113,6 +113,8 @@ object LogManager {
                     if (insertionCounter % PURGE_CHECK_PROBABILITY == 0) {
                         purgeOldLogsIfNeeded(database)
                     }
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     // Silent failure - don't log errors from logging system to avoid infinite loop
                     println("LogManager: Failed to persist log to database: ${e.message}")
@@ -234,6 +236,8 @@ object LogManager {
         try {
             purgeLevels(database, CHATTY_LEVELS, MAX_CHATTY_LOGS)
             purgeLevels(database, KEPT_LEVELS, MAX_KEPT_LOGS)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             // Silent failure - don't log errors from logging system to avoid infinite loop
             println("LogManager: Failed to purge old logs: ${e.message}")
@@ -265,6 +269,8 @@ object LogManager {
         try {
             val database = AppDatabase.getDatabase(ctx)
             purgeOldLogsIfNeeded(database)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             println("LogManager: Manual purge failed: ${e.message}")
         }

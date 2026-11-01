@@ -403,6 +403,8 @@ object PromptManager {
                 ?: throw IllegalStateException("Tool $id has no config to tell whether it is sent always")
             val marked = try {
                 app.treelune.core.tools.ToolConfigSettings.read(map["tooltype"] as String, config, context).boolean("always_send")
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 throw IllegalStateException("Cannot read whether tool $id is sent always: ${e.message}", e)
             }
@@ -476,6 +478,8 @@ object PromptManager {
         val mask = routine?.let {
             try {
                 app.treelune.core.access.AccessMask.fromJson(it.accessJson)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 null
             }

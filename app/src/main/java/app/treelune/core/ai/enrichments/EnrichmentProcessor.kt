@@ -78,6 +78,8 @@ class EnrichmentProcessor(
             }
 
             queries
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiEnrichment("Failed to generate enrichment queries: ${e.message}", "ERROR", e)
             emptyList()

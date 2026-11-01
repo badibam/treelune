@@ -102,6 +102,8 @@ class RoutineService(private val context: Context) : ExecutableService {
             scope.launch {
                 try {
                     AIOrchestrator.tick()
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     LogManager.service("RoutineService: Error calling tick(): ${e.message}", "ERROR", e)
                 }
@@ -336,6 +338,8 @@ class RoutineService(private val context: Context) : ExecutableService {
             val given = params.optJSONArray("access") ?: return Given.Refused(s.shared("routine_access_unreadable").format(params.opt("access")))
             try {
                 app.treelune.core.access.AccessMask.fromJson(given.toString())
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 return Given.Refused(s.shared("routine_access_unreadable").format(e.message ?: ""))
             }
@@ -780,6 +784,8 @@ class RoutineService(private val context: Context) : ExecutableService {
                 "routine_id" to routineId,
                 "status" to "triggered"
             ))
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("Failed to execute routine: ${e.message}", "ERROR", e)
             return OperationResult.error("Failed to execute routine: ${e.message}")

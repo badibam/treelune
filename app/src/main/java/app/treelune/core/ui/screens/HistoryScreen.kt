@@ -339,6 +339,8 @@ fun HistoryScreen(
                                     }
                                     // Navigate to chat
                                     onResumeSession(session.id)
+                                } catch (e: kotlinx.coroutines.CancellationException) {
+                                    throw e
                                 } catch (e: Exception) {
                                     errorMessage = e.message ?: s.shared("error_resume_session")
                                 }

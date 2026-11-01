@@ -55,6 +55,8 @@ class AIMessageRepository(
                 "DEBUG"
             )
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession(
                 "Failed to store message: ${e.message}",
@@ -93,6 +95,8 @@ class AIMessageRepository(
                 "DEBUG"
             )
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession(
                 "Failed to update message: ${e.message}",
@@ -128,6 +132,8 @@ class AIMessageRepository(
                 )
             }
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession(
                 "Failed to delete message: ${e.message}",
@@ -180,6 +186,8 @@ class AIMessageRepository(
 
             messages
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession(
                 "Failed to load messages: ${e.message}",

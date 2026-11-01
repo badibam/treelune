@@ -141,6 +141,8 @@ fun JournalScreen(
 
                         LogManager.ui("Parsing journal entry: id=$id, title=$title, timestamp=$timestamp")
                         JournalEntry(id, title, content, timestamp, extra)
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         LogManager.ui("Error parsing journal entry: ${e.message}", "ERROR")
                         null

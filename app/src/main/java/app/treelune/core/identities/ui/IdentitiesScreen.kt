@@ -70,6 +70,8 @@ fun IdentitiesScreen(onBack: () -> Unit) {
                 kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                     context.contentResolver.openInputStream(uri)!!.bufferedReader(Charsets.UTF_8).use { it.readText() }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 UI.Toast(s.shared("identity_import_unreadable").format(e.message ?: ""), Duration.LONG)
                 return@launch

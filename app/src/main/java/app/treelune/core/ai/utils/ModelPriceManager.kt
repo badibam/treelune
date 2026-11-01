@@ -127,6 +127,8 @@ object ModelPriceManager {
             prices = parse(file.readText())
             fetchedAt = file.lastModified()
             LogManager.aiService("ModelPriceManager: ${prices?.size} prices read from the phone's copy")
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiService("ModelPriceManager: phone's copy unreadable (${e.message}), downloading", "WARN")
             download(file)
@@ -154,6 +156,8 @@ object ModelPriceManager {
             prices = parsed
             fetchedAt = System.currentTimeMillis()
             LogManager.aiService("ModelPriceManager: ${parsed.size} prices downloaded")
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiService("ModelPriceManager: download failed: ${e.message}", "WARN")
             if (prices == null) prices = emptyMap()

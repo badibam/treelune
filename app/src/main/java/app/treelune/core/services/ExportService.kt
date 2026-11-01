@@ -109,6 +109,8 @@ class ExportService(private val context: Context) : ExecutableService {
         }
         val written = try {
             AppFolder.write(context, folder, base, "csv") { it.write(EntriesCsv.bytes(csv)) }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("Export: $base not written: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("export_error_write").format(base))

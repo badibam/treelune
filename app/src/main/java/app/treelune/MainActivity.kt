@@ -113,6 +113,8 @@ class MainActivity : ComponentActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 LogManager.manualPurge()
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 println("LogManager: Startup purge failed: ${e.message}")
             }
@@ -123,6 +125,8 @@ class MainActivity : ComponentActivity() {
         kotlinx.coroutines.runBlocking(Dispatchers.IO) {
             try {
                 app.treelune.core.files.Files.sweepOnce(this@MainActivity)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.service("Startup sweep of the images failed: ${e.message}", "ERROR", e)
             }
@@ -138,6 +142,8 @@ class MainActivity : ComponentActivity() {
         CoroutineScope(Dispatchers.Main).launch {
             try {
                 AIOrchestrator.initialize(this@MainActivity)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.service("Failed to initialize AIOrchestrator: ${e.message}", "ERROR", e)
             }

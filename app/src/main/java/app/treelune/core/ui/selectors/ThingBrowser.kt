@@ -263,6 +263,8 @@ fun rememberSourceFields(source: app.treelune.core.selection.Reference?): Map<St
     LaunchedEffect(source) {
         fields = if (source == null) emptyMap() else try {
             app.treelune.core.fields.ToolFields.ofTarget(source, context, s)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.ui("rememberSourceFields: fields of $source not loaded: ${e.message}", "ERROR", e)
             UI.Toast(e.message ?: s.shared("error_loading_options"))
@@ -291,6 +293,8 @@ fun rememberToolFields(toolInstanceId: String?): Map<String, app.treelune.core.f
     LaunchedEffect(toolInstanceId) {
         fields = if (toolInstanceId == null) emptyMap() else try {
             app.treelune.core.fields.ToolFields.filterable(toolInstanceId, context, s)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.ui("rememberToolFields: fields of $toolInstanceId not loaded: ${e.message}", "ERROR", e)
             UI.Toast(s.shared("error_loading_options"))

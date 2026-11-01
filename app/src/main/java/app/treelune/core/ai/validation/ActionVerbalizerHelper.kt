@@ -69,6 +69,8 @@ object ActionVerbalizerHelper {
                 // Fallback if service doesn't implement ExecutableService
                 "Action: ${action.type}"
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             // Fallback on error (log and return generic description)
             LogManager.aiService(

@@ -617,6 +617,8 @@ object AIOrchestrator {
             val messages = messageRepository.loadMessages(seedId)
             LogManager.aiSession("Loaded ${messages.size} messages from SEED session $seedId", "INFO")
             messages
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to load SEED messages: ${e.message}", "ERROR", e)
             emptyList()
@@ -816,6 +818,8 @@ object AIOrchestrator {
                 }
             }
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("executeRoutine failed: ${e.message}", "ERROR", e)
         }

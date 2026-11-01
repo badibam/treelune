@@ -122,6 +122,8 @@ class ImportService(private val context: Context) : ExecutableService {
     ): OperationResult {
         val declarations = try {
             ImportPlanner.declarationsOf(columns)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             return OperationResult.error(s.shared("import_error_declaration").format(e.message ?: ""))
         }

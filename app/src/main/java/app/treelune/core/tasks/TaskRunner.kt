@@ -355,6 +355,8 @@ object TaskRunner {
                     made++
                 }
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             // What the elements before wrote goes: the step is made whole or not at all
             when (val undone = app.treelune.core.history.Undo(context).undo(history.id, app.treelune.core.coordinator.Source.SCHEDULER)) {

@@ -343,6 +343,8 @@ private fun ZoneScreenBody(zone: Zone) {
                         } else {
                             errorMessage = result.error ?: s.shared("duplicate_error").format("")
                         }
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         errorMessage = s.shared("duplicate_error").format(e.message ?: "")
                     } finally {

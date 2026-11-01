@@ -28,6 +28,8 @@ object TaskScheduler {
         dao.getRunsIn(listOf(TaskRun.State.WAITING.key)).forEach { run ->
             try {
                 TaskRunner.poll(context, run, now)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.service("TaskScheduler: run ${run.id} not asked: ${e.message}", "ERROR", e)
             }
@@ -37,6 +39,8 @@ object TaskScheduler {
             try {
                 val due = due(context, task, System.currentTimeMillis()) ?: continue
                 TaskRunner.start(context, task, TaskRun.Trigger.SCHEDULED, due, awaited = true)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.service("TaskScheduler: task ${task.id} not run: ${e.message}", "ERROR", e)
             }

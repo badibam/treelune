@@ -46,6 +46,8 @@ object GoalScheduler : ToolScheduler {
                 .forEach { tool ->
                     try {
                         pass(context, coordinator, tool)
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         LogManager.service("GoalScheduler: goal ${tool["id"]} not handled: ${e.message}", "ERROR", e)
                     }

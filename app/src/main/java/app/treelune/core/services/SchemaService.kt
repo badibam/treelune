@@ -44,6 +44,8 @@ class SchemaService(private val context: Context) : ExecutableService {
                 "list" -> handleListSchemas(params, token)
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("SchemaService operation failed: ${e.message}", "ERROR", e)
             OperationResult.error("Schema service error: ${e.message}")

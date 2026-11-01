@@ -18,6 +18,8 @@ object Steps {
         if (database.historyDao().getStep(step.id) == null) return
         val said = try {
             phrase()
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             // The step stays, without its phrase: what it wrote is kept all the same
             LogManager.service("History: step ${step.id} not given its phrase: ${e.message}", "ERROR", e)

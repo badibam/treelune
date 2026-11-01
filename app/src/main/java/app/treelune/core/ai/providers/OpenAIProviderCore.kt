@@ -134,6 +134,8 @@ internal class OpenAIProviderCore(
                     val errorJson = Json.parseToJsonElement(errorBody).jsonObject
                     val errorObj = errorJson["error"]?.jsonObject
                     errorObj?.get("message")?.jsonPrimitive?.content ?: "HTTP ${response.code}"
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     "HTTP ${response.code}"
                 }
@@ -164,6 +166,8 @@ internal class OpenAIProviderCore(
 
             ProviderModels(models)
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiService("Failed to fetch OpenAI models: ${e.message}", "ERROR", e)
             ProviderModels(emptyList(), e.message ?: "Unknown error")
@@ -219,6 +223,8 @@ internal class OpenAIProviderCore(
                 val debugFile = File(context.filesDir, "last_prompt_openai_${kind}.txt")
                 debugFile.writeText(formattedPrompt)
                 LogManager.aiService("Raw prompt saved to: ${debugFile.absolutePath}", "DEBUG")
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.aiService("Failed to save prompt to file: ${e.message}", "WARN")
             }
@@ -244,6 +250,8 @@ internal class OpenAIProviderCore(
                     val errorJson = Json.parseToJsonElement(responseBody).jsonObject
                     val errorObj = errorJson["error"]?.jsonObject
                     errorObj?.get("message")?.jsonPrimitive?.content ?: "HTTP ${response.code}"
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     "HTTP ${response.code}"
                 }
@@ -268,6 +276,8 @@ internal class OpenAIProviderCore(
                 val responseFile = File(context.filesDir, "last_response_openai_${kind}.txt")
                 responseFile.writeText(responseBody)
                 LogManager.aiService("Raw response saved to: ${responseFile.absolutePath}", "DEBUG")
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.aiService("Failed to save response to file: ${e.message}", "WARN")
             }

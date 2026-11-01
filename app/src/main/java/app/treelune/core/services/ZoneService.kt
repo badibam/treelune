@@ -58,6 +58,8 @@ class ZoneService(private val context: Context) : ExecutableService {
                 "place_section" -> handlePlaceSection(params)
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             OperationResult.error(s.shared("service_error_zone_service").format(e.message ?: ""))
         }

@@ -603,6 +603,8 @@ class AIEventProcessor(
             // 7. Emit event with CommandResults
             emit(AIEvent.EnrichmentsExecuted(result.systemMessage.commandResults))
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("executeEnrichments failed: ${e.message}", "ERROR", e)
             emit(AIEvent.SystemErrorOccurred(e.message ?: "Unknown error"))
@@ -1158,6 +1160,8 @@ class AIEventProcessor(
                 emit(AIEvent.ParseErrorOccurred("Failed to parse AI response JSON"))
             }
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("parseAIResponse failed: ${e.message}", "ERROR", e)
 
@@ -1279,6 +1283,8 @@ class AIEventProcessor(
             // Emit ContinuationReady to transition to CALLING_AI
             emit(AIEvent.ContinuationReady)
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("prepareContinuation failed: ${e.message}", "ERROR", e)
             emit(AIEvent.SystemErrorOccurred(e.message ?: "Unknown error"))
@@ -1466,6 +1472,8 @@ class AIEventProcessor(
             // Emit event
             emit(AIEvent.DataQueriesExecuted(result.systemMessage.commandResults))
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("executeDataQueries failed: ${e.message}", "ERROR", e)
             emit(AIEvent.SystemErrorOccurred(e.message ?: "Unknown error"))
@@ -2281,6 +2289,8 @@ class AIEventProcessor(
             val inputTokens = response.inputTokens + response.cacheWriteTokens + response.cacheReadTokens
             app.treelune.core.ai.utils.ModelPriceManager.getModelPrice(context, modelId)?.forCall(inputTokens)
                 ?: CallPricing(modelId, null, null, null, null)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("callPricing: failed: ${e.message}", "ERROR", e)
             null

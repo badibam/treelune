@@ -92,6 +92,8 @@ object McpClientAccess {
         val stored = AppDatabase.getDatabase(context).mcpDao().access(clientId) ?: return app.treelune.core.access.AccessMask.NOTHING
         return try {
             app.treelune.core.access.AccessMask.fromJson(stored)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             app.treelune.core.utils.LogManager.service("Access of MCP client $clientId unreadable: ${e.message}", "ERROR", e)
             app.treelune.core.access.AccessMask.NOTHING

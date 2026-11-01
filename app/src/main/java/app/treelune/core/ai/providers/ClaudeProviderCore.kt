@@ -201,6 +201,8 @@ internal class ClaudeProviderCore(
                     val errorJson = JSONObject(errorBody)
                     val errorObj = errorJson.optJSONObject("error")
                     errorObj?.optString("message") ?: "HTTP ${response.code}"
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     "HTTP ${response.code}"
                 }
@@ -237,6 +239,8 @@ internal class ClaudeProviderCore(
 
             ProviderModels(models)
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiService("Failed to fetch Claude models: ${e.message}", "ERROR", e)
             ProviderModels(emptyList(), e.message ?: "Unknown error")
@@ -309,6 +313,8 @@ internal class ClaudeProviderCore(
                 val jsonFile = File(context.filesDir, "last_prompt_json_${kind}.txt")
                 jsonFile.writeText(formattedPrompt)
                 LogManager.aiService("Full JSON prompt saved to: ${jsonFile.absolutePath}", "DEBUG")
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.aiService("Failed to save prompt to file: ${e.message}", "WARN")
             }
@@ -335,6 +341,8 @@ internal class ClaudeProviderCore(
                     val errorJson = Json.parseToJsonElement(responseBody).jsonObject
                     val errorObj = errorJson["error"]?.jsonObject
                     errorObj?.get("message")?.jsonPrimitive?.content ?: "HTTP ${response.code}"
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     "HTTP ${response.code}"
                 }

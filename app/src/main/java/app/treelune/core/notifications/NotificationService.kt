@@ -150,6 +150,8 @@ class NotificationService(private val context: Context) : ExecutableService {
                 mapOf("notification_id" to notificationId)
             )
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             val error = "${s.shared("notification_error_send_failed")}: ${e.message}"
             LogManager.service("NotificationService.send: $error", "ERROR", e)

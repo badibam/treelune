@@ -190,6 +190,8 @@ class ToolDataService(private val context: Context) : ExecutableService {
         } catch (taken: NameTaken) {
             images.undo()
             return OperationResult.error(taken.message ?: "")
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             images.undo()
             throw e
@@ -455,6 +457,8 @@ class ToolDataService(private val context: Context) : ExecutableService {
         } catch (taken: NameTaken) {
             images.undo()
             return OperationResult.error(taken.message ?: "")
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             images.undo()
             throw e

@@ -354,6 +354,8 @@ class BackupService(private val context: Context) : ExecutableService {
                 },
                 "taken_api_names" to database.apiDao().getAll().map { it.name }
             ))
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("Backup not read: ${e.message}", "ERROR", e)
             OperationResult.error(s.shared("backup_invalid_file"))
@@ -392,6 +394,8 @@ class BackupService(private val context: Context) : ExecutableService {
             ?: return OperationResult.error(s.shared("auto_backup_error_write").format(name))
         val written = try {
             writeZip(resolver.openOutputStream(document) ?: throw IllegalStateException(name), built, token)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             android.provider.DocumentsContract.deleteDocument(resolver, document)
             LogManager.service("Auto backup: $name not written: ${e.message}", "ERROR", e)
@@ -867,6 +871,8 @@ class BackupService(private val context: Context) : ExecutableService {
             LogManager.service("Backup import completed successfully")
             OperationResult.success(mapOf("message" to s.shared("backup_import_success")))
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("Backup import failed: ${e.message}", "ERROR", e)
             OperationResult.error("Import failed: ${e.message}")
@@ -927,6 +933,8 @@ class BackupService(private val context: Context) : ExecutableService {
                 "apis_replaced" to report.apisReplaced,
                 "other_names" to report.otherNames
             ))
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("Part import failed: ${e.message}", "ERROR", e)
             OperationResult.error(s.shared("share_import_refused").format(e.message ?: ""))
@@ -1057,6 +1065,8 @@ class BackupService(private val context: Context) : ExecutableService {
             LogManager.service("Database reset completed successfully")
             OperationResult.success(mapOf("message" to s.shared("backup_reset_success")))
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.service("Database reset failed: ${e.message}", "ERROR", e)
             OperationResult.error("Reset failed: ${e.message}")

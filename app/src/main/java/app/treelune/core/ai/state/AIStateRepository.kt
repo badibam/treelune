@@ -174,6 +174,8 @@ class AIStateRepository(
                     endReason = if (state.phase == Phase.CLOSED || state.phase == Phase.AWAITING_SESSION_CLOSURE) state.endReason?.name else existingSession.endReason
                 )
 
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.aiSession(
                     "Failed to sync state to DB: ${e.message}",
@@ -224,6 +226,8 @@ class AIStateRepository(
                         "Deactivated session $currentSessionId in DB before IDLE",
                         "DEBUG"
                     )
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     LogManager.aiSession(
                         "Failed to deactivate session in DB: ${e.message}",

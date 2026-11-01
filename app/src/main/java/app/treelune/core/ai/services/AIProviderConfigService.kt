@@ -63,6 +63,8 @@ class AIProviderConfigService(private val context: Context) : ExecutableService 
                         OperationResult.error("Unknown operation: $operation")
                     }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.aiService("AIProviderConfigService error: ${e.message}", "ERROR", e)
                 OperationResult.error(s.shared("ai_error_provider_config").format(e.message ?: ""))

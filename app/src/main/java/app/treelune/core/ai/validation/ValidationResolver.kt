@@ -50,6 +50,8 @@ class ValidationResolver(private val context: Context) {
 
         val session = try {
             loadSessionValidation(sessionId)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiService("ValidationResolver: session $sessionId unreadable: ${e.message}", "ERROR", e)
             null
@@ -75,6 +77,8 @@ class ValidationResolver(private val context: Context) {
     suspend fun reasons(actions: List<DataCommand>, session: SessionValidation?): List<String?> {
         val levels = try {
             Levels(appConfigService.getValidationConfig(), session ?: error(s.shared("validation_reason_settings_unreadable")))
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiService("ValidationResolver: settings unreadable: ${e.message}", "ERROR", e)
             null
@@ -83,6 +87,8 @@ class ValidationResolver(private val context: Context) {
             if (levels == null) s.shared("validation_reason_unknown").format(s.shared("validation_reason_settings_unreadable"))
             else try {
                 reason(action, levels)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.aiService("ValidationResolver: cannot tell whether ${action.id} is protected: ${e.message}", "WARN", e)
                 s.shared("validation_reason_unknown").format(e.message ?: "")

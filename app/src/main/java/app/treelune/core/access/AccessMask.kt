@@ -108,6 +108,8 @@ class AccessScope(val mask: AccessMask, val holder: String) : AbstractCoroutineC
             val mask = routine?.let {
                 try {
                     AccessMask.fromJson(it.accessJson)
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     app.treelune.core.utils.LogManager.aiSession("Access of routine ${it.id} unreadable: ${e.message}", "ERROR", e)
                     null

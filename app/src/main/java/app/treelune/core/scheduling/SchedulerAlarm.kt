@@ -67,6 +67,8 @@ class SchedulerAlarmReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.Default).launch {
             try {
                 withTimeout(TICK_LIMIT) { CoreScheduler.tick() }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LogManager.service("SchedulerAlarm: tick failed: ${e.message}", "ERROR", e)
             } finally {

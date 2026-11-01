@@ -78,6 +78,8 @@ fun EditOccurrenceDialog(
                         LogManager.ui("Failed to update occurrence ${occurrence.id}: ${result.error}", "ERROR")
                         onError(result.error ?: s.tool("error_save"))
                     }
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     LogManager.ui("Error saving occurrence: ${e.message}", "ERROR", e)
                     onError(s.tool("error_save"))
