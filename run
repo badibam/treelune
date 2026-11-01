@@ -893,7 +893,7 @@ def task_site():
     print(f"{url} (English) and {url}/fr/ (French)\nCtrl+C to stop.")
     subprocess.Popen(["sh", "-c", f"sleep 1 && xdg-open {url}"], stdout=subprocess.DEVNULL,
                      stderr=subprocess.DEVNULL)
-    return subprocess.run(["php", "-S", f"localhost:{SITE_PORT}", str(SITE_BIN / "serve_router.php")],
+    return subprocess.run(["php", "-S", f"localhost:{SITE_PORT}", str(SITE_BIN / "serve-router.php")],
                           cwd=SITE / "public_html", check=False).returncode
 
 

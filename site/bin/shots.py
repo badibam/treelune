@@ -2,7 +2,7 @@
 """Take the site's missing captures and videos in one language, on the phone (./run site-shots en|fr).
 
 The phone holds the demo alone, never real data, and is set to the language taken (docs/design/
-website.md, « Les captures »). What is missing is what site/bin/missing_media.php lists from
+website.md, « Les captures »). What is missing is what site/bin/missing-media.php lists from
 layout.json, the one declaration of every capture and video; for each, this says which screen to
 put on the phone, then:
 
@@ -70,10 +70,10 @@ ADB_KEYBOARD = "com.android.adbkeyboard/.AdbIME"
 
 
 def missing(lang):
-    """What missing_media.php lists in one language, as (path, description) pairs."""
-    result = subprocess.run(["php", str(SITE / "bin" / "missing_media.php"), lang], capture_output=True, text=True)
+    """What missing-media.php lists in one language, as (path, description) pairs."""
+    result = subprocess.run(["php", str(SITE / "bin" / "missing-media.php"), lang], capture_output=True, text=True)
     if result.returncode not in (0, 1):
-        sys.exit(result.stderr or "missing_media.php failed")
+        sys.exit(result.stderr or "missing-media.php failed")
     pairs = []
     for line in result.stdout.splitlines():
         path, _, what = line.partition("  (")

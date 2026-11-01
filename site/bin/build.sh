@@ -12,7 +12,7 @@ root=$(cd "$(dirname "$0")/../.." && pwd)
 out="$root/tmp/site-deploy"
 cd "$root"
 
-if ! missing=$(php site/bin/missing_media.php); then
+if ! missing=$(php site/bin/missing-media.php); then
     echo "Not ready to send: $(printf '%s\n' "$missing" | grep -c .) captures, videos or tile frames are missing (./run site-shots):" >&2
     printf '%s\n' "$missing" | sed 's/^/  /' >&2
     exit 1
