@@ -326,9 +326,9 @@
     "replacement": "claude-sonnet-5-5",
     "old_name_accepted": false,
     "client": null,
-    "note": "Announced 2026-09-30. Requests fail after the retirement date. The page names only the dated id; the alias claude-sonnet-4-5 points to it. Partner platforms (Bedrock, Google Cloud) set their own dates.",
+    "note": "Announced 2026-09-30. Requests fail after the retirement date. The page names only the dated id; the alias claude-sonnet-4-5 points to it. GET /v1/models gives retires_at 2026-11-30T17:00:00Z. Partner platforms (Bedrock, Google Cloud) set their own dates.",
     "source": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
-    "observed": "2026-10-04"
+    "observed": "2026-11-01"
   },
   {
     "id": "claude-sonnet-4-retired",
@@ -429,6 +429,7 @@
     "provider": "anthropic",
     "models": [
       "claude-fable-5-1",
+      "claude-mythos-5-1",
       "claude-opus-5-5",
       "claude-sonnet-5-5",
       "claude-haiku-5-5"
@@ -436,9 +437,9 @@
     "kind": "trap",
     "effective": null,
     "client": null,
-    "note": "Each thinking block is signed over the conversation before it. For accounts created on or after 2026-08-31 00:00 UTC, replaying a block after any edit to system, tools or earlier messages returns 400 (older accounts only when thinking.block_binding.prefix_mismatch_behavior is set). Keep requests append-only; change instructions or tools with mid-conversation system messages and tool_addition/tool_removal blocks. prefix_mismatch_behavior drop_block is a stopgap that raises output tokens, and on Sonnet 5.5 and Haiku 5.5 it works only with adaptive thinking.",
+    "note": "Each thinking block is signed over the conversation before it. With thinking.block_binding.prefix_mismatch_behavior unset, replaying a block after any edit to system, tools or earlier messages returns 400: on Claude Mythos 5.1 for every account (Claude API, Google Cloud Google managed, Microsoft Foundry), on the other models for accounts created on or after 2026-08-31 00:00 UTC; on older accounts the failing blocks reach the model without error. In the Message Batches API an unset field drops the failing blocks instead. Keep requests append-only; change instructions or tools with mid-conversation system messages and tool_addition/tool_removal blocks. prefix_mismatch_behavior drop_block is a stopgap that raises output tokens, and on Sonnet 5.5 and Haiku 5.5 it works only with adaptive thinking.",
     "source": "https://platform.claude.com/docs/en/build-with-claude/preserved-thinking",
-    "observed": "2026-10-29"
+    "observed": "2026-11-01"
   },
   {
     "id": "claude-thinking-off-disabled",
@@ -491,9 +492,9 @@
     "kind": "trap",
     "effective": null,
     "client": null,
-    "note": "The effort applied when none is set was not established: the doc read on 2026-07-24 said max for agent clients such as Claude Code, the doc read on 2026-09-19 says high. Since the monitor's reading of 2026-10-05, GET /models declares effort.default_level high for both models: read it there. Not measured.",
+    "note": "Earlier doc readings disagreed (max for agent clients such as Claude Code on 2026-07-24, high on 2026-09-19). The doc read on 2026-11-01 states the default is high, and GET /models declares effort.default_level high for both models (since the monitor's reading of 2026-10-05): read it there. Not measured.",
     "source": "https://api-docs.deepseek.com/guides/thinking_mode",
-    "observed": "2026-09-19"
+    "observed": "2026-11-01"
   },
   {
     "id": "deepseek-effort-levels",
@@ -537,9 +538,9 @@
     "kind": "trap",
     "effective": null,
     "client": null,
-    "note": "In thinking mode temperature, presence_penalty and frequency_penalty are accepted without error and have no effect. top_p differs by model: deepseek-flash applies it only in thinking mode, clamped to 0.95-1.0, and fixes it at 1.0 without thinking; deepseek-v4-pro ignores it in thinking mode (fixed at 0.95 when tools are present, else 1.0) and applies it without thinking.",
+    "note": "In thinking mode temperature, presence_penalty and frequency_penalty are accepted without error and have no effect. top_p differs by model: deepseek-flash applies it only in thinking mode, clamped to 0.95-1.0, and fixes it at 1.0 without thinking; deepseek-v4-pro ignores it in thinking mode (fixed at 0.95 when tool calling is enabled, else 1.0; tool_choice none disables tool calling even when tools is sent) and applies it without thinking.",
     "source": "https://api-docs.deepseek.com/guides/thinking_mode",
-    "observed": "2026-10-29"
+    "observed": "2026-11-01"
   },
   {
     "id": "deepseek-thinking-off",
