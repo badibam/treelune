@@ -29,6 +29,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- Une réponse de l'IA coupée par sa longueur maximale (un fournisseur réglé bas, une demande de dix entrées longues) : « coupée… relancée une fois », la reprise plus courte, son coût compté ; coupée deux fois, l'arrêt et le renvoi au réglage ; dans une routine aussi.
 - Ce qui dépend d'une chose qu'on supprime, `docs/design/dependents.md` : la confirmation d'un outil, d'une variable, d'une fiche de table nomme ce qui les lit ; un champ retiré d'une config, la fenêtre qui nomme ce qui le lit avant d'enregistrer ; par le connecteur, une suppression refusée en nommant les dépendances puis passée avec `confirm_dependents` ; un raccourci qui désigne une entrée supprimée, « l'entrée qu'il désigne a été supprimée » à son toucher.
 - Les textures du rétro redessinées (biais, zigzag, vagues, écailles, losanges, anneaux, étoiles, croix, points, lignes, quadrillage) : sur une tuile et en fond de page, en Subtil et en Marqué, à chaque taille.
 - Une étape de Tâche montée ou supprimée : ce que les autres lisent d'elle qui suit (le résultat d'une API, l'entrée créée), et ce qui lisait une étape supprimée vidé, l'enregistrement qui le dit.
@@ -85,7 +86,6 @@ Codé, jamais vu sur l'appareil.
 - Le mode disposition d'une page (l'accueil, une zone) : faire glisser une tuile d'une section à l'autre, ce qui change son groupe ; aujourd'hui le groupe se choisit dans la config de la chose, et une tuile ne bouge que dans sa section.
 
 - Les zones d'une partie importée : chacune arrive seule sur sa ligne, en colonne 0 (`Grid.arrive`, comme toute tuile nouvelle), deux zones côte à côte dans le fichier empilées avec un vide à droite ; garder leur disposition entre elles.
-- Une réponse coupée par la limite de longueur (`max_tokens` chez Claude et DeepSeek, un `status` incomplet chez OpenAI, `finish_reason` « length » chez un autre serveur) : refusée, son texte jeté et ses tokens mis à 0, le coût affiché la compte gratuite alors qu'elle est facturée — que garder du texte, et où le montrer.
 - Un type d'outil Schéma : des briques et des flèches entre elles (une organisation, une boucle, qui nourrit qui), écrit par la personne ou par l'IA. Une Note n'y suffit pas : l'app n'a aucune police à chasse fixe, un schéma en texte s'y décale. Sa forme (un texte qui se dessine, Mermaid ou autre, ou des briques posées à la main), et s'il peut viser des zones, des outils ou des groupes pour y mener.
 
 ## Dette de code
