@@ -127,7 +127,8 @@ fun rememberRoutineState(routine: Routine): RoutineState {
 /**
  * A routine's state and its switch, on one line: the state takes what the switch leaves; with
  * [buttons] (a tile in LINE or CONDENSED, which shows nothing else) its buttons to run it now (to
- * take back its run while it waits in the queue) and to open its page, instead of the switch. When
+ * take back its run while it waits in the queue) and to open a conversation with its message,
+ * instead of the switch — its page opens by a touch on the tile. When
  * something keeps it from running, its page says it in full under a warning icon
  * ([withProblem]); a tile, too narrow to lose an icon's width beside its switch (« Toutes /
  * s les… »), writes its state in the warning's colour instead, the problem its description.
@@ -144,7 +145,7 @@ fun RoutineStateLine(routine: Routine, state: RoutineState, actions: RoutineActi
             val queued = state.queuedSessionId
             if (queued != null) UI.ActionButton(action = ButtonAction.CANCEL, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.cancel(queued) })
             else UI.ActionButton(action = ButtonAction.START, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.run(routine) })
-            UI.ActionButton(action = ButtonAction.VIEW, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.history(routine) })
+            UI.ActionButton(action = ButtonAction.AI_CHAT, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.chat(routine) })
         } else UI.BooleanField(label = "", value = routine.isEnabled, onValueChange = { actions.toggle(routine, it) })
     }
 }
