@@ -42,7 +42,7 @@ Par cas :
 ## Où on l'appelle
 
 - Le service qui supprime (outils, variables, entrées) et `tools.update` qui retire un champ : hors d'une personne (`Protections.byAPerson()`), refus tant que `confirm_dependents` n'est pas donné et que la liste n'est pas vide ; le refus nomme la liste.
-- L'écran, avant sa confirmation : la liste dans le message (outil, variable, entrée, et la confirmation des champs retirés d'une config).
+- L'écran, avant sa confirmation (`rememberDependents`, la liste dans le message) : un outil (sa config), une variable (son écran), une fiche d'une table (`StructuredScreen`), les champs qu'un enregistrement de config retire (une fenêtre avant l'écriture, puis celle des entrées touchées s'il y en a). Les autres écrans qui suppriment une entrée (l'historique d'un Suivi, le journal, les notes) n'en disent rien : leur bouton confirme lui-même, une recherche par ligne affichée serait lourde, et leurs entrées sont rarement désignées.
 - Les commandes de l'IA (`DELETE_TOOL`, `DELETE_VARIABLE`, `DELETE_DATA`, `UPDATE_TOOL`) déclarent `confirm_dependents`, leur texte dit quand le donner.
 
 ## En passant

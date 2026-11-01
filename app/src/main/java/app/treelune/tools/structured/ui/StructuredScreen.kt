@@ -310,10 +310,16 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
     }
 
     if (confirmDelete && openSheet != null) {
+        val dependents = app.treelune.core.ui.components.rememberDependents(mapOf("kind" to "ENTRY", "id" to openSheet.id))
         UI.Dialog(type = DialogType.DANGER, onCancel = { confirmDelete = false }, onConfirm = {
             confirmDelete = false
             write({ coordinator.processUserAction("tool_data.delete", mapOf("tool_instance_id" to toolInstanceId, "id" to openSheet.id)) }) { close() }
-        }) { UI.Text(s.tool("delete_confirm").format(openSheet.name), TextType.BODY) }
+        }) {
+            Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+                UI.Text(s.tool("delete_confirm").format(openSheet.name), TextType.BODY)
+                dependents?.let { UI.Text(s.shared("dependents_will_fail").format(it), TextType.WARNING) }
+            }
+        }
     }
     importing?.let { csv ->
         app.treelune.core.ui.imports.ImportDialog(toolInstanceId = toolInstanceId, csv = csv, onDismiss = { importing = null })

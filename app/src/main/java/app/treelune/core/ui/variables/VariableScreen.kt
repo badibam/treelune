@@ -219,13 +219,19 @@ fun VariableScreen(zoneId: String, variableId: String?, onDone: () -> Unit) {
     }
 
     if (confirmDelete && variableId != null) {
+        val dependents = app.treelune.core.ui.components.rememberDependents(mapOf("kind" to "VARIABLE", "id" to variableId))
         UI.Dialog(type = DialogType.DANGER, onCancel = { confirmDelete = false }, onConfirm = {
             scope.launch {
                 val result = coordinator.processUserAction("variables.delete", mapOf("variable_id" to variableId))
                 confirmDelete = false
                 if (result.isSuccess) onDone() else error = result.error
             }
-        }) { UI.Text(text = s.shared("variable_delete_confirm").format(name), type = TextType.BODY) }
+        }) {
+            androidx.compose.foundation.layout.Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(UI.Space.M)) {
+                UI.Text(text = s.shared("variable_delete_confirm").format(name), type = TextType.BODY)
+                dependents?.let { UI.Text(text = s.shared("dependents_will_fail").format(it), type = TextType.WARNING) }
+            }
+        }
     }
 }
 

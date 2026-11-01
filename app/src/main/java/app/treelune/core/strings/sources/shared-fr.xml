@@ -1424,6 +1424,7 @@
     <string name="field_value_reference_invalid">Pas une référence : %1$s. Attendu {"kind": "ENTRY", "id": "..."}, sans id pour l\'app.</string>
     <string name="field_value_reference_kind">Désigne un %1$s, que ce champ n\'accepte pas (il accepte %2$s).</string>
     <string name="field_value_reference_not_found">Rien de la sorte %1$s n\'a l\'id %2$s.</string>
+    <string name="field_value_reference_entry_gone">l\'entrée qu\'il désigne a été supprimée</string>
     <string name="field_value_reference_no_field">L\'entrée n\'a pas de champ %1$s : ses champs sont %2$s.</string>
     <string name="field_value_reference_wrong_tool">L\'entrée %2$s appartient à un outil que ce champ n\'accepte pas.</string>
     <string name="field_reference_unreadable">Illisible</string>
@@ -3205,6 +3206,6 @@
     <string name="dependents_kind_event">événements : %1$s</string>
     <string name="dependents_kind_entries">entrées qui la désignent : %1$s</string>
     <string name="dependents_refused">%1$s est lu par ce qui suit, qui échouera une fois supprimé (%2$s). Préviens l\'utilisateur, et renvoie la suppression avec "confirm_dependents": true une fois qu\'il est d\'accord</string>
-    <string name="dependents_confirm">Supprimer %1$s ? Ce qui le lit échouera tant que tu ne l\'auras pas changé : %2$s</string>
+    <string name="dependents_will_fail">Ce qui le lit échouera tant que tu ne l\'auras pas changé : %1$s</string>
     <string name="dependents_confirm_fields">Ces champs sont lus ailleurs, qui échouera tant que tu ne l\'auras pas changé : %1$s</string>
 </resources>

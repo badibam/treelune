@@ -1424,6 +1424,7 @@
     <string name="field_value_reference_invalid">Not a reference: %1$s. Expected {"kind": "ENTRY", "id": "..."}, with no id for the app.</string>
     <string name="field_value_reference_kind">Points to a %1$s, which this field does not take (it takes %2$s).</string>
     <string name="field_value_reference_not_found">Nothing of kind %1$s has the id %2$s.</string>
+    <string name="field_value_reference_entry_gone">the entry it designates has been deleted</string>
     <string name="field_value_reference_no_field">The entry has no field %1$s: its fields are %2$s.</string>
     <string name="field_value_reference_wrong_tool">The entry %2$s belongs to a tool this field does not take.</string>
     <string name="field_reference_unreadable">Unreadable</string>
@@ -3205,6 +3206,6 @@
     <string name="dependents_kind_event">events: %1$s</string>
     <string name="dependents_kind_entries">entries that designate it: %1$s</string>
     <string name="dependents_refused">%1$s is read by what follows, which will fail once it is gone (%2$s). Tell the user, and send the deletion again with "confirm_dependents": true once they agree</string>
-    <string name="dependents_confirm">Delete %1$s? What reads it will fail until it is changed: %2$s</string>
+    <string name="dependents_will_fail">What reads it will fail until it is changed: %1$s</string>
     <string name="dependents_confirm_fields">These fields are read elsewhere, which will fail until it is changed: %1$s</string>
 </resources>

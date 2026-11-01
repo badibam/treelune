@@ -79,6 +79,9 @@ fun ToolConfigScreen(
     // The fields the change makes required, with the number of entries without a value for each,
     // once the service refused it for that; and the values the user gives them
     var pendingFill by rememberSaveable { mutableStateOf<Map<String, Int>?>(null) }
+    // What reads the user's fields the change takes out, in words, once found: the user decides
+    // (docs/design/dependents.md)
+    var pendingDependents by rememberSaveable { mutableStateOf<String?>(null) }
     var fill by rememberSaveable(stateSaver = JsonObjectSaver) { mutableStateOf(JSONObject()) }
     // The config as it was before any change, and whether leaving with changes is being asked
     var asLoaded by rememberSaveable { mutableStateOf<String?>(null) }
@@ -105,9 +108,28 @@ fun ToolConfigScreen(
         groups = ((result.data?.get("zone") as? Map<*, *>)?.get("tool_groups") as? List<*>).orEmpty().mapNotNull { it as? String }
     }
 
-    fun save(confirmed: Boolean) {
+    /** The names of the user's fields a config defines. */
+    fun userFields(json: JSONObject): Set<String> = json.optJSONArray("extra_fields")?.let { fields ->
+        (0 until fields.length()).mapNotNull { fields.optJSONObject(it)?.optString("name")?.takeIf { name -> name.isNotEmpty() } }.toSet()
+    } ?: emptySet()
+
+    fun save(confirmed: Boolean, dependentsSeen: Boolean = false) {
         isSaving = true
         scope.launch {
+            // The fields it takes out, and what reads them, said before anything is written
+            val removed = if (existingToolId == null || dependentsSeen) emptySet()
+                else asLoaded?.let { userFields(JSONObject(it)) - userFields(config) }.orEmpty()
+            if (removed.isNotEmpty()) {
+                val said = removed.mapNotNull { name ->
+                    val found = coordinator.processUserAction("dependents.of", mapOf("target" to mapOf("kind" to "FIELD", "tool_instance_id" to existingToolId, "path" to "extra.$name")))
+                    (found.data?.get("said") as? String)?.takeIf { found.isSuccess && it.isNotEmpty() }?.let { "$name (${it})" }
+                }
+                if (said.isNotEmpty()) {
+                    isSaving = false
+                    pendingDependents = said.joinToString(" ; ")
+                    return@launch
+                }
+            }
             val configMap = JsonUtils.toMap(config)
             val result = if (existingToolId != null) {
                 coordinator.processUserAction("tools.update", buildMap {
@@ -196,6 +218,8 @@ fun ToolConfigScreen(
             }
         }
 
+        // What reads the tool, said in its deletion's confirmation (docs/design/dependents.md)
+        val toolDependents = existingToolId?.let { app.treelune.core.ui.components.rememberDependents(mapOf("kind" to "TOOL_INSTANCE", "id" to it)) }
         // The actions on the root page alone: under it, the back arrow goes up (SettingsPages)
         if (pages.atRoot) UI.ToolConfigActions(
             isEditing = isEditing,
@@ -213,7 +237,8 @@ fun ToolConfigScreen(
             },
             saveEnabled = !isSaving && configLoad == LoadState.LOADED,
             // The tool named as it is stored, its entries going with it
-            deleteMessage = s.shared("tools_delete_confirm").format(asLoaded?.let { JSONObject(it).optString("name") }.orEmpty())
+            deleteMessage = s.shared("tools_delete_confirm").format(asLoaded?.let { JSONObject(it).optString("name") }.orEmpty()) +
+                (toolDependents?.let { "\n\n" + s.shared("dependents_will_fail").format(it) } ?: "")
         )
         // Acts on the tool's entries, not its config: a tool being created has none
         if (pages.atRoot && existingToolId != null) UI.Button(type = ButtonType.SECONDARY, onClick = { exporting = true }) {
@@ -244,7 +269,7 @@ fun ToolConfigScreen(
             type = app.treelune.core.ui.DialogType.CONFIRM,
             onConfirm = {
                 pendingFill = null
-                save(confirmed = false)
+                save(confirmed = false, dependentsSeen = true)
             },
             onCancel = { pendingFill = null },
             confirmEnabled = missing.keys.all { fill.has(it) }
@@ -262,6 +287,12 @@ fun ToolConfigScreen(
         }
     }
 
+    pendingDependents?.let { said ->
+        UI.Dialog(type = app.treelune.core.ui.DialogType.DANGER, onConfirm = { pendingDependents = null; save(confirmed = false, dependentsSeen = true) }, onCancel = { pendingDependents = null }) {
+            UI.Text(s.shared("dependents_confirm_fields").format(said), TextType.BODY)
+        }
+    }
+
     pendingMigration?.let { json ->
         val migration = remember(json) { JSONObject(json) }
         // The user's fields whose meaning changes, and the names the former ones would take
@@ -276,7 +307,7 @@ fun ToolConfigScreen(
             type = app.treelune.core.ui.DialogType.CONFIRM,
             onConfirm = {
                 pendingMigration = null
-                save(confirmed = true)
+                save(confirmed = true, dependentsSeen = true)
             },
             onCancel = { pendingMigration = null }
         ) {

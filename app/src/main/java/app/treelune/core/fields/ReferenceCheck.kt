@@ -23,7 +23,8 @@ object ReferenceCheck {
             ReferenceKind.VARIABLE -> s.shared("field_value_reference_not_found").takeIf { database.variableDao().getById(reference.id!!) == null }
             ReferenceKind.EVENT -> s.shared("field_value_reference_not_found").takeIf { database.eventDao().get(reference.id!!) == null }
             ReferenceKind.ENTRY -> when (val entry = database.toolDataDao().getById(reference.id!!)) {
-                null -> s.shared("field_value_reference_not_found")
+                // Gone: said as such, an id telling the user nothing (docs/design/dependents.md)
+                null -> s.shared("field_value_reference_entry_gone")
                 else -> s.shared("field_value_reference_wrong_tool").takeIf { !ReferenceTarget.fromConfig(field.config).acceptsEntryOf(entry.toolInstanceId) }
                     ?: reference.field?.let { path ->
                         val fields = ToolFields.filterable(entry.toolInstanceId, context, s)
