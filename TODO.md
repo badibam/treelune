@@ -21,7 +21,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 ## Bugs
 
 
-- Un CSV envoyé par le connecteur (`upload_address`) n'est pas importable : il reste en attente qu'une entrée le prenne (`McpUploads`), et `IMPORT_PLAN` ne lit que les textes enregistrés (`Files.textOf`), « Aucun texte n'a l'id » ; l'import d'une table depuis un client du connecteur passe aujourd'hui par le téléphone.
 
 
 ## À passer sur le téléphone
