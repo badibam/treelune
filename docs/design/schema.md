@@ -89,4 +89,22 @@ Son intégration demande : les fichiers propres à Eclipse en double laissés à
 
 ## Ouvert
 
-- La carte de l'installation : le service des liens, sa portée, la forme de chaque sorte de chose, ce qu'elle replie d'elle-même.
+Le schéma écrit est conçu ; ce qui suit reste à trancher ou à vérifier.
+
+À vérifier avant ou pendant le code :
+
+- Les noms de forme de la syntaxe `@{ shape: … }` de Mermaid 11, repris pour `shape`.
+- Qu'un formulaire de config tiré de la déclaration accepte une section de boutons d'action (« Importer du Mermaid », « Copier en Mermaid ») ; « Essayer » d'une API en est peut-être le précédent.
+- Les fichiers d'Eclipse qu'ELK et EMF embarquent (`model/*.ecore`, `*.xsd`, signatures, icônes) : ceux qui ne servent pas à l'exécution, retirés de l'APK.
+- Chaque option d'ELK employée, dans la release sur le téléphone (`-dontwarn org.eclipse.**` cache un manque jusqu'à l'appel).
+
+À juger sur le téléphone :
+
+- Le seuil de réduction (75 %).
+- Le dessin de chaque thème : les cinq formes, les traits, le texte des flèches, le bloc à cadre discret, un groupe replié ; dans l'E-reader, couleur et texture sur deux surfaces de la boîte.
+
+À concevoir :
+
+- Ce que l'IA lit du type : son `usage` et son détail (écrire pour un téléphone, `TD`, une dizaine de boîtes, un lien plutôt qu'un libellé quand la boîte est une chose de l'app, un texte Mermaid collé dans la conversation converti par elle).
+- Le geste sur le dessin (toucher une boîte pour la modifier, tirer une flèche), une fois le dessin là ; plus tôt si la saisie par la config se révèle trop lourde.
+- La carte de l'installation, une fois le schéma écrit vu sur le téléphone : ce qu'elle montre (quelles sortes de choses, quels liens, leurs noms : « lit », « émet », « écoute »), le service du core qui relève les liens d'une portée (une zone, un groupe, l'app) et ce que l'IA en lit, la forme de chaque sorte de chose, ce qu'elle replie d'elle-même. Que les réglages déclarés d'un outil laissent le core y trouver ses briques (une sélection, une lecture, une Référence) est à vérifier d'abord.

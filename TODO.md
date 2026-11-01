@@ -82,11 +82,12 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
+- L'outil Schéma, le schéma écrit : `docs/design/schema.md` (config JSON au vocabulaire de Mermaid, placement par ELK, largeur, tuile, écran), ses vérifications d'abord (« Ouvert »).
 
 ## À concevoir
 
 
-- Un type d'outil Schéma, `docs/design/schema.md` : la carte de l'installation.
+- La carte de l'installation, seconde source de l'outil Schéma (`docs/design/schema.md`, « Ouvert ») : une fois le schéma écrit vu sur le téléphone.
 
 ## Dette de code
 
