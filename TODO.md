@@ -18,7 +18,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 ## En provenance du tel
 
 - Graphique qui montre l'évolution des diamètre de l'orteil, avec comme référence les mensurations de celui qui n'est pas blessé : 8.5cm et 15cm — Amélioration
-- Orga : la séance d'hypnose devrait être ajoitee au decrochage après sn lancement, pas dès sa création. Le 19h15 d'hier vient de quoi ? Horaire prévu de la sénce créée ? Discutons en. — Amélioration
 - Dans agenda, possibilité de rndre récurrent un eent serait pratique. — Outils — Amélioration
 
 ## Bugs
@@ -76,6 +75,8 @@ Codé, jamais vu sur l'appareil.
 ## Décidé, à coder
 
 - Démarrer et arrêter le chronomètre d'un Suivi depuis une Tâche : le Suivi ne déclare aucune opération (`getOperations`), quand `ToolDataService` sait déjà `start_duration` et `stop_duration` ; un premier repas noté qui arrête un jeûne. Avec, une condition qui dit si un chronomètre tourne (`state.running`), non vérifiée : le toucher du coucher qui prévient quand le jeûne ne tourne pas.
+
+- Une séance prévue de Séquence, lancée, garde l'heure où elle a été prévue (`SequenceService.start`) : le 2026-10-31, une hypnose prévue à 19:15 par la Tâche qui la fabrique, lancée à 23:25, inscrite au Décrochage à 19:15. Lancée, elle prend l'heure du lancement ; l'heure prévue, gardée dans son état (`planned_at`), reste celle que le planificateur compare aux créneaux de son planning (`SequenceScheduler`), sans quoi il recrée le créneau.
 
 ## À concevoir
 
