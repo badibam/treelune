@@ -17,7 +17,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 (titre à laisser en place, même une fois la section vidée - section ciblée par le script d'import depuis l'appareil :)
 ## En provenance du tel
 
-- Graphique qui montre l'évolution des diamètre de l'orteil, avec comme référence les mensurations de celui qui n'est pas blessé : 8.5cm et 15cm — Amélioration
 - Dans agenda, possibilité de rndre récurrent un eent serait pratique. — Outils — Amélioration
 
 ## Bugs
