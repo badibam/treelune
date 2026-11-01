@@ -29,6 +29,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- Une tuile qui change de section en mode organisation : la flèche du haut sur la première ligne, la tuile en bas de la section du dessus, dans sa colonne ; celle du bas sur la dernière, en haut de la section du dessous, les autres descendues ; « Hors groupe » toujours là, en dernier, pendant le mode ; « Annuler » qui remet les deux sections ; enregistrée, son groupe changé (sa config le dit), une annulation de l'historique qui remet tout ; sur l'accueil pour une zone ; en « Une colonne ».
 - « Hors groupe » vide masqué à côté des groupes, sur l'accueil et dans une zone ; une zone ou un outil sans groupe qui le fait apparaître ; sans groupe du tout, la section seule toujours là ; l'étape « Crée ta propre zone » du Guide qui montre le + en haut.
 - Une réponse de l'IA coupée par sa longueur maximale (un fournisseur réglé bas, une demande de dix entrées longues) : « coupée… relancée une fois », la reprise plus courte, son coût compté ; coupée deux fois, l'arrêt et le renvoi au réglage ; dans une routine aussi.
 - Ce qui dépend d'une chose qu'on supprime, `docs/design/dependents.md` : la confirmation d'un outil, d'une variable, d'une fiche de table nomme ce qui les lit ; un champ retiré d'une config, la fenêtre qui nomme ce qui le lit avant d'enregistrer ; par le connecteur, une suppression refusée en nommant les dépendances puis passée avec `confirm_dependents` ; un raccourci qui désigne une entrée supprimée, « l'entrée qu'il désigne a été supprimée » à son toucher.
@@ -84,7 +85,6 @@ Codé, jamais vu sur l'appareil.
 
 ## À concevoir
 
-- Le mode disposition d'une page (l'accueil, une zone) : faire glisser une tuile d'une section à l'autre, ce qui change son groupe ; aujourd'hui le groupe se choisit dans la config de la chose, et une tuile ne bouge que dans sa section.
 
 - Les zones d'une partie importée : chacune arrive seule sur sa ligne, en colonne 0 (`Grid.arrive`, comme toute tuile nouvelle), deux zones côte à côte dans le fichier empilées avec un vide à droite ; garder leur disposition entre elles.
 - Un type d'outil Schéma : des briques et des flèches entre elles (une organisation, une boucle, qui nourrit qui), écrit par la personne ou par l'IA. Une Note n'y suffit pas : l'app n'a aucune police à chasse fixe, un schéma en texte s'y décale. Sa forme (un texte qui se dessine, Mermaid ou autre, ou des briques posées à la main), et s'il peut viser des zones, des outils ou des groupes pour y mener.
