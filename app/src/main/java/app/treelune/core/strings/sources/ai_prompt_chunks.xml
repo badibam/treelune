@@ -509,7 +509,8 @@ Deletes entries of one tool.
 **Parameters**:
 
 - `tool_instance_id` (string, **required**)
-- `ids` (array, **required**): the IDs of the entries to delete]]></string>
+- `ids` (array, **required**): the IDs of the entries to delete
+- `confirm_dependents` (boolean, optional): `true` to delete them although something designates them; refused without it, the refusal naming what designates them, which will fail once it is gone: tell the user, and send it again with `true` only once they agree]]></string>
     <string name="ai_command_duration"><![CDATA[### START_DURATION / STOP_DURATION
 
 Starts or stops the stopwatch of a DURATION field of one entry. Starting writes the instant in the entry\'s `state.running`; stopping adds the time elapsed to the field\'s value. Starting again after a stop keeps counting. In a tracking tool, starting an activity stops the one running.
@@ -557,6 +558,7 @@ Changes the configuration of a tool, or moves it to another zone.
 - `zone_id` (string, optional): the zone to move the tool to; its group stays behind, unless `config` or `look` names one of the new zone's tool groups
 - `confirm_migration` (boolean, optional): `true` to agree to what the change does to the recorded entries; needed only while the protection of recorded data is off
 - `fill_values` (object, optional): the values to give the entries a change leaves without a required value, `{"data": {"value": 3}}`
+- `confirm_dependents` (boolean, optional): `true` to take out user's fields although something reads them (a variable, a chart, a Task); refused without it, the refusal naming what reads them, which will fail once they are gone: tell the user, and send it again with `true` only once they agree
 
 A change that removes values, deletes entries or reads kept values differently (a scale's values between other bounds, answers read as a ranking) touches the recorded entries. With the protection of recorded data on, the default, the app asks the user before applying it, with the counts: send the change as it is. With it off, the change is **refused** with its counts: tell the user, and send it again with `"confirm_migration": true` only once they agree. A refusal naming `missing_values` is sent again with `fill_values`.]]></string>
     <string name="ai_command_delete_tool"><![CDATA[### DELETE_TOOL
@@ -565,7 +567,8 @@ Deletes a tool and its entries.
 
 **Parameters**:
 
-- `tool_instance_id` (string, **required**)]]></string>
+- `tool_instance_id` (string, **required**)
+- `confirm_dependents` (boolean, optional): `true` to delete although something reads it; refused without it, the refusal naming what reads it, which will fail once it is gone: tell the user, and send it again with `true` only once they agree]]></string>
     <string name="ai_command_create_zone"><![CDATA[### CREATE_ZONE
 
 Creates a zone.
@@ -703,7 +706,8 @@ Deletes a variable. A formula naming it no longer computes.
 
 **Parameters**:
 
-- `variable_id` (string, **required**)]]></string>
+- `variable_id` (string, **required**)
+- `confirm_dependents` (boolean, optional): `true` to delete although something reads it; refused without it, the refusal naming what reads it, which will fail once it is gone: tell the user, and send it again with `true` only once they agree]]></string>
     <string name="ai_command_create_routine"><![CDATA[### CREATE_ROUTINE
 
 Creates a routine in a zone: a message for the AI, prepared once, for what comes back — in both senses, two uses alike. An AI works on it alone when the user starts it, on a schedule, on a trigger, or with RUN_ROUTINE, and the user reads the result later; or the user opens a conversation that starts from it, with the button on its tile, to go through a recurring subject together (the week's review, a reflection that comes back).

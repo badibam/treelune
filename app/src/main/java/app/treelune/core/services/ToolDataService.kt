@@ -493,6 +493,9 @@ class ToolDataService(private val context: Context) : ExecutableService {
         ToolTypeManager.getToolType(entity.tooltype)?.let { type ->
             (type.refuseChange(entity, context) ?: type.refuseDelete(entity, { dao.getByToolInstance(entity.toolInstanceId) }, context))?.let { return OperationResult.error(it) }
         }
+        // What designates it named before it goes, to anyone but a person (Dependents)
+        Dependents.refusal(entity.name ?: entryId, params.optBoolean(Dependents.CONFIRM, false), s) { Dependents.of(context, Dependents.Target.Entry(entryId)) }
+            ?.let { return OperationResult.error(it) }
 
         storeSettled(entity.tooltype, { dao.getByToolInstance(entity.toolInstanceId).filter { it.id != entryId } }, null) {
             writes.deleteEntry(entryId)
@@ -963,6 +966,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
                 // Build params for single delete
                 val singleParams = JSONObject().apply {
                     put("id", entryId)
+                    if (params.optBoolean(Dependents.CONFIRM, false)) put(Dependents.CONFIRM, true)
                 }
 
                 // Use existing deleteEntry logic

@@ -4,6 +4,7 @@ import app.treelune.core.identities.IdentityService
 import android.content.Context
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.services.ZoneService
+import app.treelune.core.services.DependentsService
 import app.treelune.core.services.ToolInstanceService
 import app.treelune.core.services.ToolDataService
 import app.treelune.core.services.AppConfigService
@@ -47,6 +48,7 @@ class ServiceRegistry(private val context: Context) {
         "icons" to ::IconService,
         "references" to ::ReferenceService,
         "readings" to ::ReadingService,
+        "dependents" to ::DependentsService,
         "variables" to ::VariableService,
         "identities" to ::IdentityService,
         "imports" to ::ImportService,

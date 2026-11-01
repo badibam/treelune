@@ -283,6 +283,13 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             configJson = followed.config.toString()
             removedFieldValues = followed.removed
             checkConfig(existingTool.tooltype, configJson)?.let { return OperationResult.error(it) }
+            // The user's fields it takes out, what reads them named, to anyone but a person (Dependents)
+            val removedFields = userFieldNames(existingTool.config_json) - userFieldNames(configJson)
+            if (removedFields.isNotEmpty()) {
+                Dependents.refusal(removedFields.joinToString(", "), params.optBoolean(Dependents.CONFIRM, false), s) {
+                    removedFields.flatMap { Dependents.of(context, Dependents.Target.Field(existingTool.id, "extra.$it")) }.distinctBy { it.kind to it.id }
+                }?.let { return OperationResult.error(it) }
+            }
             refuseFieldValues(existingTool.tooltype, JSONObject(configJson), JSONObject(existingTool.config_json))?.let { return OperationResult.error(it) }
             // What is closed to the AI and left out of a config written whole by anyone else is
             // kept, as the data protection is; only a setting sent open is refused below
@@ -686,6 +693,11 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
     /**
      * Delete tool instance
      */
+    /** The names of the user's fields a config defines (`extra_fields`). */
+    private fun userFieldNames(config: String): Set<String> = JSONObject(config).optJSONArray("extra_fields")?.let { fields ->
+        (0 until fields.length()).mapNotNull { fields.optJSONObject(it)?.optString("name")?.takeIf { name -> name.isNotEmpty() } }.toSet()
+    } ?: emptySet()
+
     private suspend fun handleDelete(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
         
@@ -711,6 +723,9 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
         val zone = zoneDao.getZoneById(existingTool.zone_id)
             ?: return OperationResult.error(s.shared("service_error_zone_not_found"))
+        // What reads it named before it goes, to anyone but a person (Dependents)
+        Dependents.refusal(toolName, params.optBoolean(Dependents.CONFIRM, false), s) { Dependents.of(context, Dependents.Target.Tool(toolInstanceId)) }
+            ?.let { return OperationResult.error(it) }
 
         // The tool and the rows its leaving closes are one write
         database.transaction {

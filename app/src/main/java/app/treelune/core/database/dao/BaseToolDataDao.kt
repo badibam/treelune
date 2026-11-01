@@ -55,6 +55,14 @@ abstract class BaseToolDataDao {
     /**
      * Counts entries for a tool instance
      */
+    /** Per tool, how many entries other than [id] hold [id] in their data or their fields (a REFERENCE designating it). */
+    @Query("""
+        SELECT tool_instance_id AS tool_instance_id, COUNT(*) AS count FROM tool_data
+        WHERE id != :id AND (data LIKE '%' || :id || '%' OR extra LIKE '%' || :id || '%')
+        GROUP BY tool_instance_id
+    """)
+    abstract suspend fun countDesignating(id: String): List<DesignatingCount>
+
     @Query("SELECT COUNT(*) FROM tool_data WHERE tool_instance_id = :toolInstanceId")
     abstract suspend fun countByToolInstance(toolInstanceId: String): Int
 
@@ -103,3 +111,9 @@ abstract class BaseToolDataDao {
     @Query("SELECT DISTINCT tool_instance_id FROM tool_data WHERE json_extract(state, '$.running') IS NOT NULL")
     abstract suspend fun getToolsRunning(): List<String>
 }
+
+/** How many entries of a tool designate a given entry (BaseToolDataDao.countDesignating). */
+data class DesignatingCount(
+    @androidx.room.ColumnInfo(name = "tool_instance_id") val toolInstanceId: String,
+    @androidx.room.ColumnInfo(name = "count") val count: Int
+)

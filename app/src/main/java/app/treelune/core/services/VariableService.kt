@@ -162,6 +162,9 @@ class VariableService(private val context: Context) : ExecutableService {
 
     private suspend fun delete(params: JSONObject): OperationResult {
         val existing = dao.getById(params.optString("variable_id")) ?: throw Refused(s.shared("variable_error_not_found").format(params.optString("variable_id")))
+        // What reads it named before it goes, to anyone but a person (Dependents)
+        Dependents.refusal(existing.label, params.optBoolean(Dependents.CONFIRM, false), s) { Dependents.of(context, Dependents.Target.Variable(existing.id)) }
+            ?.let { throw Refused(it) }
         val zone = AppDatabase.getDatabase(context).zoneDao().getZoneById(existing.zoneId)
         AppDatabase.getDatabase(context).transaction {
             sections.leave(SectionItem.of(existing), zone?.tool_groups)

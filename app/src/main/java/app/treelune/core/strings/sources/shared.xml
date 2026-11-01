@@ -3194,4 +3194,17 @@
     <string name="ai_read_user_contents_of">\'%1$s\': contents read</string>
     <string name="service_error_tool_look_and_config">Give the whole config or the look alone, not both</string>
     <string name="service_error_tool_look_key">“%1$s” is not part of a tool\'s look: %2$s</string>
+    <!-- What depends on a thing about to be deleted (Dependents) -->
+    <string name="dependents_entries_of">%1$d entries of %2$s</string>
+    <string name="dependents_more">, and %1$d more</string>
+    <string name="dependents_kind_tool">tools: %1$s</string>
+    <string name="dependents_kind_variable">variables: %1$s</string>
+    <string name="dependents_kind_routine">routines: %1$s</string>
+    <string name="dependents_kind_task">Tasks: %1$s</string>
+    <string name="dependents_kind_readout">readouts: %1$s</string>
+    <string name="dependents_kind_event">events: %1$s</string>
+    <string name="dependents_kind_entries">entries that designate it: %1$s</string>
+    <string name="dependents_refused">%1$s is read by what follows, which will fail once it is gone (%2$s). Tell the user, and send the deletion again with "confirm_dependents": true once they agree</string>
+    <string name="dependents_confirm">Delete %1$s? What reads it will fail until it is changed: %2$s</string>
+    <string name="dependents_confirm_fields">These fields are read elsewhere, which will fail until it is changed: %1$s</string>
 </resources>

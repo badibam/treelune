@@ -3194,4 +3194,17 @@
     <string name="ai_read_user_contents_of">« %1$s » : contenu lu</string>
     <string name="service_error_tool_look_and_config">Donne la config entière ou l\'apparence seule, pas les deux</string>
     <string name="service_error_tool_look_key">« %1$s » ne fait pas partie de l\'apparence d\'un outil : %2$s</string>
+    <!-- What depends on a thing about to be deleted (Dependents) -->
+    <string name="dependents_entries_of">%1$d entrées de %2$s</string>
+    <string name="dependents_more">, et %1$d autres</string>
+    <string name="dependents_kind_tool">outils : %1$s</string>
+    <string name="dependents_kind_variable">variables : %1$s</string>
+    <string name="dependents_kind_routine">routines : %1$s</string>
+    <string name="dependents_kind_task">Tâches : %1$s</string>
+    <string name="dependents_kind_readout">repères : %1$s</string>
+    <string name="dependents_kind_event">événements : %1$s</string>
+    <string name="dependents_kind_entries">entrées qui la désignent : %1$s</string>
+    <string name="dependents_refused">%1$s est lu par ce qui suit, qui échouera une fois supprimé (%2$s). Préviens l\'utilisateur, et renvoie la suppression avec "confirm_dependents": true une fois qu\'il est d\'accord</string>
+    <string name="dependents_confirm">Supprimer %1$s ? Ce qui le lit échouera tant que tu ne l\'auras pas changé : %2$s</string>
+    <string name="dependents_confirm_fields">Ces champs sont lus ailleurs, qui échouera tant que tu ne l\'auras pas changé : %1$s</string>
 </resources>
