@@ -9,7 +9,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Site treelune.app
 
-- Les captures et les vidéos françaises du site : `./run site-shots fr`, ADBKeyBoard installé, puis `fr_media` retiré de `layout.json` et `./run site-deploy` (en ligne en anglais depuis le 2026-10-23). `/update pull php-heberge-leger`, le module abonné sans point de départ.
+- Les captures et les vidéos françaises du site : `./run site-shots fr`, ADBKeyBoard installé, puis `fr_media` retiré de `layout.json` et `./run site-deploy` (en ligne en anglais depuis le 2026-10-23).
 - Les cartes Tâches, API et Événements du site, commitées avant leur release : `./run site-deploy` avec la version qui les porte, pas avant, la 0.9.2 téléchargée ne les ayant pas. Les captures françaises, si elles partent avant, partent d'un arbre sans ces cartes.
 - `www.treelune.app` : son entrée du Multisite OVH (racine `treelune/public_html`), puis le certificat régénéré ; le 2026-10-22, le certificat ne couvre que `treelune.app` et `www` pointe sur la page de parking.
 
