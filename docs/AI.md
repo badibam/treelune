@@ -303,7 +303,7 @@ A single active session at a time (CHAT or ROUTINE_RUN). `AISessionScheduler` ma
 ## 6. Routines
 
 ### Concept
-ROUTINE_RUN sessions created from a SEED template (user message + enrichments). At each trigger: SEED messages copied → new ROUTINE_RUN session → activation.
+A routine is a message prepared once (a SEED session: the user's message and its pointers) for what comes back, with two uses alike. Run alone: at each start, the SEED's messages are copied into a new ROUTINE_RUN session, which runs without anyone to answer. Opened as a conversation: the button of its tile opens a new CHAT, its composer holding the message (`RoutineActions.chat`, `ChatRequests`), sent when the user chooses.
 
 `routines.create` writes the routine, its SEED session and its message in a single transaction, or nothing; the message is given in blocks (`RoutineMessage`: text and pointers), empty when the screen writes it afterwards. `ai_sessions.create_session` refuses a SEED session alone.
 

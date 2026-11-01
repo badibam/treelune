@@ -706,7 +706,7 @@ Deletes a variable. A formula naming it no longer computes.
 - `variable_id` (string, **required**)]]></string>
     <string name="ai_command_create_routine"><![CDATA[### CREATE_ROUTINE
 
-Creates a routine in a zone: a message for the AI, prepared once. An AI works on it alone when the user starts it, on a schedule, on a trigger, or with RUN_ROUTINE; the user also opens a conversation from it with the button on its tile.
+Creates a routine in a zone: a message for the AI, prepared once, for what comes back — in both senses, two uses alike. An AI works on it alone when the user starts it, on a schedule, on a trigger, or with RUN_ROUTINE, and the user reads the result later; or the user opens a conversation that starts from it, with the button on its tile, to go through a recurring subject together (the week's review, a reflection that comes back).
 
 **Parameters**:
 
@@ -1694,9 +1694,9 @@ How to answer a need with the app\'s pieces. The principles come first: they say
 
 1. A fact is written once, in one place. What can be computed from it is a variable, never a copy kept in step by hand: the time fasted is read from the meals, not from a stopwatch started and stopped around them.
 2. Entering happens where it is easy, storing where it is read: a questionnaire is a door, and a Task puts each answer in the tool of its subject. That is not a copy. Do not also give a tracking a shortcut for what already comes in through that door: it would be noted twice.
-3. Each piece has one job. A tool keeps facts. A variable computes. A readout shows: what is left to do, a criterion met or not. A Task acts, always the same way, free, without an AI. A routine acts with judgement: writes, sorts, sums up.
+3. Each piece has one job. A tool keeps facts. A variable computes. A readout shows: what is left to do, a criterion met or not. A Task acts, always the same way, free, without an AI. A routine is a message prepared for what comes back: run alone, it acts with judgement (writes, sorts, sums up); opened as a conversation, it goes through a recurring subject with the user.
 4. In a chain, the Task wires, the routine writes, the API makes: let each keep its job.
-5. A routine remembers nothing from one run to the next. What it must know, it reads again through the pointers of its message; what it learns, it writes in a tool that the next run reads.
+5. A routine remembers nothing from one run, or one conversation, to the next. What it must know, it reads again through the pointers of its message; what it learns, it writes in a tool that the next one reads.
 6. A Task that listens to writes says which ones, by the filters of its trigger: a questionnaire filled (`state.status` in `filled`), a session `done`, a field `present`. A retouched entry is written again: by default only the entry starting to pass the filters starts the Task, which suits one that files or makes something once; one that must follow corrections sets `only_entering` to false. An answer filed is corrected in the tool it was filed in, where it is read, not in the questionnaire.
 7. The simplest first: a tool alone, then a variable or a readout, then a Task, then a routine. Show what already exists before building.
 8. A zone is a subject of life; a group in it, a question or a rhythm: today, this week, the horizon and the reviews.
@@ -1718,7 +1718,8 @@ How to answer a need with the app\'s pieces. The principles come first: they say
 - **Reminders rewritten by a routine.** A routine on a weekly schedule rewrites the times and texts of a Messages tool from what the week showed.
 - **The context always sent.** One Notes tool sent to the AI in every conversation: who the user is, the season, how to speak to them. One, not one per subject.
 - **A drop box, distilled.** A journal where everything arrives unsorted, sorted each week into the tools of their subjects.
-- **The week\'s ritual.** A questionnaire, and a routine beside it whose message points to it, opened as a conversation from its tile, a Goal per zone judged each week, a review per zone in a journal, a summary of the week.
+- **A conversation that comes back.** A routine without a schedule, opened as a conversation from its tile when the user wants it: its message says the subject and how to go through it, its pointers what to read again (the last review, the week\'s entries); what comes out is written in a tool, which the next one reads.
+- **The week\'s ritual.** A conversation that comes back on the week, its message pointing to a questionnaire to go through together, a Goal per zone judged each week, a review per zone in a journal, a summary of the week.
 - **Connecting without a write.** An `event`, emitted by a step (`emit_event`), a reminder or the end of a routine, starts the Tasks and routines that listen to it: when what happened is no entry written.]]></string>
 
     <!-- Header of the operations a tool's entries schema comes with (CommandExecutor) -->
