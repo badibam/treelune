@@ -9,6 +9,7 @@ import app.treelune.core.ai.providers.AIProviderSettings
 import app.treelune.core.secrets.SecretBox
 import app.treelune.core.secrets.SecretSettings
 import app.treelune.core.coordinator.CancellationToken
+import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.validation.FieldLimits
 import app.treelune.core.services.ExecutableService
@@ -102,6 +103,8 @@ class AIProviderConfigService(private val context: Context) : ExecutableService 
         // A model not chosen yet is absent, as a result holds no null at its top
         val found = summary(entity) + mapOf(
             "config" to JsonUtils.toMap(opened.settings),
+            // The routines that would lose it, which its deletion's confirmation names
+            "used_by_routines" to AppDatabase.getDatabase(context).aiDao().getAllRoutines().filter { it.providerId == entity.id }.map { it.name },
             SecretSettings.UNREADABLE to opened.unreadable,
             "created_at" to entity.createdAt,
             "updated_at" to entity.updatedAt
@@ -145,26 +148,43 @@ class AIProviderConfigService(private val context: Context) : ExecutableService 
     }
 
     /**
-     * Deleted unless a routine names it, the refusal naming them. The default deleted while others
-     * remain needs the one that becomes it (new_default_id); the last one deleted leaves none.
+     * Deleted, the routines that call it left without a provider and turned off, their tiles
+     * saying so until one is chosen — never moved to another, which would spend on a model nobody
+     * chose for them (`routines_stopped`, their names). The default deleted while others remain
+     * needs the one that becomes it (new_default_id); the last one deleted leaves none.
      */
     private suspend fun deleteProvider(params: JSONObject): OperationResult {
         val entity = stored(params) ?: return notFound(params)
-        val database = AppDatabase.getDatabase(context)
-        app.treelune.core.services.InUse.provider(database, entity.id).refusal(entity.name, s)?.let { refusal ->
-            LogManager.aiService("Provider ${entity.id} still used: $refusal", "INFO")
-            return OperationResult.error(refusal)
-        }
         val others = dao.getAllProviderConfigs().filter { it.id != entity.id }
         val newDefault = params.optString("new_default_id").ifEmpty { null }
         if (entity.isDefault && others.isNotEmpty()) {
             newDefault ?: return OperationResult.error(s.shared("ai_error_provider_new_default_required").format(entity.name))
             if (others.none { it.id == newDefault }) return OperationResult.error(s.shared("ai_error_provider_not_found").format(newDefault))
         }
+        val stopped = stopRoutinesOf(entity.id).getOrElse { return OperationResult.error(it.message ?: "") }
         dao.deleteProviderConfigById(entity.id)
         if (entity.isDefault && newDefault != null) dao.setDefaultProvider(newDefault)
         LogManager.aiService("Provider ${entity.id} deleted${if (entity.isDefault) ", default now ${newDefault ?: "none"}" else ""}", "INFO")
-        return OperationResult.success(mapOf("provider_id" to entity.id, "deleted" to true))
+        return OperationResult.success(mapOf("provider_id" to entity.id, "deleted" to true, "routines_stopped" to stopped))
+    }
+
+    /**
+     * The routines calling [providerId] left without a provider and turned off, by their service:
+     * their names, or why one could not be. Written as the app's own writes, noted and not undone,
+     * as the provider's deletion is not: undone, a routine would call a provider that is gone.
+     */
+    private suspend fun stopRoutinesOf(providerId: String): Result<List<String>> {
+        val routines = AppDatabase.getDatabase(context).aiDao().getAllRoutines().filter { it.providerId == providerId }
+        val noted = app.treelune.core.history.Step(app.treelune.core.coordinator.Source.SYSTEM, isStep = false, sessionId = null)
+        return kotlinx.coroutines.withContext(noted) {
+            for (routine in routines) {
+                val stopped = app.treelune.core.coordinator.Coordinator(context).processUserAction("routines.update",
+                    mapOf("routine_id" to routine.id, "provider_id" to null, "is_enabled" to false))
+                if (!stopped.isSuccess) return@withContext Result.failure(IllegalStateException(stopped.error ?: routine.name))
+            }
+            LogManager.aiService("Provider $providerId: ${routines.size} routine(s) left without it, turned off", "INFO")
+            Result.success(routines.map { it.name })
+        }
     }
 
     private suspend fun setDefault(params: JSONObject): OperationResult {

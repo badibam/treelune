@@ -18,10 +18,10 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /**
- * What docs/AI.md (« Identities ») promised of a provider or an identity about to be deleted: the
- * deletion is refused while a routine (or a zone, for an identity) names it, the refusal naming
- * them (InUse); a provider nothing names is deleted, the default needing a successor while others
- * remain.
+ * What docs/AI.md promised of a provider or an identity about to be deleted: an identity's
+ * deletion is refused while a zone or a routine names it, the refusal naming them (InUse); a
+ * provider is deleted, the routines that call it left without one and turned off, named in the
+ * answer, the default needing a successor while others remain.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -49,29 +49,31 @@ class InUseTest {
         return created.data!!["zone_id"] as String
     }
 
-    private suspend fun routine(zoneId: String, name: String, providerId: String) {
+    private suspend fun routine(zoneId: String, name: String, providerId: String): String {
         val created = coordinator.processUserAction("routines.create", mapOf(
             "zone_id" to zoneId,
             "name" to name,
             "identity_id" to null,
             "provider_id" to providerId,
-            "is_enabled" to false,
+            "is_enabled" to true,
             "message" to listOf(mapOf("type" to RoutineMessage.TEXT, "text" to "Hi"))
         ))
         assertTrue(created.error, created.isSuccess)
+        return created.data!!["routine_id"] as String
     }
 
     @Test
-    fun `a provider a routine names refuses its deletion, naming the routine`() = runBlocking {
+    fun `a provider a routine calls is deleted, the routine left without one and turned off`() = runBlocking {
         provider("claude", "Claude", isDefault = true)
-        routine(zone("Garden"), "Weekly review", "claude")
+        val routineId = routine(zone("Garden"), "Weekly review", "claude")
 
-        val users = InUse.provider(database, "claude")
-        assertEquals(listOf("Weekly review"), users.routines)
-
-        val refused = coordinator.processUserAction("ai_provider_config.delete", mapOf("provider_id" to "claude"))
-        assertFalse(refused.isSuccess)
-        assertTrue(refused.error, refused.error!!.contains("Weekly review"))
+        val deleted = coordinator.processUserAction("ai_provider_config.delete", mapOf("provider_id" to "claude"))
+        assertTrue(deleted.error, deleted.isSuccess)
+        assertEquals(listOf("Weekly review"), deleted.data!!["routines_stopped"])
+        assertEquals(null, database.aiDao().getProviderConfig("claude"))
+        val routine = database.aiDao().getRoutineById(routineId)!!
+        assertEquals(null, routine.providerId)
+        assertFalse(routine.isEnabled)
     }
 
     @Test

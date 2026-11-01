@@ -4,9 +4,10 @@ import app.treelune.core.database.AppDatabase
 import app.treelune.core.strings.StringsContext
 
 /**
- * What still names a thing about to be deleted -- an identity, an AI provider -- for its deletion
- * to be refused while anything does, naming them (docs/AI.md, « Identities »).
- * One check for both: each says which of its kind's fields name it. Nothing is deleted with it,
+ * What still names a thing about to be deleted -- an identity, an API -- for its deletion to be
+ * refused while anything does, naming them (docs/AI.md, « Identities »).
+ * One check for all: each says which of its kind's fields name it. An AI provider is not held
+ * back: its routines are turned off instead (AIProviderConfigService). Nothing is deleted with it,
  * every zone and routine being changed by hand first. A past session naming it stays readable and
  * cannot continue (SessionUsable).
  */
@@ -16,12 +17,6 @@ object InUse {
     suspend fun identity(database: AppDatabase, identityId: String): Users = Users(
         zones = database.zoneDao().getAllZones().filter { it.identity_id == identityId }.map { it.name },
         routines = database.aiDao().getAllRoutines().filter { it.identityId == identityId }.map { it.name }
-    )
-
-    /** The routines running on provider [providerId], by name; a zone has no provider. */
-    suspend fun provider(database: AppDatabase, providerId: String): Users = Users(
-        zones = emptyList(),
-        routines = database.aiDao().getAllRoutines().filter { it.providerId == providerId }.map { it.name }
     )
 
     /** The Tasks one of whose steps calls API [apiId], by name. */

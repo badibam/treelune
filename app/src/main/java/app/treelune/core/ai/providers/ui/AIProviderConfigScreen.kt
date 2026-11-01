@@ -53,6 +53,8 @@ import org.json.JSONObject
  * @param onDelete Deletes it; null for a provider not yet stored
  * @param deleteConfirmed Whether [onDelete] asks itself which provider becomes the default, rather
  *   than this screen confirming the deletion
+ * @param deleteMessage What the deletion's confirmation says, null for the ordinary one (the
+ *   routines it turns off)
  */
 @Composable
 fun AIProviderConfigScreen(
@@ -64,7 +66,8 @@ fun AIProviderConfigScreen(
     onDuplicate: (() -> Unit)? = null,
     onSetDefault: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
-    deleteConfirmed: Boolean = false
+    deleteConfirmed: Boolean = false,
+    deleteMessage: String? = null
 ) {
     // The header has no back button: the back key cancels, like the form's cancel button
     BackHandler(onBack = onCancel)
@@ -234,7 +237,7 @@ fun AIProviderConfigScreen(
             if (onDuplicate != null || onSetDefault != null || onDelete != null) UI.FormActions {
                 onDuplicate?.let { UI.Button(type = ButtonType.SECONDARY, onClick = it) { UI.Text(s.shared("action_duplicate"), TextType.BODY) } }
                 onSetDefault?.let { UI.Button(type = ButtonType.SECONDARY, onClick = it) { UI.Text(s.shared("ai_provider_set_default"), TextType.BODY) } }
-                onDelete?.let { UI.ActionButton(action = ButtonAction.DELETE, requireConfirmation = !deleteConfirmed, onClick = it) }
+                onDelete?.let { UI.ActionButton(action = ButtonAction.DELETE, requireConfirmation = !deleteConfirmed, confirmMessage = deleteMessage, onClick = it) }
             }
         }
     }

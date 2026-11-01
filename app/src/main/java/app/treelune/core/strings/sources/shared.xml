@@ -1245,6 +1245,8 @@
     <string name="ai_provider_copy_name">%1$s (copy)</string>
     <string name="ai_provider_new_default_title">Delete the default provider</string>
     <string name="ai_provider_new_default_message">%1$s is the default: new conversations take it. Choose which provider takes its place.</string>
+    <string name="ai_provider_delete_routines">These routines will have no provider and be turned off until you choose one: %1$s</string>
+    <string name="ai_provider_delete_confirm_routines">Delete %1$s? These routines will have no provider and be turned off until you choose one: %2$s</string>
     <string name="ai_prompt_level3_providers_title">AI providers</string>
     <string name="ai_provider_compatible_base_url">Server address</string>
     <string name="ai_provider_compatible_schema_base_url">Base address of the server\'s OpenAI-compatible API, https only (e.g. https://openrouter.ai/api/v1)</string>

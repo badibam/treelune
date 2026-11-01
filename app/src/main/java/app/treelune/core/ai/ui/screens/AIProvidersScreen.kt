@@ -191,6 +191,8 @@ fun AIProviderScreen(editing: Place.AIProvider, onName: @Composable (String) -> 
 
     // Its kind, name and config once read
     var loaded by remember(editing) { mutableStateOf<Triple<String, String, String>?>(null) }
+    // The routines its deletion turns off, named by the confirmation
+    var usedBy by remember(editing) { mutableStateOf<List<String>>(emptyList()) }
     LaunchedEffect(editing) {
         val source = editing.id ?: editing.copyOf
         if (source == null) {
@@ -209,6 +211,7 @@ fun AIProviderScreen(editing: Place.AIProvider, onName: @Composable (String) -> 
         @Suppress("UNCHECKED_CAST")
         val config = JsonUtils.toJSONObject(data["config"] as Map<String, Any?>).toString()
         val name = data["name"] as String
+        if (editing.id != null) usedBy = (data["used_by_routines"] as? List<*>).orEmpty().map { it.toString() }
         loaded = Triple(kind, if (editing.copyOf != null) s.shared("ai_provider_copy_name").format(name) else name, config)
         // A key sealed on another phone shows empty: said, so it is not taken for one never entered
         (data[app.treelune.core.secrets.SecretSettings.UNREADABLE] as? List<*>).orEmpty().takeIf { it.isNotEmpty() }?.let { names ->
@@ -241,6 +244,7 @@ fun AIProviderScreen(editing: Place.AIProvider, onName: @Composable (String) -> 
             Column(modifier = Modifier.padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.L)) {
                 UI.Text(text = s.shared("ai_provider_new_default_title"), type = TextType.TITLE)
                 UI.Text(text = s.shared("ai_provider_new_default_message").format(name), type = TextType.BODY)
+                if (usedBy.isNotEmpty()) UI.Text(text = s.shared("ai_provider_delete_routines").format(usedBy.joinToString(", ")), type = TextType.BODY)
                 val labels = others.associate { providerLabel(it) to (it["id"] as String) }
                 UI.FormSelection(label = s.shared("ai_provider_is_default"), options = labels.keys.toList(),
                     selected = labels.entries.find { it.value == chosen }?.key ?: "", onSelect = { chosen = labels[it] }, required = true)
@@ -257,6 +261,7 @@ fun AIProviderScreen(editing: Place.AIProvider, onName: @Composable (String) -> 
         onDuplicate = id?.let { { onDuplicate(it, kind.kind) } },
         onSetDefault = id?.takeIf { !isDefault }?.let { { onSetDefault(it) } },
         onDelete = id?.let { { if (needsNewDefault) choosingNewDefault = true else onDelete(it, null) } },
-        deleteConfirmed = needsNewDefault
+        deleteConfirmed = needsNewDefault,
+        deleteMessage = usedBy.takeIf { it.isNotEmpty() }?.let { s.shared("ai_provider_delete_confirm_routines").format(name, it.joinToString(", ")) }
     )
 }

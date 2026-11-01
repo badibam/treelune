@@ -1245,6 +1245,8 @@
     <string name="ai_provider_copy_name">%1$s (copie)</string>
     <string name="ai_provider_new_default_title">Supprimer le fournisseur par défaut</string>
     <string name="ai_provider_new_default_message">%1$s est le fournisseur par défaut : les nouvelles conversations le prennent. Choisis le fournisseur qui prend sa place.</string>
+    <string name="ai_provider_delete_routines">Ces routines n\'auront plus de fournisseur et seront coupées jusqu\'à ce que tu en choisisses un : %1$s</string>
+    <string name="ai_provider_delete_confirm_routines">Supprimer %1$s ? Ces routines n\'auront plus de fournisseur et seront coupées jusqu\'à ce que tu en choisisses un : %2$s</string>
     <string name="ai_prompt_level3_providers_title">Fournisseurs d\'IA</string>
     <string name="ai_provider_compatible_base_url">Adresse du serveur</string>
     <string name="ai_provider_compatible_schema_base_url">Adresse de base de l\'API compatible OpenAI du serveur, en https seulement (ex. https://openrouter.ai/api/v1)</string>
