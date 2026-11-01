@@ -50,7 +50,8 @@ class RoutineActions(
     fun chat(routine: Routine) = scope.launch {
         val seed = AIOrchestrator.loadSeedMessages(routine.seedSessionId)
         val prefill = seed.firstOrNull { it.sender == app.treelune.core.ai.data.MessageSender.USER }?.richContent?.segments ?: emptyList()
-        app.treelune.core.ai.orchestration.ChatRequests.open(prefill)
+        // The conversation speaks as the routine and calls its provider, as its runs do
+        app.treelune.core.ai.orchestration.ChatRequests.open(prefill, routine.identityId, routine.providerId)
     }
 
     fun configure(routine: Routine) = Navigator.push(Place.RoutineConfig(routine.zoneId, routine.id))

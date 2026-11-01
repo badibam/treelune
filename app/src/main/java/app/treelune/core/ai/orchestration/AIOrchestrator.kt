@@ -347,7 +347,7 @@ object AIOrchestrator {
      * @return The created session ID
      */
     /** A new CHAT session, speaking as identity [identityId] (null for the app's own AI) until its first message fixes it. */
-    private suspend fun createNewChatSession(identityId: String? = null): String {
+    private suspend fun createNewChatSession(identityId: String? = null, providerId: String? = null): String {
         val newSessionId = java.util.UUID.randomUUID().toString()
         val now = System.currentTimeMillis()
 
@@ -361,8 +361,8 @@ object AIOrchestrator {
             lastUserInteractionTime = now,
             routineId = null,
             scheduledExecutionTime = null,
-            // None yet: its first call takes the default and keeps it (ProviderVerifier)
-            providerId = null,
+            // The one asked for (a routine's), or none yet: its first call takes the default and keeps it (ProviderVerifier)
+            providerId = providerId,
             providerSessionId = java.util.UUID.randomUUID().toString(),
             createdAt = now,
             lastActivity = now,
@@ -477,13 +477,13 @@ object AIOrchestrator {
      * Note: ROUTINE_RUN sessions will be resumed automatically by the scheduler
      * when the slot becomes free again (after CHAT ends or becomes inactive).
      */
-    suspend fun startNewChatSession(prefill: List<MessageSegment> = emptyList(), identityId: String? = null) {
+    suspend fun startNewChatSession(prefill: List<MessageSegment> = emptyList(), identityId: String? = null, providerId: String? = null) {
         LogManager.aiSession("startNewChatSession called (prefill=${prefill.size} segments)", "INFO")
 
         val currentState = stateRepository.state.value
 
         // Step 1: Create NEW CHAT session (always creates, never reuses), its composer prefilled
-        val sessionId = createNewChatSession(identityId)
+        val sessionId = createNewChatSession(identityId, providerId)
         if (prefill.isNotEmpty()) saveDraftMessage(sessionId, prefill)
 
         // Step 2: Request activation via scheduler (will enqueue if slot occupied)
