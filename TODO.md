@@ -27,6 +27,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- Les textures du rétro redessinées (biais, zigzag, vagues, écailles, losanges, anneaux, étoiles, croix, points, lignes, quadrillage) : sur une tuile et en fond de page, en Subtil et en Marqué, à chaque taille.
 - Une étape de Tâche montée ou supprimée : ce que les autres lisent d'elle qui suit (le résultat d'une API, l'entrée créée), et ce qui lisait une étape supprimée vidé, l'enregistrement qui le dit.
 - Un fournisseur supprimé alors qu'une routine l'utilise : la confirmation qui nomme les routines (et, pour le fournisseur par défaut, la fenêtre du successeur), puis leurs tuiles « Aucun fournisseur d'IA », coupées.
 - La conversation ouverte par la tuile d'une routine à identité et à fournisseur : l'identité en tête de la conversation, le fournisseur dans ses paramètres, le message dans la zone de saisie ; une routine sans fournisseur, le fournisseur par défaut.
