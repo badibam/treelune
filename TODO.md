@@ -88,7 +88,6 @@ Codé, jamais vu sur l'appareil.
 
 - Un graphique lit lentement ce qui relit une config : « Macros, 4 semaines » (7 couches, 28 jours) en 2,3 à 3,4 s le 2026-10-31, avec 167 `readings.read`, 347 `tool_data.get`, 326 `tools.get` et 198 `references.names` par lecture ; mesurer d'abord le temps par sorte d'opération (les horodatages du journal), puis, si la relecture des configs pèse, la retenir le temps d'une lecture de graphique, à travers le répartiteur, jamais en contournant ses contrôles.
 - `bandPosition` dans les graphiques, comme Vega-Lite : une ligne sur une grille de jours place son point au début du jour, au bord gauche d'une barre ; 0,5 la mettrait au milieu.
-- `ZoneContentsTest.theZones_comeInTheHomeScreensOrder` échoue dans `./run test` (le 2026-10-31 : « The group 'Demo' cannot be removed », la démo installée par un autre test dans la base partagée) et passe seul : il réécrit les groupes de l'accueil sans tenir compte de ce que les autres tests y ont laissé.
 
 - Une annulation attrapée comme une erreur : sur 114 fichiers qui ont un `catch (e: Exception)`, 18 laissent passer `CancellationException` ; les autres, sur un écran fermé ou une tâche arrêtée, l'écrivent en ERROR, rendent un échec et laissent le code continuer. Une passe, ou un contrôle de `./run test` qui exige la ligne qui la laisse passer avant un `catch (e: Exception)` dans une fonction `suspend`.
 - Une étape de Tâche déplacée garde les numéros d'étape que lisent les suivantes, l'enregistrement refusant alors en le disant.
