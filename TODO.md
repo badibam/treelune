@@ -20,7 +20,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
-- L'historique des écritures dit « Action inconnue » pour des gestes de l'utilisateur sur une Séquence (les retours d'une séance d'hypnose, le 2026-11-02 de 06:57 à 08:38).
 - Le message d'une routine ancienne garde ses pointeurs dans l'ancien format (`selectedPath`, `selectionLevel`, `timestampSelection`), là où ROUTINE_CONFIG rend `selection` pour les autres : vu le 2026-11-01 sur une routine désactivée depuis un an ; une migration l'a laissé passer, d'autres messages anciens peuvent être dans le même cas.
 
 
@@ -33,6 +32,7 @@ Codé, jamais vu sur l'appareil.
 - L'export d'une partie : « Hors groupe » au-dessus des zones et des outils sans groupe qui suivent un groupe ; « La zone elle-même » en tête d'une zone ouverte, cochée avec la zone entière, décochée quand on ne coche qu'un outil, la zone partie en « Zone partagée » (numérotée à plusieurs) sans description, icône, identité ni « valider », puis importée ; la même case à l'import.
 - Une lecture de l'IA sur un outil qui n'existe pas (un identifiant de zone pris pour un outil, ou coupé) : la conversation qui continue, l'erreur de commande montrée, l'IA qui se corrige — elle fermait la conversation (vu le 2026-11-02 au matin, `0a4d0ff9`).
 - Le sélecteur de pointeurs : le type sous le nom de chaque outil (« Racines · Fiche » quand la zone est dite) ; les entrées d'un outil les plus récentes d'abord, leur date sous leur nom, « créée le … » pour une entrée sans date (une fiche de Séances d'hypnose).
+- L'historique des écritures pendant une séance de Séquence : « Séance commencée », « Étape de la séance faite », « Séance terminée, ses réponses notées »… à la place de « Action inconnue ».
 - Une partie de plusieurs zones importée : ses zones en bloc sous la dernière ligne de leur section, côte à côte si elles l'étaient, une ligne sautée refermée, les tiennes à leur place.
 - « Hors groupe » vide masqué à côté des groupes, sur l'accueil et dans une zone ; une zone ou un outil sans groupe qui le fait apparaître ; sans groupe du tout, la section seule toujours là ; l'étape « Crée ta propre zone » du Guide qui montre le + en haut.
 - Une réponse de l'IA coupée par sa longueur maximale (un fournisseur réglé bas, une demande de dix entrées longues) : « coupée… relancée une fois », la reprise plus courte, son coût compté ; coupée deux fois, l'arrêt et le renvoi au réglage ; dans une routine aussi.

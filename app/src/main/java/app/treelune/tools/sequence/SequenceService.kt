@@ -369,7 +369,27 @@ class SequenceService(private val context: Context) : ExecutableService {
 
     override suspend fun verbalize(operation: String, params: JSONObject, context: Context): String {
         val s = Strings.`for`(tool = "sequence", context = context)
-        return if (operation in setOf(COMPLETE, CORRECT, IGNORE, IGNORE_ALL, PLAN)) s.tool("verbalize_$operation") else s.shared("action_verbalize_unknown")
+        // Each operation its sentence, the gestures too: each one is a step of the history of writes
+        return when (operation) {
+            START -> s.tool("verbalize_start")
+            COMPLETE -> s.tool("verbalize_complete")
+            CORRECT -> s.tool("verbalize_correct")
+            FINISH -> s.tool("verbalize_finish")
+            IGNORE -> s.tool("verbalize_ignore")
+            IGNORE_ALL -> s.tool("verbalize_ignore_all")
+            PLAN -> s.tool("verbalize_plan")
+            DONE -> s.tool("verbalize_done")
+            SKIP -> s.tool("verbalize_skip")
+            BACK -> s.tool("verbalize_back")
+            RESTART -> s.tool("verbalize_restart")
+            PAUSE -> s.tool("verbalize_pause")
+            RESUME -> s.tool("verbalize_resume")
+            EXTEND -> s.tool("verbalize_extend")
+            STOP -> s.tool("verbalize_stop")
+            ADVANCE -> s.tool("verbalize_advance")
+            RESUME_INTERRUPTED -> s.tool("verbalize_resume_interrupted")
+            else -> s.shared("action_verbalize_unknown")
+        }
     }
 
     companion object {
