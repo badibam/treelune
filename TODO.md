@@ -85,11 +85,11 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
-- Une variable dans le message d'une routine : proposée par le sélecteur de pointeurs (aujourd'hui zone, outil, entrée), sa valeur jointe au départ de l'exécution, et décrite à l'IA (`EnrichmentText.place` et `EnrichmentProcessor.generatePointerQueries` refusent ou ignorent `VARIABLE`) ; le pointeur d'une zone ne joint pas ses variables non plus. Vu au rituel du 2026-11-01 : les constantes du pied sain, que l'IA disait manquantes.
 - L'outil Schéma, le schéma écrit : `docs/design/schema.md` (config JSON au vocabulaire de Mermaid, placement par ELK, largeur, tuile, écran), ses vérifications d'abord (« Ouvert »).
 
 ## À concevoir
 
+- Une variable dans le message d'une routine, `docs/design/variable-pointers.md` : sa valeur à un instant, sa série sur une période, sa définition ; le pointeur d'une zone qui joint ses variables. Écrite sans relire le code des pointeurs, tout y est à revérifier avant de coder.
 - La suppression d'une copie quand sa source est supprimée (une séance d'Hypnose supprimée, sa ligne de Décrochage qui reste), dans la même Tâche que la copie. Proposition, non retenue faute de confiance : « Seulement si » qui teste ce qui est arrivé à l'entrée reçue (créée, modifiée, supprimée) ; dans une Tâche, la valeur d'un filtre qui pointe ce que pointe un « Seulement si » (l'entrée reçue, le résultat d'une étape) ; une étape « Supprimer des entrées » qui supprime ce qu'une sélection d'entrées désigne (« Décrochage, source = l'entrée reçue »), d'une seule étape de l'historique.
 - La carte de l'installation, seconde source de l'outil Schéma (`docs/design/schema.md`, « Ouvert ») : une fois le schéma écrit vu sur le téléphone.
 
