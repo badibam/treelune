@@ -403,6 +403,7 @@
     <string name="action_verbalize_update_data">Utilisation de l\'outil « %1$s » (zone « %2$s ») : modification de %3$d entrée(s)</string>
     <string name="action_verbalize_start_duration">Utilisation de l\'outil « %1$s » (zone « %2$s ») : chronomètre démarré</string>
     <string name="action_verbalize_stop_duration">Utilisation de l\'outil « %1$s » (zone « %2$s ») : chronomètre arrêté</string>
+    <string name="action_verbalize_duplicate_tool">Copie de l\'outil « %1$s »</string>
     <string name="action_verbalize_delete_data">Utilisation de l\'outil « %1$s » (zone « %2$s ») : suppression de %3$d entrée(s)</string>
     <string name="action_verbalize_update_app_config">Modification des réglages : %1$s</string>
     <string name="action_verbalize_schema_get">Récupération du schéma « %1$s »</string>

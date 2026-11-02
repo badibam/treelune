@@ -1107,6 +1107,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
                     ?: s.shared("content_unnamed")
                 s.shared("action_verbalize_delete_tool").format(toolName)
             }
+            "duplicate" -> s.shared("action_verbalize_duplicate_tool").format(getToolName(params.optString("tool_instance_id"), context) ?: s.shared("content_unnamed"))
             "waiting" -> s.shared("action_verbalize_tools_waiting")
             "running" -> s.shared("action_verbalize_tools_running")
             else -> s.shared("action_verbalize_unknown")
