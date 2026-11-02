@@ -20,7 +20,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
-- Le message d'une routine ancienne garde ses pointeurs dans l'ancien format (`selectedPath`, `selectionLevel`, `timestampSelection`), là où ROUTINE_CONFIG rend `selection` pour les autres : vu le 2026-11-01 sur une routine désactivée depuis un an ; une migration l'a laissé passer, d'autres messages anciens peuvent être dans le même cas.
 
 
 
