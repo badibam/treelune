@@ -350,9 +350,9 @@ class AISessionService(private val context: Context) : ExecutableService {
             LogManager.aiSession("Found ${sessionEntities.size} sessions for routine $routineId (total: $totalEntries, page: $page/$totalPages)", "DEBUG")
 
             // Each session's cost, summed from its messages in one query for the page
-            val costs = dao.getCallUsages(sessionEntities.map { it.id })
-                .groupBy { it.sessionId }
-                .mapValues { (_, rows) -> SessionCost.of(rows.map { it.toCallUsage() }) }
+            val usages = dao.getCallUsages(sessionEntities.map { it.id }).groupBy { it.sessionId }
+            val costs = usages.mapValues { (_, rows) -> SessionCost.of(rows.map { it.toCallUsage() }) }
+            val callCounts = usages.mapValues { (_, rows) -> rows.size }
 
             // Map sessions to result format including all necessary fields for ExecutionCard
             val sessions = sessionEntities.map { session ->
@@ -376,7 +376,19 @@ class AISessionService(private val context: Context) : ExecutableService {
                     "total_roundtrips" to session.totalRoundtrips,
                     "total_tokens" to cost.totalTokens,
                     "total_cost" to cost.totalCost,
-                    "cost_is_lower_bound" to cost.isLowerBound
+                    "cost_is_lower_bound" to cost.isLowerBound,
+                    // Where the cost goes, by kind of token: what the cache saves is read here
+                    "cost_detail" to mapOf(
+                        "calls" to (callCounts[session.id] ?: 0),
+                        "uncached_input_tokens" to cost.uncachedInputTokens,
+                        "cache_write_tokens" to cost.cacheWriteTokens,
+                        "cache_read_tokens" to cost.cacheReadTokens,
+                        "output_tokens" to cost.outputTokens,
+                        "input_cost" to cost.inputCost,
+                        "cache_write_cost" to cost.cacheWriteCost,
+                        "cache_read_cost" to cost.cacheReadCost,
+                        "output_cost" to cost.outputCost
+                    )
                 )
             }
 

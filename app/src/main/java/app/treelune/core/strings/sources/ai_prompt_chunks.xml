@@ -354,7 +354,7 @@ Retrieves a routine whole, in the form CREATE_ROUTINE and UPDATE_ROUTINE write i
 - `id` (string, **required**): the routine_id]]></string>
     <string name="ai_command_routine_runs"><![CDATA[### ROUTINE_RUNS
 
-Lists the runs of a routine, the most recent first: `id`, `scheduled_execution_time` (the time it was due), `created_at` (the time it started), `end_reason` (`COMPLETED`, `LIMIT_REACHED`, `TIMEOUT`, `ERROR`, `CANCELLED`, `NETWORK_ERROR`, `SUSPENDED`; none while it runs or after the app stopped), `total_roundtrips`, `total_cost` in dollars (a lower bound when `cost_is_lower_bound`). Its schema: `SCHEMA` with `id` `routine_runs`.
+Lists the runs of a routine, the most recent first: `id`, `scheduled_execution_time` (the time it was due), `created_at` (the time it started), `end_reason` (`COMPLETED`, `LIMIT_REACHED`, `TIMEOUT`, `ERROR`, `CANCELLED`, `NETWORK_ERROR`, `SUSPENDED`; none while it runs or after the app stopped), `total_roundtrips`, `total_cost` in dollars (a lower bound when `cost_is_lower_bound`), and `cost_detail`, that cost by kind of token: its `calls` to the AI, tokens and cost of the uncached input, of the cache written, of the cache read and of the output. Its schema: `SCHEMA` with `id` `routine_runs`.
 
 **Parameters**:
 

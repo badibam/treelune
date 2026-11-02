@@ -100,12 +100,13 @@ object RoutineSchemas {
     }
 
     /** The keys of a run kept for the AI, as the sessions service names them (list_sessions_for_routine). */
-    val RUN_KEYS = listOf("id", "scheduled_execution_time", "created_at", "end_reason", "total_roundtrips", "total_cost", "cost_is_lower_bound")
+    val RUN_KEYS = listOf("id", "scheduled_execution_time", "created_at", "end_reason", "total_roundtrips", "total_cost", "cost_is_lower_bound", "cost_detail")
 
     /**
      * A routine's runs, the most recent first: when each was scheduled for and when it started,
      * why it ended (SessionEndReason, none while it runs or after a crash), its round trips with
-     * the AI, its cost in dollars, a lower bound when a call's price is unknown.
+     * the AI, its cost in dollars, a lower bound when a call's price is unknown, and that cost by kind
+     * of token (`cost_detail`: its calls, uncached input, cache written, cache read, output).
      */
     fun runs(context: Context): Schema {
         val s = Strings.`for`(context = context)
@@ -124,7 +125,12 @@ object RoutineSchemas {
                 .put("end_reason", JSONObject().put("type", JSONArray().put("string").put("null")).put("enum", JSONArray(SessionEndReason.entries.map { it.name } + JSONObject.NULL)))
                 .put("total_roundtrips", JSONObject().put("type", "integer"))
                 .put("total_cost", JSONObject().put("type", "number"))
-                .put("cost_is_lower_bound", JSONObject().put("type", "boolean")))
+                .put("cost_is_lower_bound", JSONObject().put("type", "boolean"))
+                .put("cost_detail", JSONObject().put("type", "object").put("properties", JSONObject().apply {
+                    put("calls", JSONObject().put("type", "integer"))
+                    listOf("uncached_input_tokens", "cache_write_tokens", "cache_read_tokens", "output_tokens").forEach { put(it, JSONObject().put("type", "integer")) }
+                    listOf("input_cost", "cache_write_cost", "cache_read_cost", "output_cost").forEach { put(it, JSONObject().put("type", "number")) }
+                })))
             .put("additionalProperties", false)
         return JSONObject()
             .put("type", "object")
