@@ -405,6 +405,7 @@ private fun RoutineMode(
 
     // Local state
     var showChatOptionsDialog by rememberSaveable { mutableStateOf(false) }
+    var showStats by rememberSaveable { mutableStateOf(false) }
 
     // Observe AIState from orchestrator
     val aiState by AIOrchestrator.currentState.collectAsState()
@@ -442,12 +443,22 @@ private fun RoutineMode(
             onClose = onClose,
             onOpenHistory = onOpenHistory,
             onChatRequest = { showChatOptionsDialog = true },
+            onShowStats = { showStats = true },
             onStop = {
                 scope.launch {
                     AIOrchestrator.stopActiveSession()
                 }
             }
         )
+
+        // What the run cost, its calls summed: the same dialog as a conversation's
+        if (showStats) {
+            app.treelune.core.ai.ui.SessionStatsDialog(
+                sessionId = session.id,
+                sessionName = session.name,
+                onDismiss = { showStats = false }
+            )
+        }
 
         // Messages area (read-only)
         Box(
@@ -784,6 +795,7 @@ private fun RoutineHeader(
     onClose: () -> Unit,
     onOpenHistory: (() -> Unit)?,
     onChatRequest: () -> Unit,
+    onShowStats: () -> Unit,
     onStop: () -> Unit
 ) {
     val context = LocalContext.current
@@ -817,6 +829,14 @@ private fun RoutineHeader(
                 onClick = it
             )
         }
+
+        // What the run cost
+        UI.ActionButton(
+            action = ButtonAction.STATS,
+            display = ButtonDisplay.ICON,
+            size = Size.M,
+            onClick = onShowStats
+        )
 
         // Stop button
         UI.ActionButton(
