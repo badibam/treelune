@@ -102,7 +102,7 @@ class PartImportTest {
         fun ids(table: String) = rows(table).map { it.getString("id") }
         val spoken = (rows("zones") + rows("routines")).mapNotNull { BackupPart.identityOf(it) }.toSet()
         return PartSelection(ids("zones").toSet(), ids("tool_instances").associateWith { true }, ids("variables").toSet(), ids("routines").toSet(), spoken,
-            ids("tasks").toSet(), ids("apis").toSet())
+            ids("tasks").toSet(), ids("apis").toSet(), ids("zones").toSet())
     }
 
     // One test, the demo being installed once: a refused import first, then the whole one
@@ -112,7 +112,7 @@ class PartImportTest {
 
         // A step refused takes out what was written before it
         val whole = document(uri)
-        val part = BackupPart.cut(whole, everything(whole), listOf("key"))
+        val part = BackupPart.cut(whole, everything(whole), listOf("key")) { "Shared zone" }
         // The last tool of a type the app does not know: its creation is refused, after the others
         val tools = part.getJSONObject("data").getJSONArray("tool_instances")
         tools.getJSONObject(tools.length() - 1).put("tooltype", "nothing_such")

@@ -117,6 +117,24 @@ class PartTreeTest {
     }
 
     @Test
+    fun `a zone's details tick apart, with them its identity, without them the zone stays a holder`() {
+        val tree = spoken()
+        val cuisine = tree.zones.first()
+        val nothing = PartSelection(emptySet(), emptyMap(), emptySet(), emptySet(), emptySet())
+        // An element ticked takes the zone as a holder only
+        val element = Ticks.element(nothing, tree, cuisine, cuisine.elements.first { it.id == "meals" }, true)
+        assertTrue("cuisine" in element.zones)
+        assertFalse("cuisine" in element.zoneDetails)
+        val details = Ticks.details(element, tree, cuisine, true)
+        assertEquals(setOf("cuisine"), details.zoneDetails)
+        assertEquals(setOf("coach"), details.identities)
+        val off = Ticks.details(details, tree, cuisine, false)
+        assertEquals(element, off)
+        // The zone's identity ticked alone brings its details
+        assertEquals(setOf("cuisine"), Ticks.element(element, tree, cuisine, cuisine.elements.first { it.id == "coach" }, true).zoneDetails)
+    }
+
+    @Test
     fun `an element ticked takes its zone, unticked leaves it`() {
         val tree = PartTree.of(backup())
         val cuisine = tree.zones.first()

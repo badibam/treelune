@@ -363,5 +363,6 @@ private fun everything(tree: PartTree): PartSelection = PartSelection(
     tree.elements.filter { it.kind == PartElement.Kind.ROUTINE }.map { it.id }.toSet(),
     tree.elements.filter { it.kind == PartElement.Kind.IDENTITY }.map { it.id }.toSet(),
     tree.elements.filter { it.kind == PartElement.Kind.TASK }.map { it.id }.toSet(),
-    tree.apis.map { it.id }.toSet()
+    tree.apis.map { it.id }.toSet(),
+    tree.zones.map { it.id }.toSet()
 )

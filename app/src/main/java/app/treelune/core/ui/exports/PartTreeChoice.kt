@@ -95,6 +95,12 @@ fun PartTreeChoice(
 
             if (zone.id in opened) {
                 Column(modifier = Modifier.padding(start = UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                    // The zone's own details, ticked apart: without them it goes as a bare holder
+                    UI.Checkbox(
+                        checked = zone.id in selection.zoneDetails,
+                        onCheckedChange = { on -> onSelection(Ticks.details(selection, tree, zone, on)) },
+                        label = s.shared("share_zone_details")
+                    )
                     var toolGroup: String? = null
                     zone.elements.forEachIndexed { i, element ->
                         // Likewise in a zone: its identities, first and without a group, stay untitled
@@ -171,7 +177,7 @@ private fun ElementChoice(
 private fun PartTree.Element.part() = PartElement(kind, id)
 
 /**
- * What a tick changes: a zone ticked takes all it holds, its tools without their entries, the
+ * What a tick changes: a zone ticked takes all it holds and its own details, its tools without their entries, the
  * identities it and its routines speak as and the APIs its Tasks call; a zone unticked lets all of
  * it go, an identity another zone ticked speaks as and an API another ticked Task calls staying. An element ticked takes its zone, a routine its identity too;
  * unticked, its zone stays. An API, in no zone, goes or not on its own.
@@ -194,7 +200,8 @@ internal object Ticks {
             selection.routines + routines,
             selection.identities + identities,
             selection.tasks + tasks,
-            selection.apis + apis
+            selection.apis + apis,
+            selection.zoneDetails + zone.id
         ) else PartSelection(
             selection.zones - zone.id,
             selection.tools - tools.toSet(),
@@ -207,16 +214,47 @@ internal object Ticks {
             // An API another ticked Task still calls stays
             selection.apis - apis.filter { api ->
                 tree.links.none { it.to.kind == PartElement.Kind.API && it.to.id == api && it.from.kind == PartElement.Kind.TASK && it.from.id !in tasks && it.from.id in selection.tasks }
-            }.toSet()
+            }.toSet(),
+            selection.zoneDetails - zone.id
         )
     }
+
+    /**
+     * The zone's own details: ticked, the zone with them, and the identity it speaks as; unticked,
+     * the zone stays as a holder, its identity going only if a ticked zone or a routine of a
+     * zone ticked still speaks as it.
+     */
+    fun details(selection: PartSelection, tree: PartTree, zone: PartTree.Zone, on: Boolean): PartSelection {
+        val identity = spokenBy(tree, zone.id)
+        if (on) return selection.copy(zones = selection.zones + zone.id, zoneDetails = selection.zoneDetails + zone.id,
+            identities = identity?.let { selection.identities + it } ?: selection.identities)
+        val details = selection.zoneDetails - zone.id
+        val stillSpoken = identity != null && tree.links.any { link ->
+            link.to == PartElement(PartElement.Kind.IDENTITY, identity) && when (link.from.kind) {
+                PartElement.Kind.ZONE -> link.from.id in details
+                PartElement.Kind.ROUTINE -> tree.zones.any { z -> z.id in selection.zones && z.elements.any { it.kind == PartElement.Kind.ROUTINE && it.id == link.from.id } }
+                else -> false
+            }
+        }
+        return selection.copy(zoneDetails = details, identities = if (identity != null && !stillSpoken) selection.identities - identity else selection.identities)
+    }
+
+    /** The identity zone [zoneId] itself speaks as, if any. */
+    private fun spokenBy(tree: PartTree, zoneId: String): String? =
+        tree.links.firstOrNull { it.from == PartElement(PartElement.Kind.ZONE, zoneId) && it.to.kind == PartElement.Kind.IDENTITY }?.to?.id
 
     fun element(selection: PartSelection, tree: PartTree, zone: PartTree.Zone?, element: PartTree.Element, on: Boolean): PartSelection {
         val zones = if (on && zone != null) selection.zones + zone.id else selection.zones
         return when (element.kind) {
             PartElement.Kind.TOOL -> selection.copy(zones = zones, tools = if (on) selection.tools + (element.id to false) else selection.tools - element.id)
             PartElement.Kind.VARIABLE -> selection.copy(zones = zones, variables = if (on) selection.variables + element.id else selection.variables - element.id)
-            PartElement.Kind.IDENTITY -> selection.copy(zones = zones, identities = if (on) selection.identities + element.id else selection.identities - element.id)
+            PartElement.Kind.IDENTITY -> {
+                // Ticked as the zone's own, without a routine of it that speaks as it: the zone's details with it
+                val zoneOwn = on && zone != null && spokenBy(tree, zone.id) == element.id &&
+                    tree.links.none { it.from.kind == PartElement.Kind.ROUTINE && it.to == PartElement(PartElement.Kind.IDENTITY, element.id) && zone.elements.any { e -> e.kind == PartElement.Kind.ROUTINE && e.id == it.from.id } }
+                selection.copy(zones = zones, identities = if (on) selection.identities + element.id else selection.identities - element.id,
+                    zoneDetails = if (zoneOwn) selection.zoneDetails + zone!!.id else selection.zoneDetails)
+            }
             PartElement.Kind.TASK -> selection.copy(zones = zones, tasks = if (on) selection.tasks + element.id else selection.tasks - element.id)
             PartElement.Kind.API -> selection.copy(apis = if (on) selection.apis + element.id else selection.apis - element.id)
             else -> {

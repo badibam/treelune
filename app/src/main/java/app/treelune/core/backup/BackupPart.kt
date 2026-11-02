@@ -9,7 +9,7 @@ import org.json.JSONObject
  * What is ticked of the app to share (docs/DATA.md, « A part of the app »): zones, and in them tools — each with
  * its entries or without —, variables, routines, Tasks and the identities the zone or its routines
  * speak as; beside the zones, APIs. An element of a zone is kept only with its zone; a zone may be
- * kept alone, empty. The events go with what names them, unticked.
+ * kept alone, empty, and with its own details or as a bare holder. The events go with what names them, unticked.
  */
 data class PartSelection(
     val zones: Set<String>,
@@ -19,11 +19,16 @@ data class PartSelection(
     val routines: Set<String>,
     val identities: Set<String>,
     val tasks: Set<String> = emptySet(),
-    val apis: Set<String> = emptySet()
+    val apis: Set<String> = emptySet(),
+    /**
+     * The zones kept whose own details go too: name, description, appearance, identity and
+     * settings. A zone kept without them goes as a bare holder of what is ticked in it (BackupPart.cut).
+     */
+    val zoneDetails: Set<String> = emptySet()
 ) {
     /**
      * The stored form: `{"zones": [id], "tools": [{"id", "entries"}], "variables": [id],
-     * "routines": [id], "identities": [id], "tasks": [id], "apis": [id]}`.
+     * "routines": [id], "identities": [id], "tasks": [id], "apis": [id], "zone_details": [id]}`.
      */
     fun toJson(): JSONObject = JSONObject()
         .put("zones", JSONArray(zones.toList()))
@@ -33,6 +38,7 @@ data class PartSelection(
         .put("identities", JSONArray(identities.toList()))
         .put("tasks", JSONArray(tasks.toList()))
         .put("apis", JSONArray(apis.toList()))
+        .put("zone_details", JSONArray(zoneDetails.toList()))
 
     /**
      * The selection cut to what [tree] offers: a selection the connector gives may name what no
@@ -42,7 +48,8 @@ data class PartSelection(
         val offered = tree.elements.map { it.id }.toSet()
         return PartSelection(zones.filter { id -> tree.zones.any { it.id == id } }.toSet(), tools.filterKeys { it in offered },
             variables.filter { it in offered }.toSet(), routines.filter { it in offered }.toSet(), identities.filter { it in offered }.toSet(),
-            tasks.filter { it in offered }.toSet(), apis.filter { id -> tree.apis.any { it.id == id } }.toSet())
+            tasks.filter { it in offered }.toSet(), apis.filter { id -> tree.apis.any { it.id == id } }.toSet(),
+            zoneDetails.filter { id -> tree.zones.any { it.id == id } }.toSet())
     }
 
     companion object {
@@ -52,7 +59,7 @@ data class PartSelection(
             val tools = json.getJSONArray("tools").let { array ->
                 (0 until array.length()).associate { array.getJSONObject(it).let { tool -> tool.getString("id") to tool.getBoolean("entries") } }
             }
-            return PartSelection(ids("zones"), tools, ids("variables"), ids("routines"), ids("identities"), ids("tasks"), ids("apis"))
+            return PartSelection(ids("zones"), tools, ids("variables"), ids("routines"), ids("identities"), ids("tasks"), ids("apis"), ids("zone_details"))
         }
     }
 }
@@ -73,6 +80,9 @@ object BackupPart {
     /** The metadata's mark of a part: true, absent from a whole backup. */
     const val PARTIAL = "partial"
 
+    /** The tile of a zone kept without its details: the zones' default (Zone.display_mode). */
+    private const val HOLDER_DISPLAY_MODE = "LINE"
+
     /** Whether the backup [document] is a part. */
     fun isPartial(document: JSONObject): Boolean =
         document.getJSONObject("metadata").optBoolean(PARTIAL, false)
@@ -81,10 +91,12 @@ object BackupPart {
      * [document], a whole backup at the current version, reduced to [selection].
      *
      * @param apiSecrets The names of an API's secret settings (SecretSettings.names of ApiSettings), left out
+     * @param holderName The name of a zone kept without its details: its number among them, in the
+     *   home screen's order, or null when it is the only one
      * @throws IllegalArgumentException when the selection names what the backup does not hold, an
      *   element without its zone, or an identity no zone kept speaks as, nor any of its routines
      */
-    fun cut(document: JSONObject, selection: PartSelection, apiSecrets: List<String>): JSONObject {
+    fun cut(document: JSONObject, selection: PartSelection, apiSecrets: List<String>, holderName: (Int?) -> String): JSONObject {
         val data = document.getJSONObject("data")
         val zones = rows(data, "zones")
         val tools = rows(data, "tool_instances")
@@ -102,6 +114,7 @@ object BackupPart {
         unknown(selection.identities, identities)?.let { throw IllegalArgumentException("No identity $it in the backup") }
         unknown(selection.tasks, tasks)?.let { throw IllegalArgumentException("No Task $it in the backup") }
         unknown(selection.apis, apis)?.let { throw IllegalArgumentException("No API $it in the backup") }
+        selection.zoneDetails.firstOrNull { it !in selection.zones }?.let { throw IllegalArgumentException("The details of the zone $it are kept without the zone") }
         val keptTools = tools.filter { it.getString("id") in selection.tools }
         val keptVariables = variables.filter { it.getString("id") in selection.variables }
         val keptRoutineRows = routines.filter { it.getString("id") in selection.routines }
@@ -109,8 +122,8 @@ object BackupPart {
         (keptTools + keptVariables + keptRoutineRows + keptTasks).firstOrNull { it.getString("zone_id") !in selection.zones }?.let {
             throw IllegalArgumentException("${it.getString("id")} is kept without its zone ${it.getString("zone_id")}")
         }
-        // An identity goes with a zone kept that speaks as it, or one of whose routines does
-        val spoken = (zones.filter { it.getString("id") in selection.zones } + routines.filter { it.getString("zone_id") in selection.zones })
+        // An identity goes with a zone kept with its details that speaks as it, or one of whose routines does
+        val spoken = (zones.filter { it.getString("id") in selection.zoneDetails } + routines.filter { it.getString("zone_id") in selection.zones })
             .mapNotNull { identityOf(it) }.toSet()
         selection.identities.firstOrNull { it !in spoken }?.let { throw IllegalArgumentException("The identity $it is kept without a zone that speaks as it") }
         // What a zone or a routine kept speaks as: its identity when kept, the app's own AI otherwise
@@ -125,12 +138,27 @@ object BackupPart {
         // A zone keeps the tool groups its kept elements hold, in its order
         val heldGroups = keptTools.mapNotNull { tool -> Groups.held(JSONObject(tool.getString("config_json")))?.let { tool.getString("zone_id") to it } } +
             (keptVariables + keptRoutineRows + keptTasks + keptReadouts).mapNotNull { element -> Groups.held(element)?.let { element.getString("zone_id") to it } }
+        // A zone without its details is numbered among the others, in the home screen's order
+        val holders = PartTree.of(document).zones.map { it.id }.filter { it in selection.zones && it !in selection.zoneDetails }
         val keptZones = zones.filter { it.getString("id") in selection.zones }.map { zone ->
             val id = zone.getString("id")
             val groups = ToolPositions.zoneGroups(zone.optString("tool_groups").takeIf { it.isNotEmpty() }).filter { (id to it) in heldGroups }
             copy(zone).apply {
                 if (groups.isEmpty()) remove("tool_groups") else put("tool_groups", JSONArray(groups).toString())
-                put("identity_id", spokenAs(zone))
+                if (id in selection.zoneDetails) put("identity_id", spokenAs(zone))
+                else {
+                    // Only what holds the elements ticked: its home group and place, its tool groups;
+                    // its own name, description, appearance, identity and settings stay home
+                    put("name", holderName(if (holders.size == 1) null else holders.indexOf(id) + 1))
+                    put("description", JSONObject.NULL)
+                    put("icon_name", JSONObject.NULL)
+                    put("icon_color", JSONObject.NULL)
+                    put("texture", JSONObject.NULL)
+                    put("display_mode", HOLDER_DISPLAY_MODE)
+                    put("validate", false)
+                    put("identity_id", JSONObject.NULL)
+                    put("readout_columns", JSONObject.NULL)
+                }
             }
         }
 

@@ -20,7 +20,7 @@ class BackupPartTest {
         data.getJSONArray(table).let { array -> (0 until array.length()).map { array.getJSONObject(it).getString("id") } }
 
     /** A part cut as the app cuts it, an API's key its secret setting. */
-    private fun cut(document: JSONObject, selection: PartSelection): JSONObject = BackupPart.cut(document, selection, listOf("key"))
+    private fun cut(document: JSONObject, selection: PartSelection): JSONObject = BackupPart.cut(document, selection, listOf("key")) { number -> "Shared zone" + (number?.let { " $it" } ?: "") }
 
     private fun row(table: String, data: JSONObject, id: String): JSONObject {
         val array = data.getJSONArray(table)
@@ -111,7 +111,7 @@ class BackupPartTest {
 
     @Test
     fun `an identity ticked goes, its zone and routine speaking as it`() {
-        val data = cut(backup(), PartSelection(setOf("z1"), emptyMap(), emptySet(), setOf("a1"), setOf("i1"))).getJSONObject("data")
+        val data = cut(backup(), PartSelection(setOf("z1"), emptyMap(), emptySet(), setOf("a1"), setOf("i1"), zoneDetails = setOf("z1"))).getJSONObject("data")
         assertEquals(listOf("i1"), ids(data, "identities"))
         assertEquals("i1", row("zones", data, "z1").getString("identity_id"))
         val routine = row("routines", data, "a1")
@@ -127,6 +127,29 @@ class BackupPartTest {
         val whole = backup()
         whole.getJSONObject("data").getJSONArray("zones").getJSONObject(0).put("identity_id", JSONObject.NULL)
         assertEquals(listOf("i1"), ids(cut(whole, PartSelection(setOf("z1"), emptyMap(), emptySet(), emptySet(), setOf("i1"))).getJSONObject("data"), "identities"))
+    }
+
+    @Test
+    fun `a zone goes with its own details only when they are ticked, a bare holder numbered among the others otherwise`() {
+        val whole = backup()
+        whole.getJSONObject("data").getJSONArray("zones").getJSONObject(0).put("description", "Ce que je mange").put("icon_name", "salad").put("validate", true)
+        val detailed = row("zones", cut(whole, PartSelection(setOf("z1"), mapOf("meals" to false), emptySet(), emptySet(), emptySet(), zoneDetails = setOf("z1"))).getJSONObject("data"), "z1")
+        assertEquals("Cuisine", detailed.getString("name"))
+        assertEquals("Ce que je mange", detailed.getString("description"))
+
+        val holder = row("zones", cut(whole, PartSelection(setOf("z1"), mapOf("meals" to false), emptySet(), emptySet(), emptySet())).getJSONObject("data"), "z1")
+        assertEquals("Shared zone", holder.getString("name"))
+        listOf("description", "icon_name", "identity_id").forEach { assertTrue(it, holder.isNull(it)) }
+        assertFalse(holder.getBoolean("validate"))
+        // Its tool groups stay: they are those of what is ticked in it
+        assertEquals(JSONArray(listOf("Repas")).toString(), holder.getString("tool_groups"))
+
+        val two = cut(whole, PartSelection(setOf("z1", "z2"), mapOf("meals" to false), emptySet(), emptySet(), emptySet())).getJSONObject("data")
+        assertEquals("Shared zone 1", row("zones", two, "z1").getString("name"))
+        assertEquals("Shared zone 2", row("zones", two, "z2").getString("name"))
+        // Its identity ticked for its routine, the holder still speaks as nobody
+        assertTrue(row("zones", cut(whole, PartSelection(setOf("z1"), emptyMap(), emptySet(), setOf("a1"), setOf("i1"))).getJSONObject("data"), "z1").isNull("identity_id"))
+        assertThrows(IllegalArgumentException::class.java) { cut(backup(), PartSelection(setOf("z1"), emptyMap(), emptySet(), emptySet(), emptySet(), zoneDetails = setOf("z2"))) }
     }
 
     @Test
@@ -156,7 +179,7 @@ class BackupPartTest {
 
     @Test
     fun `a selection reads back from its stored form`() {
-        val selection = PartSelection(setOf("z1"), mapOf("meals" to true, "foods" to false), setOf("v1"), setOf("a1"), setOf("i1"), setOf("t1"), setOf("api1"))
+        val selection = PartSelection(setOf("z1"), mapOf("meals" to true, "foods" to false), setOf("v1"), setOf("a1"), setOf("i1"), setOf("t1"), setOf("api1"), setOf("z1"))
         assertEquals(selection, PartSelection.read(JSONObject(selection.toJson().toString())))
     }
 

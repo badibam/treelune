@@ -240,7 +240,7 @@ class BackupService(private val context: Context) : ExecutableService {
         // Only what the export's screen would offer: the demo never goes
         val selection = asked.within(app.treelune.core.backup.PartTree.of(whole.json))
         val part = try {
-            app.treelune.core.backup.BackupPart.cut(whole.json, selection, app.treelune.core.secrets.SecretSettings.names(app.treelune.core.apis.ApiSettings.nodes(context)))
+            app.treelune.core.backup.BackupPart.cut(whole.json, selection, app.treelune.core.secrets.SecretSettings.names(app.treelune.core.apis.ApiSettings.nodes(context)), ::holderName)
         } catch (e: IllegalArgumentException) {
             return OperationResult.error(s.shared("share_error_selection").format(e.message ?: ""))
         }
@@ -265,6 +265,10 @@ class BackupService(private val context: Context) : ExecutableService {
         val title = if (zones.length() == 1) zones.getJSONObject(0).getString("name") else s.shared("share_file_name")
         return writeIntoFolder(folder, built, title, token)
     }
+
+    /** The name of a zone shared without its details (BackupPart.cut): numbered when it is one of several. */
+    private fun holderName(number: Int?): String =
+        number?.let { s.shared("share_zone_holder_numbered").format(it) } ?: s.shared("share_zone_holder")
 
     /** The app's folder ready to write in, or why not. */
     private sealed class Folder {
@@ -904,7 +908,7 @@ class BackupService(private val context: Context) : ExecutableService {
             val replaced = params.optJSONArray("replace_identities")?.let { ids -> (0 until ids.length()).map { ids.getString(it) }.toSet() }.orEmpty()
             val replacedApis = params.optJSONArray("replace_apis")?.let { ids -> (0 until ids.length()).map { ids.getString(it) }.toSet() }.orEmpty()
             val part = try {
-                app.treelune.core.backup.BackupPart.cut(document, selection, app.treelune.core.secrets.SecretSettings.names(app.treelune.core.apis.ApiSettings.nodes(context)))
+                app.treelune.core.backup.BackupPart.cut(document, selection, app.treelune.core.secrets.SecretSettings.names(app.treelune.core.apis.ApiSettings.nodes(context)), ::holderName)
             } catch (e: IllegalArgumentException) {
                 return OperationResult.error(s.shared("share_error_selection").format(e.message ?: ""))
             }

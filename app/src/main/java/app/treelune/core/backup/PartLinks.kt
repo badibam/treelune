@@ -98,7 +98,9 @@ object PartLinks {
     fun left(links: Set<PartLink>, selection: PartSelection): Set<PartLink> {
         val carried = carried(links, selection)
         fun goes(element: PartElement) = if (element.kind == PartElement.Kind.EVENT) element.id in carried else kept(element, selection)
-        return links.filterTo(LinkedHashSet()) { goes(it.from) && !goes(it.to) }
+        // A zone names its identity only when its details go: kept as a bare holder it speaks as nobody
+        fun from(element: PartElement) = if (element.kind == PartElement.Kind.ZONE) element.id in selection.zoneDetails else goes(element)
+        return links.filterTo(LinkedHashSet()) { from(it.from) && !goes(it.to) }
     }
 
     /**

@@ -84,12 +84,14 @@ class PartLinksTest {
     }
 
     @Test
-    fun `a zone or a routine without its identity only warns, naming both, and none once it is ticked`() {
+    fun `a zone with its details or a routine without its identity only warns, naming both, and none once it is ticked`() {
         val document = backup()
         val data = document.getJSONObject("data")
         data.getJSONArray("zones").getJSONObject(1).put("identity_id", "i1")
         data.put("identities", JSONArray().put(JSONObject().put("id", "i1").put("name", "Coach")))
-        val sport = PartSelection(setOf("z2"), emptyMap(), emptySet(), emptySet(), emptySet())
+        val sport = PartSelection(setOf("z2"), emptyMap(), emptySet(), emptySet(), emptySet(), zoneDetails = setOf("z2"))
+        // Kept as a bare holder, the zone speaks as nobody: nothing to say
+        assertEquals(emptySet<PartLink>(), PartLinks.of(document, sport.copy(zoneDetails = emptySet())))
         val left = PartLinks.of(document, sport)
         assertEquals(setOf(link(Kind.ZONE, "z2", Kind.IDENTITY, "i1")), left)
         assertFalse(left.single().blocking)

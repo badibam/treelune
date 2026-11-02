@@ -1656,6 +1656,9 @@
     <string name="share_apis_title">APIs</string>
     <string name="share_apis_help">An API\'s key never goes: whoever imports it enters their own.</string>
     <string name="share_task_off">It will arrive switched off, to switch on once read.</string>
+    <string name="share_zone_details">The zone itself: its name, description, appearance, the identity that speaks for it and its settings</string>
+    <string name="share_zone_holder">Shared zone</string>
+    <string name="share_zone_holder_numbered">Shared zone %1$d</string>
     <string name="share_event_arrives">The event “%1$s” of the zone “%2$s” will arrive in this zone, with what names it.</string>
     <string name="share_link_task_to_element">“%1$s” uses “%2$s”. Tick “%2$s” too, or untick “%1$s”.</string>
     <string name="share_link_event_to_element">The event “%1$s”, which goes with what names it, carries “%2$s”. Tick “%2$s” too, or untick what names “%1$s”.</string>

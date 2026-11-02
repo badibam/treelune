@@ -1656,6 +1656,9 @@
     <string name="share_apis_title">API</string>
     <string name="share_apis_help">La clé d\'une API ne part jamais : qui l\'importe saisit la sienne.</string>
     <string name="share_task_off">Elle arrivera éteinte, à allumer une fois relue.</string>
+    <string name="share_zone_details">La zone elle-même : son nom, sa description, son apparence, l\'identité qui parle en son nom et ses réglages</string>
+    <string name="share_zone_holder">Zone partagée</string>
+    <string name="share_zone_holder_numbered">Zone partagée %1$d</string>
     <string name="share_event_arrives">L\'événement « %1$s » de la zone « %2$s » arrivera dans cette zone, avec ce qui le nomme.</string>
     <string name="share_link_task_to_element">« %1$s » utilise « %2$s ». Coche aussi « %2$s », ou décoche « %1$s ».</string>
     <string name="share_link_event_to_element">L\'événement « %1$s », qui part avec ce qui le nomme, porte « %2$s ». Coche aussi « %2$s », ou décoche ce qui nomme « %1$s ».</string>

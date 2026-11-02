@@ -134,7 +134,7 @@ class ShortcutFieldsTest {
         val database = AppDatabase.getDatabase(context)
         val toolsBefore = database.toolInstanceDao().getAllToolInstances().map { it.id }.toSet()
         val entriesBefore = database.toolDataDao().getAllEntries().map { it.id }.toSet()
-        val part = BackupPart.cut(document, PartSelection(setOf(kitchen.zone), mapOf(kitchen.foods to true, kitchen.meals to true), emptySet(), emptySet(), emptySet()), emptyList())
+        val part = BackupPart.cut(document, PartSelection(setOf(kitchen.zone), mapOf(kitchen.foods to true, kitchen.meals to true), emptySet(), emptySet(), emptySet(), zoneDetails = setOf(kitchen.zone)), emptyList()) { "Shared zone" }
         PartImport(context).run(part, Files.importDir(context), emptyMap(), emptySet())
 
         val arrived = database.toolInstanceDao().getAllToolInstances().single { it.tooltype == "tracking" && it.id !in toolsBefore }
