@@ -129,4 +129,13 @@ class PlaceStackTest {
             PlaceStack.moved(stack, Place.Routine("r", "old"), Place.Routine("r", "new")))
         assertEquals(stack, PlaceStack.moved(stack, Place.Task("t", "old"), Place.Task("t", "new")))
     }
+
+    /** A tool's config opened without its page under it, its zone changed: the stack kept, for the back that follows to close the config. */
+    @Test
+    fun `a move of a place not in the stack keeps the stack`() {
+        val config = Place.ToolConfig("z-course", "tracking", "t-runs")
+        Navigator.restore(listOf(home.address, course.address, config.address))
+        Navigator.moved(runs, Place.Tool("t-runs", "z-kitchen"))
+        assertEquals(listOf(home, course, config), Navigator.stack.toList())
+    }
 }

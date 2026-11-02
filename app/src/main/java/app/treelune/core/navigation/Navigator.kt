@@ -163,7 +163,10 @@ object Navigator {
     }
 
     /** The stack becomes [places]; each change logged with the [operation] that made it, to tell what closed a screen. */
-    private fun set(places: List<Place>, operation: String) {
+    private fun set(next: List<Place>, operation: String) {
+        // Copied before the stack is cleared: a move that changes nothing hands back the stack itself
+        // (PlaceStack.moved on a place not in it), which clear() would empty under addAll()
+        val places = next.toList()
         if (places != stack.toList()) {
             app.treelune.core.utils.LogManager.ui("Navigator $operation: ${stack.map { it.address }} -> ${places.map { it.address }}")
         }
