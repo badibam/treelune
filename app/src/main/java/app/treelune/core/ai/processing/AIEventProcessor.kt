@@ -1438,41 +1438,30 @@ class AIEventProcessor(
             if (transformationResult.errors.isNotEmpty()) {
                 LogManager.aiSession("executeDataQueries: ${transformationResult.errors.size} command(s) failed transformation", "WARN")
 
-                // Create FORMAT_ERROR message with detailed errors for AI to see and fix
-                val s = app.treelune.core.strings.Strings.`for`(context = context)
-                val errorDetails = transformationResult.errors.joinToString("; ")
-                val formatErrorMessage = SessionMessage(
-                    id = java.util.UUID.randomUUID().toString(),
-                    timestamp = System.currentTimeMillis(),
-                    sender = MessageSender.SYSTEM,
-                    richContent = null,
-                    textContent = null,
-                    aiMessage = null,
-                    aiMessageJson = null,
-                    systemMessage = app.treelune.core.ai.data.SystemMessage(
-                        type = SystemMessageType.FORMAT_ERROR,
-                        commandResults = emptyList(),
-                        summary = s.shared("ai_command_error_shown"),
-                        formattedData = s.shared("ai_error_command_transformation").format(errorDetails)
-                    ),
-                    executionMetadata = null,
-                    excludeFromPrompt = false // Sent to AI prompt for correction
-                )
-                messageRepository.storeMessage(sessionId, formatErrorMessage)
-
+                // Detailed errors for the AI to see and fix
+                storeCommandError(sessionId, transformationResult.errors.joinToString("; "))
                 emit(AIEvent.ParseErrorOccurred("${transformationResult.errors.size} dataCommands failed transformation"))
                 return
             }
 
             // Execute via CommandExecutor with sessionId for schema deduplication
             val executor = commandExecutor
-            val result = withinAccess(state) { executor.executeCommands(
-                commands = transformationResult.executableCommands,
-                messageType = SystemMessageType.DATA_ADDED,
-                origin = app.treelune.core.coordinator.Source.AI,
-                level = "ai_data",
-                sessionId = sessionId  // Enable schema deduplication
-            ) }
+            val result = try {
+                withinAccess(state) { executor.executeCommands(
+                    commands = transformationResult.executableCommands,
+                    messageType = SystemMessageType.DATA_ADDED,
+                    origin = app.treelune.core.coordinator.Source.AI,
+                    level = "ai_data",
+                    sessionId = sessionId  // Enable schema deduplication
+                ) }
+            } catch (e: CommandExecutor.UnreadableSchema) {
+                // A tool that does not exist (an id mistaken or cut short): the reads are refused
+                // as a command error, which the AI corrects, as the writes are — the session goes on
+                LogManager.aiSession("Reads refused: ${e.message}", "WARN")
+                storeCommandError(sessionId, e.reason)
+                emit(AIEvent.ParseErrorOccurred(e.message ?: "unreadable schema"))
+                return
+            }
 
             // Store SystemMessage with formattedData
             // For DATA_ADDED: rebuild formattedData from promptResults
@@ -1510,6 +1499,31 @@ class AIEventProcessor(
             LogManager.aiSession("executeDataQueries failed: ${e.message}", "ERROR", e)
             emit(AIEvent.SystemErrorOccurred(e.message ?: "Unknown error"))
         }
+    }
+
+    /**
+     * A command refused before it ran, stored for the AI to read and correct ([details], in the
+     * service's words) and shown to the user as a command error.
+     */
+    private suspend fun storeCommandError(sessionId: String, details: String) {
+        val s = app.treelune.core.strings.Strings.`for`(context = context)
+        messageRepository.storeMessage(sessionId, SessionMessage(
+            id = java.util.UUID.randomUUID().toString(),
+            timestamp = System.currentTimeMillis(),
+            sender = MessageSender.SYSTEM,
+            richContent = null,
+            textContent = null,
+            aiMessage = null,
+            aiMessageJson = null,
+            systemMessage = app.treelune.core.ai.data.SystemMessage(
+                type = SystemMessageType.FORMAT_ERROR,
+                commandResults = emptyList(),
+                summary = s.shared("ai_command_error_shown"),
+                formattedData = s.shared("ai_error_command_transformation").format(details)
+            ),
+            executionMetadata = null,
+            excludeFromPrompt = false // Sent to AI prompt for correction
+        ))
     }
 
     /**
@@ -1886,24 +1900,7 @@ class AIEventProcessor(
             commandExecutor.schemaRequiredForActions(writtenTools, createdTypes, sessionId) ?: return false
         } catch (e: CommandExecutor.UnreadableSchema) {
             LogManager.aiSession("Writes refused: ${e.message}", "WARN")
-            val s = app.treelune.core.strings.Strings.`for`(context = context)
-            messageRepository.storeMessage(sessionId, SessionMessage(
-                id = java.util.UUID.randomUUID().toString(),
-                timestamp = System.currentTimeMillis(),
-                sender = MessageSender.SYSTEM,
-                richContent = null,
-                textContent = null,
-                aiMessage = null,
-                aiMessageJson = null,
-                systemMessage = app.treelune.core.ai.data.SystemMessage(
-                    type = SystemMessageType.FORMAT_ERROR,
-                    commandResults = emptyList(),
-                    summary = s.shared("ai_command_error_shown"),
-                    formattedData = s.shared("ai_error_command_transformation").format(e.reason)
-                ),
-                executionMetadata = null,
-                excludeFromPrompt = false
-            ))
+            storeCommandError(sessionId, e.reason)
             emit(AIEvent.ParseErrorOccurred(e.message ?: "unreadable schema"))
             return true
         }
