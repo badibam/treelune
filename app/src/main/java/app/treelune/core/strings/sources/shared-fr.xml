@@ -1382,6 +1382,7 @@
     <string name="reference_kind_zone">Zone</string>
     <string name="reference_kind_tool_instance">Outil</string>
     <string name="reference_kind_entry">Entrée</string>
+    <string name="reference_entry_created">créée le %1$s</string>
     <string name="reference_kind_variable">Variable</string>
     <string name="field_reading_reference">Désigne : %1$s, écrit {"kind", "id"}.</string>
     <string name="field_reading_reference_multiple">Une liste de références, chacune une fois.</string>

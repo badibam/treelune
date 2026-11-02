@@ -52,4 +52,22 @@ class ReferenceChoicesTest {
         assertTrue(running !in zones)
         assertEquals(kitchen, rows(events, "events").single { it["id"] == ready }["zone_id"])
     }
+
+    @Test
+    fun `a tool's entries come the most recent first, with their moment, not by their name`() = runBlocking {
+        val zone = ok("zones.create", mapOf("name" to "Inner"))["zone_id"] as String
+        val sessions = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to "tracking",
+            "config" to mapOf("name" to "Sessions", "type" to "numeric", "value" to mapOf("decimals" to 0), "units" to emptyList<String>())))["tool_instance_id"] as String
+        val day = 24 * 3600 * 1000L
+        val now = System.currentTimeMillis()
+        // Names whose dates sort wrong as text: « 01/11 » before « 28/10 »
+        val older = ok("tool_data.create", mapOf("tool_instance_id" to sessions, "name" to "Session of 28/10", "timestamp" to now - 5 * day, "data" to mapOf("value" to 1)))["id"]
+        val newer = ok("tool_data.create", mapOf("tool_instance_id" to sessions, "name" to "Session of 01/11", "timestamp" to now - day, "data" to mapOf("value" to 1)))["id"]
+
+        val entries = rows(ok("references.choices", mapOf("kinds" to listOf("ENTRY"), "tool_instance_id" to sessions)), "entries")
+        assertEquals(listOf(newer, older), entries.map { it["id"] })
+        assertEquals(now - day, (entries.first()["at"] as Number).toLong())
+        assertEquals(true, entries.first()["dated"])
+        assertEquals(true, entries.first()["named"])
+    }
 }

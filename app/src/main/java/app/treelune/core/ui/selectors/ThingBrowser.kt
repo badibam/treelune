@@ -113,12 +113,20 @@ fun ThingBrowser(path: ThingPath, onPath: (ThingPath) -> Unit, target: Reference
             rows("tool_instances").map { row ->
                 // A tool listed at the app, without its zone reached first, says which it is in
                 val zone = path.zone ?: Named(row["zone_id"] as String, row["zone_name"] as? String ?: "")
-                Place(ThingPath(zone, named(row, tooltype = true)), (row["zone_name"] as? String).takeIf { path.zone == null }, row["group"] as? String,
-                    icon(row), iconColor(row))
+                // Its type under its name, and its zone before it when listed at the app
+                val type = (row["tooltype"] as? String)?.let { app.treelune.core.tools.ToolTypeManager.getToolType(it)?.getDisplayName(context) }
+                val detail = listOfNotNull((row["zone_name"] as? String).takeIf { path.zone == null }, type).joinToString(" · ").ifEmpty { null }
+                Place(ThingPath(zone, named(row, tooltype = true)), detail, row["group"] as? String, icon(row), iconColor(row))
             } +
             rows("variables").map { row -> Place(ThingPath(path.zone, variable = named(row)), s.shared("reference_kind_variable"), row["group"] as? String) } +
             rows("events").takeIf { path.zone != null }.orEmpty().map { row -> Place(ThingPath(path.zone, event = named(row)), s.shared("reference_kind_event"), icon = "zap") } +
-            rows("entries").map { Place(path.copy(entry = named(it))) }
+            rows("entries").map { row ->
+                // Under a name of its own, its moment: its date, or when it has none, its creation
+                val at = (row["at"] as Number).toLong()
+                val detail = if (row["named"] == true) app.treelune.core.utils.DateUtils.formatFullDateTime(at)
+                    .let { if (row["dated"] == true) it else s.shared("reference_entry_created").format(it) } else null
+                Place(path.copy(entry = named(row)), detail)
+            }
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {

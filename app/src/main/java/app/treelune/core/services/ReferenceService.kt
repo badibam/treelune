@@ -102,10 +102,15 @@ class ReferenceService(private val context: Context) : ExecutableService {
                 val tool = tools.firstOrNull { it.id == toolId }
                 val entries = if (tool == null || ReferenceKind.ENTRY !in kinds || (restricted.isNotEmpty() && toolId !in restricted)) emptyList()
                 else database.toolDataDao().getByToolInstance(toolId)
-                    .map { it.id to entryLabel(it) }
-                    .filter { (_, label) -> query.isEmpty() || label.lowercase().contains(query) }
-                    .sortedBy { (_, label) -> label.lowercase() }
-                mapOf("entries" to entries.map { (id, label) -> mapOf("id" to id, "name" to label) })
+                    .filter { query.isEmpty() || entryLabel(it).lowercase().contains(query) }
+                    // The most recent first: by its date, or when it has none, by when it was written
+                    .sortedByDescending { it.timestamp ?: it.createdAt }
+                // Each with its moment, `dated` saying whether it is its date or its creation, and
+                // whether it has a name of its own, the label being that moment otherwise
+                mapOf("entries" to entries.map { entry ->
+                    mapOf("id" to entry.id, "name" to entryLabel(entry), "at" to (entry.timestamp ?: entry.createdAt),
+                        "dated" to (entry.timestamp != null), "named" to !entry.name.isNullOrBlank())
+                })
             }
             zoneId != null -> {
                 // The zone's groups, as its screen orders them; a group it no longer has is none
