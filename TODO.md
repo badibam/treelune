@@ -92,7 +92,7 @@ Codé, jamais vu sur l'appareil.
 
 ## À concevoir
 
-
+- La suppression d'une copie quand sa source est supprimée (une séance d'Hypnose supprimée, sa ligne de Décrochage qui reste), dans la même Tâche que la copie. Proposition, non retenue faute de confiance : « Seulement si » qui teste ce qui est arrivé à l'entrée reçue (créée, modifiée, supprimée) ; dans une Tâche, la valeur d'un filtre qui pointe ce que pointe un « Seulement si » (l'entrée reçue, le résultat d'une étape) ; une étape « Supprimer des entrées » qui supprime ce qu'une sélection d'entrées désigne (« Décrochage, source = l'entrée reçue »), d'une seule étape de l'historique.
 - La carte de l'installation, seconde source de l'outil Schéma (`docs/design/schema.md`, « Ouvert ») : une fois le schéma écrit vu sur le téléphone.
 
 ## Dette de code
