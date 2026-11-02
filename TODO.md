@@ -17,6 +17,12 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 (titre à laisser en place, même une fois la section vidée - section ciblée par le script d'import depuis l'appareil :)
 ## En provenance du tel
 
+- Export partiel : les zones hors apparaissent comme si elles étaient dans le dernier groupe(pas d mention d hord groupe). Verifier aussi outils hors groupe
+- Export d'un outil : ça envoie aussi la zone avec sa description etc, c'est embêtant
+- J'ai déplacé une séance d'hypnose à la veille car je l'ai faite dans la nuit et je voylais que ça compte piur hier. Ça n'a pas mis à jour le suivi de décrochage, ni pour aujourd'hui ni pour hier. Est-ce qu'on pourrait imaginer un pattern + robuste ?
+- Le dispatch du questionnaire du matin n'a pas fonctionné on dirait. J'avais oublié de noter le cohcer donc il n'a pas pu calculer un truc (au fait, comment éviter cet oubli ? Plusieurs options).. Mais du coup le pied non plus n'a pas été enregistré ?
+- Dans sélecteur du pointeur : les titres d'outuls devraient être accompagnés d tpe d'outil. Et au niveau entrée les titre sont classés par nom, mais les titres contiennenet des dates (seances hypnose) alors ça ne va pas. (Peut etre à revoir côté outils d'hypnose)
+- Erreur du fournisseur ia a fermé la fenetre (chat de 8h40 environ oe 02/11)
 
 ## Bugs
 

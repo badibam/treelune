@@ -49,10 +49,11 @@ fun PartTreeChoice(
     val arrivals = tree.eventArrivals(selection)
     var group: String? = null
     tree.zones.forEachIndexed { index, zone ->
-        // A home group's title above its first zone
-        if (zone.group != null && (index == 0 || zone.group != group)) {
+        // A home group's title above its first zone; "Ungrouped" above the zones without one, which
+        // come after every group — without it they would read as the last group's
+        if ((zone.group != null && (index == 0 || zone.group != group)) || (zone.group == null && group != null)) {
             UI.Card(type = CardType.SECTION_HEADER) {
-                Box(modifier = Modifier.fillMaxWidth().padding(UI.Space.M)) { UI.Text(zone.group, TextType.HEADING) }
+                Box(modifier = Modifier.fillMaxWidth().padding(UI.Space.M)) { UI.Text(zone.group ?: s.shared("label_ungrouped"), TextType.HEADING) }
             }
         }
         group = zone.group
@@ -96,7 +97,9 @@ fun PartTreeChoice(
                 Column(modifier = Modifier.padding(start = UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
                     var toolGroup: String? = null
                     zone.elements.forEachIndexed { i, element ->
-                        if (element.group != null && (i == 0 || element.group != toolGroup)) UI.Text(element.group, TextType.LABEL)
+                        // Likewise in a zone: its identities, first and without a group, stay untitled
+                        if ((element.group != null && (i == 0 || element.group != toolGroup)) || (element.group == null && toolGroup != null))
+                            UI.Text(element.group ?: s.shared("label_ungrouped"), TextType.LABEL)
                         toolGroup = element.group
                         ElementChoice(tree, zone, element, selection, onSelection, left, elementExtra)
                     }
