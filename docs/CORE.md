@@ -31,7 +31,7 @@ A compound word become a term of the domain is written joined — `tooltype`, li
 The rule holds for the whole project and lives in `docs/reference.md`, kept by `./scripts/check_key_case.py`. The JSON written before it is converted by migration 26→27, which reads its table of correspondences in `KeyCaseRenames` — the same as the backup import.
 
 ### Complete CRUD operations of ToolDataService
-**Operations available**: create, update, delete, get (with pagination), get_single (by ID), stats, delete_all, batch_create, batch_update, batch_delete
+**Operations available**: create, update, delete, get (with pagination), get_single (by ID), stats, batch_create, batch_update, batch_delete
 
 **Batch operations**: all the AI's data operations use the batch operations by default for efficiency. The batches reuse the logic of the single operations for consistency. A batch reads once the entries of each tool it writes and keeps them up to date in memory (unique names, rule between entries), then notifies the screens once per tool at its end; its result gives each refusal by its place in the batch (`refusals`: `index`, `error`).
 

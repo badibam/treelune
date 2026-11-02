@@ -65,14 +65,6 @@ class Writes(private val context: Context) {
 
     suspend fun deleteEntry(id: String) = delete(CoveredTable.TOOL_DATA, id) { database.toolDataDao().deleteById(id) }
 
-    /** Deletes every entry of the tool [toolInstanceId], each kept with what goes along with it. */
-    suspend fun deleteEntriesOf(toolInstanceId: String) = database.transaction {
-        val gone = Rows.read(database, CoveredTable.TOOL_DATA, "tool_instance_id", toolInstanceId)
-            .flatMap { descent(CoveredTable.TOOL_DATA, it.getString("id")) }
-        database.toolDataDao().deleteByToolInstance(toolInstanceId)
-        record(gone)
-    }
-
     // ── Variables ──
 
     suspend fun insertVariable(variable: VariableEntity) = write(CoveredTable.VARIABLES, variable.id) { database.variableDao().insert(variable) }

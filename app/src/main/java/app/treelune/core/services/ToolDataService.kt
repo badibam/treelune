@@ -76,7 +76,6 @@ class ToolDataService(private val context: Context) : ExecutableService {
                 "values" -> getValues(params, token)     // The values a text field holds, to pick one in a filter
                 "writable" -> getWritable(params, token) // The fields a caller fills, and those the app writes
                 "get_single" -> getSingleEntry(params, token)  // GET single entry by ID
-                "delete_all" -> deleteAllEntries(params, token)  // POST /tool_data/delete_all
                 "batch_create" -> batchCreateEntries(params, token)  // Batch create multiple entries
                 "batch_update" -> batchUpdateEntries(params, token)  // Batch update multiple entries
                 "batch_delete" -> batchDeleteEntries(params, token)  // Batch delete multiple entries
@@ -717,36 +716,6 @@ class ToolDataService(private val context: Context) : ExecutableService {
             ?: return OperationResult.error(s.shared("service_error_entry_not_found").format(entryId))
 
         return OperationResult.success(data = mapOf("entry" to ToolDataEntries.toMap(entity)))
-    }
-
-    private suspend fun deleteAllEntries(params: JSONObject, token: CancellationToken): OperationResult {
-        if (token.isCancelled) return OperationResult.cancelled()
-
-        val toolInstanceId = params.optString("tool_instance_id")
-        if (toolInstanceId.isEmpty()) {
-            return OperationResult.error(s.shared("service_error_missing_tool_instance_id"))
-        }
-
-        // Verify tool instance exists (MAJOR: AI must know if toolInstanceId is invalid)
-        val database = AppDatabase.getDatabase(context)
-        val toolInstanceDao = database.toolInstanceDao()
-        val toolInstance = toolInstanceDao.getToolInstanceById(toolInstanceId)
-            ?: return OperationResult.error(s.shared("service_error_tool_instance_not_found").format(toolInstanceId))
-
-        val dao = getToolDataDao()
-        val deletedCount = dao.countByToolInstance(toolInstanceId) // Count before deletion
-        writes.deleteEntriesOf(toolInstanceId)
-
-        // Notify UI of data change in this tool instance
-        val zoneId = getZoneIdForTool(toolInstanceId)
-        if (zoneId != null) {
-            DataChangeNotifier.notifyToolDataChanged(toolInstanceId, zoneId)
-        }
-
-        return OperationResult.success(mapOf(
-            "deleted_count" to deletedCount,
-            "tool_instance_id" to toolInstanceId
-        ))
     }
 
     /**

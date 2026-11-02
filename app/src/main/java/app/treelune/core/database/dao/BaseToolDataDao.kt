@@ -47,12 +47,6 @@ abstract class BaseToolDataDao {
     abstract suspend fun deleteById(id: String)
 
     /**
-     * Deletes all entries for a tool instance
-     */
-    @Query("DELETE FROM tool_data WHERE tool_instance_id = :toolInstanceId")
-    abstract suspend fun deleteByToolInstance(toolInstanceId: String)
-
-    /**
      * Counts entries for a tool instance
      */
     /** Per tool, how many entries other than [id] hold [id] in their data or their fields (a REFERENCE designating it). */
