@@ -17,8 +17,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 (titre à laisser en place, même une fois la section vidée - section ciblée par le script d'import depuis l'appareil :)
 ## En provenance du tel
 
-- Export partiel : les zones hors apparaissent comme si elles étaient dans le dernier groupe(pas d mention d hord groupe). Verifier aussi outils hors groupe
-- Export d'un outil : ça envoie aussi la zone avec sa description etc, c'est embêtant
 - J'ai déplacé une séance d'hypnose à la veille car je l'ai faite dans la nuit et je voylais que ça compte piur hier. Ça n'a pas mis à jour le suivi de décrochage, ni pour aujourd'hui ni pour hier. Est-ce qu'on pourrait imaginer un pattern + robuste ?
 - Le dispatch du questionnaire du matin n'a pas fonctionné on dirait. J'avais oublié de noter le cohcer donc il n'a pas pu calculer un truc (au fait, comment éviter cet oubli ? Plusieurs options).. Mais du coup le pied non plus n'a pas été enregistré ?
 - Dans sélecteur du pointeur : les titres d'outuls devraient être accompagnés d tpe d'outil. Et au niveau entrée les titre sont classés par nom, mais les titres contiennenet des dates (seances hypnose) alors ça ne va pas. (Peut etre à revoir côté outils d'hypnose)
@@ -35,6 +33,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- L'export d'une partie : « Hors groupe » au-dessus des zones et des outils sans groupe qui suivent un groupe ; « La zone elle-même » en tête d'une zone ouverte, cochée avec la zone entière, décochée quand on ne coche qu'un outil, la zone partie en « Zone partagée » (numérotée à plusieurs) sans description, icône, identité ni « valider », puis importée ; la même case à l'import.
 - Une partie de plusieurs zones importée : ses zones en bloc sous la dernière ligne de leur section, côte à côte si elles l'étaient, une ligne sautée refermée, les tiennes à leur place.
 - « Hors groupe » vide masqué à côté des groupes, sur l'accueil et dans une zone ; une zone ou un outil sans groupe qui le fait apparaître ; sans groupe du tout, la section seule toujours là ; l'étape « Crée ta propre zone » du Guide qui montre le + en haut.
 - Une réponse de l'IA coupée par sa longueur maximale (un fournisseur réglé bas, une demande de dix entrées longues) : « coupée… relancée une fois », la reprise plus courte, son coût compté ; coupée deux fois, l'arrêt et le renvoi au réglage ; dans une routine aussi.
