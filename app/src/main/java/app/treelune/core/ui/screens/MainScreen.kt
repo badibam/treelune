@@ -442,38 +442,37 @@ private fun rememberZones(onError: (String) -> Unit): ZonesState {
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val state = remember { ZonesState() }
-    suspend fun readZones() {
-        coordinator.executeWithLoading(
+    /**
+     * The zones and the groups, both read before either is shown: zones shown against groups not
+     * read yet (at the start, or a group just added) would each hold a group the home screen does
+     * not have, logged as a bug at every drawing.
+     */
+    suspend fun read() {
+        val zones = coordinator.executeWithLoading(
             operation = "zones.list",
             params = mapOf("include_position" to true),
             onLoading = {},
             onError = onError
-        )?.let { result ->
-            state.list = result.mapData("zones") { zoneFrom(it) }
-            // Every zone named for the breadcrumb, where a tool stacked alone names its zone
-            state.list.forEach { Navigator.name(Place.Zone(it.id), it.name) }
-        }
-    }
-    suspend fun readGroups() {
-        coordinator.executeWithLoading(
+        )?.mapData("zones") { zoneFrom(it) } ?: return
+        val groups = coordinator.executeWithLoading(
             operation = "app_config.get",
             params = mapOf("category" to AppSettingCategories.MAIN_SCREEN),
             onLoading = {},
             onError = onError
-        )?.let { result ->
-            state.groups = ((result.data?.get("settings") as Map<*, *>)["zone_groups"] as List<*>).map { it as String }
-        }
+        )?.let { result -> ((result.data?.get("settings") as Map<*, *>)["zone_groups"] as List<*>).map { it as String } } ?: return
+        state.groups = groups
+        state.list = zones
+        // Every zone named for the breadcrumb, where a tool stacked alone names its zone
+        zones.forEach { Navigator.name(Place.Zone(it.id), it.name) }
     }
     LaunchedEffect(Unit) {
-        readZones()
-        readGroups()
+        read()
         state.loaded = true
     }
     LaunchedEffect(Unit) {
         DataChangeNotifier.changes.collect { event ->
             when (event) {
-                is DataChangeEvent.ZonesChanged -> readZones()
-                is DataChangeEvent.AppConfigChanged -> readGroups()
+                is DataChangeEvent.ZonesChanged, is DataChangeEvent.AppConfigChanged -> read()
                 else -> {}
             }
         }
