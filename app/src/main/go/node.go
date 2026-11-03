@@ -425,12 +425,18 @@ func serve(w http.ResponseWriter, r *http.Request) {
 		mu.Unlock()
 	}()
 
+	// What became of each answer goes to the app's log: Kotlin logs the answer it hands over, and
+	// only the node knows whether it reached the connection — a client's error (a proxy's 502)
+	// is placed by these lines on this side of the Funnel or beyond it
+	began := time.Now()
+	request := r.Method + " " + r.URL.Path
 	deadline := time.NewTimer(replyTimeout)
 	defer deadline.Stop()
 	select {
 	case queue <- p:
 	case <-deadline.C:
 		http.Error(w, "no answer from the app", http.StatusServiceUnavailable)
+		say("%s %s: not taken by the app within %s, 503", request, id, replyTimeout)
 		return
 	}
 	select {
@@ -439,10 +445,21 @@ func serve(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set(k, v)
 		}
 		w.WriteHeader(resp.status)
-		w.Write(resp.body)
+		written, err := w.Write(resp.body)
+		if err == nil {
+			// Pushed out now, so that a broken connection shows here rather than when the handler returns
+			err = http.NewResponseController(w).Flush()
+		}
+		if err != nil {
+			say("%s %s: answer %d lost after %d of %d bytes, %s: %v", request, id, resp.status, written, len(resp.body), time.Since(began).Round(time.Millisecond), err)
+		} else {
+			say("%s %s: answer %d written, %d bytes, %s", request, id, resp.status, written, time.Since(began).Round(time.Millisecond))
+		}
 	case <-deadline.C:
 		http.Error(w, "no answer from the app", http.StatusServiceUnavailable)
+		say("%s %s: no answer from the app within %s, 503", request, id, replyTimeout)
 	case <-r.Context().Done():
+		say("%s %s: the client left after %s, before the app answered: %v", request, id, time.Since(began).Round(time.Millisecond), context.Cause(r.Context()))
 	}
 }
 

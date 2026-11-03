@@ -99,6 +99,15 @@ object TailscaleNode {
         data class Failed(val message: String) : NodeState
     }
 
+    /**
+     * Hands the node's messages to the app's log: once the address is published nothing reads the
+     * state any more, and what the node says of each answer (written, lost, client gone) would
+     * wait there until the access closes.
+     */
+    fun flushLog() {
+        read()
+    }
+
     /** The node's state, its messages handed to the app's log on the way. */
     private fun read(): NodeState {
         val json = JSONObject(FunnelNative.state())

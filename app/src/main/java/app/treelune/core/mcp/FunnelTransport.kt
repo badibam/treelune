@@ -58,6 +58,8 @@ object FunnelNative {
 class FunnelTransport : RelayTransport {
 
     override suspend fun next(waitSeconds: Int): HttpRequest? = withContext(Dispatchers.IO) {
+        // What the node said of the previous answers, before waiting for the next request
+        TailscaleNode.flushLog()
         FunnelNative.next(waitSeconds).takeIf { it.isNotEmpty() }?.let { HttpRequest.fromJson(JSONObject(it)) }
     }
 
