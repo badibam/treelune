@@ -162,7 +162,14 @@ fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onCo
         val open = openId?.let { id -> loaded.find { it.id == id } }
         if (open != null) {
             EntryView(open, title(open), loadedConfig, questions, s) { answers ->
-                write({ coordinator.processUserAction("tool_data.update", mapOf("id" to open.id, "extra" to answers)) })
+                write({
+                    val saved = coordinator.processUserAction("tool_data.update", mapOf("id" to open.id, "extra" to answers))
+                    // An ignored or expired entry answered afterwards is filled: what listens to the
+                    // questionnaire's filled entries (a routine, a Task) then starts as for any other
+                    val answered = open.status == QuestionnaireToolType.Status.IGNORED || open.status == QuestionnaireToolType.Status.EXPIRED
+                    if (saved.isSuccess && answered) coordinator.processUserAction("questionnaire.complete", mapOf("tool_instance_id" to toolInstanceId, "id" to open.id))
+                    else saved
+                })
             }
             return@Column
         }

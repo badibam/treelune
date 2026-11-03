@@ -28,6 +28,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- Un questionnaire ignoré par erreur (« Avant la séance »), rouvert dans son historique et modifié : « Rempli » après l'enregistrement, et « Préparer la séance » qui part ; une entrée déjà remplie corrigée, qui ne relance pas de séance.
 - L'export d'une partie : « Hors groupe » au-dessus des zones et des outils sans groupe qui suivent un groupe ; « La zone elle-même » en tête d'une zone ouverte, cochée avec la zone entière, décochée quand on ne coche qu'un outil, la zone partie en « Zone partagée » (numérotée à plusieurs) sans description, icône, identité ni « valider », puis importée ; la même case à l'import.
 - Une lecture de l'IA sur un outil qui n'existe pas (un identifiant de zone pris pour un outil, ou coupé) : la conversation qui continue, l'erreur de commande montrée, l'IA qui se corrige — elle fermait la conversation (vu le 2026-11-02 au matin, `0a4d0ff9`).
 - Le sélecteur de pointeurs : le type sous le nom de chaque outil (« Racines · Fiche » quand la zone est dite) ; les entrées d'un outil les plus récentes d'abord, leur date sous leur nom, « créée le … » pour une entrée sans date (une fiche de Séances d'hypnose).
