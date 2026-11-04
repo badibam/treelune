@@ -13,7 +13,9 @@ import app.treelune.core.database.entities.ToolInstance
  * says which. Its row goes with its owner by cascade.
  *
  * Its kind and format are settled once, when the file is set aside; the path follows from the
- * owner's kind, the id and the format: none is stored. The file is written before the row and
+ * owner's kind, the id and the format: none is stored. A linked file ([uri]) has no file of the
+ * app: the row is its link to a file of the phone, in a folder opened to the app, which the app
+ * reads where it is and never writes nor deletes (docs/design/linked-files.md). The file is written before the row and
  * deleted after it, so an orphan can only be a file, which the startup sweep removes; a row
  * without its file is an error, never repaired.
  */
@@ -64,7 +66,9 @@ data class FileEntity(
     @ColumnInfo(name = "duration_ms") val durationMs: Long?,
     /** A text's lines; null for any other kind */
     @ColumnInfo(name = "line_count") val lineCount: Int?,
-    @ColumnInfo(name = "created_at") val createdAt: Long
+    @ColumnInfo(name = "created_at") val createdAt: Long,
+    /** The address of the phone's file it links to, read where it is; null for a file the app keeps */
+    val uri: String? = null
 ) {
     init {
         require(listOfNotNull(sessionId, entryId, toolInstanceId).size == 1) { "File $id: one owner, a session, an entry or a tool" }
@@ -77,6 +81,9 @@ data class FileEntity(
             FileEntity(id, sessionId, entryId, toolInstanceId, FileKind.IMAGE.name, format.name, null, sizeBytes, width, height, null, null, createdAt)
     }
 }
+
+/** Whether it links to a file of the phone rather than keeping one. */
+val FileEntity.isLinked: Boolean get() = uri != null
 
 /** The format its file is written as. */
 val FileEntity.fileFormat: FileFormat get() = FileFormat.valueOf(format)
@@ -122,6 +129,14 @@ interface FileDao {
         WHERE instr(tool_instances.config_json, files.id) = 0
     """)
     suspend fun unnamedByTheirTool(): List<FileEntity>
+
+    /** How many links designate a file of the folder whose tree is [tree] (its documents' addresses begin with it). */
+    @Query("SELECT COUNT(*) FROM files WHERE substr(uri, 1, length(:tree) + 10) = :tree || '/document/'")
+    suspend fun countLinkedIn(tree: String): Int
+
+    /** Every link, to tell those the phone no longer has. */
+    @Query("SELECT * FROM files WHERE uri IS NOT NULL")
+    suspend fun getLinked(): List<FileEntity>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(file: FileEntity)

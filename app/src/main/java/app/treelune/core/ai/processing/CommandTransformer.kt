@@ -126,6 +126,11 @@ object CommandTransformer {
                     "IMAGES" -> (command.params["ids"] as? List<*>)?.let { ids ->
                         ExecutableCommand(resource = "files", operation = "show_images", params = mapOf("ids" to ids))
                     }
+                    // The folders opened to the app and what they hold, then a file of them prepared as a link
+                    "FOLDERS" -> ExecutableCommand(resource = "files", operation = "folders",
+                        params = command.params.filterKeys { it == "folder_id" || it == "path" }.filterValues { it is String }.mapValues { it.value!! })
+                    "LINK_FILE" -> ExecutableCommand(resource = "files", operation = "link",
+                        params = command.params.filterKeys { it == "folder_id" || it == "path" }.filterValues { it is String }.mapValues { it.value!! })
                     "IMPORT_PLAN" -> transformImportPlanCommand(command)
                     // The identities (docs/AI.md, « Identities »): a null, an id missing, is said by the loop as invalid params
                     "IDENTITIES" -> ExecutableCommand(resource = "identities", operation = "list", params = emptyMap())

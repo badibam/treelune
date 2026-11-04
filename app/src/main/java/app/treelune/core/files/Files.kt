@@ -16,7 +16,11 @@ import java.io.File
  *   entry or a tool goes by many paths (itself, its tool, its zone), its rows by cascade, its
  *   files at the next startup sweep (INFO);
  * - `files/attachments/pending/`: a file prepared in a form, owned by no row until the entry
- *   is written, which moves it into `entries/`; one the form never wrote is swept (INFO).
+ *   is written, which moves it into `entries/`; one the form never wrote is swept (INFO). A link
+ *   prepared waits there too, as `<id>.link` (LinkedFiles), the description of the phone's file.
+ *
+ * A linked file (FileEntity.uri) has no file here: it is read where it is, through its address
+ * ([Source]), and never written nor deleted by the app (docs/design/linked-files.md).
  */
 object Files {
 
@@ -25,6 +29,7 @@ object Files {
     private const val PENDING = "pending"
     private const val PART = ".part"
     private const val NAME = ".name"
+    private const val LINK = ".link"
 
     /** The folder of the messages' files, holding the two others. */
     fun dir(context: Context): File = File(context.filesDir, DIR)
@@ -33,9 +38,28 @@ object Files {
 
     fun pendingDir(context: Context): File = File(dir(context), PENDING)
 
-    /** The file of [row], in its owner's folder. */
-    fun file(context: Context, row: FileEntity): File =
-        File(if (row.sessionId == null) entriesDir(context) else dir(context), row.fileFormat.fileName(row.id))
+    /**
+     * The file of [row], in its owner's folder.
+     *
+     * @throws IllegalStateException for a linked file, which has none of the app's
+     */
+    fun file(context: Context, row: FileEntity): File {
+        check(!row.isLinked) { "File ${row.id}: a link, read through its address (Files.source)" }
+        return File(if (row.sessionId == null) entriesDir(context) else dir(context), row.fileFormat.fileName(row.id))
+    }
+
+    /**
+     * Where a file is read from: [file], one the app keeps, or only [uri], the address of a
+     * linked file of the phone. A player or a reader that takes an address reads both by [uri].
+     */
+    class Source(val file: File?, val uri: android.net.Uri)
+
+    /** The source of [row]: its file, kept or linked; null when it cannot be read (a link whose file is gone). */
+    fun source(context: Context, row: FileEntity): Source? {
+        val linked = row.uri ?: return file(context, row).takeIf { it.exists() }?.let { Source(it, android.net.Uri.fromFile(it)) }
+        val uri = android.net.Uri.parse(linked)
+        return Source(null, uri).takeIf { LinkedFiles.readable(context, uri) }
+    }
 
     /** The file of a message's file [id], written as [format]. */
     fun sessionFile(context: Context, id: String, format: FileFormat): File = File(dir(context), format.fileName(id))
@@ -44,35 +68,51 @@ object Files {
     fun pendingFile(context: Context, id: String): File? =
         FileFormat.entries.map { File(pendingDir(context), it.fileName(id)) }.firstOrNull { it.exists() }
 
+    /** Where the link prepared as [id] waits (LinkedFiles), the description of the file it designates. */
+    fun pendingLink(context: Context, id: String): File = File(pendingDir(context), "$id$LINK")
+
     /** Where the name of the file prepared as [id] waits beside it, for a file that came with one. */
     fun pendingName(context: Context, id: String): File = File(pendingDir(context), "$id$NAME")
 
     /**
-     * The file [id] wherever it is: its row's, or the one a form prepared. Null when neither
-     * exists: a row without its file is an error the caller says.
+     * The file [id] wherever it is: its row's, or the one a form prepared, a link prepared
+     * included. Null when none can be read: a row without its file is an error the caller says,
+     * a link whose file is gone is the phone's state ([isLink] tells the two apart).
      */
-    suspend fun locate(context: Context, id: String): File? {
-        AppDatabase.getDatabase(context).fileDao().getById(id)?.let { return file(context, it).takeIf { it.exists() } }
-        return pendingFile(context, id)
+    suspend fun locate(context: Context, id: String): Source? {
+        AppDatabase.getDatabase(context).fileDao().getById(id)?.let { return source(context, it) }
+        LinkedFiles.pending(context, id)?.let { (uri, _) -> return Source(null, uri).takeIf { LinkedFiles.readable(context, uri) } }
+        return pendingFile(context, id)?.let { Source(it, android.net.Uri.fromFile(it)) }
     }
 
-    /** A kept file found: where it is, and what is known of it. */
-    class Found(val file: File, val description: FileDescription)
+    /** Whether [id] is a link, kept or prepared: one that cannot be read is then « not found », not an error of the app. */
+    suspend fun isLink(context: Context, id: String): Boolean =
+        AppDatabase.getDatabase(context).fileDao().getById(id)?.isLinked ?: pendingLink(context, id).exists()
+
+    /** A file found: where it is read from, and what is known of it. */
+    class Found(val source: Source, val description: FileDescription) {
+        /** Its file of the app; a linked file has none, and is never an image or a text (LinkedFiles.KINDS). */
+        val file: File get() = source.file ?: error("A linked ${description.kind} has no file of the app")
+    }
 
     /**
      * The file [id] wherever it is, with its description: its row's, or, for one a form prepared,
-     * read from its file and its name beside it. Null when neither exists, or a prepared file no
-     * longer reads as its kind: a row without its file is an error the caller says.
+     * read from its file and its name beside it, or from the link prepared. Null when none can be
+     * read, or a prepared file no longer reads as its kind: a row without its file is an error the
+     * caller says, a link whose file is gone the phone's state ([isLink]).
      */
     suspend fun inspect(context: Context, id: String): Found? {
         AppDatabase.getDatabase(context).fileDao().getById(id)?.let { row ->
-            return file(context, row).takeIf { it.exists() }?.let { Found(it, FileDescription.of(row)) }
+            return source(context, row)?.let { Found(it, FileDescription.of(row)) }
+        }
+        LinkedFiles.pending(context, id)?.let { (uri, description) ->
+            return Found(Source(null, uri), description).takeIf { LinkedFiles.readable(context, uri) }
         }
         val pending = pendingFile(context, id) ?: return null
         val format = FileFormat.ofExtension(pending.extension) ?: return null
         val name = pendingName(context, id).takeIf { it.exists() }?.readText(Charsets.UTF_8)
         return try {
-            Found(pending, FileDescription.read(pending, format, name))
+            Found(Source(pending, android.net.Uri.fromFile(pending)), FileDescription.read(pending, format, name))
         } catch (e: IllegalArgumentException) {
             LogManager.service("File $id prepared but no longer read: ${e.message}", "ERROR")
             null
@@ -123,8 +163,10 @@ object Files {
         check(part.renameTo(target)) { "File ${target.name}: ${part.name} not renamed" }
     }
 
-    /** The file of [row] deleted; one already gone is no error. */
-    fun delete(context: Context, row: FileEntity) = deleteFile(file(context, row))
+    /** The file of [row] deleted; one already gone is no error. A link's file is the phone's, never touched. */
+    fun delete(context: Context, row: FileEntity) {
+        if (!row.isLinked) deleteFile(file(context, row))
+    }
 
     fun deleteFile(file: File) {
         if (file.exists() && !file.delete()) LogManager.service("File ${file.name} not deleted", "ERROR")
@@ -204,7 +246,7 @@ object Files {
         }
 
         val rows = dao.getAll()
-        fun names(owned: List<FileEntity>) = owned.map { it.fileFormat.fileName(it.id) }.toSet()
+        fun names(owned: List<FileEntity>) = owned.filter { !it.isLinked }.map { it.fileFormat.fileName(it.id) }.toSet()
         // A file is named by its row's id and its format's extension
         fun keptByHistory(name: String) = name.substringBeforeLast('.') in kept
 

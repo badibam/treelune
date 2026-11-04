@@ -5,7 +5,7 @@ Conception du 2026-11-04. Une bibliothèque d'audios de séances, plusieurs Go d
 ## Décisions
 
 - **Un réglage du champ Fichier**, `storage` : `copied` (par défaut, ce qui existe) ou `linked`. Tous les fichiers d'un champ sont de même nature. Un champ qui change de mode garde ses fichiers tels qu'ils sont, seuls les ajouts suivent le nouveau.
-- **Un fichier lié vient toujours d'un dossier ouvert à l'app**, depuis l'écran comme depuis le connecteur : un seul droit, celui du dossier. En mode lié, la saisie ne propose que ce choix, par un navigateur des dossiers ouverts : ni photo, ni vidéo filmée, ni son enregistré, qui n'ont pas de place durable hors de l'app, ni le sélecteur de fichiers d'Android, qui laisserait prendre un fichier hors d'eux. Les types acceptés restent ceux du champ (`kinds`), et les formats ceux de `FileFormat`. Une image liée se montre telle qu'elle est, jamais réduite (comme « Garder l'original »).
+- **Un fichier lié vient toujours d'un dossier ouvert à l'app**, depuis l'écran comme depuis le connecteur : un seul droit, celui du dossier. En mode lié, la saisie ne propose que ce choix, par un navigateur des dossiers ouverts : ni photo, ni vidéo filmée, ni son enregistré, qui n'ont pas de place durable hors de l'app, ni le sélecteur de fichiers d'Android, qui laisserait prendre un fichier hors d'eux. Un champ en mode lié ne prend qu'un son ou une vidéo (`LinkedFiles.KINDS`) : une image ou un texte est petit, et tous leurs lecteurs (vignettes, orientation, réduction pour l'IA, lecture par lignes) lisent un fichier de l'app.
 - **Des dossiers ouverts à l'app**, dans Réglages › Données : choisis par le sélecteur de dossiers d'Android, en lecture seule, retirables.
 - **Un lien est l'adresse Android du fichier dans l'arbre de son dossier ouvert** (une URI `content://`, `DocumentsContract.buildDocumentUriUsingTree`), la même qu'il vienne de l'écran ou du connecteur.
 - **Un fichier lié qui ne se lit plus est « introuvable »** : supprimé, renommé, déplacé, son droit retiré. L'app le dit sur la fiche, à la lecture et au lancement d'une séance, sans rien réparer. Ce n'est pas une erreur de l'app : c'est l'état du téléphone (WARN au journal, pas ERROR).
@@ -29,7 +29,6 @@ Les lecteurs à passer, relevés le 2026-11-04 :
 - le son d'une étape de Séance (`SequenceAudio` : `MediaPlayer.setDataSource(context, uri)`) et sa vidéo (`SequenceScreen.StepVideo` : `VideoView.setVideoURI`) ;
 - la tuile et la ligne d'un fichier (`FileViews` : le bouton audio, l'image d'une vidéo, un texte ouvert) et les images (`ImageViews`) ;
 - la description lue au lien (`FileDescription.read`, par `MediaMetadataRetriever.setDataSource(context, uri)` pour une durée) ;
-- ce que l'IA lit : un texte (`FileService.read`), une image (`Images.readyForModel`), réduite à son entrée dans une conversation comme une image copiée ;
 - la sauvegarde (`BackupService`).
 
 « Introuvable » se décide à l'ouverture : le `ContentResolver` refuse (fichier absent, droit perdu). Il n'y a pas de vérification à l'avance de tous les liens.
@@ -45,17 +44,16 @@ Un lien suit le chemin d'un fichier préparé (`files.prepare`, `FilePreparation
 
 ### Depuis l'écran
 
-En mode lié, la saisie ouvre un navigateur des dossiers ouverts, dans l'app : les dossiers, puis leurs sous-dossiers et leurs fichiers, filtrés sur les types du champ, un fil d'Ariane pour remonter. Un fichier touché est préparé comme lien (`files.link`). Il repose sur les opérations du connecteur, `folders` et `list`. Sans dossier ouvert, il propose d'en ouvrir un.
+En mode lié, la saisie ouvre un navigateur des dossiers ouverts, dans l'app : les dossiers, puis leurs sous-dossiers et leurs fichiers, filtrés sur les types du champ, un fil d'Ariane pour remonter. Un fichier touché est préparé comme lien (`files.link`). Il repose sur les mêmes lectures que le connecteur (`LinkedFiles.folders`, `LinkedFiles.list`). Sans dossier ouvert, il propose d'en ouvrir un.
 
 ### Depuis le connecteur et l'IA
 
-Trois opérations du service `files` :
+Deux opérations du service `files`, et deux commandes de l'IA et du connecteur, `FOLDERS` et `LINK_FILE` :
 
-- `folders` : les dossiers ouverts, chacun avec son id et son nom.
-- `list` (`folder_id`, `path` facultatif) : ce que contient un dossier, ou un de ses sous-dossiers, sur un niveau ; chaque fichier avec son nom, sa sorte et sa taille, ceux qu'aucun format ne prend marqués comme tels. La durée n'y est pas : la lire ouvrirait chaque fichier.
+- `folders` : sans `folder_id`, les dossiers ouverts, chacun avec son id et son nom ; avec, et `path` facultatif, ce que contient un dossier ou un de ses sous-dossiers, sur un niveau, chaque fichier avec son nom, sa sorte (`AUDIO`, `VIDEO`, `OTHER`) et sa taille. La durée n'y est pas : la lire ouvrirait chaque fichier.
 - `link` (`folder_id`, `path`) : le fichier préparé comme lien, son id rendu avec sa description. Un chemin hors du dossier (`..`) ou absent est refusé en le disant. L'id s'écrit ensuite dans le champ comme celui d'un fichier envoyé.
 
-L'IA dans l'app y a accès comme le connecteur.
+L'IA dans l'app y a accès comme le connecteur, hors d'un masque d'accès : les dossiers du téléphone ne sont dans aucune zone (`AccessRules`, comme l'app).
 
 ## Les dossiers ouverts
 
@@ -70,10 +68,13 @@ L'IA dans l'app y a accès comme le connecteur.
 - La vérification des fichiers manquants de la sauvegarde (`BackupService`, ceux d'une ligne sans fichier) ignore les lignes liées.
 - La restauration garde les liens tels quels et dit combien sont introuvables sur ce téléphone. Relier un fichier introuvable à son nouvel emplacement est hors de cette version.
 
+## La partie exportée
+
+Une partie exportée garde ses liens comme une sauvegarde : la ligne part, le fichier non. Importée, chaque lien attend comme un lien préparé (`LinkedFiles.pendAs`) que son entrée le prenne ; sur un autre téléphone, il est introuvable.
+
 ## Hors de cette version
 
 - Relier un lien introuvable (un renommage, une restauration ailleurs).
-- L'export d'une partie qui porte des fichiers liés : ils n'y partent pas, et l'export le dit.
 - Lier un dossier entier à un outil (une entrée par fichier) : les fiches se créent une à une, par le connecteur.
 
 ## Ouvert

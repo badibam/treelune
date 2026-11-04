@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 112
+        const val VERSION = 113
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2363,6 +2363,14 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** A file's link to a file of the phone, none: every file kept so far is a copy (docs/design/linked-files.md). */
+        private val MIGRATION_112_113 = object : ConnectionMigration(112, 113) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("ALTER TABLE files ADD COLUMN uri TEXT")
+                LogManager.database("MIGRATION 112->113: files' uri added, every file a copy", "INFO")
+            }
+        }
+
         /** A zone's columns of gathered readouts, none: it follows the home screen's. */
         private val MIGRATION_110_111 = object : ConnectionMigration(110, 111) {
             override fun migrate(database: MigrationDatabase) {
@@ -3519,7 +3527,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_108_109,
                     MIGRATION_109_110,
                     MIGRATION_110_111,
-                    MIGRATION_111_112
+                    MIGRATION_111_112,
+                    MIGRATION_112_113
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

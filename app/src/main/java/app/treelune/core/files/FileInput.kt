@@ -42,6 +42,11 @@ import kotlinx.coroutines.withContext
  * kept byte for byte. A file added is set aside at once (files.prepare), until the entry is written; a file
  * taken off goes from the value, and the entry's write deletes it.
  *
+ * A field in linked mode (FileField.linked) adds only a sound or a video of a folder opened to the
+ * app, chosen in their browser (FolderBrowser) and prepared as a link (files.link), or the links
+ * of another linked field: nothing taken by the camera, the recorder or Android's picker, which
+ * would leave a file nowhere but in the app (docs/design/linked-files.md).
+ *
  * The value is the list of ids, null once empty: no file is no answer.
  */
 @Composable
@@ -55,6 +60,8 @@ fun FileInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, 
     val kinds = FileField.kinds(fieldDef.config)
     var open by remember { mutableStateOf<Int?>(null) }
     var copying by remember { mutableStateOf(false) }
+    val linked = FileField.linked(fieldDef.config)
+    var browsing by remember { mutableStateOf(false) }
     // The images added next kept whole, their metadata with them, rather than reduced
     var original by rememberSaveable { mutableStateOf(false) }
 
@@ -70,6 +77,15 @@ fun FileInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, 
                 // An animated image keeps its first frame, which is said
                 if (result.data!!["animated"] == true) UI.Toast(s.shared("image_animated_first_frame"), Duration.LONG)
             } else UI.Toast(result.error ?: "", Duration.LONG)
+        }
+    }
+
+    /** The file [path] under [folder] prepared as a link and added after the others. */
+    fun addLink(folder: LinkedFiles.OpenedFolder, path: String) {
+        scope.launch {
+            val result = Coordinator(context).processUserAction("files.link", mapOf("folder_id" to folder.id, "path" to path))
+            if (result.isSuccess) changed(current + (result.data!!["file_id"] as String))
+            else UI.Toast(result.error ?: "", Duration.LONG)
         }
     }
 
@@ -113,7 +129,10 @@ fun FileInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, 
                 text = max?.let { s.shared("field_file_input_label_max").format(fieldDef.displayName, ids.size, it) } ?: fieldDef.displayName,
                 type = TextType.LABEL
             )
-            if (max == null || ids.size < max) {
+            if ((max == null || ids.size < max) && linked) {
+                UI.ActionButton(action = ButtonAction.COPY, display = ButtonDisplay.ICON, size = Size.S, onClick = { copying = true })
+                UI.ActionButton(action = ButtonAction.DEVICE, display = ButtonDisplay.ICON, size = Size.S, onClick = { browsing = true })
+            } else if (max == null || ids.size < max) {
                 if (FileKind.IMAGE in kinds) UI.ActionButton(action = ButtonAction.PHOTO, display = ButtonDisplay.ICON, size = Size.S, onClick = {
                     capture("jpg") { camera.launch(it) }
                 })
@@ -141,7 +160,7 @@ fun FileInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, 
             }
         }
 
-        if (FileKind.IMAGE in kinds && (max == null || ids.size < max)) {
+        if (!linked && FileKind.IMAGE in kinds && (max == null || ids.size < max)) {
             UI.Checkbox(checked = original, onCheckedChange = { original = it }, label = s.shared("file_keep_original"))
         }
 
@@ -183,11 +202,17 @@ fun FileInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, 
 
     open?.let { index -> Opened(ids, index) { open = null } }
 
+    if (browsing) FolderBrowser(kinds, onDismiss = { browsing = false }, onPick = { folder, path ->
+        browsing = false
+        addLink(folder, path)
+    })
+
     if (copying) {
         app.treelune.core.ui.selectors.EntryFieldPicker(
             title = s.shared("file_copy_from_tool"),
             // A file field of a kind this one takes; what each file is gets checked on writing
-            accepts = { it.type == app.treelune.core.fields.FieldType.FILE && FileField.kinds(it.config).any { kind -> kind in kinds } },
+            // A field that keeps its files as this one does: links go into a linked field only
+            accepts = { it.type == app.treelune.core.fields.FieldType.FILE && FileField.linked(it.config) == linked && FileField.kinds(it.config).any { kind -> kind in kinds } },
             onDismiss = { copying = false },
             onPick = { picked ->
                 copying = false
@@ -228,7 +253,7 @@ private fun Opened(ids: List<String>, index: Int, onDismiss: () -> Unit) {
             val images = ids.filterIndexed { i, _ -> all[i]?.description?.kind == FileKind.IMAGE }
             ImageViewer(images, images.indexOf(ids[index]), onDismiss)
         }
-        FileKind.VIDEO -> VideoViewer(touched.file, onDismiss)
+        FileKind.VIDEO -> VideoViewer(touched.source.uri, onDismiss)
         FileKind.TEXT -> TextViewer(touched.file, touched.description.name, onDismiss)
         // An audio plays in place, from its tile
         FileKind.AUDIO -> androidx.compose.runtime.LaunchedEffect(Unit) { onDismiss() }

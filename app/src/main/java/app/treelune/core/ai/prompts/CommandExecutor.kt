@@ -581,6 +581,8 @@ class CommandExecutor(private val context: Context) {
             "ai_sessions.run_history" -> line("run")
             "files.read" -> line("file")
             "files.show_images" -> line("images", (data["images"] as? List<*>)?.size ?: 0)
+            "files.folders" -> line("folders")
+            "files.link" -> line("link")
             "imports.detect" -> line("import_plan")
             "app_config.get_current_datetime" -> line("datetime")
             "app_config.design_guide" -> line("design_guide")
@@ -720,6 +722,8 @@ class CommandExecutor(private val context: Context) {
             }
             "files" -> when (command.operation) {
                 "show_images" -> "Images of entries, shown below, each under its id in this conversation: ${(data["images"] as? List<*>)?.size ?: 0}"
+                "folders" -> (command.params["folder_id"] as? String)?.let { "What the opened folder holds at '${command.params["path"] ?: ""}'" } ?: "The folders opened to the app"
+                "link" -> "A file of the phone prepared as a link: write its file_id in a FILE field in linked mode"
                 else -> "Data from ${command.resource}.${command.operation}"
             }
             "history" -> {

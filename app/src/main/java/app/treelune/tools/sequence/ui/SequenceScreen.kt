@@ -314,16 +314,17 @@ private fun StepImages(ids: List<String>) {
 @Composable
 private fun StepVideo(media: app.treelune.tools.sequence.StepMedia, run: SequenceRun, now: Long) {
     val context = LocalContext.current
-    val file by androidx.compose.runtime.produceState<java.io.File?>(initialValue = null, media.id) {
+    // A file of the app or a linked one, played through its address
+    val source by androidx.compose.runtime.produceState<app.treelune.core.files.Files.Source?>(initialValue = null, media.id) {
         value = app.treelune.core.files.Files.locate(context, media.id)
     }
-    val path = file?.path ?: return
+    val uri = source?.uri ?: return
     val key = run.position to run.stepStart
     val elapsed = run.elapsed(now)
     val playing = !run.isPaused && !run.held && elapsed >= 0 && elapsed < media.durationMs
     val started = androidx.compose.runtime.remember(key) { androidx.compose.runtime.mutableStateOf(false) }
     androidx.compose.ui.viewinterop.AndroidView(
-        factory = { android.widget.VideoView(it).apply { setVideoPath(path) } },
+        factory = { android.widget.VideoView(it).apply { setVideoURI(uri) } },
         update = { view ->
             when {
                 playing && (!view.isPlaying || !started.value) -> { view.seekTo(elapsed.toInt()); view.start(); started.value = true }

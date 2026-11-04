@@ -31,14 +31,15 @@ class SequenceAudio(private val context: Context) {
         }
         if (key != playing) {
             stop()
-            val file = Files.locate(context, media.id) ?: run {
-                LogManager.service("Sequence: the sound ${media.id} of step ${run.position} is missing", "ERROR")
+            // A file of the app or a linked one, read through its address
+            val source = Files.locate(context, media.id) ?: run {
+                LogManager.service("Sequence: the sound ${media.id} of step ${run.position} is missing or no longer reachable", "ERROR")
                 return
             }
             player = try {
                 MediaPlayer().apply {
                     setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
-                    setDataSource(file.path)
+                    setDataSource(context, source.uri)
                     prepare()
                     seekTo(elapsed.toInt())
                 }

@@ -9,6 +9,8 @@ import app.treelune.core.files.fileKind
 import app.treelune.core.files.FileLines
 import app.treelune.core.files.FilePreparation
 import app.treelune.core.files.Images
+import app.treelune.core.files.LinkedFiles
+import app.treelune.core.files.isLinked
 import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.strings.Strings
@@ -50,6 +52,16 @@ import java.util.UUID
  *   its `id`, `kind`, `format`, `size_bytes`, and what goes with its kind: `width`, `height` and
  *   `animated` for an image, `duration_ms` for an audio or a video, `name` and `line_count` for a
  *   text.
+ *
+ * The files of the phone a field links (LinkedFiles, docs/design/linked-files.md), from the
+ * folders opened to the app:
+ * - folders: without `folder_id`, the folders opened, each with its `id` and `name`; with it, and
+ *   `path` under it (its root by default), what it holds, one level: `items`, each with its
+ *   `name` and `type` — `FOLDER`, the kind of a file a field may link (`AUDIO`, `VIDEO`), or
+ *   `OTHER` —, and a file's `size_bytes`.
+ * - link: `folder_id`, `path`: the sound or the video there prepared as a link, as `prepare` sets a
+ *   file aside, until an entry's field in linked mode takes its id. Answer: its `file_id`, `kind`,
+ *   `format`, `size_bytes`, `name` and `duration` (ISO 8601).
  */
 class FileService(private val context: Context) : ExecutableService {
 
@@ -74,6 +86,8 @@ class FileService(private val context: Context) : ExecutableService {
             "prepare" -> prepare(params)
             "show_images" -> showImages(params)
             "join" -> join(params)
+            "folders" -> folders(params)
+            "link" -> link(params)
             else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
         }
     }
@@ -154,8 +168,8 @@ class FileService(private val context: Context) : ExecutableService {
             }
         }
         return source.copy(id = UUID.randomUUID().toString(), sessionId = sessionId, entryId = null, toolInstanceId = null, createdAt = now).also { copy ->
-            // The file first, as for any file: an interruption leaves a file the sweep removes
-            Files.copy(Files.file(context, source), Files.file(context, copy))
+            // The file first, as for any file: an interruption leaves a file the sweep removes; a link has none
+            if (!source.isLinked) Files.copy(Files.file(context, source), Files.file(context, copy))
             writes.insertFile(copy)
         }
     }
@@ -241,6 +255,57 @@ class FileService(private val context: Context) : ExecutableService {
         return OperationResult.success(mapOf("id" to file.id, "line_count" to file.lineCount!!, "size_bytes" to file.sizeBytes))
     }
 
+    /** The folder of [params]' `folder_id` among those opened, or the refusal that names them. */
+    private suspend fun openedFolder(params: JSONObject): Pair<LinkedFiles.OpenedFolder?, OperationResult?> {
+        val id = params.optString("folder_id").takeIf { it.isNotEmpty() }
+            ?: return null to OperationResult.error(s.shared("service_error_missing_required_params").format("folder_id"))
+        val folders = LinkedFiles.folders(context)
+        val folder = folders.firstOrNull { it.id == id }
+            ?: return null to OperationResult.error(s.shared("file_link_unknown_folder").format(id, folders.joinToString(", ") { "${it.id} (${it.name})" }.ifEmpty { "-" }))
+        return folder to null
+    }
+
+    private suspend fun folders(params: JSONObject): OperationResult {
+        if (!params.has("folder_id")) return OperationResult.success(mapOf(
+            "folders" to LinkedFiles.folders(context).map { mapOf("id" to it.id, "name" to it.name) }
+        ))
+        val (folder, refused) = openedFolder(params)
+        refused?.let { return it }
+        val path = params.optString("path")
+        val items = try {
+            LinkedFiles.list(context, folder!!, path)
+        } catch (e: LinkedFiles.NotFound) {
+            return OperationResult.error(s.shared("file_link_not_found").format(path, folder!!.name))
+        } catch (e: SecurityException) {
+            return OperationResult.error(s.shared("file_link_folder_closed").format(folder!!.name))
+        }
+        return OperationResult.success(mapOf(
+            "folder" to folder.name,
+            "path" to path,
+            "items" to items.map { item ->
+                when (item) {
+                    is LinkedFiles.Item.Folder -> mapOf("name" to item.name, "type" to "FOLDER")
+                    is LinkedFiles.Item.File -> listOfNotNull(
+                        "name" to item.name,
+                        "type" to (item.format?.kind?.takeIf { it in LinkedFiles.KINDS }?.name ?: "OTHER"),
+                        item.sizeBytes?.let { "size_bytes" to it }
+                    ).toMap()
+                }
+            }
+        ))
+    }
+
+    private suspend fun link(params: JSONObject): OperationResult {
+        val (folder, refused) = openedFolder(params)
+        refused?.let { return it }
+        val path = params.optString("path").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("service_error_missing_required_params").format("path"))
+        return when (val prepared = LinkedFiles.prepare(context, folder!!, path, LinkedFiles.KINDS, s::shared)) {
+            is LinkedFiles.Result.Refused -> OperationResult.error(prepared.message)
+            is LinkedFiles.Result.Done -> OperationResult.success(LinkedFiles.answer(prepared.id, prepared.description))
+        }
+    }
+
     private suspend fun read(params: JSONObject): OperationResult {
         val id = params.optString("id").takeIf { it.isNotEmpty() } ?: return OperationResult.error(s.shared("service_error_missing_id"))
         val file = dao.getById(id)?.takeIf { it.fileKind == FileKind.TEXT } ?: return OperationResult.error(s.shared("file_error_not_found").format(id))
@@ -269,6 +334,8 @@ class FileService(private val context: Context) : ExecutableService {
             "prepare" -> s.shared("action_verbalize_files_prepare")
             "show_images" -> s.shared("action_verbalize_files_show_images")
             "join" -> s.shared("action_verbalize_files_join")
+            "folders" -> s.shared("action_verbalize_files_folders")
+            "link" -> s.shared("action_verbalize_files_link")
             else -> s.shared("action_verbalize_unknown")
         }
     }

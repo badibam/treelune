@@ -65,7 +65,8 @@ private fun rememberImage(imageId: String, heightPx: Int?): ImageLoad {
     val context = LocalContext.current
     val load by produceState<ImageLoad>(initialValue = ImageLoad.Loading, imageId, heightPx) {
         value = withContext(Dispatchers.IO) {
-            val file = Files.locate(context, imageId)
+            // An image is never linked: its source is a file of the app (LinkedFiles.KINDS)
+            val file = Files.locate(context, imageId)?.file
             if (file == null) {
                 LogManager.service("Image $imageId: its file is missing", "ERROR")
                 return@withContext ImageLoad.Missing

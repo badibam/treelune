@@ -172,6 +172,9 @@ fun DataSettingsScreen(
             }
         }
 
+        // The folders opened to the app, whose sounds and videos a field links
+        app.treelune.core.files.OpenedFoldersCard()
+
         // Export: a part to share, or the whole app
         UI.Card(type = CardType.DEFAULT) {
             Column(

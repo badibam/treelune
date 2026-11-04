@@ -415,6 +415,26 @@ Shows you images of entries: they join the conversation after this answer, as if
 - `ids` (array, **required**): the ids of the images, as the entry gives them
 
 Refused when the model of this conversation does not read images. To file an image of the conversation in an entry, write its id in the entry's FILE field: the entry gets its own copy.]]></string>
+    <string name="ai_command_folders"><![CDATA[### FOLDERS
+
+Lists the folders of the phone the user opened to the app (Settings › Data), or what one of them holds: the place a FILE field in linked mode takes its files from. The user opens a folder; you never can.
+
+**Parameters**:
+
+- `folder_id` (string, optional): the folder to look into; without it, the folders opened, each with its `id` and `name`
+- `path` (string, optional): a subfolder under it, its names joined by `/` (`Albums/Live`); its root by default
+
+Returns `items`, one level: each with its `name` and `type` — `FOLDER`, `AUDIO` or `VIDEO` (a file a field may link), `OTHER` —, and a file's `size_bytes`. Go down by `path`, one level per call.]]></string>
+    <string name="ai_command_link_file"><![CDATA[### LINK_FILE
+
+Prepares a sound or a video of an opened folder as a link, for a FILE field in linked mode: the app reads the file where it is, on the phone, never copies it. Then write the `file_id` in the field (in `extra` for a field of the user's, as a list: `["<file_id>"]`) with CREATE_DATA or UPDATE_DATA. A link that no entry takes is erased when the app starts again.
+
+**Parameters**:
+
+- `folder_id` (string, **required**): the folder, as FOLDERS gives it
+- `path` (string, **required**): the file under it, its names joined by `/`
+
+Returns `file_id`, `kind`, `format`, `size_bytes`, `name` and `duration`. Refused for a file that is neither a sound nor a video Android plays. A field that copies its files refuses a link, and a linked field refuses a copy.]]></string>
     <string name="ai_command_import_plan"><![CDATA[### IMPORT_PLAN
 
 Proposes how to import a joined file (a CSV), or one sent through `upload_address` (kind `TEXT`), into a tool: what IMPORT_DATA will need, column by column.

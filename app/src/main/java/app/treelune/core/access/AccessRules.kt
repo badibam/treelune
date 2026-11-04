@@ -229,8 +229,12 @@ object AccessRules {
                 "create", "update", "delete", "import", "export" -> listOf(Reach.App)
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
-            "files" -> if (operation == "read") listOf(text("id")?.let { Reach.File(it, AccessLevel.READ) } ?: Reach.Unknown("$resource.$operation"))
-                else listOf(Reach.Unknown("$resource.$operation"))
+            "files" -> when (operation) {
+                "read" -> listOf(text("id")?.let { Reach.File(it, AccessLevel.READ) } ?: Reach.Unknown("$resource.$operation"))
+                // The phone's folders opened to the app, outside any zone: as the app
+                "folders", "link" -> listOf(Reach.App)
+                else -> listOf(Reach.Unknown("$resource.$operation"))
+            }
             // The history of one tool or zone is read as it is; the whole of it, and an undo, whose rows may be anywhere, as the app
             "history" -> when (operation) {
                 "list" -> listOf(text("tool_instance_id")?.let { toolAt(AccessLevel.READ) } ?: text("zone_id")?.let { zoneAt("zone_id", AccessLevel.READ) } ?: Reach.App)

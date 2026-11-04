@@ -249,7 +249,9 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
                     running = false
                     if (result.isSuccess) {
                         // Said once the app has started again (Toasts.showAfterRestart)
-                        app.treelune.core.ui.Toasts.showAfterRestart(context, s.shared("backup_import_success"))
+                        val unreachable = (result.data?.get("links_unreachable") as? Number)?.toInt() ?: 0
+                        app.treelune.core.ui.Toasts.showAfterRestart(context, s.shared("backup_import_success") +
+                            (if (unreachable > 0) " " + s.shared("backup_import_links_unreachable").format(unreachable) else ""))
                         // Every screen reads the restored data from a clean start
                         app.treelune.core.ui.screens.settings.restartApp(context)
                     } else UI.Toast(result.error ?: "", app.treelune.core.ui.Duration.LONG)

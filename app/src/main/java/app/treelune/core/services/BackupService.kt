@@ -3,6 +3,7 @@ package app.treelune.core.services
 import app.treelune.core.files.FileEntity
 import app.treelune.core.files.Files
 import app.treelune.core.files.fileFormat
+import app.treelune.core.files.isLinked
 import android.content.Context
 import app.treelune.core.utils.LogManager
 import app.treelune.core.coordinator.CancellationToken
@@ -460,7 +461,9 @@ class BackupService(private val context: Context) : ExecutableService {
             // The files of messages, entries and tools: their rows in the JSON, their files beside it.
             // A row whose file is missing is an error the backup copies as it is, neither
             // hidden nor repaired: its row goes, named in missing_files, and the export says how many
-            val files = database.fileDao().getAll()
+            // A linked file's row goes alone: the file is the phone's, not the app's (docs/design/linked-files.md)
+            val allFiles = database.fileDao().getAll()
+            val files = allFiles.filter { !it.isLinked }
             val missingFiles = files.filter { !Files.file(context, it).exists() }
             missingFiles.forEach { LogManager.service("Backup export: the file of ${it.id} (${it.sessionId?.let { s -> "session $s" } ?: it.entryId?.let { e -> "entry $e" } ?: "tool ${it.toolInstanceId}"}) is missing", "WARN") }
 
@@ -780,7 +783,7 @@ class BackupService(private val context: Context) : ExecutableService {
 
                     // Files of messages, entries and tools: their files are entries of the zip
                     put("files", JSONArray().apply {
-                        files.forEach { file ->
+                        allFiles.forEach { file ->
                             put(JSONObject().apply {
                                 put("id", file.id)
                                 file.sessionId?.let { put("session_id", it) }
@@ -795,6 +798,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 file.durationMs?.let { put("duration_ms", it) }
                                 file.lineCount?.let { put("line_count", it) }
                                 put("created_at", file.createdAt)
+                                file.uri?.let { put("uri", it) }
                             })
                         }
                     })
@@ -872,8 +876,10 @@ class BackupService(private val context: Context) : ExecutableService {
                 Files.replaceDir(context, staging)
             }
 
-            LogManager.service("Backup import completed successfully")
-            OperationResult.success(mapOf("message" to s.shared("backup_import_success")))
+            // The links kept as they were: those this phone does not have, said (docs/design/linked-files.md)
+            val unreachable = app.treelune.core.files.LinkedFiles.unreachable(context)
+            LogManager.service("Backup import completed successfully, $unreachable linked files not found on this phone")
+            OperationResult.success(mapOf("message" to s.shared("backup_import_success"), "links_unreachable" to unreachable))
 
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
@@ -996,7 +1002,8 @@ class BackupService(private val context: Context) : ExecutableService {
                     staging.mkdirs()
                     Files.write(target, (file.remove(app.treelune.core.versioning.FilesAtV92.CONTENT) as String).toByteArray(Charsets.UTF_8))
                 }
-                if (id !in missingAtExport && !target.exists()) {
+                // A linked file has none in the zip: its row is its link
+                if (id !in missingAtExport && !file.has("uri") && !target.exists()) {
                     return Opened.Refused(s.shared("backup_import_file_missing").format(id))
                 }
             }
@@ -1393,7 +1400,8 @@ class BackupService(private val context: Context) : ExecutableService {
                         height = if (item.has("height") && !item.isNull("height")) item.getInt("height") else null,
                         durationMs = if (item.has("duration_ms") && !item.isNull("duration_ms")) item.getLong("duration_ms") else null,
                         lineCount = if (item.has("line_count") && !item.isNull("line_count")) item.getInt("line_count") else null,
-                        createdAt = item.getLong("created_at")
+                        createdAt = item.getLong("created_at"),
+                        uri = item.optString("uri").takeIf { it.isNotEmpty() }
                     )
                 )
             }

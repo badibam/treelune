@@ -41,6 +41,7 @@ import app.treelune.core.ui.components.FullScreenDialog
 import app.treelune.core.utils.LogManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import android.net.Uri
 import java.io.File
 
 /*
@@ -54,6 +55,8 @@ import java.io.File
 private sealed class FileLoad {
     object Loading : FileLoad()
     object Missing : FileLoad()
+    /** A linked file the phone no longer has where its link says: its state, not the app's error */
+    object Unreachable : FileLoad()
     class Loaded(val found: Files.Found) : FileLoad()
 }
 
@@ -64,8 +67,11 @@ private fun rememberFile(id: String): FileLoad {
     val load by produceState<FileLoad>(initialValue = FileLoad.Loading, id) {
         value = withContext(Dispatchers.IO) {
             Files.inspect(context, id)?.let { FileLoad.Loaded(it) } ?: run {
-                LogManager.service("File $id: missing", "ERROR")
-                FileLoad.Missing
+                if (Files.isLink(context, id)) FileLoad.Unreachable
+                else {
+                    LogManager.service("File $id: missing", "ERROR")
+                    FileLoad.Missing
+                }
             }
         }
     }
@@ -82,7 +88,7 @@ fun clock(durationMs: Long): String {
 /** What a file opened from a row shows over the screen. */
 private sealed class Opened {
     class Images(val ids: List<String>, val start: Int) : Opened()
-    class Video(val file: File) : Opened()
+    class Video(val uri: Uri) : Opened()
     class Text(val file: File, val name: String?) : Opened()
 }
 
@@ -97,15 +103,16 @@ fun FileTile(id: String, height: Dp = IMAGE_THUMBNAIL_HEIGHT, onOpen: ((Files.Fo
     when (val load = rememberFile(id)) {
         FileLoad.Loading -> Box(Modifier.height(height))
         FileLoad.Missing -> UI.Text(s.shared("file_missing"), TextType.ERROR)
+        FileLoad.Unreachable -> UI.Text(s.shared("file_link_unreachable"), TextType.ERROR)
         is FileLoad.Loaded -> {
             val found = load.found
             val description = found.description
             val open = onOpen?.let { { it(found) } }
             when (description.kind) {
                 FileKind.IMAGE -> ImageThumbnail(id, height = height, onClick = open)
-                FileKind.VIDEO -> VideoFrame(found.file, description.durationMs, height, open)
+                FileKind.VIDEO -> VideoFrame(found.source.uri, description.name ?: id, description.durationMs, height, open)
                 FileKind.AUDIO -> Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.XS), verticalAlignment = Alignment.CenterVertically) {
-                    AudioButton(found.file)
+                    AudioButton(found.source.uri)
                     UI.Icon("audio-lines", contentDescription = s.shared("file_kind_audio"))
                     UI.Text(listOfNotNull(description.name, description.durationMs?.let(::clock)).joinToString(" · "), TextType.CAPTION)
                 }
@@ -122,21 +129,21 @@ fun FileTile(id: String, height: Dp = IMAGE_THUMBNAIL_HEIGHT, onOpen: ((Files.Fo
     }
 }
 
-/** A video's first frame at [height], its length beside it; [onClick] on a touch. */
+/** The first frame of the video at [uri], named [name], at [height], its length beside it; [onClick] on a touch. */
 @Composable
-private fun VideoFrame(file: File, durationMs: Long?, height: Dp, onClick: (() -> Unit)?) {
+private fun VideoFrame(uri: Uri, name: String, durationMs: Long?, height: Dp, onClick: (() -> Unit)?) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
-    val frame by produceState<Bitmap?>(initialValue = null, file) {
+    val frame by produceState<Bitmap?>(initialValue = null, uri) {
         value = withContext(Dispatchers.IO) {
             val retriever = MediaMetadataRetriever()
             try {
-                retriever.setDataSource(file.path)
+                retriever.setDataSource(context, uri)
                 retriever.frameAtTime
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: RuntimeException) {
-                LogManager.service("Video ${file.name}: no frame read: ${e.message}", "WARN")
+                LogManager.service("Video $name: no frame read: ${e.message}", "WARN")
                 null
             } finally {
                 retriever.release()
@@ -155,15 +162,19 @@ private fun VideoFrame(file: File, durationMs: Long?, height: Dp, onClick: (() -
     }
 }
 
-/** A button that plays the audio [file] and pauses it, its player let go when it leaves the screen. */
+/**
+ * A button that plays the audio at [uri] (a file of the app, or a linked one) and pauses it, its
+ * player let go when it leaves the screen.
+ */
 @Composable
-fun AudioButton(file: File) {
-    var player by remember(file) { mutableStateOf<MediaPlayer?>(null) }
-    var playing by remember(file) { mutableStateOf(false) }
-    DisposableEffect(file) { onDispose { player?.release() } }
+fun AudioButton(uri: Uri) {
+    val context = LocalContext.current
+    var player by remember(uri) { mutableStateOf<MediaPlayer?>(null) }
+    var playing by remember(uri) { mutableStateOf(false) }
+    DisposableEffect(uri) { onDispose { player?.release() } }
     UI.ActionButton(action = if (playing) ButtonAction.PAUSE else ButtonAction.START, display = ButtonDisplay.ICON, size = Size.S) {
         val current = player ?: MediaPlayer().apply {
-            setDataSource(file.path)
+            setDataSource(context, uri)
             prepare()
             setOnCompletionListener { playing = false; seekTo(0) }
         }.also { player = it }
@@ -172,14 +183,14 @@ fun AudioButton(file: File) {
     }
 }
 
-/** The video [file] over the whole screen, playing, with the phone's controls; back closes. */
+/** The video at [uri] (a file of the app, or a linked one) over the whole screen, playing, with the phone's controls; back closes. */
 @Composable
-fun VideoViewer(file: File, onDismiss: () -> Unit) {
+fun VideoViewer(uri: Uri, onDismiss: () -> Unit) {
     FullScreenDialog(onDismiss = onDismiss) {
         AndroidView(
             factory = { context ->
                 VideoView(context).apply {
-                    setVideoPath(file.path)
+                    setVideoURI(uri)
                     setMediaController(MediaController(context).also { it.setAnchorView(this) })
                     setOnPreparedListener { start() }
                 }
@@ -238,7 +249,7 @@ fun FileRow(ids: List<String>, modifier: Modifier = Modifier) {
 /** What touching file [id], [found], opens: an image among [images], the row's, from itself. */
 private fun open(id: String, found: Files.Found, images: List<String>): Opened? = when (found.description.kind) {
     FileKind.IMAGE -> images.indexOf(id).let { start -> if (start < 0) Opened.Images(listOf(id), 0) else Opened.Images(images, start) }
-    FileKind.VIDEO -> Opened.Video(found.file)
+    FileKind.VIDEO -> Opened.Video(found.source.uri)
     FileKind.TEXT -> Opened.Text(found.file, found.description.name)
     FileKind.AUDIO -> null
 }
@@ -248,7 +259,7 @@ private fun open(id: String, found: Files.Found, images: List<String>): Opened? 
 private fun Shown(opened: Opened?, onDismiss: () -> Unit) {
     when (opened) {
         is Opened.Images -> ImageViewer(opened.ids, opened.start, onDismiss)
-        is Opened.Video -> VideoViewer(opened.file, onDismiss)
+        is Opened.Video -> VideoViewer(opened.uri, onDismiss)
         is Opened.Text -> TextViewer(opened.file, opened.name, onDismiss)
         null -> Unit
     }

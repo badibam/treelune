@@ -29,6 +29,10 @@ import java.util.UUID
  *   only what is added.
  * - A file the owner owned that no value holds any more is deleted, its row with the owner's
  *   write, its file after.
+ * - A link prepared (LinkedFiles) becomes the owner's row, its address in it, nothing moved; a
+ *   linked file another owns is copied as a link, the phone's file untouched. A field in linked
+ *   mode takes only links, any other place only files of the app, each refusal saying which
+ *   (docs/design/linked-files.md).
  *
  * The files are placed before the transaction that writes the owner and the rows: an interruption
  * leaves a file no row names, which the startup sweep removes. A write that fails puts the files
@@ -40,6 +44,7 @@ class OwnedFiles private constructor(
     /** Whether a copy's new id was written in place of what was sent, in the values planned */
     val rewritten: Boolean,
     private val moves: List<Pair<String, File>>,
+    private val links: List<Pair<String, Pair<android.net.Uri, FileDescription>>>,
     private val copies: List<Pair<FileEntity, String>>,
     private val removed: List<FileEntity>
 ) {
@@ -57,7 +62,7 @@ class OwnedFiles private constructor(
     private val rows = mutableListOf<FileEntity>()
 
     /** Whether the write changes nothing of the owner's files. */
-    val unchanged: Boolean get() = moves.isEmpty() && copies.isEmpty() && removed.isEmpty()
+    val unchanged: Boolean get() = moves.isEmpty() && links.isEmpty() && copies.isEmpty() && removed.isEmpty()
 
     private val entryId = (owner as? Owner.Entry)?.id
     private val toolInstanceId = (owner as? Owner.Tool)?.id
@@ -77,11 +82,15 @@ class OwnedFiles private constructor(
             val name = Files.pendingName(context, id).takeIf { it.exists() }?.readText(Charsets.UTF_8)
             rows.add(FileDescription.read(target, format, name).row(id, null, entryId, toolInstanceId, now))
         }
+        // A link's row holds its address: there is no file to place
+        links.forEach { (id, link) -> rows.add(link.second.row(id, null, entryId, toolInstanceId, now, link.first.toString())) }
         copies.forEach { (source, newId) ->
             val copy = owned(source).copy(id = newId, createdAt = now)
-            val target = Files.file(context, copy)
-            Files.copy(Files.file(context, source), target)
-            placed.add(target to null)
+            if (!source.isLinked) {
+                val target = Files.file(context, copy)
+                Files.copy(Files.file(context, source), target)
+                placed.add(target to null)
+            }
             rows.add(copy)
         }
     }
@@ -96,6 +105,7 @@ class OwnedFiles private constructor(
     /** Once the transaction is done: what changed, logged, and the names that waited beside the moved files gone. */
     fun done() {
         moves.forEach { (id, _) -> Files.pendingName(context, id).delete() }
+        links.forEach { (id, _) -> Files.pendingLink(context, id).delete() }
         // The removed files stay on the disk: the history keeps their rows, an undo puts them
         // back, and the startup sweep deletes a file once nothing names it (Files.sweepOnce)
         if (!unchanged) LogManager.service("$owner: ${rows.size} files added, ${removed.size} removed", "DEBUG")
@@ -115,15 +125,18 @@ class OwnedFiles private constructor(
         class Refused(val error: String) : Plan
     }
 
-    /** Where a file list stands: the object that holds it, its key there, and the kinds its place takes. */
-    data class Slot(val values: JSONObject, val key: String, val kinds: List<FileKind>)
+    /**
+     * Where a file list stands: the object that holds it, its key there, the kinds its place
+     * takes, and whether it links the phone's files rather than keeping copies ([linked]).
+     */
+    data class Slot(val values: JSONObject, val key: String, val kinds: List<FileKind>, val linked: Boolean = false)
 
     companion object {
 
         /** The slots of an entry's FILE fields among [declared] (in [data]) and [user] (in [extra]). */
         fun entrySlots(data: JSONObject, declared: List<FieldDefinition>, extra: JSONObject?, user: List<FieldDefinition>): List<Slot> =
             listOf(data to declared, extra to user).flatMap { (values, fields) ->
-                if (values == null) emptyList() else fields.filter { it.type == FieldType.FILE }.map { Slot(values, it.name, FileField.kinds(it.config)) }
+                if (values == null) emptyList() else fields.filter { it.type == FieldType.FILE }.map { Slot(values, it.name, FileField.kinds(it.config), FileField.linked(it.config)) }
             }
 
         /**
@@ -167,12 +180,19 @@ class OwnedFiles private constructor(
             }.associateBy { it.id }
 
             val moves = mutableListOf<Pair<String, File>>()
+            val links = mutableListOf<Pair<String, Pair<android.net.Uri, FileDescription>>>()
             val copies = mutableListOf<Pair<FileEntity, String>>()
             val held = mutableSetOf<String>()
             var rewritten = false
             /** The refusal of [id], new in [slot], of [kind], when its place does not take it. */
             fun wrongKind(id: String, kind: FileKind, slot: Slot): Plan.Refused? = if (kind in slot.kinds) null
                 else Plan.Refused(text("file_error_kind").format(id, kind.name, slot.key, slot.kinds.joinToString(", ") { it.name }))
+            /** The refusal of [id], new in [slot], a link when [link], when its place keeps the other. */
+            fun wrongMode(id: String, link: Boolean, slot: Slot): Plan.Refused? = when {
+                link == slot.linked -> null
+                link -> Plan.Refused(text("file_error_link_in_copied").format(id, slot.key))
+                else -> Plan.Refused(text("file_error_copy_in_linked").format(id, slot.key))
+            }
 
             for (slot in slots.distinct().filter { (values, key) -> values.has(key) && !values.isNull(key) }) {
                 val (values, key) = slot
@@ -180,12 +200,18 @@ class OwnedFiles private constructor(
                 val written = ids.map { id ->
                     when {
                         id in owned -> id
-                        moves.any { it.first == id } -> id
+                        moves.any { it.first == id } || links.any { it.first == id } -> id
                         else -> Files.pendingFile(context, id)?.let { file ->
                             FileFormat.ofExtension(file.extension)?.let { wrongKind(id, it.kind, slot) }?.let { return it }
+                            wrongMode(id, false, slot)?.let { return it }
                             moves.add(id to file); id
+                        } ?: LinkedFiles.pending(context, id)?.let { link ->
+                            wrongKind(id, link.second.kind, slot)?.let { return it }
+                            wrongMode(id, true, slot)?.let { return it }
+                            links.add(id to link); id
                         } ?: dao.getById(id)?.let { source ->
                             wrongKind(id, source.fileKind, slot)?.let { return it }
+                            wrongMode(id, source.isLinked, slot)?.let { return it }
                             UUID.randomUUID().toString().also { copies.add(source to it) }
                         } ?: return Plan.Refused(text("file_error_unknown").format(id))
                     }
@@ -194,7 +220,7 @@ class OwnedFiles private constructor(
                 if (written != ids) { values.put(key, JSONArray(written)); rewritten = true }
             }
             val removed = owned.values.filter { it.id !in held }
-            return Plan.Ready(OwnedFiles(context, owner, rewritten, moves, copies, removed))
+            return Plan.Ready(OwnedFiles(context, owner, rewritten, moves, links, copies, removed))
         }
     }
 }

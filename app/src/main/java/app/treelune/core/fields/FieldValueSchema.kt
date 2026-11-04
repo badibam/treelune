@@ -111,7 +111,8 @@ object FieldValueSchema {
             }
             FieldType.FILE -> listOfNotNull(
                 text("field_reading_files").format(FileField.kinds(config).joinToString(", ") { it.name }),
-                FileField.max(config)?.let { text("field_reading_files_max").format(it) }
+                FileField.max(config)?.let { text("field_reading_files_max").format(it) },
+                text("field_reading_files_linked").takeIf { FileField.linked(config) }
             )
             else -> emptyList()
         }

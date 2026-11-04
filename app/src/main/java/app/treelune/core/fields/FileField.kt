@@ -15,6 +15,15 @@ object FileField {
     /** The config key of the most files a value holds; absent, no limit. */
     const val MAX = "max"
 
+    /**
+     * The config key of where its files are: [COPIED], kept by the app (absent, the default), or
+     * [LINKED], files of the phone in a folder opened to the app, read where they are (LinkedFiles,
+     * docs/design/linked-files.md), a sound or a video only.
+     */
+    const val STORAGE = "storage"
+    const val COPIED = "copied"
+    const val LINKED = "linked"
+
     /** The kinds a field may take: those the field's input knows how to add and show. */
     val FIELD_KINDS = listOf(FileKind.IMAGE, FileKind.AUDIO, FileKind.VIDEO, FileKind.TEXT)
 
@@ -25,6 +34,9 @@ object FileField {
     /** The config of a field taking [kinds], at most [max] files. */
     fun config(kinds: List<FileKind>, max: Int? = null): Map<String, Any> =
         listOfNotNull(KINDS to kinds.map { it.name }, max?.let { MAX to it }).toMap()
+
+    /** Whether a field of [config] links the phone's files rather than keeping copies. */
+    fun linked(config: Map<String, Any>?): Boolean = config?.get(STORAGE) == LINKED
 
     /** The most files a field of [config] holds, null for no limit. */
     fun max(config: Map<String, Any>?): Int? = (config?.get(MAX) as? Number)?.toInt()

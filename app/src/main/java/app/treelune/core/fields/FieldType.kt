@@ -114,7 +114,8 @@ enum class FieldType {
      * single way to enter and show it (docs/DATA.md, « FILE »). Each id names a row of the
      * files table the entry owns; the service keeps the two in step at each write (OwnedFiles).
      * Config: {kinds (required, among FileField.FIELD_KINDS), max? (whole number, at least 1;
-     * absent, no limit)}
+     * absent, no limit), storage? (copied, the default, or linked: files of the phone read where
+     * they are, LinkedFiles)}
      * Example: the photos of a plant's sheet, a diagram in a note
      */
     FILE;

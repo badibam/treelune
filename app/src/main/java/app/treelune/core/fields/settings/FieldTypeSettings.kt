@@ -202,7 +202,12 @@ object FieldTypeSettings {
                 config = choice(FileField.FIELD_KINDS.map { it.name },
                     FileField.FIELD_KINDS.associate { it.name to text("file_kind_${it.name.lowercase()}") }) + ("multiple" to true)),
             field(FileField.MAX, "field_config_file_max", FieldType.NUMERIC, text,
-                description = "field_type_file_max_description", config = mapOf("min" to 1, "decimals" to 0))
+                description = "field_type_file_max_description", config = mapOf("min" to 1, "decimals" to 0)),
+            // Absent from the fields made before it: copied
+            field(FileField.STORAGE, "field_config_file_storage", FieldType.CHOICE, text,
+                default = FileField.COPIED, description = "field_type_file_storage_description",
+                config = choice(listOf(FileField.COPIED, FileField.LINKED),
+                    mapOf(FileField.COPIED to text("field_config_file_storage_copied"), FileField.LINKED to text("field_config_file_storage_linked"))))
         )
     }
 

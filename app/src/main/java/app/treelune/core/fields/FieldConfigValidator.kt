@@ -161,13 +161,22 @@ object FieldConfigValidator {
     /**
      * Validates FILE field config.
      * Config: {kinds (at least one, each among FileField.FIELD_KINDS, none twice), max? (a whole
-     * number, at least 1)}
+     * number, at least 1), storage? (copied, linked: then a sound or a video only)}
      */
     private fun validateFileConfig(config: Map<String, Any>?, s: app.treelune.core.strings.StringsContext): ValidationResult {
         val kinds = config?.get(FileField.KINDS) as? List<*>
         val allowed = FileField.FIELD_KINDS.map { it.name }
         if (kinds.isNullOrEmpty() || kinds.any { it !in allowed } || kinds.distinct().size != kinds.size) {
             return ValidationResult(isValid = false, errorMessage = s.shared("field_validation_file_kinds").format(kinds?.joinToString(", ") ?: "", allowed.joinToString(", ")))
+        }
+        when (config[FileField.STORAGE]) {
+            null, FileField.COPIED -> {}
+            FileField.LINKED -> if (kinds.any { it !in app.treelune.core.files.LinkedFiles.KINDS.map { kind -> kind.name } }) {
+                return ValidationResult(isValid = false, errorMessage = s.shared("field_validation_file_linked_kinds")
+                    .format(app.treelune.core.files.LinkedFiles.KINDS.joinToString(", ") { it.name }))
+            }
+            else -> return ValidationResult(isValid = false, errorMessage = s.shared("field_validation_file_storage")
+                .format(config[FileField.STORAGE].toString(), listOf(FileField.COPIED, FileField.LINKED).joinToString(", ")))
         }
         val max = config[FileField.MAX] ?: return ValidationResult(isValid = true)
         if (max !is Number || max.toDouble() % 1.0 != 0.0 || max.toInt() < 1) {

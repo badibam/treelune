@@ -103,6 +103,8 @@ object AppSettings {
     const val DATA_FOLDER = "folder"
     /** Whether the automatic backup writes into that folder (AutoBackup) */
     const val DATA_AUTO_BACKUP = "auto_backup"
+    /** The folders opened to the app, whose sounds and videos a FILE field links (LinkedFiles) */
+    const val DATA_OPENED_FOLDERS = "opened_folders"
     /** The case of the automatic backup last looked at in Settings › Data (AutoBackup.seen) */
     const val DATA_SEEN = "seen"
     /** How many days the history of writes keeps its steps (docs/DATA.md, « History of writes », HistoryDepth) */
@@ -262,7 +264,14 @@ object AppSettings {
                 // Written by the screen that showed it, never entered
                 field(DATA_SEEN, text("settings_data_seen"), text("settings_data_schema_seen"), FieldType.TEXT, config = mapOf("length" to TextLength.UNLIMITED.name), systemWritten = true),
                 scale(DATA_HISTORY_DAYS, text("settings_data_history_days"), text("settings_data_history_days_help"), HISTORY_DAYS_RANGE),
-                scale(DATA_HISTORY_MEGABYTES, text("settings_data_history_megabytes"), text("settings_data_history_megabytes_help"), HISTORY_MEGABYTES_RANGE)
+                scale(DATA_HISTORY_MEGABYTES, text("settings_data_history_megabytes"), text("settings_data_history_megabytes_help"), HISTORY_MEGABYTES_RANGE),
+                // Each opened in Android's folder picker, which gives the right to read it: never typed
+                SettingNode.ListOf(DATA_OPENED_FOLDERS, text("settings_data_opened_folders"), SettingNode.Item.Of(listOf(
+                    field("id", text("settings_data_opened_folder_id"), text("settings_data_schema_opened_folder_id"), FieldType.TEXT, required = true, systemWritten = true),
+                    field("uri", text("settings_data_opened_folder_uri"), text("settings_data_schema_opened_folder_uri"), FieldType.TEXT, required = true,
+                        config = mapOf("length" to TextLength.UNLIMITED.name), systemWritten = true),
+                    field("name", text("settings_data_opened_folder_name"), text("settings_data_schema_opened_folder_name"), FieldType.TEXT, required = true, systemWritten = true)
+                ), description = text("settings_data_schema_opened_folder")), summary = listOf("name"), description = text("settings_data_schema_opened_folders"))
             )
             AppSettingCategories.DEMO -> listOf(
                 field(app.treelune.core.demo.DemoStartup.INSTALL_ON_UPDATE, text("settings_demo_install_on_update"),

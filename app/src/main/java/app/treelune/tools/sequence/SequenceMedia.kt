@@ -39,6 +39,8 @@ object SequenceMedia {
             val mediaId = followed?.ids?.firstOrNull() ?: SequencePlan.fixed(terms.media).firstOrNull()
             val media = mediaId?.let { dao.getById(it) }
                 ?.takeIf { it.kind == FileKind.AUDIO.name || it.kind == FileKind.VIDEO.name }
+                // A linked file the phone no longer has plays nothing: the step is one ended by hand
+                ?.takeIf { row -> row.uri == null || app.treelune.core.files.LinkedFiles.readable(context, android.net.Uri.parse(row.uri)) }
                 ?.let { row -> row.durationMs?.let { StepMedia(row.id, row.kind, it) } }
             val lastsItsMedium = step.end == StepEnd.MEDIA || step.end == StepEnd.MEDIA_THEN_MANUAL
             val end = when {
