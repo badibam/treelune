@@ -28,6 +28,9 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- Les fichiers liés, `docs/design/linked-files.md` : `Documents` ouvert dans Réglages › Données, puis fermé (la confirmation qui compte les liens) ; un champ Audio d'une Fiche passé en « Liés, laissés sur le téléphone », un FLAC de 200 Mo choisi dans le navigateur (le fil, « Remonter »), sa durée lue (le temps que ça prend sur 200 Mo), joué depuis sa tuile ; par le connecteur, `folders` puis `link_file` puis l'entrée écrite ; une Séance sur ce champ, écran éteint, mise en pause puis reprise au bon endroit ; le fichier renommé sur le téléphone, « n'est plus là où son lien le dit » sur la fiche et la Séance qui refuse de partir ; une sauvegarde qui ne grossit pas, restaurée ; la migration 112 → 113 passée.
+- Un audio de plus de 50 Mo copié dans un champ (un audio de 127 Mo), et un FLAC copié, joué.
+- « Que jouer ? » d'une Séance média : un titre touché qui ouvre sa fenêtre (durée, « Jouée en dernier » et « Jouée N fois », « Jamais jouée »), les champs choisis sous « Montrés avant de lancer » (une intro en texte long, mise en forme), « Lancer » et le retour à la liste ; les images d'un champ choisi sous « Images montrées pendant la séance », la première en grand pendant l'écoute.
 - Un questionnaire ignoré par erreur (« Avant la séance »), rouvert dans son historique et modifié : « Rempli » après l'enregistrement, et « Préparer la séance » qui part ; une entrée déjà remplie corrigée, qui ne relance pas de séance.
 - L'export d'une partie : « Hors groupe » au-dessus des zones et des outils sans groupe qui suivent un groupe ; « La zone elle-même » en tête d'une zone ouverte, cochée avec la zone entière, décochée quand on ne coche qu'un outil, la zone partie en « Zone partagée » (numérotée à plusieurs) sans description, icône, identité ni « valider », puis importée ; la même case à l'import.
 - Une lecture de l'IA sur un outil qui n'existe pas (un identifiant de zone pris pour un outil, ou coupé) : la conversation qui continue, l'erreur de commande montrée, l'IA qui se corrige — elle fermait la conversation (vu le 2026-11-02 au matin, `0a4d0ff9`).
@@ -85,9 +88,6 @@ Codé, jamais vu sur l'appareil.
 - Les passes des thèmes sur le téléphone : la tournée de `docs/THEMES.md` (« The pass on the phone ») pour chaque thème, puis ce que sa spec garde à juger sur l'appareil dans « What stays open » (`docs/themes/<id>.md`), le niveau des sons dans `docs/themes/sounds.md`.
 
 ## Décidé, à coder
-
-- Le mode « lié » du champ Fichier : `docs/design/linked-files.md`.
-- « Que jouer ? » d'une Séance média, spec `docs/design/media-launch.md` : toucher un titre ne lance plus, une fenêtre flottante montre le nom, la durée, la dernière écoute, le nombre d'écoutes (tiré de l'historique), puis les champs de la fiche choisis en config, dont un champ texte qui fait l'intro ; « Lancer », ou retour à la liste. Pendant la séance, un champ Images de la fiche choisi en config, montré en bande à faire défiler, dans l'ordre.
 
 - L'outil Schéma, le schéma écrit : `docs/design/schema.md` (config JSON au vocabulaire de Mermaid, placement par ELK, largeur, tuile, écran), ses vérifications d'abord (« Ouvert »).
 

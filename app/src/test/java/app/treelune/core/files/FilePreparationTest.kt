@@ -38,7 +38,8 @@ class FilePreparationTest {
         assertEquals(FileFormat.M4A, FileFormat.ofMedia("audio/x-m4a", "x"))
         assertEquals(FileFormat.OGG, FileFormat.ofMedia(null, "session.opus"))
         assertEquals(FileFormat.MP4, FileFormat.ofMedia("application/octet-stream", "clip.MP4"))
-        assertNull(FileFormat.ofMedia("audio/flac", "song.flac"))
+        assertEquals(FileFormat.FLAC, FileFormat.ofMedia("audio/flac", "song.flac"))
+        assertEquals(FileFormat.FLAC, FileFormat.ofMedia(null, "01 - Intro.flac"))
         assertNull(FileFormat.ofMedia(null, "notes.txt"))
     }
 

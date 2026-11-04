@@ -19,7 +19,7 @@ import java.util.UUID
  * - A folder is opened by the user, in Settings › Data, through Android's folder picker: the app
  *   keeps the right to read it ([OpenedFolder], AppSettings.DATA_OPENED_FOLDERS). A linked file
  *   always comes from one of them, from the screen as from the connector: one right, the folder's.
- * - A link is the address of the file in its folder's tree (`buildDocumentUriUsingTree`), found
+ * - A link is the address of the file in its folder's tree (DocumentsContract.buildDocumentUriUsingTree), found
  *   from the folder and the path under it ([prepare]).
  * - Prepared, a link waits in the pending folder as `<id>.link`, the description of the file it
  *   designates; the write of the entry that holds its id makes it the entry's row (OwnedFiles),
