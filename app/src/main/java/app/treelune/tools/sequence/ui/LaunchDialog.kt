@@ -28,6 +28,18 @@ import app.treelune.core.utils.DateTimeFormatter
 import app.treelune.core.utils.LogManager
 import app.treelune.tools.sequence.SequenceToolType
 import app.treelune.tools.sequence.SequenceVariants
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.Alignment
+import app.treelune.core.fields.FieldValue
+import app.treelune.core.ui.ButtonAction
+import app.treelune.core.ui.ButtonType
+import app.treelune.core.ui.ComponentState
+import app.treelune.core.ui.Size
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
 /**
@@ -61,7 +73,7 @@ private fun TimerDialog(config: JSONObject, s: StringsContext, onAnswer: (Map<St
 /**
  * Which entry: those of the selection that hold a file in the field, in the sort's order, each
  * with when this tool last played it; the one it played last marked so, and the list opened at it.
- * A touch answers.
+ * A touch never starts: it opens the entry's window ([MediaPreview]), whose « Start » answers.
  */
 @Composable
 private fun MediaDialog(config: JSONObject, history: List<SequenceEntry>, s: StringsContext, onAnswer: (Map<String, Any?>) -> Unit, onCancel: () -> Unit) {
@@ -87,6 +99,12 @@ private fun MediaDialog(config: JSONObject, history: List<SequenceEntry>, s: Str
     }
     // The entry played last of all
     val lastPlayed = remember(playedAt) { playedAt.maxByOrNull { it.value }?.key }
+    // How many sessions played each entry
+    val playCounts = remember(history) {
+        history.flatMap { session -> session.steps.orEmpty().mapNotNull { it.sourceEntry?.id }.distinct() }.groupingBy { it }.eachCount()
+    }
+    // The entry touched, shown before it starts
+    var previewed by remember { mutableStateOf<Map<String, Any?>?>(null) }
 
     UI.Dialog(type = DialogType.SELECTION, onConfirm = {}, onCancel = onCancel) {
         Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
@@ -99,7 +117,7 @@ private fun MediaDialog(config: JSONObject, history: List<SequenceEntry>, s: Str
             LazyColumn(state = list) {
                 itemsIndexed(entries, key = { _, e -> e["id"] as String }) { _, entry ->
                     val id = entry["id"] as String
-                    Column(modifier = Modifier.fillMaxWidth().clickable { onAnswer(mapOf("entry" to id)) }.padding(vertical = UI.Space.S)) {
+                    Column(modifier = Modifier.fillMaxWidth().clickable { previewed = entry }.padding(vertical = UI.Space.S)) {
                         // An entry without a name says its date
                         UI.Text((entry["name"] as? String)?.takeIf { it.isNotBlank() }
                             ?: DateTimeFormatter.formatForDisplay((entry["timestamp"] as Number).toLong(), context), TextType.BODY)
@@ -108,6 +126,72 @@ private fun MediaDialog(config: JSONObject, history: List<SequenceEntry>, s: Str
                             UI.Text(s.tool(if (id == lastPlayed) "launch_media_last" else "launch_media_played").format(played), TextType.CAPTION)
                         }
                     }
+                }
+            }
+        }
+    }
+
+    previewed?.let { entry ->
+        MediaPreview(config, entry, playedAt[entry["id"]], playCounts[entry["id"]] ?: 0, s,
+            onStart = { onAnswer(mapOf("entry" to entry["id"] as String)) }, onBack = { previewed = null })
+    }
+}
+
+/**
+ * The entry [entry] touched in « What to play? », before it starts: its name, its medium's
+ * length, when it was played last and how many times, then the fields the config shows
+ * (SequenceVariants.MEDIA_SHOWN), each with its label. « Start » answers; back returns to the list.
+ * A linked medium the phone no longer has is said, and nothing starts.
+ */
+@Composable
+private fun MediaPreview(config: JSONObject, entry: Map<String, Any?>, lastAt: Long?, count: Int, s: StringsContext, onStart: () -> Unit, onBack: () -> Unit) {
+    val context = LocalContext.current
+    val toolId = config.optJSONObject(SequenceVariants.MEDIA_SOURCE)?.optJSONObject("target")?.optString("id").orEmpty()
+    val shown = config.optJSONArray(SequenceVariants.MEDIA_SHOWN)?.let { list -> (0 until list.length()).mapNotNull { list.optString(it).takeIf { p -> p.isNotEmpty() } } }.orEmpty()
+    // The fields of the source, to show each value as its field says
+    val fields by produceState<Map<String, FieldDefinition>?>(initialValue = null, toolId) {
+        value = try {
+            app.treelune.core.fields.ToolFields.filterable(toolId, context, s)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            LogManager.ui("Sequence: the fields of $toolId not read: ${e.message}", "WARN")
+            emptyMap()
+        }
+    }
+    // Its medium: its length, or that the phone no longer has it
+    val mediumId = app.treelune.core.fields.FileField.ids(app.treelune.core.reading.FieldReading.valueAt(entry, config.optString(SequenceVariants.MEDIA_FIELD))).firstOrNull()
+    val medium by produceState<Pair<Long?, Boolean>?>(initialValue = null, mediumId) {
+        value = withContext(Dispatchers.IO) {
+            val found = mediumId?.let { app.treelune.core.files.Files.inspect(context, it) }
+            found?.description?.durationMs to (found == null && mediumId != null && app.treelune.core.files.Files.isLink(context, mediumId))
+        }
+    }
+    val unreachable = medium?.second == true
+
+    UI.Dialog(type = DialogType.SELECTION, onConfirm = onBack, onCancel = onBack) {
+        Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+            UI.Text((entry["name"] as? String)?.takeIf { it.isNotBlank() }
+                ?: DateTimeFormatter.formatForDisplay((entry["timestamp"] as Number).toLong(), context), TextType.TITLE)
+            medium?.first?.let { UI.Text(app.treelune.core.files.clock(it), TextType.CAPTION) }
+            UI.Text(if (lastAt == null) s.tool("launch_media_never")
+                else s.tool("launch_media_last").format(DateTimeFormatter.formatForDisplay(lastAt, context)) + " · " + s.tool("launch_media_count").format(count), TextType.CAPTION)
+            if (unreachable) UI.Text(s.shared("file_link_unreachable"), TextType.ERROR)
+            val known = fields
+            if (known == null) UI.LoadingIndicator()
+            else shown.forEach { path ->
+                val definition = known[path] ?: return@forEach
+                val value = app.treelune.core.reading.FieldReading.valueAt(entry, path)
+                if (value != null) {
+                    UI.Text(definition.displayName, TextType.LABEL)
+                    FieldValue(definition, value, context)
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {
+                UI.ActionButton(action = ButtonAction.BACK, onClick = onBack)
+                UI.Button(type = ButtonType.PRIMARY, size = Size.M,
+                    state = if (unreachable || medium == null) ComponentState.DISABLED else ComponentState.NORMAL, onClick = onStart) {
+                    UI.Text(s.tool("launch_media_start"), TextType.BODY)
                 }
             }
         }

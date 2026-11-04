@@ -231,5 +231,14 @@
     <string name="launch_media_none">Aucune entrée où choisir n\'a de son ni de vidéo</string>
     <string name="launch_media_last">Jouée en dernier, le %1$s</string>
     <string name="launch_media_played">Jouée le %1$s</string>
+    <string name="field_media_shown">Montrés avant de lancer</string>
+    <string name="field_media_shown_field">Champ</string>
+    <string name="schema_media_shown">Les champs de ces entrées montrés quand on en touche une dans « Que jouer ? », avant de la lancer, dans leur ordre : une intro, une position, des notes</string>
+    <string name="schema_media_shown_field">Le chemin d\'un champ de ces entrées (« extra.intro »)</string>
+    <string name="field_media_images">Images montrées pendant la séance</string>
+    <string name="schema_media_images">Le chemin d\'un champ Image de ces entrées dont la séance montre les images pendant qu\'elle joue, la première en grand (« extra.images ») ; aucun, pas d\'image</string>
+    <string name="launch_media_start">Lancer</string>
+    <string name="launch_media_count">Jouée %1$d fois</string>
+    <string name="launch_media_never">Jamais jouée</string>
     <string name="timer_proposed">Minuteur · %1$s proposé</string>
 </resources>

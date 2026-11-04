@@ -127,9 +127,10 @@ sealed class SettingNode {
         data class Of(val nodes: List<SettingNode>, val description: String? = null, val definition: String? = null) : Item()
         /**
          * A single value; the field's name is not stored, only its value. With [rowField], the
-         * name of a field of the rows, as SettingNode.Field.rowField.
+         * name of a field of the rows, as SettingNode.Field.rowField; with [fieldOf], the path of
+         * a field of the tool the setting beside the list designates, as SettingNode.Field.fieldOf.
          */
-        data class Value(val definition: FieldDefinition, val rowField: Boolean = false) : Item()
+        data class Value(val definition: FieldDefinition, val rowField: Boolean = false, val fieldOf: String? = null) : Item()
     }
 
     /**

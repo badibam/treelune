@@ -39,6 +39,10 @@ object SequenceVariants {
     const val MEDIA_FIELD = "media_field"
     /** The order those entries are offered in (SettingNode.Sort) */
     const val MEDIA_SORT = "media_sort"
+    /** The fields of those entries an entry touched in « What to play? » shows before it starts, by their paths, in their order */
+    const val MEDIA_SHOWN = "media_shown"
+    /** The image field of those entries whose images the session shows while it plays, by its path; none, no image */
+    const val MEDIA_IMAGES = "media_images"
 
     /** The timer proposed when the config sets none: ten minutes. */
     const val DEFAULT_TIMER = 600_000L
@@ -98,7 +102,11 @@ object SequenceVariants {
             .put("selection", JSONObject().put("target", entry.toJson()))
             .put("field", config.optString(MEDIA_FIELD))
             .put("reduction", "LAST")
-        return PlannedStep(name, null, StepEnd.MEDIA, null, emptyList(), terms = StepTerms(null, JSONObject().put("reading", reading)))
+        // Its images, when the config names a field of them, followed the same way
+        val images = config.optString(MEDIA_IMAGES).takeIf { it.isNotEmpty() }?.let { field ->
+            JSONObject().put("reading", JSONObject(reading.toString()).put("field", field))
+        }
+        return PlannedStep(name, null, StepEnd.MEDIA, null, emptyList(), terms = StepTerms(images, JSONObject().put("reading", reading)))
     }
 
     /**

@@ -231,5 +231,14 @@
     <string name="launch_media_none">No entry to choose from holds a sound or a video</string>
     <string name="launch_media_last">Played last, on %1$s</string>
     <string name="launch_media_played">Played on %1$s</string>
+    <string name="field_media_shown">Shown before it starts</string>
+    <string name="field_media_shown_field">Field</string>
+    <string name="schema_media_shown">The fields of those entries shown when one is touched in “What to play?”, before it starts, in their order: an introduction, a position, notes</string>
+    <string name="schema_media_shown_field">The path of a field of those entries (“extra.intro”)</string>
+    <string name="field_media_images">Images shown while it plays</string>
+    <string name="schema_media_images">The path of an image field of those entries whose images the session shows while it plays, the first one large (“extra.images”); none, no image</string>
+    <string name="launch_media_start">Start</string>
+    <string name="launch_media_count">Played %1$d times</string>
+    <string name="launch_media_never">Never played</string>
     <string name="timer_proposed">Timer · %1$s proposed</string>
 </resources>

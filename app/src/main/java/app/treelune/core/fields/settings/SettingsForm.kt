@@ -690,7 +690,7 @@ private fun NodeForm(
             if (editor != null) editor.Edit(config.optJSONArray(node.name)) { set(node.name, it) }
             else Titled(node.label) {
                 Into(node.name) {
-                    ListForm(node, config.optJSONArray(node.name) ?: JSONArray(), { set(node.name, it.takeIf { a -> a.length() > 0 }) }, context)
+                    ListForm(node, config.optJSONArray(node.name) ?: JSONArray(), { set(node.name, it.takeIf { a -> a.length() > 0 }) }, context, config)
                 }
             }
         }
@@ -874,7 +874,9 @@ private fun ListForm(
     list: SettingNode.ListOf,
     items: JSONArray,
     onChange: (JSONArray) -> Unit,
-    context: Context
+    context: Context,
+    // The object holding the list, where a value's fieldOf finds the tool it names
+    holder: JSONObject = JSONObject()
 ) {
     val values = (0 until items.length()).map { items.get(it) }
     fun publish(next: List<Any>) = onChange(JSONArray(next))
@@ -910,6 +912,10 @@ private fun ListForm(
             is SettingNode.Item.Value -> Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.weight(1f)) {
                     if (shape.rowField) RowFieldChoice(shape.definition.displayName, item.takeIf { it != JSONObject.NULL } as? String, required = true) { value ->
+                        publish(values.toMutableList().also { it[index] = value ?: JSONObject.NULL })
+                    }
+                    else if (shape.fieldOf != null) ToolFieldChoice(SettingNode.Field(shape.definition, required = true, fieldOf = shape.fieldOf),
+                        holder.opt(shape.fieldOf), item.takeIf { it != JSONObject.NULL } as? String, context) { value ->
                         publish(values.toMutableList().also { it[index] = value ?: JSONObject.NULL })
                     }
                     else FieldInput(shape.definition, item.takeIf { it != JSONObject.NULL }, { value ->
