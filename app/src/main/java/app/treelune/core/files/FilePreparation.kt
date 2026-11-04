@@ -18,7 +18,7 @@ import java.util.UUID
  *
  * - An image is reduced as a photo is (Images.prepare), or kept as the original, byte for byte,
  *   when asked (Images.original); the name of a photo is left behind.
- * - An audio or a video is copied as it came, never encoded again, held to its kind's size, and
+ * - An audio or a video is copied as it came, never encoded again, held to its kind's size if it has one, and
  *   refused when Android cannot play it (FileDescription.read).
  * - A text is read as UTF-8, its byte order mark left out; a file that is not text is refused.
  */
@@ -100,15 +100,15 @@ object FilePreparation {
             }
             FileKind.AUDIO, FileKind.VIDEO -> {
                 val format = media!!
-                val max = kind.maxBytes!!
-                if (knownSize != null && knownSize > max) return Result.Refused(tooLarge(name, kind, max, text))
+                val max = kind.maxBytes
+                if (max != null && knownSize != null && knownSize > max) return Result.Refused(tooLarge(name, kind, max, text))
                 val target = File(dir, format.fileName(id))
                 val copied = try {
-                    copyAtMost(resolver.openInputStream(uri) ?: return Result.Refused(text("file_error_not_readable").format(name ?: "", "")), target, max)
+                    copyAtMost(resolver.openInputStream(uri) ?: return Result.Refused(text("file_error_not_readable").format(name ?: "", "")), target, max ?: Long.MAX_VALUE)
                 } catch (e: java.io.IOException) {
                     return Result.Refused(text("file_error_not_readable").format(name ?: "", e.message ?: ""))
                 }
-                if (copied == null) return Result.Refused(tooLarge(name, kind, max, text))
+                if (copied == null) return Result.Refused(tooLarge(name, kind, max!!, text))
                 try {
                     val description = FileDescription.read(target, format, name)
                     name?.let { Files.pendingName(context, id).writeText(it, Charsets.UTF_8) }

@@ -5,11 +5,12 @@ package app.treelune.core.files
  * played, reduced, and what the AI reads of it.
  *
  * @property maxBytes The largest file of the kind set aside, refused beyond, saying so; null for an
- *           image, reduced on its way in, and for a text
+ *           image, reduced on its way in, for an audio, which a session of an hour or more in a
+ *           lossless format (FLAC, WAV) makes hundreds of MB, and for a text
  */
 enum class FileKind(val maxBytes: Long?) {
     IMAGE(null),
-    AUDIO(50L * 1024 * 1024),
+    AUDIO(null),
     VIDEO(200L * 1024 * 1024),
     TEXT(null)
 }
@@ -38,6 +39,7 @@ enum class FileFormat(val kind: FileKind, val extension: String, val mediaTypes:
     AAC(FileKind.AUDIO, "aac", listOf("audio/aac", "audio/aacp", "audio/x-aac")),
     OGG(FileKind.AUDIO, "ogg", listOf("audio/ogg", "audio/opus", "application/ogg"), listOf("ogg", "opus", "oga")),
     WAV(FileKind.AUDIO, "wav", listOf("audio/wav", "audio/x-wav", "audio/wave", "audio/vnd.wave")),
+    FLAC(FileKind.AUDIO, "flac", listOf("audio/flac", "audio/x-flac")),
     MP4(FileKind.VIDEO, "mp4", listOf("video/mp4")),
     TEXT(FileKind.TEXT, "txt", listOf("text/plain"));
 

@@ -121,6 +121,6 @@ object McpUploads {
     /** The path an address lives under. */
     const val PATH = "/upload/"
 
-    /** The most the node takes for a kind without a size of its own (an image, reduced; a text): a video's. */
+    /** The most the node takes for a kind without a size of its own (an image, reduced; an audio; a text): a video's. */
     private val STREAMED_MAX = FileKind.VIDEO.maxBytes!!
 }

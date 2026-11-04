@@ -87,7 +87,6 @@ Codé, jamais vu sur l'appareil.
 ## Décidé, à coder
 
 - Le mode « lié » du champ Fichier : `docs/design/linked-files.md`.
-- L'audio sans limite de taille, et le FLAC (`FileFormat.kt`) ; la limite d'envoi du connecteur, qui prend celle de l'audio (`McpUploads`), à revoir avec.
 - « Que jouer ? » d'une Séance média, spec `docs/design/media-launch.md` : toucher un titre ne lance plus, une fenêtre flottante montre le nom, la durée, la dernière écoute, le nombre d'écoutes (tiré de l'historique), puis les champs de la fiche choisis en config, dont un champ texte qui fait l'intro ; « Lancer », ou retour à la liste. Pendant la séance, un champ Images de la fiche choisi en config, montré en bande à faire défiler, dans l'ordre.
 
 - L'outil Schéma, le schéma écrit : `docs/design/schema.md` (config JSON au vocabulaire de Mermaid, placement par ELK, largeur, tuile, écran), ses vérifications d'abord (« Ouvert »).
