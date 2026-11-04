@@ -92,6 +92,8 @@ Codé, jamais vu sur l'appareil.
 
 - Une variable dans le message d'une routine, `docs/design/variable-pointers.md` : sa valeur à un instant, sa série sur une période, sa définition ; le pointeur d'une zone qui joint ses variables. Écrite sans relire le code des pointeurs, tout y est à revérifier avant de coder.
 - La suppression d'une copie quand sa source est supprimée (une séance d'Hypnose supprimée, sa ligne de Décrochage qui reste), dans la même Tâche que la copie. Proposition, non retenue faute de confiance : « Seulement si » qui teste ce qui est arrivé à l'entrée reçue (créée, modifiée, supprimée) ; dans une Tâche, la valeur d'un filtre qui pointe ce que pointe un « Seulement si » (l'entrée reçue, le résultat d'une étape) ; une étape « Supprimer des entrées » qui supprime ce qu'une sélection d'entrées désigne (« Décrochage, source = l'entrée reçue »), d'une seule étape de l'historique.
+- Une Séance média lue piste par piste : dans la fenêtre d'avant le lancement, les réponses de fin des séances précédentes sur cette entrée (un récit, daté), choisies par un second sélecteur sur les champs de la Séance elle-même ; peut-être une vue de la Séance, la bibliothèque avec les écoutes et les retours de chaque entrée.
+- Des manuels en PDF dans l'app : un type de fichier document, en mode lié, lu à l'écran.
 - La carte de l'installation, seconde source de l'outil Schéma (`docs/design/schema.md`, « Ouvert ») : une fois le schéma écrit vu sur le téléphone.
 
 ## Dette de code
@@ -109,6 +111,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 
 - Le correctif Tailscale de la route `cert/` (PR #21720) : fusionné, monter de version et retirer la correction de `scripts/vendor_go.py` ; refusé, noter pourquoi dans `docs/EXTERNAL_ACCESS.md`.
 - L'import d'une incarnation depuis personae (la dernière section de la recette, l'identité de Stan Prokopenko) : quand personae exportera au format 2 du fichier d'identité (`docs/IDENTITY_FILE.md`), le format 1 n'étant plus lu.
+
 
 ## À surveiller
 
