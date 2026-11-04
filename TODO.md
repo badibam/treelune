@@ -86,7 +86,7 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
-- Le mode « lié » du champ Fichier, spec `docs/design/linked-files.md` à écrire d'abord (il touche « un fichier a un seul propriétaire » et les sauvegardes) : un réglage du champ, « copié » par défaut ; en « lié », la saisie ne propose que choisir un fichier du téléphone, gardé par `takePersistableUriPermission` sans accès à un dossier ; des dossiers ouverts à l'app dans les Réglages (sélecteur de dossiers d'Android), où le connecteur liste les fichiers et écrit un lien (dossier ouvert + chemin relatif), un chemin hors d'eux refusé ; le lien stocké pareil d'où qu'il vienne, la durée lue au lien ; un fichier disparu dit « introuvable », sur la fiche et au lancement ; une sauvegarde garde le lien, pas le fichier, et le dit à la restauration ailleurs ; un champ qui change de mode garde ses fichiers tels qu'ils sont.
+- Le mode « lié » du champ Fichier : `docs/design/linked-files.md`.
 - L'audio sans limite de taille, et le FLAC (`FileFormat.kt`) ; la limite d'envoi du connecteur, qui prend celle de l'audio (`McpUploads`), à revoir avec.
 - « Que jouer ? » d'une Séance média, spec `docs/design/media-launch.md` : toucher un titre ne lance plus, une fenêtre flottante montre le nom, la durée, la dernière écoute, le nombre d'écoutes (tiré de l'historique), puis les champs de la fiche choisis en config, dont un champ texte qui fait l'intro ; « Lancer », ou retour à la liste. Pendant la séance, un champ Images de la fiche choisi en config, montré en bande à faire défiler, dans l'ordre.
 
