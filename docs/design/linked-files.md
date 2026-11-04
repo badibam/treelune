@@ -5,9 +5,9 @@ Conception du 2026-11-04. Une bibliothèque d'audios de séances, plusieurs Go d
 ## Décisions
 
 - **Un réglage du champ Fichier**, `storage` : `copied` (par défaut, ce qui existe) ou `linked`. Tous les fichiers d'un champ sont de même nature. Un champ qui change de mode garde ses fichiers tels qu'ils sont, seuls les ajouts suivent le nouveau.
-- **En mode lié, la saisie ne propose que « Choisir un fichier sur le téléphone »** : ni photo, ni vidéo filmée, ni son enregistré, qui n'ont pas de place durable hors de l'app. Les types acceptés restent ceux du champ (`kinds`), et les formats ceux de `FileFormat`. Une image liée se montre telle qu'elle est, jamais réduite (comme « Garder l'original »).
-- **Des dossiers ouverts à l'app**, dans Réglages › Données : choisis par le sélecteur de dossiers d'Android, en lecture seule, retirables. Le connecteur ne lie que ce qu'ils contiennent.
-- **Un lien est l'adresse Android du fichier** (une URI `content://`), la même d'où qu'il vienne. Ce qui diffère, c'est d'où vient le droit de la lire : un droit gardé sur ce fichier seul (le sélecteur de fichiers), ou celui d'un dossier ouvert qui le contient.
+- **Un fichier lié vient toujours d'un dossier ouvert à l'app**, depuis l'écran comme depuis le connecteur : un seul droit, celui du dossier. En mode lié, la saisie ne propose que ce choix, par un navigateur des dossiers ouverts : ni photo, ni vidéo filmée, ni son enregistré, qui n'ont pas de place durable hors de l'app, ni le sélecteur de fichiers d'Android, qui laisserait prendre un fichier hors d'eux. Les types acceptés restent ceux du champ (`kinds`), et les formats ceux de `FileFormat`. Une image liée se montre telle qu'elle est, jamais réduite (comme « Garder l'original »).
+- **Des dossiers ouverts à l'app**, dans Réglages › Données : choisis par le sélecteur de dossiers d'Android, en lecture seule, retirables.
+- **Un lien est l'adresse Android du fichier dans l'arbre de son dossier ouvert** (une URI `content://`, `DocumentsContract.buildDocumentUriUsingTree`), la même qu'il vienne de l'écran ou du connecteur.
 - **Un fichier lié qui ne se lit plus est « introuvable »** : supprimé, renommé, déplacé, son droit retiré. L'app le dit sur la fiche, à la lecture et au lancement d'une séance, sans rien réparer. Ce n'est pas une erreur de l'app : c'est l'état du téléphone (WARN au journal, pas ERROR).
 - **L'app ne touche jamais au fichier lié** : supprimer l'entrée, le champ ou l'outil supprime le lien, pas le fichier.
 - **Une sauvegarde garde le lien, pas le fichier.** Restaurée sur le même téléphone, les liens marchent encore. Ailleurs, ils sont introuvables, et la restauration dit combien.
@@ -45,7 +45,7 @@ Un lien suit le chemin d'un fichier préparé (`files.prepare`, `FilePreparation
 
 ### Depuis l'écran
 
-En mode lié, la saisie ouvre le sélecteur de fichiers (`OpenDocument`, filtré sur les types du champ), ouvert dans le premier dossier ouvert à l'app quand il y en a un. Un fichier choisi hors des dossiers ouverts reçoit son droit propre (`takePersistableUriPermission`, lecture). Un fichier choisi dans un dossier ouvert n'en a pas besoin : son droit vient du dossier.
+En mode lié, la saisie ouvre un navigateur des dossiers ouverts, dans l'app : les dossiers, puis leurs sous-dossiers et leurs fichiers, filtrés sur les types du champ, un fil d'Ariane pour remonter. Un fichier touché est préparé comme lien (`files.link`). Il repose sur les opérations du connecteur, `folders` et `list`. Sans dossier ouvert, il propose d'en ouvrir un.
 
 ### Depuis le connecteur et l'IA
 
@@ -78,6 +78,5 @@ L'IA dans l'app y a accès comme le connecteur.
 
 ## Ouvert
 
-- Le plafond des droits gardés sur des fichiers seuls : 512 depuis Android 11, au-delà de quoi Android en retire. Le comportement exact est à vérifier sur le téléphone. Un dossier ouvert l'évite : c'est la voie à conseiller pour une bibliothèque.
 - La durée d'un FLAC de 200 Mo lue par `MediaMetadataRetriever` sur une URI : le temps que ça prend.
 - Le déplacement de la lecture (`seekTo`) dans un FLAC servi par une URI, pour la reprise d'une séance en pause.
