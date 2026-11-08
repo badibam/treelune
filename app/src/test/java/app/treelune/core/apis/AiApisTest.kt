@@ -33,7 +33,7 @@ class AiApisTest {
     private val database get() = AppDatabase.getDatabase(context)
 
     private val config = mapOf(
-        "url" to "https://example.org/jobs", "method" to "POST", "key_in" to "header", "key_header" to "Authorization", "key_prefix" to "Bearer ",
+        "kind" to "web", "url" to "https://example.org/jobs", "method" to "POST", "key_in" to "header", "key_header" to "Authorization", "key_prefix" to "Bearer ",
         "inputs" to listOf(mapOf("name" to "context", "type" to "text")),
         "response" to "deferred", "id_path" to "job", "status_url" to "https://example.org/jobs?job={id}",
         "ready_path" to "state", "ready_value" to "ready", "wait_limit" to "PT1H"

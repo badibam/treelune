@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 113
+        const val VERSION = 114
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2364,6 +2364,27 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** A file's link to a file of the phone, none: every file kept so far is a copy (docs/design/linked-files.md). */
+        /** An API says its kind, every one so far a web service: see ApiKindAtV114. */
+        private val MIGRATION_113_114 = object : ConnectionMigration(113, 114) {
+            override fun migrate(database: MigrationDatabase) {
+                val v = app.treelune.core.versioning.ApiKindAtV114
+                var rewritten = 0
+                database.query("SELECT id, config_json FROM apis").use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getString(0)
+                        // A row that cannot be read stays as it was and is logged: reading it then fails with the reason
+                        try {
+                            v.config(cursor.getString(1))?.let { database.execSQL("UPDATE apis SET config_json = ? WHERE id = ?", arrayOf<Any?>(it, id)); rewritten++ }
+                        } catch (e: Exception) {
+                            LogManager.database("MIGRATION 113->114: API $id left as it was: ${e.message}", "ERROR", e)
+                        }
+                    }
+                }
+                app.treelune.core.versioning.HistoryCopies.rewrite(database, "apis") { v.api(it) }
+                LogManager.database("MIGRATION 113->114: $rewritten API(s) said to be web services", "INFO")
+            }
+        }
+
         private val MIGRATION_112_113 = object : ConnectionMigration(112, 113) {
             override fun migrate(database: MigrationDatabase) {
                 database.execSQL("ALTER TABLE files ADD COLUMN uri TEXT")
@@ -3528,7 +3549,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_109_110,
                     MIGRATION_110_111,
                     MIGRATION_111_112,
-                    MIGRATION_112_113
+                    MIGRATION_112_113,
+                    MIGRATION_113_114
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

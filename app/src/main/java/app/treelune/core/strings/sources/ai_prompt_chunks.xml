@@ -392,7 +392,7 @@ Lists the events of the zones: names a Task\'s step or you (EMIT_EVENT) emit and
 - `zone_id` (string, optional): the events of that zone alone]]></string>
     <string name="ai_command_apis"><![CDATA[### APIS
 
-Lists the APIs, web services a Task\'s `call_api` step calls: each with its id, name and whole config but its key, which never leaves the phone — its address and method, where its key goes (`key_in`), the `inputs` a call is given, the `values` read from its answer (each a `name`, a `type` and the `path` where the answer holds it), and whether it answers at once or later (`response`). For one that takes a key, `key_entered` says whether the user entered it: without it, a call is refused before it leaves.
+Lists the APIs a Task\'s `call_api` step calls: each with its id, name and whole config but its key, which never leaves the phone. Its `kind` says what it is: `web`, a web service, or `github_recipe`, a recipe of the user\'s GitHub repository (`recipe`, its folder), whose inputs and values its `recipe_spec` declares. A web service\'s config gives its address and method, where its key goes (`key_in`), the `inputs` a call is given, the `values` read from its answer (each a `name`, a `type` and the `path` where the answer holds it), and whether it answers at once or later (`response`). For one that takes a key, `key_entered` says whether the user entered it: without it, a call is refused before it leaves.
 
 **Parameters**: none]]></string>
     <string name="ai_command_file"><![CDATA[### FILE
@@ -926,7 +926,7 @@ Deletes a readout, its own tile and the lines it raises.
 - `readout_id` (string, **required**)]]></string>
     <string name="ai_command_create_api"><![CDATA[### CREATE_API
 
-Declares an API, a web service a Task\'s `call_api` step calls. Its config is described by SCHEMA with `id` `api_config`. You never handle a key: `key` is refused. For a service that takes one, say where it goes (`key_in`, with `key_header` and `key_prefix`, or `key_param`) and tell the user to enter it in Settings › APIs: until then, a call is refused before it leaves. For a service that takes none, `key_in` `none`. You cannot try an API: the user does, from its screen, and can give you what it answered for you to correct a path.
+Declares an API, a web service a Task\'s `call_api` step calls. Its config is described by SCHEMA with `id` `api_config`. You never handle a key: `key` is refused. For a service that takes one, say where it goes (`key_in`, with `key_header` and `key_prefix`, or `key_param`) and tell the user to enter it in Settings › APIs: until then, a call is refused before it leaves. For a service that takes none, `key_in` `none`. A recipe of the user\'s GitHub repository is `kind` `github_recipe` and its `recipe` alone: the app reads its inputs and values in the repository. You cannot try an API: the user does, from its screen, and can give you what it answered for you to correct a path.
 
 **Parameters**:
 

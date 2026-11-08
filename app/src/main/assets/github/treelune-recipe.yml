@@ -15,7 +15,7 @@ on:
         required: true
         type: string
       call:
-        description: The call's id, 32 hex characters; its branch is treelune/call-<call>
+        description: The call's id, its start in milliseconds and 16 hex characters; its branch is treelune/call-<call>
         required: true
         type: string
 
@@ -34,7 +34,7 @@ jobs:
           CALL: ${{ inputs.call }}
         run: |
           [[ "$RECIPE" =~ ^[a-z0-9][a-z0-9-]*$ ]] || { echo "recipe: not a folder name"; exit 1; }
-          [[ "$CALL" =~ ^[0-9a-f]{32}$ ]] || { echo "call: not 32 hex characters"; exit 1; }
+          [[ "$CALL" =~ ^[0-9]{13}-[0-9a-f]{16}$ ]] || { echo "call: not a call's id"; exit 1; }
 
       - name: Check out the recipes
         uses: actions/checkout@v4

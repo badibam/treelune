@@ -69,7 +69,7 @@ class TasksApisHistoryTest {
     @Test
     fun `an API's change is undone with its key as it is, a deletion undone brings it back without its key`() = runBlocking {
         // Made without a key: the tests have no keystore to seal one
-        val config = mapOf("url" to "https://example.org/price", "method" to "GET", "key_in" to "query", "key_param" to "k", "response" to "immediate")
+        val config = mapOf("kind" to "web", "url" to "https://example.org/price", "method" to "GET", "key_in" to "query", "key_param" to "k", "response" to "immediate")
         val apiId = ok("apis.create", mapOf("name" to "Prices", "config" to config))["api_id"] as String
         fun stored() = JSONObject(runBlocking { database.apiDao().get(apiId)!!.configJson })
         // Its key put in place as a sealed one sits there, outside any step

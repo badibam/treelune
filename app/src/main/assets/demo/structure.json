@@ -3293,6 +3293,7 @@
       "id": "demo-api-weather",
       "name": "@weather_api_name",
       "config": {
+        "kind": "web",
         "url": "https://api.open-meteo.com/v1/forecast?daily=temperature_2m_max,precipitation_sum&timezone=auto&forecast_days=1",
         "method": "GET",
         "key_in": "none",

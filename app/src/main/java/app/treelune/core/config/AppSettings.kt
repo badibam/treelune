@@ -78,6 +78,7 @@ object AppSettings {
         AppSettingCategories.DEMO,
         AppSettingCategories.UI,
         AppSettingCategories.EXTERNAL_ACCESS,
+        AppSettingCategories.GITHUB,
         AppSettingCategories.GUIDE,
         AppSettingCategories.DATA
     )
@@ -116,6 +117,13 @@ object AppSettings {
     const val ACCESS_MODE = "access_mode"
     const val ACCESS_MODE_TAILSCALE = "TAILSCALE"
     const val ACCESS_MODE_RELAY = "RELAY"
+
+    /**
+     * The user's GitHub repository, `owner/name`, private, where the app writes its workflows and
+     * runs its jobs (docs/design/github-worker.md), and the token that opens it, limited to it.
+     */
+    const val GITHUB_REPOSITORY = "repository"
+    const val GITHUB_TOKEN = "token"
 
     /** The relay's public address, under which an outside AI reaches the app (https). */
     const val RELAY_URL = "relay_url"
@@ -243,6 +251,12 @@ object AppSettings {
                         FieldType.TEXT, config = mapOf("length" to TextLength.MEDIUM.name), secret = true)
                 ), shownWith = SettingNode.ShownWith(ACCESS_MODE, ACCESS_MODE_RELAY)),
                 scale(MCP_MAX_DATA_CHARS, text("settings_external_access_max_data"), text("settings_external_access_max_data_help"), MCP_DATA_RANGE))
+            AppSettingCategories.GITHUB -> listOf(
+                field(GITHUB_REPOSITORY, text("settings_github_repository"), text("settings_github_repository_help"),
+                    FieldType.TEXT, config = mapOf("length" to TextLength.SHORT.name), address = true),
+                // MEDIUM: a fine-grained token runs past SHORT's 60 characters, some 93
+                field(GITHUB_TOKEN, text("settings_github_token"), text("settings_github_token_help"),
+                    FieldType.TEXT, config = mapOf("length" to TextLength.MEDIUM.name), secret = true))
             AppSettingCategories.GUIDE -> listOf(
                 field(GUIDE_WELCOME_SEEN, text("guide_setting_welcome_seen"), text("guide_schema_welcome_seen"), FieldType.BOOLEAN, required = true),
                 field(GUIDE_BAND_HIDDEN, text("guide_setting_band_hidden"), text("guide_schema_band_hidden"), FieldType.BOOLEAN, required = true),
@@ -326,6 +340,7 @@ object AppSettings {
             AppSettingCategories.DEMO -> s.shared("settings_demo")
             AppSettingCategories.UI -> s.shared("settings_ui")
             AppSettingCategories.EXTERNAL_ACCESS -> s.shared("settings_external_access")
+            AppSettingCategories.GITHUB -> s.shared("settings_github")
             AppSettingCategories.GUIDE -> s.shared("guide_title")
             AppSettingCategories.DATA -> s.shared("settings_data")
             else -> throw IllegalArgumentException("No declaration for settings category '$category'")
@@ -342,6 +357,7 @@ object AppSettings {
             AppSettingCategories.DEMO -> s.shared("settings_demo_description")
             AppSettingCategories.UI -> s.shared("settings_ui_description")
             AppSettingCategories.EXTERNAL_ACCESS -> s.shared("settings_external_access_description")
+            AppSettingCategories.GITHUB -> s.shared("settings_github_description")
             AppSettingCategories.GUIDE -> s.shared("guide_description")
             AppSettingCategories.DATA -> s.shared("settings_data_description")
             else -> null

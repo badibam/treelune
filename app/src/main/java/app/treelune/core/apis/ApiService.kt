@@ -67,7 +67,7 @@ class ApiService(private val context: Context) : ExecutableService {
     private fun summary(api: ApiEntity): Map<String, Any> {
         val config = JSONObject(api.configJson)
         return mapOf("id" to api.id, "name" to api.name, "url" to config.optString(ApiSettings.URL),
-            "deferred" to (config.optString(ApiSettings.RESPONSE) == ApiSettings.DEFERRED),
+            "deferred" to ApiSettings.deferred(config),
             "key_missing" to keyMissing(config))
     }
 
@@ -168,6 +168,11 @@ class ApiService(private val context: Context) : ExecutableService {
 
     private suspend fun call(params: JSONObject): OperationResult {
         val api = stored(params) ?: return notFound(params)
+        if (ApiSettings.isRecipe(JSONObject(api.configJson))) {
+            val job = RecipeCall.of(context, JSONObject(api.configJson)).start(inputs(params))
+            LogManager.service("API ${api.id} called: recipe job $job", "INFO")
+            return OperationResult.success(mapOf("job_id" to job, "raw" to ""))
+        }
         val call = callOf(api) ?: return unreadableKey(api)
         val reply = call.start(inputs(params))
         LogManager.service("API ${api.id} called: ${reply.code}", "INFO")
@@ -181,6 +186,7 @@ class ApiService(private val context: Context) : ExecutableService {
 
     private suspend fun status(params: JSONObject): OperationResult {
         val api = stored(params) ?: return notFound(params)
+        if (ApiSettings.isRecipe(JSONObject(api.configJson))) return recipeStatus(api, params)
         val call = callOf(api) ?: return unreadableKey(api)
         if (!call.deferred) return OperationResult.error(s.shared("api_error_not_deferred").format(api.name))
         val job = params.optString("job_id").ifEmpty { return OperationResult.error(s.shared("api_error_job_required")) }
@@ -196,10 +202,26 @@ class ApiService(private val context: Context) : ExecutableService {
         }
     }
 
+    /**
+     * Where a recipe's job stands: pending until its result is on its branch, then its values; a
+     * recipe that failed says why in its own sentence (RecipeCall.status).
+     */
+    private suspend fun recipeStatus(api: ApiEntity, params: JSONObject): OperationResult {
+        val job = params.optString("job_id").ifEmpty { return OperationResult.error(s.shared("api_error_job_required")) }
+        val call = RecipeCall.of(context, JSONObject(api.configJson))
+        val (status, result) = call.status(job)
+        return when (status) {
+            ApiCall.Status.READY -> OperationResult.success(mapOf("status" to "ready", "values" to call.values(job, result!!), "raw" to result.toString().take(ApiCall.RAW_KEPT)))
+            else -> OperationResult.success(mapOf("status" to "pending", "raw" to ""))
+        }
+    }
+
     private suspend fun tryCall(params: JSONObject): OperationResult {
         val config = params.optJSONObject("config")?.let { app.treelune.core.utils.JsonNulls.withoutNullKeys(it) }
             ?: return OperationResult.error(s.shared("ai_error_param_config_required"))
         refusal(config)?.let { return OperationResult.error(it) }
+        // A recipe runs for minutes on GitHub, and costs: it is tried by a Task launched by hand
+        if (ApiSettings.isRecipe(config)) return OperationResult.error(s.shared("api_error_recipe_try"))
         val call = ApiCall(config, ApiSettings.read(config, context))
         val reply = call.start(inputs(params))
         val values = call.tryRead(reply).map { (name, read) ->
@@ -221,6 +243,14 @@ class ApiService(private val context: Context) : ExecutableService {
      */
     suspend fun fileRequest(apiId: String, address: String): okhttp3.Request = withContext(Dispatchers.IO) {
         val api = dao.get(apiId) ?: throw IllegalStateException(s.shared("api_error_not_found").format(apiId))
+        if (ApiSettings.isRecipe(JSONObject(api.configJson))) {
+            // A file of the recipe's result is asked with the repository's token; any other as it is
+            return@withContext try {
+                app.treelune.core.github.GitHubRepo.of(context).fileRequest(address) ?: okhttp3.Request.Builder().url(address).get().build()
+            } catch (e: ApiCall.Failure) {
+                throw IllegalStateException(failure(e))
+            }
+        }
         val call = callOf(api) ?: throw IllegalStateException(s.shared("api_error_key_unreadable").format(api.name))
         try {
             call.fileRequest(address)
@@ -273,11 +303,15 @@ class ApiService(private val context: Context) : ExecutableService {
         return ApiSettings.configError(config, context)
     }
 
-    /** The config given, checked, its key sealed; or why it is refused. */
-    private fun checkedConfig(params: JSONObject): Pair<String?, String?> {
+    /**
+     * The config given, checked, its key sealed; or why it is refused. A recipe's takes what its
+     * `recipe.json` declares, read again in the repository each time it is saved.
+     */
+    private suspend fun checkedConfig(params: JSONObject): Pair<String?, String?> {
         val config = params.optJSONObject("config")?.let { app.treelune.core.utils.JsonNulls.withoutNullKeys(it) }
             ?: return null to s.shared("ai_error_param_config_required")
         refusal(config)?.let { LogManager.service("API config refused: $it", "WARN"); return null to it }
+        if (ApiSettings.isRecipe(config)) config.put(ApiSettings.RECIPE_SPEC, RecipeCall.readSpec(context, config.getString(ApiSettings.RECIPE)).toJson().toString())
         return SecretSettings.seal(SecretSettings.names(ApiSettings.nodes(context)), config, SecretBox.of()).toString() to null
     }
 

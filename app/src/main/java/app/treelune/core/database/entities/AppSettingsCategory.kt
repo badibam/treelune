@@ -31,4 +31,6 @@ object AppSettingCategories {
     const val GUIDE = "guide"
     /** The phone's folder the app writes its backups into, and the automatic backup (docs/DATA.md, « Automatic backup ») */
     const val DATA = "data"
+    /** The user's GitHub repository, where the app runs its jobs (docs/design/github-worker.md) */
+    const val GITHUB = "github"
 }

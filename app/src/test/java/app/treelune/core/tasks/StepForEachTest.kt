@@ -72,7 +72,7 @@ class StepForEachTest {
 
     /** An API answering at once a list `words`, each element with [items] (name to type). */
     private suspend fun api(vararg items: Pair<String, String>): String = ok("apis.create", mapOf("name" to "Lesson ${java.util.UUID.randomUUID()}", "config" to mapOf(
-        "url" to "http://127.0.0.1:${server.address.port}/", "method" to "GET", "key_in" to "none", "response" to "immediate",
+        "kind" to "web", "url" to "http://127.0.0.1:${server.address.port}/", "method" to "GET", "key_in" to "none", "response" to "immediate",
         "values" to listOf(mapOf("name" to "words", "type" to "list", "path" to "words",
             "items" to items.map { (name, type) -> mapOf("name" to name, "type" to type, "path" to name) }))
     )))["api_id"] as String
@@ -228,7 +228,7 @@ class StepForEachTest {
 
     /** An API taking the list `known` by POST. */
     private suspend fun posting(): String = ok("apis.create", mapOf("name" to "Session ${java.util.UUID.randomUUID()}", "config" to mapOf(
-        "url" to "http://127.0.0.1:${server.address.port}/", "method" to "POST", "key_in" to "none", "response" to "immediate",
+        "kind" to "web", "url" to "http://127.0.0.1:${server.address.port}/", "method" to "POST", "key_in" to "none", "response" to "immediate",
         "inputs" to listOf(mapOf("name" to "known", "type" to "list"))
     )))["api_id"] as String
 
@@ -258,7 +258,7 @@ class StepForEachTest {
     @Test
     fun aListInput_goesByPostAlone() = runBlocking {
         val result = coordinator.processUserAction("apis.create", mapOf("name" to "Get list", "config" to mapOf(
-            "url" to "http://127.0.0.1/", "method" to "GET", "key_in" to "none", "response" to "immediate",
+            "kind" to "web", "url" to "http://127.0.0.1/", "method" to "GET", "key_in" to "none", "response" to "immediate",
             "inputs" to listOf(mapOf("name" to "known", "type" to "list")))))
         assertFalse(result.isSuccess)
     }

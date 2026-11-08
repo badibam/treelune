@@ -73,6 +73,7 @@ private val SECTIONS = listOf(
     "settings_section_ai" to listOf(
         SettingsEntry("ai_providers", "bot", "settings_ai_providers"),
         SettingsEntry("apis", "plug", "settings_apis"),
+        SettingsEntry("github", "git-branch", "settings_github"),
         SettingsEntry("identities", "user-round", "settings_identities"),
         SettingsEntry("ai_limits", "gauge", "settings_ai_limits"),
         SettingsEntry("validation", "shield-check", "settings_validation")

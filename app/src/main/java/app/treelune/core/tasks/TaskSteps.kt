@@ -208,8 +208,8 @@ object TaskSteps {
     /** What step [step] gives the steps after it, read without running it. */
     suspend fun outputs(step: JSONObject, context: Context): List<Output> = when (step.optString(KIND)) {
         CALL_API -> AppDatabase.getDatabase(context).apiDao().get(step.optString(API_ID))?.let { api ->
-            JSONObject(api.configJson).optJSONArray(ApiSettings.VALUES)?.let { values ->
-                (0 until values.length()).map { values.getJSONObject(it) }.map { value ->
+            ApiSettings.values(JSONObject(api.configJson)).let { values ->
+                values.map { value ->
                     Output(value.getString(ApiSettings.NAME), value.optString(ApiSettings.TYPE, ApiSettings.TEXT),
                         value.optJSONArray(ApiSettings.ITEMS)?.let { items -> (0 until items.length()).map { items.getJSONObject(it) } }.orEmpty()
                             .map { Output(it.getString(ApiSettings.NAME), it.optString(ApiSettings.TYPE, ApiSettings.TEXT)) })
@@ -427,10 +427,10 @@ object TaskSteps {
                 CALL_API -> {
                     val api = database.apiDao().get(step.optString(API_ID)) ?: return s.shared("task_error_api").format(number, step.optString(API_ID))
                     // A deferred call waits on its one job: repeated, it would wait on several
-                    if (repeats(step) && JSONObject(api.configJson).optString(ApiSettings.RESPONSE) == ApiSettings.DEFERRED) {
+                    if (repeats(step) && ApiSettings.deferred(JSONObject(api.configJson))) {
                         return s.shared("task_error_for_each_deferred").format(number)
                     }
-                    val declared = JSONObject(api.configJson).optJSONArray(ApiSettings.INPUTS)?.let { list -> (0 until list.length()).map { list.getJSONObject(it).getString(ApiSettings.NAME) } }.orEmpty()
+                    val declared = ApiSettings.inputs(JSONObject(api.configJson)).map { it.getString(ApiSettings.NAME) }
                     inputs(step.optJSONObject(INPUTS), declared.toSet())?.let { return it }
                     // A list is filled by entries, and entries fill a list alone
                     val lists = ApiSettings.listInputs(JSONObject(api.configJson))

@@ -250,6 +250,14 @@ class BackupService(private val context: Context) : ExecutableService {
             return OperationResult.error(app.treelune.core.backup.PartLinks.text(link, { app.treelune.core.backup.PartLinks.name(whole.json, it) }, s::shared))
         }
         // An identity arrives as its identity file imports: one that does not make a file stops here, not on the other phone
+        // The recipes its APIs name go with it, read in the repository as they are now
+        try {
+            val apis = part.getJSONObject("data").optJSONArray("apis")?.let { rows -> (0 until rows.length()).map { rows.getJSONObject(it) } }.orEmpty()
+            app.treelune.core.github.RecipeFiles.read(context, apis).takeIf { it.length() > 0 }
+                ?.let { part.getJSONObject("data").put(app.treelune.core.github.RecipeFiles.KEY, it) }
+        } catch (e: app.treelune.core.apis.ApiCall.Failure) {
+            return OperationResult.error(s.shared("share_error_recipe").format(s.shared(e.key).format(*e.args)))
+        }
         val today = app.treelune.core.selection.TimeResolver.at(System.currentTimeMillis()).today()
         part.getJSONObject("data").getJSONArray("identities").let { rows -> (0 until rows.length()).map { app.treelune.core.backup.BackupPart.identity(rows.getJSONObject(it)) } }.forEach { identity ->
             try {
@@ -1607,6 +1615,9 @@ class BackupService(private val context: Context) : ExecutableService {
             }
             if (fromVersion < 112 && toVersion >= 112) {
                 app.treelune.core.versioning.QuestionnaireAiMessageAtV112.backup(data)
+            }
+            if (fromVersion < 114 && toVersion >= 114) {
+                app.treelune.core.versioning.ApiKindAtV114.backup(data)
             }
 
             // Transform app settings

@@ -434,7 +434,7 @@ object TaskRunner {
                 val types = TaskSteps.outputs(step, context).associate { it.value!! to it.type }
                 val job = done.data?.get("job_id") as? String
                 if (job != null) {
-                    val limit = (ApiSettings.read(config, context).number(ApiSettings.WAIT_LIMIT) ?: 0).toLong()
+                    val limit = ApiSettings.waitLimit(config, context)
                     throw Waits(TaskRun.StepResult(summary, types = types, raw = raw, at = now),
                         TaskRun.Wait(step.getString(TaskSteps.API_ID), job, now + TaskRun.Wait.FIRST_INTERVAL, TaskRun.Wait.FIRST_INTERVAL, now + limit))
                 }

@@ -23,6 +23,7 @@ object AppSettingsDefaults {
         AppSettingCategories.DEMO,
         AppSettingCategories.UI,
         AppSettingCategories.EXTERNAL_ACCESS,
+        AppSettingCategories.GITHUB,
         AppSettingCategories.GUIDE
     )
 
@@ -49,6 +50,8 @@ object AppSettingsDefaults {
         AppSettingCategories.EXTERNAL_ACCESS -> JSONObject().put(AppSettings.ACCESS_MODE,
             if (app.treelune.core.mcp.FunnelNative.available) AppSettings.ACCESS_MODE_TAILSCALE else AppSettings.ACCESS_MODE_RELAY)
             .put(AppSettings.MCP_MAX_DATA_CHARS, AppSettings.MCP_MAX_DATA_CHARS_DEFAULT).toString()
+        // No repository until the user gives one
+        AppSettingCategories.GITHUB -> JSONObject().toString()
         // Nothing seen, nothing started: the first-launch screen comes, then First steps
         AppSettingCategories.GUIDE -> JSONObject().put(AppSettings.GUIDE_WELCOME_SEEN, false)
             .put(AppSettings.GUIDE_BAND_HIDDEN, false)

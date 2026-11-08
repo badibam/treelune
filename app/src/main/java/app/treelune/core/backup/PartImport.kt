@@ -192,6 +192,18 @@ class PartImport(private val context: Context) {
             written.toolGroups[id] = stored
         }
 
+        // The recipes the APIs created or replaced name, written into the repository first: an
+        // API of a recipe reads it there when it is saved
+        val recipes = rows(data, "apis").filter { it.getString("id") in newApis || it.getString("id") in replacedApis }
+            .map { JSONObject(it.getString("config_json")) }.filter { app.treelune.core.apis.ApiSettings.isRecipe(it) }
+            .map { it.getString(app.treelune.core.apis.ApiSettings.RECIPE) }.toSet()
+        try {
+            app.treelune.core.github.RecipeFiles.write(context, data.optJSONArray(app.treelune.core.github.RecipeFiles.KEY), recipes)
+        } catch (e: app.treelune.core.apis.ApiCall.Failure) {
+            val s = app.treelune.core.strings.Strings.`for`(context = context)
+            throw Refused(s.shared("share_error_recipe").format(s.shared(e.key).format(*e.args)))
+        }
+
         // The APIs the app lacks, under a free name, without their key; one it holds kept, or
         // replaced last
         val otherNames = linkedMapOf<String, String>()

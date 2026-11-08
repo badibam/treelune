@@ -24,6 +24,24 @@ import org.json.JSONObject
  */
 object ApiSettings {
 
+    /**
+     * What the API is: a web service the app calls at its address ([WEB]), or a recipe of the
+     * user's GitHub repository ([GITHUB_RECIPE], docs/design/github-worker.md), a job that GitHub
+     * Actions runs, its inputs and values declared by the recipe itself.
+     */
+    const val KIND = "kind"
+    const val WEB = "web"
+    const val GITHUB_RECIPE = "github_recipe"
+
+    /** A recipe's folder under `recipes/` of the repository. */
+    const val RECIPE = "recipe"
+
+    /**
+     * The recipe's `recipe.json` as the app read it in the repository when the API was saved,
+     * written by the app (RecipeSpec): its inputs, its values, its longest run.
+     */
+    const val RECIPE_SPEC = "recipe_spec"
+
     const val URL = "url"
     const val METHOD = "method"
     const val GET = "GET"
@@ -69,16 +87,35 @@ object ApiSettings {
         }
     }
 
-    /** The inputs of an API's [config], as stored. */
+    /** Whether [config] is a recipe's. */
+    fun isRecipe(config: JSONObject): Boolean = config.optString(KIND) == GITHUB_RECIPE
+
+    /** The inputs of an API's [config]: its own, or those its recipe declares. */
     fun inputs(config: JSONObject): List<JSONObject> =
-        config.optJSONArray(INPUTS)?.let { list -> (0 until list.length()).map { list.getJSONObject(it) } }.orEmpty()
+        (if (isRecipe(config)) RecipeSpec.of(config).inputs else config.optJSONArray(INPUTS))
+            ?.let { list -> (0 until list.length()).map { list.getJSONObject(it) } }.orEmpty()
+
+    /** The values an API's [config] names, each with its name and type: its own, or those its recipe declares. */
+    fun values(config: JSONObject): List<JSONObject> =
+        (if (isRecipe(config)) RecipeSpec.of(config).values else config.optJSONArray(VALUES))
+            ?.let { list -> (0 until list.length()).map { list.getJSONObject(it) } }.orEmpty()
+
+    /** Whether the API answers later, its first answer an id to follow: a recipe always does. */
+    fun deferred(config: JSONObject): Boolean = isRecipe(config) || config.optString(RESPONSE) == DEFERRED
+
+    /**
+     * How long a run waits for the API's answer: its own setting, or for a recipe its longest run
+     * and the time for the machine to start and the result to arrive.
+     */
+    fun waitLimit(config: JSONObject, context: Context): Long =
+        if (isRecipe(config)) (RecipeSpec.of(config).timeoutMinutes + RecipeSpec.MARGIN_MINUTES) * 60_000L
+        else (read(config, context).number(WAIT_LIMIT) ?: 0).toLong()
 
     /** The names of the inputs of [config] that take a list: a Task's step fills each with entries (`selection`). */
     fun listInputs(config: JSONObject): Set<String> = inputs(config).filter { it.optString(TYPE) == LIST }.map { it.getString(NAME) }.toSet()
 
     /** The fields of the inputs of an API's [config]. */
-    fun inputFields(config: JSONObject): List<FieldDefinition> =
-        config.optJSONArray(INPUTS)?.let { list -> (0 until list.length()).map { inputField(list.getJSONObject(it)) } }.orEmpty()
+    fun inputFields(config: JSONObject): List<FieldDefinition> = inputs(config).map { inputField(it) }
 
     /** A value's type beside those: a file, its path the address to download it from. */
     const val FILE = "file"
@@ -117,7 +154,7 @@ object ApiSettings {
             FieldDefinition(name, s.shared("api_$name"), s.shared("api_schema_$name"), FieldType.CHOICE, false,
                 mapOf("options" to ChoiceSettings.storedOptions(options, options.associateWith { s.shared("api_${name}_${it.lowercase()}") }))),
             required = true, default = default)
-        return listOf(
+        val web = listOf(
             text(URL, required = true, address = true),
             choice(METHOD, listOf(GET, POST), GET),
             text(KEY, secret = true),
@@ -166,6 +203,16 @@ object ApiSettings {
                 descriptions = mapOf(IMMEDIATE to s.shared("api_schema_response_immediate"), DEFERRED to s.shared("api_schema_response_deferred"))
             )
         )
+        val recipe = listOf(
+            text(RECIPE, required = true, length = TextLength.SHORT),
+            SettingNode.Field(FieldDefinition(RECIPE_SPEC, RECIPE_SPEC, s.shared("api_schema_$RECIPE_SPEC"), FieldType.TEXT, false,
+                mapOf("length" to TextLength.UNLIMITED.name)), systemWritten = true)
+        )
+        return listOf(SettingNode.Variant(
+            choice(KIND, listOf(WEB, GITHUB_RECIPE), WEB),
+            mapOf(WEB to web, GITHUB_RECIPE to recipe),
+            descriptions = mapOf(WEB to s.shared("api_schema_kind_web"), GITHUB_RECIPE to s.shared("api_schema_kind_github_recipe"))
+        ))
     }
 
     fun schema(context: Context): Schema {
@@ -188,6 +235,10 @@ object ApiSettings {
      */
     fun configError(config: JSONObject, context: Context): String? {
         val s = Strings.`for`(context = context)
+        if (isRecipe(config)) {
+            if (!RECIPE_FORM.matches(config.optString(RECIPE))) return s.shared("api_error_recipe_form").format(config.optString(RECIPE))
+            return null
+        }
         for (list in listOf(INPUTS, VALUES)) {
             val names = config.optJSONArray(list)?.let { array -> (0 until array.length()).map { array.getJSONObject(it).optString(NAME) } }.orEmpty()
             names.groupBy { it }.filter { it.value.size > 1 }.keys.firstOrNull()?.let { return s.shared("api_error_name_twice").format(it) }
@@ -211,6 +262,9 @@ object ApiSettings {
         return null
     }
 
+    /** A recipe's folder name, as the workflow takes it. */
+    private val RECIPE_FORM = Regex("[a-z0-9][a-z0-9-]*")
+
     /** A name an input or a value takes: what a key is written as (docs/reference.md). */
-    private val NAME_FORM = Regex("[a-z][a-z0-9_]*")
+    internal val NAME_FORM = Regex("[a-z][a-z0-9_]*")
 }
