@@ -1633,6 +1633,7 @@
     <string name="share_error_file_name">The zone\'s name, “%1$s”, cannot name a file: rename the zone to share it.</string>
     <string name="share_error_recipe">A recipe cannot go: %1$s</string>
     <string name="github_error_tree_truncated">The repository is too large for GitHub to list the folder %1$s whole</string>
+    <string name="share_error_recipe_import">A recipe cannot arrive: %1$s</string>
     <string name="share_error_identity">The identity “%1$s” cannot go: %2$s.</string>
     <string name="share_link_element_to_element">“%1$s” reads “%2$s”. Tick “%2$s” too, or untick “%1$s”.</string>
     <string name="share_link_element_to_entries">“%1$s” reads entries of “%2$s”. Switch on the entries of “%2$s”, or untick “%1$s”.</string>
@@ -2769,6 +2770,7 @@
     <string name="api_error_recipe_status">The recipe's result says “%1$s”, neither done nor failed</string>
     <string name="api_error_recipe_job">“%1$s” is not a recipe's job</string>
     <string name="api_error_recipe_try">A recipe is tried by a Task launched by hand: it runs for minutes on GitHub</string>
+    <string name="github_error_recipe_taken">the repository %2$s already has a recipe “%1$s”, different: rename one of them, or delete it from the repository first</string>
     <string name="github_error_network">GitHub did not answer: %1$s</string>
     <string name="github_error_status">GitHub answered with the status %1$s: %2$s</string>
     <string name="github_error_token_unreadable">The GitHub token was sealed on another phone: enter it again in Settings › GitHub</string>

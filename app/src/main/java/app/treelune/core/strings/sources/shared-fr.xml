@@ -1633,6 +1633,7 @@
     <string name="share_error_file_name">Le nom de la zone, « %1$s », ne peut pas nommer un fichier : renomme la zone pour la partager.</string>
     <string name="share_error_recipe">Une recette ne peut pas partir : %1$s</string>
     <string name="github_error_tree_truncated">Le dépôt est trop grand pour que GitHub liste le dossier %1$s en entier</string>
+    <string name="share_error_recipe_import">Une recette ne peut pas arriver : %1$s</string>
     <string name="share_error_identity">L\'identité « %1$s » ne peut pas partir : %2$s.</string>
     <string name="share_link_element_to_element">« %1$s » lit « %2$s ». Coche aussi « %2$s », ou décoche « %1$s ».</string>
     <string name="share_link_element_to_entries">« %1$s » lit des entrées de « %2$s ». Allume les entrées de « %2$s », ou décoche « %1$s ».</string>
@@ -2769,6 +2770,7 @@
     <string name="api_error_recipe_status">Le résultat de la recette dit « %1$s », ni fait ni échoué</string>
     <string name="api_error_recipe_job">« %1$s » n\'est pas un travail de recette</string>
     <string name="api_error_recipe_try">Une recette s\'essaie par une Tâche lancée à la main : elle tourne des minutes sur GitHub</string>
+    <string name="github_error_recipe_taken">le dépôt %2$s a déjà une recette « %1$s », différente : renomme l\'une des deux, ou supprime-la d\'abord du dépôt</string>
     <string name="github_error_network">GitHub n\'a pas répondu : %1$s</string>
     <string name="github_error_status">GitHub a répondu avec le statut %1$s : %2$s</string>
     <string name="github_error_token_unreadable">Le jeton GitHub a été scellé sur un autre téléphone : saisis-le de nouveau dans Réglages › GitHub</string>
