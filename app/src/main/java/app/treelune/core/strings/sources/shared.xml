@@ -1129,7 +1129,7 @@
     <string name="settings_github">GitHub</string>
     <string name="settings_github_description">Your private GitHub repository, where the app runs long jobs such as a recipe</string>
     <string name="settings_github_repository">Repository</string>
-    <string name="settings_github_repository_help">Its owner and its name, such as « badibam/treelune-worker ». A private repository, empty at the start: the app writes what it needs into it.</string>
+    <string name="settings_github_repository_help">Its owner and its name, such as “badibam/treelune-worker”. A private repository, empty at the start: the app writes what it needs into it.</string>
     <string name="settings_github_token">Token</string>
     <string name="settings_github_token_help">A fine-grained token of GitHub, limited to this repository, with Actions, Contents and Workflows in reading and writing, and Secrets in reading.</string>
     <string name="settings_data">Data management</string>
