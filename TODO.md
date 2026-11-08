@@ -28,6 +28,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- L'API « Recette sur GitHub » : Réglages › GitHub (`badibam/treelune-worker`, un jeton à accès précis : Actions, Contents, Workflows en écriture, Secrets en lecture) ; l'API hypnogen créée, ses entrées et valeurs reprises de son `recipe.json`, sa carte sans secret manquant ; la Tâche de préparation branchée dessus (`audio`, `fiche` en texte JSON), une séance faite, le workflow réécrit au premier appel, la branche de l'appel supprimée le lendemain ; une partie exportée avec l'API, importée chez un autre dépôt, la recette écrite dedans. Vue, l'hébergement OVH d'hypnogen se retire (`public_html/`, `private/`, la tâche cloud).
 - Les fichiers liés, `docs/design/linked-files.md` : `Documents` ouvert dans Réglages › Données, puis fermé (la confirmation qui compte les liens) ; un champ Audio d'une Fiche passé en « Liés, laissés sur le téléphone », un FLAC de 200 Mo choisi dans le navigateur (le fil, « Remonter »), sa durée lue (le temps que ça prend sur 200 Mo), joué depuis sa tuile ; par le connecteur, `folders` puis `link_file` puis l'entrée écrite ; une Séance sur ce champ, écran éteint, mise en pause puis reprise au bon endroit ; le fichier renommé sur le téléphone, « n'est plus là où son lien le dit » sur la fiche et la Séance qui refuse de partir ; une sauvegarde qui ne grossit pas, restaurée ; la migration 112 → 113 passée.
 - Un audio de plus de 50 Mo copié dans un champ (un audio de 127 Mo), et un FLAC copié, joué.
 - « Que jouer ? » d'une Séance média : un titre touché qui ouvre sa fenêtre (durée, « Jouée en dernier » et « Jouée N fois », « Jamais jouée »), les champs choisis sous « Montrés avant de lancer » (une intro en texte long, mise en forme), « Lancer » et le retour à la liste ; les images d'un champ choisi sous « Images montrées pendant la séance », la première en grand pendant l'écoute.
@@ -90,7 +91,7 @@ Codé, jamais vu sur l'appareil.
 ## Décidé, à coder
 
 - L'outil Schéma, le schéma écrit : `docs/design/schema.md` (config JSON au vocabulaire de Mermaid, placement par ELK, largeur, tuile, écran), ses vérifications d'abord (« Ouvert »).
-- Le dépôt GitHub de l'utilisateur, `docs/design/github-worker.md` : le fournisseur « Abonnement Claude » (Claude Code lancé sur GitHub Actions, le jeton de l'abonnement jamais dans l'app) et l'API « Recette sur GitHub » (hypnogen sans hébergement OVH), ses vérifications d'abord (« Ouvert »), sur un dépôt d'essai.
+- Le fournisseur « Abonnement Claude », `docs/design/github-worker.md` (Claude Code lancé sur GitHub Actions dans le dépôt de Réglages › GitHub, le jeton de l'abonnement jamais dans l'app), ses vérifications d'abord (« Ouvert », le point 2), sur `badibam/treelune-worker`.
 
 ## À concevoir
 
