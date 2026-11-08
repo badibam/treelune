@@ -54,7 +54,7 @@ A **variable** is a figure worked out from the entries, such as the day's calori
 
 ### What happens by itself
 
-A **Task** is a series of steps the app runs itself, without an AI: call a service on the web (an **API**, such as a weather forecast), add or change an entry, run a routine. It starts by hand, on a schedule, or when something happens: an entry written, a figure crossing a threshold, an **event** such as a reminder or a session ready.
+A **Task** is a series of steps the app runs itself, without an AI: call an **API** (a service on the web such as a weather forecast, or a recipe of your own GitHub repository run by GitHub Actions), add or change an entry, run a routine. It starts by hand, on a schedule, or when something happens: an entry written, a figure crossing a threshold, an **event** such as a reminder or a session ready.
 
 ### With an AI, if you want
 
@@ -101,17 +101,17 @@ On first launch, a **demo** is waiting: twelve weeks in the life of Camille, who
 
 - Everything is stored on the phone. No account, no telemetry, no ads.
 - Nothing goes to an AI unless you asked for it: when you write to it, or when a scheduled routine runs. What goes then is sent only to the chosen provider, with your key, which is stored encrypted on the phone.
-- An API is called only at the address you declared, with what the Task gives it.
+- An API is called only at the address you declared, or in the GitHub repository you set, with what the Task gives it.
 - To show what exchanges cost, the app downloads a public list of model prices (LiteLLM, on GitHub). It sends nothing.
 - Once the connector is enabled, its exchanges go through an HTTPS relay whose address you give, or through Tailscale Funnel with your own Tailscale account.
-- Everything is backed up and restored as one file, which the app copies after each change into a chosen folder.
+- Everything is backed up and restored as one file, which the app copies after each change into a chosen folder. A sound or a video you link from a folder of the phone stays there: the backup keeps only the link.
 
 ## Project status
 
 The app is in active development. It is used every day, but anything may still change, the shape of the data included. Keep backups.
 
 <!-- status -->
-- Version 0.9.6
+- Version 0.9.7
 - Android 8.0 or later
 - A 64-bit phone (arm64)
 - Languages: English, French

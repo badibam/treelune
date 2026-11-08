@@ -54,7 +54,7 @@ Une **variable** est un chiffre calculé à partir des entrées, comme les calor
 
 ### Ce qui part tout seul
 
-Une **Tâche** est une suite d'étapes que l'app exécute elle-même, sans IA : appeler un service du web (une **API**, comme une prévision météo), ajouter ou modifier une entrée, lancer une routine. Elle part à la main, sur un planning, ou quand quelque chose arrive : une entrée écrite, un chiffre qui passe un seuil, un **événement** comme un rappel ou une séance prête.
+Une **Tâche** est une suite d'étapes que l'app exécute elle-même, sans IA : appeler une **API** (un service du web comme une prévision météo, ou une recette de ton propre dépôt GitHub lancée par GitHub Actions), ajouter ou modifier une entrée, lancer une routine. Elle part à la main, sur un planning, ou quand quelque chose arrive : une entrée écrite, un chiffre qui passe un seuil, un **événement** comme un rappel ou une séance prête.
 
 ### Avec une IA, si tu veux
 
@@ -101,17 +101,17 @@ Au premier lancement, une **démo** t'attend : douze semaines de la vie de Camil
 
 - Tout est enregistré sur le téléphone. Aucun compte, aucune télémétrie, aucune publicité.
 - Rien ne part vers une IA sans que tu l'aies demandé : quand tu lui écris, ou quand une routine programmée tourne. Ce qui part alors va au seul fournisseur choisi, avec ta clé, gardée chiffrée sur le téléphone.
-- Une API n'est appelée qu'à l'adresse que tu as déclarée, avec ce que la Tâche lui passe.
+- Une API n'est appelée qu'à l'adresse que tu as déclarée, ou dans le dépôt GitHub que tu as réglé, avec ce que la Tâche lui passe.
 - Pour afficher le coût des échanges, l'app télécharge une liste publique des prix des modèles (LiteLLM, sur GitHub). Elle n'envoie rien.
 - Une fois le connecteur activé, ses échanges passent par un relais HTTPS dont tu donnes l'adresse, ou par Tailscale Funnel avec ton propre compte Tailscale.
-- Tout se sauvegarde et se restaure en un fichier, que l'app recopie après chaque changement dans un dossier choisi.
+- Tout se sauvegarde et se restaure en un fichier, que l'app recopie après chaque changement dans un dossier choisi. Un son ou une vidéo que tu lies depuis un dossier du téléphone y reste : la sauvegarde n'en garde que le lien.
 
 ## État du projet
 
 L'app est en développement actif. Elle sert tous les jours, mais tout peut encore changer, la forme des données comprise. Garde des sauvegardes.
 
 <!-- status -->
-- Version 0.9.6
+- Version 0.9.7
 - Android 8.0 ou plus récent
 - Un téléphone 64 bits (arm64)
 - Langues : anglais, français
