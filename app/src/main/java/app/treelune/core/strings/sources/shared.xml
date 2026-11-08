@@ -2774,6 +2774,8 @@
     <string name="github_error_token_unreadable">The GitHub token was sealed on another phone: enter it again in Settings › GitHub</string>
     <string name="github_error_unset">No GitHub repository: give one and its token in Settings › GitHub</string>
     <string name="github_error_repository">“%1$s” is not a repository: its owner and its name, such as owner/name</string>
+    <string name="api_secrets_missing">Secret to set in the GitHub repository: %1$s</string>
+    <string name="api_secrets_unread">The repository's secrets cannot be read: %1$s</string>
     <string name="api_url">Address</string>
     <string name="api_schema_url">The address called, starting with https://</string>
     <string name="api_method">Method</string>

@@ -82,7 +82,14 @@ fun ApisScreen(onBack: () -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(UI.Space.XS)
                     ) {
                         UI.Text(text = api["name"] as String, type = TextType.STRONG)
-                        UI.Text(text = listOfNotNull(api["url"] as String, s.shared("api_response_deferred").takeIf { api["deferred"] == true }).joinToString(" · "), type = TextType.CAPTION)
+                        val recipe = api["recipe"] as? String
+                        val where = if (recipe != null) listOf(s.shared("api_kind_github_recipe"), recipe)
+                            else listOfNotNull(api["url"] as String, s.shared("api_response_deferred").takeIf { api["deferred"] == true })
+                        UI.Text(text = where.joinToString(" · "), type = TextType.CAPTION)
+                        (api["secrets_missing"] as? List<*>)?.takeIf { it.isNotEmpty() }?.let { names ->
+                            UI.Text(text = s.shared("api_secrets_missing").format(names.joinToString(", ")), type = TextType.WARNING)
+                        }
+                        (api["secrets_unread"] as? String)?.let { UI.Text(text = s.shared("api_secrets_unread").format(it), type = TextType.WARNING) }
                         // An API that takes a key and holds none (declared by the AI): refused until it is entered
                         if (api["key_missing"] == true) UI.Text(text = s.shared("api_key_missing"), type = TextType.WARNING)
                     }
@@ -174,8 +181,9 @@ fun ApiScreen(editing: Place.Api, onName: @Composable (String) -> Unit, onBack: 
         }
 
         if (pages.atRoot) {
-            // « Try »: the inputs typed as text, the API reading each as its type says
-            UI.Card(type = CardType.DEFAULT, size = Size.M) {
+            // « Try »: the inputs typed as text, the API reading each as its type says; a recipe
+            // runs for minutes on GitHub, and is tried by a Task launched by hand
+            if (!ApiSettings.isRecipe(settings)) UI.Card(type = CardType.DEFAULT, size = Size.M) {
                 Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
                     UI.Text(s.shared("api_try_title"), TextType.STRONG)
                     val declared = settings.optJSONArray(ApiSettings.INPUTS)?.let { list -> (0 until list.length()).map { list.getJSONObject(it).optString(ApiSettings.NAME) } }.orEmpty()

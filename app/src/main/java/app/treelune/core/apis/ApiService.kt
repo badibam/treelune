@@ -43,7 +43,7 @@ class ApiService(private val context: Context) : ExecutableService {
     override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult = withContext(Dispatchers.IO) {
         try {
             when (operation) {
-                "list" -> OperationResult.success(mapOf("apis" to dao.getAll().map { summary(it) }))
+                "list" -> list()
                 "configs" -> configs()
                 "get" -> get(params)
                 "create" -> create(params)
@@ -66,9 +66,36 @@ class ApiService(private val context: Context) : ExecutableService {
 
     private fun summary(api: ApiEntity): Map<String, Any> {
         val config = JSONObject(api.configJson)
-        return mapOf("id" to api.id, "name" to api.name, "url" to config.optString(ApiSettings.URL),
-            "deferred" to ApiSettings.deferred(config),
-            "key_missing" to keyMissing(config))
+        return buildMap {
+            put("id", api.id)
+            put("name", api.name)
+            put("url", config.optString(ApiSettings.URL))
+            put("deferred", ApiSettings.deferred(config))
+            put("key_missing", keyMissing(config))
+            if (ApiSettings.isRecipe(config)) put("recipe", config.getString(ApiSettings.RECIPE))
+        }
+    }
+
+    /**
+     * Every API, and for each recipe the secrets it declares that the repository lacks
+     * (`secrets_missing`), read once for all; when GitHub cannot be read, why (`secrets_unread`),
+     * on each recipe, rather than a list said complete.
+     */
+    private suspend fun list(): OperationResult {
+        val apis = dao.getAll()
+        val recipes = apis.filter { ApiSettings.isRecipe(JSONObject(it.configJson)) }
+        val held: Result<Set<String>>? = if (recipes.isEmpty()) null else try {
+            Result.success(app.treelune.core.github.GitHubRepo.of(context).secretNames())
+        } catch (e: ApiCall.Failure) {
+            Result.failure(IllegalStateException(failure(e)))
+        }
+        return OperationResult.success(mapOf("apis" to apis.map { api ->
+            val config = JSONObject(api.configJson)
+            if (!ApiSettings.isRecipe(config) || held == null) summary(api)
+            else summary(api) + held.fold(
+                { names -> mapOf("secrets_missing" to RecipeSpec.of(config).secrets.filter { it !in names }) },
+                { mapOf("secrets_unread" to (it.message ?: "")) })
+        }))
     }
 
     /** Whether [config] says where a key goes and holds none: an API the AI declared, its key left to the user. */

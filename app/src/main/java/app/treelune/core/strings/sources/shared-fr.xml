@@ -2774,6 +2774,8 @@
     <string name="github_error_token_unreadable">Le jeton GitHub a été scellé sur un autre téléphone : saisis-le de nouveau dans Réglages › GitHub</string>
     <string name="github_error_unset">Aucun dépôt GitHub : donne-en un, avec son jeton, dans Réglages › GitHub</string>
     <string name="github_error_repository">« %1$s » n\'est pas un dépôt : son propriétaire et son nom, comme proprietaire/nom</string>
+    <string name="api_secrets_missing">Secret à poser dans le dépôt GitHub : %1$s</string>
+    <string name="api_secrets_unread">Les secrets du dépôt ne se lisent pas : %1$s</string>
     <string name="api_url">Adresse</string>
     <string name="api_schema_url">L\'adresse appelée, qui commence par https://</string>
     <string name="api_method">Méthode</string>
