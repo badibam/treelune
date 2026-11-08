@@ -90,7 +90,7 @@ Codé, jamais vu sur l'appareil.
 ## Décidé, à coder
 
 - L'outil Schéma, le schéma écrit : `docs/design/schema.md` (config JSON au vocabulaire de Mermaid, placement par ELK, largeur, tuile, écran), ses vérifications d'abord (« Ouvert »).
-- Le fournisseur « Abonnement Claude », `docs/design/subscription-provider.md` (Claude Code lancé sur GitHub Actions dans un dépôt privé de l'utilisateur, le jeton de l'abonnement jamais dans l'app), ses vérifications d'abord (« Ouvert »), sur un dépôt d'essai.
+- Le dépôt GitHub de l'utilisateur, `docs/design/github-worker.md` : le fournisseur « Abonnement Claude » (Claude Code lancé sur GitHub Actions, le jeton de l'abonnement jamais dans l'app) et l'API « Recette sur GitHub » (hypnogen sans hébergement OVH), ses vérifications d'abord (« Ouvert »), sur un dépôt d'essai.
 
 ## À concevoir
 
