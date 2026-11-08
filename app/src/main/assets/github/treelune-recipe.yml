@@ -1,0 +1,125 @@
+# Treelune's recipe workflow, written by the app into the user's worker repository
+# (docs/design/github-worker.md, « L'API « Recette sur GitHub » »). One call, one job:
+# the app has made the branch treelune/call-<call> holding input.json, and dispatches this
+# workflow with the recipe's name and the call's id. The job runs the command of
+# recipes/<recipe>/recipe.json, then pushes result/ (result.json and its files) to that branch.
+# The job's log holds states only, never the content of a call.
+name: Treelune recipe
+run-name: recipe ${{ inputs.recipe }} · ${{ inputs.call }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      recipe:
+        description: The recipe's folder under recipes/
+        required: true
+        type: string
+      call:
+        description: The call's id, 32 hex characters; its branch is treelune/call-<call>
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    # The ceiling of any recipe: its own timeout_minutes is cut to RECIPE_MAX_MINUTES below.
+    timeout-minutes: 60
+    steps:
+      - name: Check the inputs
+        env:
+          RECIPE: ${{ inputs.recipe }}
+          CALL: ${{ inputs.call }}
+        run: |
+          [[ "$RECIPE" =~ ^[a-z0-9][a-z0-9-]*$ ]] || { echo "recipe: not a folder name"; exit 1; }
+          [[ "$CALL" =~ ^[0-9a-f]{32}$ ]] || { echo "call: not 32 hex characters"; exit 1; }
+
+      - name: Check out the recipes
+        uses: actions/checkout@v4
+        with:
+          path: worker
+
+      - name: Check out the call
+        uses: actions/checkout@v4
+        with:
+          ref: treelune/call-${{ inputs.call }}
+          path: call
+
+      - name: Run the recipe
+        env:
+          RECIPE: ${{ inputs.recipe }}
+          CALL: ${{ inputs.call }}
+          # Every secret of the repository; the recipe is given only those it declares.
+          SECRETS: ${{ toJSON(secrets) }}
+          RECIPE_MAX_MINUTES: "50"
+        run: |
+          set -uo pipefail
+          dir="$GITHUB_WORKSPACE/worker/recipes/$RECIPE"
+          spec="$dir/recipe.json"
+          out="$RUNNER_TEMP/out"
+          log="$RUNNER_TEMP/log.txt"
+          mkdir -p "$out"
+          : > "$log"
+          stamp() { echo "$(date -u +%H:%M:%S) $1" | tee -a "$log"; }
+          fail() { jq -n --arg m "$1" '{status: "failed", message: $m}' > "$out/result.json"; stamp "failed: $1"; }
+
+          run_recipe() {
+            [ -f "$spec" ] || { fail "La recette « $RECIPE » n'est pas dans le dépôt."; return; }
+            minutes="$(jq -r '.timeout_minutes // empty' "$spec")"
+            command="$(jq -r '.command // empty' "$spec")"
+            setup="$(jq -r '.setup // empty' "$spec")"
+            [[ "$minutes" =~ ^[0-9]+$ ]] || { fail "recipe.json ne dit pas timeout_minutes."; return; }
+            [ -n "$command" ] || { fail "recipe.json ne dit pas command."; return; }
+            (( minutes > RECIPE_MAX_MINUTES )) && minutes="$RECIPE_MAX_MINUTES"
+
+            # What the machine must hold: Claude Code, always its latest version, or a
+            # Debian package, installed only when its command is missing.
+            for item in $(jq -r '.install[]?' "$spec"); do
+              if [ "$item" = claude ]; then
+                curl -fsSL https://claude.ai/install.sh | bash >> "$log" 2>&1 \
+                  || { fail "Claude Code ne s'est pas installé."; return; }
+                export PATH="$HOME/.local/bin:$PATH"
+              elif ! command -v "$item" > /dev/null; then
+                { sudo apt-get update -q && sudo apt-get install -y -q "$item"; } >> "$log" 2>&1 \
+                  || { fail "Le paquet « $item » ne s'est pas installé."; return; }
+              fi
+              stamp "installed: $item"
+            done
+
+            missing=()
+            for name in $(jq -r '.secrets[]?' "$spec"); do
+              value="$(jq -r --arg n "$name" '.[$n] // empty' <<< "$SECRETS")"
+              if [ -z "$value" ]; then missing+=("$name"); else export "$name=$value"; fi
+            done
+            unset SECRETS
+            (( ${#missing[@]} == 0 )) || { fail "Secret à poser dans le dépôt : ${missing[*]}."; return; }
+
+            export RECIPE_INPUT="$GITHUB_WORKSPACE/call/input.json" RECIPE_OUTPUT="$out" RECIPE_CALL="$CALL"
+            cd "$dir"
+            if [ -n "$setup" ]; then
+              bash -c "$setup" >> "$log" 2>&1 || { fail "L'installation de la recette a échoué."; return; }
+              stamp "setup done"
+            fi
+            stamp "command started, $minutes min at most"
+            timeout "${minutes}m" bash -c "$command" >> "$log" 2>&1
+            code=$?
+            stamp "command ended, code $code"
+            [ -f "$out/result.json" ] && return
+            if (( code == 124 )); then fail "La recette a dépassé ses $minutes minutes."
+            else fail "La recette s'est arrêtée sans résultat (code $code)."; fi
+          }
+
+          stamp "job started"
+          run_recipe
+          cd "$GITHUB_WORKSPACE/call"
+          mkdir -p result
+          cp -r "$out"/. result/
+          cp "$log" result/log.txt
+          git config user.name "Treelune worker"
+          git config user.email "treelune-worker@users.noreply.github.com"
+          git add result
+          git commit --quiet -m "Result of call $CALL"
+          git push --quiet origin "HEAD:treelune/call-$CALL"
+          echo "result pushed: $(jq -r .status result/result.json)"

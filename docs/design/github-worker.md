@@ -9,17 +9,17 @@ Conception du 2026-11-08. Un dépôt GitHub privé de l'utilisateur, où Treelun
 
 Rien de ce qui suit n'est mesuré. Un dépôt d'essai, des workflows lancés à la main, avant toute ligne de Kotlin.
 
-1. Le démarrage d'un job, de l'appel qui le lance au fichier « prêt » : la file d'attente de GitHub, l'installation de Claude Code (un cache des Actions la raccourcit-il ?).
+1. Le démarrage d'un job, de l'appel qui le lance au fichier « prêt ». Mesuré une fois le 2026-11-08 (essai de la recette) : la machine tourne 9 s après l'appel, Claude Code s'installe en 20 s ; reste à mesurer le premier tour du fournisseur, et la file d'attente de GitHub à d'autres heures.
 2. `claude -p --input-format stream-json --output-format stream-json --tools "" --system-prompt …` : plusieurs tours dans un seul processus, une image dans un tour, aucun outil de Claude Code utilisable.
 3. Le cache : les jetons lus en cache d'un tour à l'autre, dans la réponse JSON de `claude`.
 4. Une requête conditionnelle (`If-None-Match`) qui répond 304 ne compte pas dans les limites de l'API GitHub, ni pour le jeton de l'utilisateur ni pour le `GITHUB_TOKEN` du job (environ 1 000 appels par heure et par dépôt).
-5. Les minutes d'un dépôt privé sur un compte gratuit (2 000 par mois, arrondies à la minute par job), la durée maximale d'un job (6 h).
-6. L'identifiant de l'exécution rendu par l'appel qui lance un workflow (`workflow_dispatch`) ; sinon, l'exécution retrouvée par l'identifiant de session passé en entrée.
+5. Les minutes d'un dépôt privé sur un compte gratuit (2 000 par mois, arrondies à la minute par job), la durée maximale d'un job (6 h). Mesuré le 2026-11-08 : une séance d'hypnose de 21 min 36 s, un job de 10 min 48 s, 11 minutes décomptées. Les limites de l'abonnement Claude, elles, ne sont pas mesurées.
+6. Réglé le 2026-11-08 : l'appel qui lance un workflow (`POST …/dispatches`) avec `return_run_details: true` répond 200 avec `workflow_run_id`.
 7. Ce que `claude` dit d'un jeton expiré ou révoqué, d'une limite d'abonnement atteinte (l'heure de reprise y est-elle ?), d'une option qu'il ne connaît plus : de quoi les reconnaître sans lire une phrase.
 8. Le délai avant que GitHub efface les commits d'une branche supprimée.
-9. Une séance d'hypnose réelle (25 min) faite en recette : ses minutes de machine, `claude -p` avec ses outils sur le jeton de l'abonnement, la clé Inworld lue dans l'environnement du job.
+9. Réglé le 2026-11-08 sur `badibam/treelune-worker` : hypnogen fait en recette par `app/src/main/assets/github/treelune-recipe.yml`, `claude -p` avec ses outils sur le jeton de l'abonnement (Opus 5.5, 17 tours, 9 min 51 s), la clé Inworld lue dans l'environnement du job, ffmpeg installé par apt (absent de la machine) ; une séance jugée bonne à l'écoute, sur le contexte de test.
 10. Les noms des secrets d'un dépôt lus par le jeton GitHub (`GET /actions/secrets`, la permission « Secrets » en lecture), sans leurs valeurs.
-11. Un audio de quelques dizaines de Mo sur une branche : écrit par le job, lu par l'app (l'API des contenus de GitHub, ou l'adresse brute du fichier).
+11. Un audio de quelques dizaines de Mo sur une branche, lu par l'app (l'API des contenus de GitHub, ou l'adresse brute du fichier). Mesuré le 2026-11-08 : 6,1 Mo d'Opus pour 21 min 36 s, écrit par le `git push` du job et relu par `git fetch` ; l'API des contenus pas essayée.
 
 ## Ce qui est permis
 
