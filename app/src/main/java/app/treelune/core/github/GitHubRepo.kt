@@ -100,11 +100,14 @@ class GitHubRepo(val repository: String, private val token: String) {
 
     /**
      * Every file under the folder [folder] of the default branch, by its path inside it, its bytes
-     * whole: a recipe's folder, which a part of the app carries.
+     * whole: a recipe's folder, which a part of the app carries. A repository still empty, without
+     * a commit, holds none: GitHub answers its trees with a 409.
      */
     suspend fun folder(folder: String): Map<String, RepoFile> {
         val branch = defaultBranch()
-        val tree = json(send(get("repos/$repository/git/trees/${java.net.URLEncoder.encode(branch, "UTF-8")}?recursive=1")))
+        val treeReply = send(get("repos/$repository/git/trees/${java.net.URLEncoder.encode(branch, "UTF-8")}?recursive=1"), allowed = EMPTY_REPOSITORY)
+            ?: return emptyMap()
+        val tree = json(treeReply)
         if (tree.optBoolean("truncated")) throw ApiCall.Failure("github_error_tree_truncated", folder)
         val entries = tree.getJSONArray("tree")
         return (0 until entries.length()).map { entries.getJSONObject(it) }
@@ -170,16 +173,18 @@ class GitHubRepo(val repository: String, private val token: String) {
 
     private fun post(path: String, body: JSONObject): Request = request(path).post(body.toString().toRequestBody(JSON)).build()
 
-    private suspend fun send(request: Request): Reply = send(request, allow404 = false)!!
+    private suspend fun send(request: Request): Reply = send(request, allowed = null)!!
 
-    /** [request] sent; a refusal of GitHub said with its status and its message, a 404 null when [allow404]. */
-    private suspend fun send(request: Request, allow404: Boolean): Reply? {
+    private suspend fun send(request: Request, allow404: Boolean): Reply? = send(request, allowed = if (allow404) 404 else null)
+
+    /** [request] sent; a refusal of GitHub said with its status and its message, the status [allowed] null. */
+    private suspend fun send(request: Request, allowed: Int?): Reply? {
         val reply = try {
             CLIENT.awaitReply(request)
         } catch (e: java.io.IOException) {
             throw ApiCall.Failure("github_error_network", e.message ?: e.javaClass.simpleName)
         }
-        if (reply.code == 404 && allow404) return null
+        if (allowed != null && reply.code == allowed) return null
         if (reply.code !in 200..299) {
             val message = runCatching { JSONObject(reply.body).optString("message") }.getOrNull().orEmpty().ifEmpty { "-" }
             throw ApiCall.Failure("github_error_status", reply.code, message)
@@ -197,6 +202,9 @@ class GitHubRepo(val repository: String, private val token: String) {
         private const val API_HOST = "api.github.com"
         private const val API = "https://$API_HOST/"
         private val JSON = "application/json; charset=utf-8".toMediaType()
+
+        /** What GitHub's git database answers about a repository without a commit. */
+        private const val EMPTY_REPOSITORY = 409
 
         /** A repository as Settings › GitHub takes it: its owner and its name. */
         private val REPOSITORY = Regex("[A-Za-z0-9-]+/[A-Za-z0-9._-]+")

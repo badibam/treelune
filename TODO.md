@@ -20,6 +20,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
+- L'import d'une partie avec une API « Recette sur GitHub » dans un dépôt sans aucun commit, refusé avant d'écrire quoi que ce soit (409 « Git Repository is empty ») : la vérification du dossier `recipes/<recette>` déjà présent (`RecipeFiles.write` → `GitHubRepo.folder`) lit l'arbre git, que GitHub refuse sur un dépôt vide ; un 409 à cette lecture veut dire « aucun dossier », le workflow fait ensuite le premier commit. En attendant, un premier commit fait à la main sur GitHub (un README) le contourne.
 
 
 
