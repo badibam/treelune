@@ -198,6 +198,22 @@ class BackupPartTest {
     }
 
     @Test
+    fun `a part keeps the recipes its APIs name, and those alone`() {
+        val whole = backup()
+        row("apis", whole.getJSONObject("data"), "api1").put("config_json", JSONObject()
+            .put(app.treelune.core.apis.ApiSettings.KIND, app.treelune.core.apis.ApiSettings.GITHUB_RECIPE).put(app.treelune.core.apis.ApiSettings.RECIPE, "hypnogen").toString())
+        whole.getJSONObject("data").put(app.treelune.core.github.RecipeFiles.KEY, JSONArray()
+            .put(JSONObject().put("recipe", "hypnogen").put("files", JSONArray()))
+            .put(JSONObject().put("recipe", "other").put("files", JSONArray())))
+
+        val kept = cut(whole, PartSelection(setOf("z1"), mapOf("foods" to false), emptySet(), emptySet(), emptySet(), setOf("t1"), setOf("api1"))).getJSONObject("data")
+        val recipes = kept.getJSONArray(app.treelune.core.github.RecipeFiles.KEY)
+        assertEquals(listOf("hypnogen"), (0 until recipes.length()).map { recipes.getJSONObject(it).getString("recipe") })
+        // Without its API, a recipe stays out
+        assertFalse(cut(whole, PartSelection(setOf("z1"), mapOf("foods" to false), emptySet(), emptySet(), emptySet())).getJSONObject("data").has(app.treelune.core.github.RecipeFiles.KEY))
+    }
+
+    @Test
     fun `an event nothing ticked names stays out, one in a zone ticked keeps its zone`() {
         assertTrue(ids(cut(backup(), PartSelection(setOf("z1", "z2"), mapOf("foods" to false), emptySet(), emptySet(), emptySet())).getJSONObject("data"), "events").isEmpty())
         val data = cut(backup(), PartSelection(setOf("z1", "z2"), mapOf("foods" to false), emptySet(), emptySet(), emptySet(), setOf("t1"), setOf("api1"))).getJSONObject("data")

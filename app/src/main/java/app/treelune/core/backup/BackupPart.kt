@@ -180,6 +180,10 @@ object BackupPart {
         val keptApis = apis.filter { it.getString("id") in selection.apis }.map { api ->
             copy(api).put("config_json", JSONObject(api.getString("config_json")).apply { apiSecrets.forEach { remove(it) } }.toString())
         }
+        // The recipes the APIs kept name, their files as the export read them in the repository
+        val keptRecipeNames = keptApis.map { JSONObject(it.getString("config_json")) }
+            .filter { app.treelune.core.apis.ApiSettings.isRecipe(it) }.map { it.getString(app.treelune.core.apis.ApiSettings.RECIPE) }.toSet()
+        val keptRecipes = rows(data, app.treelune.core.github.RecipeFiles.KEY).filter { it.getString("recipe") in keptRecipeNames }
         // The events what goes names, each in the zone it arrives in
         val arrivals = PartTree.of(document).eventArrivals(selection)
         val keptEvents = rows(data, "events").filter { it.getString("id") in arrivals }.map { copy(it).put("zone_id", arrivals.getValue(it.getString("id"))) }
@@ -210,7 +214,8 @@ object BackupPart {
                 .put("ai_sessions", JSONArray(sessions))
                 .put("session_messages", JSONArray(messages))
                 .put("files", JSONArray(files))
-                .put("missing_files", JSONArray(missing)))
+                .put("missing_files", JSONArray(missing))
+                .apply { if (keptRecipes.isNotEmpty()) put(app.treelune.core.github.RecipeFiles.KEY, JSONArray(keptRecipes)) })
     }
 
     /** The ids of the tools, variables and zones a readout's [settings] names: what its values read, what it opens. */
