@@ -49,9 +49,10 @@ import app.treelune.core.utils.LogManager
  * death. Each place keeps what its screen saved (rememberSaveable) while it stays in the stack,
  * and drops it once it leaves.
  *
- * @param openToolId A tool to open, on its oldest entry that waits, the way its tile opens it: the
- *   one a touched notification is about; [onToolOpened] once it is opened
- * @param openEntryId The entry of that tool the notification is about, opened instead of the oldest that waits
+ * @param openToolId A tool to open on its page, where what waits shows and which one to answer is
+ *   chosen: the one a touched notification is about; [onToolOpened] once it is opened
+ * @param openEntryId The entry of that tool the notification is about, opened on it (an event's
+ *   reminder, a Session running)
  * @param openPlace The address of a place to open, the one a touched notification is about (a
  *   routine's run); [onPlaceOpened] once it is opened
  */
@@ -88,7 +89,7 @@ fun MainScreen(openToolId: String? = null, openEntryId: String? = null, onToolOp
             if (Navigator.top != Place.Chat) Navigator.push(Place.Chat)
         }
     }
-    // The tool a notification asked for, on its oldest entry that waits
+    // The tool a notification asked for, on its page or on the entry the notification names
     LaunchedEffect(openToolId) {
         val toolId = openToolId ?: return@LaunchedEffect
         val zoneId = zoneOfTool(coordinator, toolId)
@@ -98,11 +99,7 @@ fun MainScreen(openToolId: String? = null, openEntryId: String? = null, onToolOp
             onToolOpened()
             return@LaunchedEffect
         }
-        val entryId = openEntryId ?: run {
-            val waiting = coordinator.processUserAction("tools.waiting", mapOf("zone_id" to zoneId))
-            (waiting.data?.get("oldest") as? Map<*, *>)?.get(toolId) as? String
-        }
-        Navigator.open(Place.Tool(toolId, zoneId), entryId?.let { EntryToOpen.Existing(it) })
+        Navigator.open(Place.Tool(toolId, zoneId), openEntryId?.let { EntryToOpen.Existing(it) })
         onToolOpened()
     }
     // The place a notification asked for

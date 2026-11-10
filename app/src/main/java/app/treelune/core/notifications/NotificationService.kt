@@ -74,7 +74,7 @@ class NotificationService(private val context: Context) : ExecutableService {
      * - notification_id: Int? (for updating/replacing notifications, auto-generated if null)
      * - icon_name: String? (a Lucide name, the icon of the tool that sends; the app's own,
      *   APP_ICON, when nothing sends on a tool's behalf). Lucide's drawing whatever the theme.
-     * - tool_instance_id: String? (the tool opened when it is touched, on its oldest entry that waits)
+     * - tool_instance_id: String? (the tool opened on its page when it is touched)
      * - entry_id: String? (with tool_instance_id, the entry it is opened on instead: an event's reminder)
      *
      * Returns:

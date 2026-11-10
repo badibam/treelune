@@ -289,10 +289,11 @@ class SequenceRunService : Service() {
             .build()
     }
 
-    /** Opens the app on the session's tool. */
+    /** Opens the app on the session running. */
     private fun openTool(): PendingIntent = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java).apply {
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         toolInstanceId?.let { putExtra(MainActivity.EXTRA_TOOL_INSTANCE_ID, it) }
+        entryId?.let { putExtra(MainActivity.EXTRA_ENTRY_ID, it) }
     }, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
     private fun gesture(operation: String, requestCode: Int): PendingIntent = PendingIntent.getService(this, requestCode,

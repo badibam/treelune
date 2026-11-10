@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
 
     /** The tool asked for by the notification that opened the app, until the screens have opened it. */
     private var openToolId by androidx.compose.runtime.mutableStateOf<String?>(null)
-    /** The entry of that tool the notification is about, null for its oldest that waits. */
+    /** The entry of that tool the notification is about, null for the tool's page. */
     private var openEntryId by androidx.compose.runtime.mutableStateOf<String?>(null)
 
     /** The place asked for by the notification that opened the app, until the screens have opened it. */
