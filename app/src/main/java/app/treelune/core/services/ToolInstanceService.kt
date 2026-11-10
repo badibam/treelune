@@ -236,6 +236,17 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             configJson = merged.toString()
         }
 
+        // The options of CHOICE fields its editor renames (OptionRenames): their entries, the
+        // values the config holds and the filters of other tools follow them
+        val renames = try {
+            app.treelune.core.fields.migration.OptionRenames.read(params)
+        } catch (e: org.json.JSONException) {
+            return OperationResult.error(s.shared("service_error_option_renames_form"))
+        }
+        if (!renames.isEmpty() && configJson.isBlank()) return OperationResult.error(s.shared("service_error_option_renames_form"))
+        // A user field's default that chose a renamed option takes its new name before it is checked
+        if (!renames.isEmpty()) configJson = renames.defaults(JSONObject(configJson)).toString()
+
         // Process custom fields if config is being updated
         if (configJson.isNotBlank()) {
             val processResult = processCustomFields(
@@ -250,6 +261,9 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
             // Get the processed config with generated field names
             configJson = processResult.data?.get("processed_config") as? String ?: configJson
+            ToolTypeManager.getToolType(existingTool.tooltype)?.let { type ->
+                renames.refusal(entryFields(type, JSONObject(existingTool.config_json)), entryFields(type, JSONObject(configJson)), s)
+            }?.let { return OperationResult.error(it) }
         }
 
         // Its look checked against the icon the tool will have: removing the icon of an ICON
@@ -279,7 +293,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             app.treelune.core.coordinator.Protections.refusal(s.shared("tools_config_label_data_validation"), protectedBefore,
                 JSONObject(configJson).optBoolean(app.treelune.core.tools.ToolConfigSettings.VALIDATE_DATA, false), s)?.let { return OperationResult.error(it) }
             // The values of the user's fields it holds follow their fields' changes (ConfigFieldValues)
-            val followed = followFieldValues(existingTool, JSONObject(configJson))
+            val followed = followFieldValues(existingTool, JSONObject(configJson), renames)
             configJson = followed.config.toString()
             removedFieldValues = followed.removed
             checkConfig(existingTool.tooltype, configJson)?.let { return OperationResult.error(it) }
@@ -311,8 +325,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
                 is Fill.Refused -> return OperationResult.error(given.message)
                 is Fill.Values -> given.values
             }
-            val plan = planMigration(existingTool, configJson, fill)
-            aimedBy = aimingTools(existingTool, configJson)
+            val plan = planMigration(existingTool, configJson, fill, renames)
+            aimedBy = aimingTools(existingTool, configJson, renames)
             // A dry run says what the change would do, writing nothing (ValidationResolver)
             if (params.optBoolean("dry_run", false)) return OperationResult.success(report(plan, aimedBy))
             refuseMigration(plan, aimedBy, migrationAgreed(params))?.let { return it }
@@ -348,10 +362,13 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             updated_at = System.currentTimeMillis()
         )
 
+        // The other tools whose filters compare a field with a renamed option, rewritten with its new value
+        val filtersRenamed = if (renames.isEmpty()) emptyList() else filtersRenamed(existingTool.id, renames)
+
         if (token.isCancelled) return OperationResult.cancelled()
 
-        // The config, the places it changes and what it does to the entries are one write:
-        // none lands without the others
+        // The config, the places it changes, what it does to the entries and the filters that
+        // follow its renamed options are one write: none lands without the others
         images?.place()
         val updatedTool = try {
             database.transaction {
@@ -359,6 +376,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
                 writes.updateTool(placed)
                 images?.store()
                 if (migration != null) applyMigration(existingTool, migration)
+                filtersRenamed.forEach { writes.updateTool(it) }
                 placed
             }
         } catch (e: kotlinx.coroutines.CancellationException) {
@@ -368,6 +386,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             throw e
         }
         images?.done()
+        filtersRenamed.map { it.zone_id }.distinct().forEach { DataChangeNotifier.notifyToolsChanged(it) }
         if (migration != null && (migration.updated.isNotEmpty() || migration.deleted.isNotEmpty())) {
             DataChangeNotifier.notifyToolDataChanged(toolInstanceId, updatedTool.zone_id)
         }
@@ -391,6 +410,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             "updated_at" to updatedTool.updated_at
         ) + iconCheck.report() + (migration?.let { report(it, aimedBy) } ?: emptyMap())
             + (emptiedGroup?.let { mapOf("group_emptied" to it) } ?: emptyMap())
+            + (filtersRenamed.takeIf { it.isNotEmpty() }?.let { tools -> mapOf("filters_renamed" to tools.map { JSONObject(it.config_json).getString("name") }) } ?: emptyMap())
             + (removedFieldValues.takeIf { it > 0 }?.let { mapOf("removed_field_values" to it) } ?: emptyMap()))
     }
 
@@ -398,13 +418,13 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
      * [config], an update of [tool]'s, with the values of the user's fields it holds following
      * the change of those fields, as the entries' do (ConfigFieldValues.migrated).
      */
-    private suspend fun followFieldValues(tool: ToolInstance, config: JSONObject): app.treelune.core.fields.ConfigFieldValues.Migrated {
+    private suspend fun followFieldValues(tool: ToolInstance, config: JSONObject, renames: app.treelune.core.fields.migration.OptionRenames): app.treelune.core.fields.ConfigFieldValues.Migrated {
         val toolType = ToolTypeManager.getToolType(tool.tooltype) ?: throw IllegalStateException("Unknown tooltype ${tool.tooltype}")
         val nodes = app.treelune.core.tools.ToolConfigSettings.nodes(toolType, context)
         // The tool of each entry a reference designates, for a field that narrows the tools it takes
         val instances = app.treelune.core.fields.ConfigFieldValues.designatedEntries(nodes, config)
             .associateWith { database.toolDataDao().getById(it)?.toolInstanceId }
-        return app.treelune.core.fields.ConfigFieldValues.migrated(nodes, JSONObject(tool.config_json), config) { instances[it] }
+        return app.treelune.core.fields.ConfigFieldValues.migrated(nodes, JSONObject(tool.config_json), config, { instances[it] }, renames)
     }
 
     /** Why the values of the user's fields [config] holds cannot be stored (ConfigFieldValues.refusal); null when they can. */
@@ -488,11 +508,12 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
      * config [newConfigJson] takes out or renames (FiltersOnOptions): left finding nothing, they
      * are named for the change to be agreed to.
      */
-    private suspend fun aimingTools(tool: ToolInstance, newConfigJson: String): List<String> {
+    private suspend fun aimingTools(tool: ToolInstance, newConfigJson: String, renames: app.treelune.core.fields.migration.OptionRenames): List<String> {
         val toolType = ToolTypeManager.getToolType(tool.tooltype)
             ?: throw IllegalStateException("Unknown tooltype ${tool.tooltype}")
+        // A renamed option is not gone: its filters follow it (filtersRenamed)
         val removed = app.treelune.core.conditions.FiltersOnOptions.removed(
-            entryFields(toolType, JSONObject(tool.config_json)), entryFields(toolType, JSONObject(newConfigJson)))
+            renames.fields(entryFields(toolType, JSONObject(tool.config_json))), entryFields(toolType, JSONObject(newConfigJson)))
         if (removed.isEmpty()) return emptyList()
         return toolInstanceDao.getAllToolInstances().filter { it.id != tool.id }.filter { other ->
             val otherType = ToolTypeManager.getToolType(other.tooltype)
@@ -502,8 +523,22 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         }.map { JSONObject(it.config_json).getString("name") }
     }
 
+    /**
+     * The other tools whose filters on the entries of [toolId] compare a field with an option
+     * [renames] renames, each with its config rewritten with the new value (FiltersOnOptions.renamed).
+     */
+    private suspend fun filtersRenamed(toolId: String, renames: app.treelune.core.fields.migration.OptionRenames): List<ToolInstance> =
+        toolInstanceDao.getAllToolInstances().filter { it.id != toolId }.mapNotNull { other ->
+            val otherType = ToolTypeManager.getToolType(other.tooltype)
+                ?: throw IllegalStateException("Unknown tooltype ${other.tooltype}")
+            app.treelune.core.conditions.FiltersOnOptions.renamed(
+                app.treelune.core.tools.ToolConfigSettings.nodes(otherType, context), JSONObject(other.config_json), toolId, renames)
+                ?.let { other.copy(config_json = it.toString(), updated_at = System.currentTimeMillis()) }
+        }
+
     /** What the config [newConfigJson] would do to the entries of [tool], as its config stands now. */
-    private suspend fun planMigration(tool: ToolInstance, newConfigJson: String, fill: Map<String, Any>): EntryMigration.Plan {
+    private suspend fun planMigration(tool: ToolInstance, newConfigJson: String, fill: Map<String, Any>,
+                                      renames: app.treelune.core.fields.migration.OptionRenames): EntryMigration.Plan {
         val toolType = ToolTypeManager.getToolType(tool.tooltype)
             ?: throw IllegalStateException("Unknown tooltype ${tool.tooltype}")
         fun fieldsOf(config: JSONObject) = entryFields(toolType, config)
@@ -526,7 +561,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             new = fieldsOf(JSONObject(newConfigJson)),
             entries = entries,
             fill = fill,
-            entryInstance = { instances[it] }
+            entryInstance = { instances[it] },
+            renames = renames
         )
         // What the tool type's own rules remove under the new config, deleted with the rest
         val previous = JSONObject(tool.config_json)

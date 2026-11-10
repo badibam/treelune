@@ -2370,6 +2370,10 @@
     <string name="service_error_group_unknown">The group \'%1$s\' does not exist. Groups: %2$s</string>
     <string name="service_error_group_in_use">The group \'%1$s\' cannot be removed, it is still used by: %2$s</string>
     <string name="service_error_group_renames">A rename must go from a group of the former list to one of the new list</string>
+    <string name="service_error_option_renames_form">"renames" holds the renamed options of the config sent with it: {"options": {"extra.field": {"former value": "new value"}}}</string>
+    <string name="service_error_option_renames_field">The renamed options name %1$s, which is not a choice field of the tool both before and after the change</string>
+    <string name="service_error_option_renames_option">“%1$s” → “%2$s” of %3$s: a rename goes from an option the field had and no longer has to an option it did not have</string>
+    <string name="service_error_option_renames_twice">Two options of %1$s are renamed to the same value</string>
     <string name="demo_texts_file">texts-en.json</string>
     <string name="demo_error_unreadable">The demo could not be read: %1$s</string>
     <string name="demo_installed">Demo installed</string>

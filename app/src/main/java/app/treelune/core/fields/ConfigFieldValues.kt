@@ -83,17 +83,20 @@ object ConfigFieldValues {
      * field's decimals, as an entry's is.
      *
      * @param entryInstance The tool instance of an entry a reference designates, null once deleted
+     * @param renames The options the change renames, whose values take their new name
      */
-    fun migrated(nodes: List<SettingNode>, previous: JSONObject?, config: JSONObject, entryInstance: (String) -> String?): Migrated {
+    fun migrated(nodes: List<SettingNode>, previous: JSONObject?, config: JSONObject, entryInstance: (String) -> String?,
+                 renames: app.treelune.core.fields.migration.OptionRenames = app.treelune.core.fields.migration.OptionRenames.NONE): Migrated {
         val next = JSONObject(config.toString())
         var removed = 0
         all(nodes, next).forEach { found ->
             val values = found.values ?: return@forEach
             val fields = next.optJSONArray(found.node.fields)?.toFieldDefinitions().orEmpty()
-            val before = previous?.optJSONArray(found.node.fields)?.toFieldDefinitions().orEmpty()
+            // A renamed option is no option gone: its values take its new name
+            val before = renames.extra(previous?.optJSONArray(found.node.fields)?.toFieldDefinitions().orEmpty())
             val changes = FieldConfigComparator.compare(before, fields)
             // A key of no field is left as it is: the config's check names it
-            val held = JsonUtils.toMap(values)
+            val held = renames.values(FieldContainer.EXTRA, JsonUtils.toMap(values))
             val kept = FieldDataMigrator.applyMigrationStrategies(held, changes, MigrationPolicy.getStrategies(changes), entryInstance)
             removed += held.keys.count { it !in kept }
             val rounded = JSONObject(NumericPrecision.roundAll(JsonUtils.toJSONObject(kept).toString(), fields)!!)

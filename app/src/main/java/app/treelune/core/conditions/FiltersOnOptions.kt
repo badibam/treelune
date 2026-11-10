@@ -7,11 +7,11 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * The filters a config change leaves aiming at nothing: an option taken out of a CHOICE field,
- * or renamed (its value changes, so the former one goes), that a filter of another tool compares
- * the field with ("moment = lunch" once "lunch" is gone). Such a filter finds no entry and says
- * nothing; the change's confirmation names the tools that hold one (docs/DATA.md, « Config
- * change »).
+ * The filters a config change leaves aiming at nothing: an option taken out of a CHOICE field
+ * that a filter of another tool compares the field with ("moment = lunch" once "lunch" is gone).
+ * Such a filter finds no entry and says nothing; the change's confirmation names the tools that
+ * hold one (docs/DATA.md, « Config change »). An option renamed by its editor (OptionRenames) is
+ * not gone: the filters that compare the field with it are rewritten with its new value.
  *
  * A field taken out entirely is not counted: the filter naming it is refused when read
  * (EntryFilters), which shows.
@@ -36,6 +36,23 @@ object FiltersOnOptions {
             if (condition.kind == ConfigConditions.Kind.ON_ENTRY && condition.tool == tool && aims(condition.condition, removed)) found = true
         }
         return found
+    }
+
+    /**
+     * [config], declared by [nodes], with each filter on the entries of [tool] that compares a
+     * field with an option [renames] renames written with its new value; null when it holds none.
+     */
+    suspend fun renamed(nodes: List<app.treelune.core.fields.settings.SettingNode>, config: JSONObject, tool: String,
+                        renames: app.treelune.core.fields.migration.OptionRenames): JSONObject? {
+        var changed = false
+        val next = ConfigConditions(unread) { it }.map(nodes, config) { found ->
+            val path = Conditions.fieldOf(found.condition)
+            if (found.kind != ConfigConditions.Kind.ON_ENTRY || found.tool != tool || path == null || path !in renames.byPath) return@map found.condition
+            val turned = Conditions.withValues(found.condition) { value -> renames.value(path, value) }
+            if (turned.toString() != found.condition.toString()) changed = true
+            turned
+        }
+        return next.takeIf { changed }
     }
 
     /** What a filter names is read from the stored condition alone: no tool, variable or row is looked up. */

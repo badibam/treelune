@@ -58,4 +58,17 @@ class FiltersOnOptionsTest {
         assertFalse(FiltersOnOptions.holds(nodes, chart("snacks", lunch), "meals", removed))
         assertFalse(FiltersOnOptions.holds(nodes, chart("meals", Conditions.onField("data.moment", "=", "dinner")), "meals", removed))
     }
+
+    @Test
+    fun aRenamedOption_isNotRemoved_andItsFiltersTakeTheNewValue() = runBlocking {
+        val renames = app.treelune.core.fields.migration.OptionRenames(mapOf("data.moment" to mapOf("lunch" to "midday")))
+        assertTrue(FiltersOnOptions.removed(renames.fields(fields(moment("breakfast", "lunch", "dinner"))), fields(moment("breakfast", "midday", "dinner"))).isEmpty())
+
+        val rewritten = FiltersOnOptions.renamed(nodes, chart("meals", Conditions.onField("data.moment", "in", listOf("dinner", "lunch"))), "meals", renames)!!
+        val filter = rewritten.getJSONObject("selection").getJSONArray("filters").getJSONObject(0)
+        assertEquals(listOf("dinner", "midday"), (Conditions.right(filter) as Conditions.Right.Written).value.let { it as JSONArray }.let { a -> (0 until a.length()).map { a.getString(it) } })
+        // Another tool's filter, or one on another option, is left as it is
+        assertEquals(null, FiltersOnOptions.renamed(nodes, chart("snacks", Conditions.onField("data.moment", "=", "lunch")), "meals", renames))
+        assertEquals(null, FiltersOnOptions.renamed(nodes, chart("meals", Conditions.onField("data.moment", "=", "dinner")), "meals", renames))
+    }
 }

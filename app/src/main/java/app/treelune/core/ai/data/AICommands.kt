@@ -143,7 +143,7 @@ object AICommands {
         action("CREATE_TOOL", p("zone_id", "string", true), p("tooltype", "string", true), p("config", "object", true)),
         action("UPDATE_TOOL",
             p("tool_instance_id", "string", true), p("config", "object"), p("look", "object"), p("zone_id", "string"),
-            p("confirm_migration", "boolean"), p("fill_values", "object"), p("confirm_dependents", "boolean")),
+            p("confirm_migration", "boolean"), p("fill_values", "object"), p("confirm_dependents", "boolean"), p("renames", "object")),
         action("DELETE_TOOL", p("tool_instance_id", "string", true), p("confirm_dependents", "boolean")),
         action("CREATE_ZONE",
             p("name", "string", true), p("description", "string"), p("icon_name", "string"), p("icon_color", "string"), p("texture", "string"),

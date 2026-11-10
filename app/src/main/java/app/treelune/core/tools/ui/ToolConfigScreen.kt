@@ -20,6 +20,7 @@ import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.coordinator.mapSingleData
 import app.treelune.core.fields.settings.SettingEditor
+import app.treelune.core.fields.toFieldDefinitions
 import app.treelune.core.fields.settings.SettingsForm
 import app.treelune.core.strings.Strings
 import app.treelune.core.tools.ToolConfigSettings
@@ -97,7 +98,8 @@ fun ToolConfigScreen(
             UI.Toast(result.error ?: s.shared("tools_config_error_not_found"), Duration.LONG)
             return@rememberLoadOnce false
         }
-        config = JsonUtils.toJSONObject(loaded)
+        // Each option marked with its value as read, to tell a rename from a removal (OptionOrigins)
+        config = app.treelune.core.fields.settings.OptionOrigins.tagged(JsonUtils.toJSONObject(loaded))
         true
     }
 
@@ -130,11 +132,17 @@ fun ToolConfigScreen(
                     return@launch
                 }
             }
-            val configMap = JsonUtils.toMap(config)
+            val configMap = JsonUtils.toMap(app.treelune.core.fields.settings.OptionOrigins.untagged(config))
             val result = if (existingToolId != null) {
+                // The options whose value was edited, renamed: what chose them follows
+                fun fieldsOf(json: JSONObject) = app.treelune.core.fields.migration.EntryMigration.Fields(
+                    toolType.getEntryFields(json, context).data,
+                    json.optJSONArray("extra_fields")?.toFieldDefinitions().orEmpty())
+                val renames = asLoaded?.let { app.treelune.core.fields.settings.OptionOrigins.renames(fieldsOf(config), fieldsOf(JSONObject(it))) }
                 coordinator.processUserAction("tools.update", buildMap {
                     put("tool_instance_id", existingToolId)
                     put("config", configMap)
+                    if (renames != null && !renames.isEmpty()) put("renames", renames.toParams())
                     if (currentZoneId != zoneId) put("zone_id", currentZoneId)
                     if (confirmed) put("confirm_migration", true)
                     if (fill.length() > 0) put("fill_values", mapOf("data" to JsonUtils.toMap(fill)))

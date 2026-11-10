@@ -64,14 +64,20 @@ object EntryMigration {
     /**
      * @param fill For a field of "data" now required, by name, the value an entry without one takes
      * @param entryInstance The tool instance of an entry a reference designates, null once deleted
+     * @param renames The options the change renames: an entry that chose one takes its new value,
+     *   and the option counts as neither removed nor added
      */
     fun plan(
         old: Fields,
         new: Fields,
         entries: List<ToolDataEntity>,
         fill: Map<String, Any> = emptyMap(),
-        entryInstance: (String) -> String? = { null }
+        entryInstance: (String) -> String? = { null },
+        renames: OptionRenames = OptionRenames.NONE
     ): Plan {
+        // The old fields under the new names of their renamed options: compared with the new ones,
+        // a renamed option is no option gone
+        @Suppress("NAME_SHADOWING") val old = renames.fields(old)
         val dataChanges = FieldConfigComparator.compare(old.data.map { it.definition }, new.data.map { it.definition })
         val extraChanges = FieldConfigComparator.compare(old.extra, new.extra)
         val dataStrategies = MigrationPolicy.getStrategies(dataChanges)
@@ -89,8 +95,11 @@ object EntryMigration {
 
         entries.forEach { entry ->
             val state = entry.state?.takeIf { it.isNotBlank() }?.let { JSONObject(it) }
-            val data = JsonUtils.toMap(entry.data)
-            val extra = JsonUtils.toMap(entry.extra?.takeIf { it.isNotBlank() })
+            val stored = JsonUtils.toMap(entry.data)
+            val storedExtra = JsonUtils.toMap(entry.extra?.takeIf { it.isNotBlank() })
+            // A value that chose a renamed option, under its new name, before the fields change
+            val data = renames.values(app.treelune.core.fields.FieldContainer.DATA, stored)
+            val extra = renames.values(app.treelune.core.fields.FieldContainer.EXTRA, storedExtra)
 
             val newData = FieldDataMigrator.applyMigrationStrategies(data, dataChanges, dataStrategies, entryInstance).toMutableMap()
             val newExtra = FieldDataMigrator.applyMigrationStrategies(extra, extraChanges, extraStrategies, entryInstance)
@@ -125,7 +134,7 @@ object EntryMigration {
                 }
 
             // A value converted to the field's new form is a change too
-            if (removedData.isNotEmpty() || removedExtra.isNotEmpty() || filled || newData != data || newExtra != extra) {
+            if (removedData.isNotEmpty() || removedExtra.isNotEmpty() || filled || newData != stored || newExtra != storedExtra) {
                 updated.add(entry.copy(
                     data = JsonUtils.toJSONObject(newData).toString(),
                     extra = newExtra.takeIf { it.isNotEmpty() }?.let { JsonUtils.toJSONObject(it).toString() },
