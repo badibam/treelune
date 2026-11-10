@@ -178,6 +178,10 @@ interface AIDao {
     @Query("UPDATE routines SET grid_x = :gridX, grid_y = :gridY WHERE id = :id")
     suspend fun updateRoutinePosition(id: String, gridX: Int, gridY: Int)
 
+    /** A routine's invitation (RoutineInvitations): the app's own state, outside the history (Kept). */
+    @Query("UPDATE routines SET invited_for = :invitedFor, invitation_waiting = :waiting WHERE id = :id")
+    suspend fun setRoutineInvitation(id: String, invitedFor: Long?, waiting: Boolean)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRoutine(routine: RoutineEntity)
 

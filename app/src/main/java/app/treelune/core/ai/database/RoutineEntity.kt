@@ -68,5 +68,15 @@ data class RoutineEntity(
     @ColumnInfo(name = "display_mode") val displayMode: String = RoutineSettings.DEFAULT_MODE,
     /** Its column and row in the grid of its group's section (SectionGrid) */
     @ColumnInfo(name = "grid_x") val gridX: Int = 0,
-    @ColumnInfo(name = "grid_y") val gridY: Int = 0
+    @ColumnInfo(name = "grid_y") val gridY: Int = 0,
+    /** How it is used (RoutineSettings.USAGE_*): run alone, opened as a conversation, or both */
+    val usage: String = RoutineSettings.USAGE_BOTH,
+    /**
+     * For a routine used as a conversation, the scheduled occurrence its last invitation was for:
+     * where the search for the next one starts, as a run's planned time does. The app's alone
+     * (RoutineInvitations), never in the history nor a backup.
+     */
+    @ColumnInfo(name = "invited_for") val invitedFor: Long? = null,
+    /** Whether its invitation waits for its conversation to be opened: its tile marked meanwhile */
+    @ColumnInfo(name = "invitation_waiting") val invitationWaiting: Boolean = false
 )

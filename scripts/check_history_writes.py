@@ -19,8 +19,8 @@ history along with the data, and the restoration of a backup (BackupService.kt),
 the whole database and empties the history. A conversation's session and messages are written
 outside the door, as the history does not keep them: ai_sessions and session_messages are
 written through it for a routine's message alone, which this check cannot tell from a
-conversation by reading the sources. A client's last use (touchClient) is the app's alone to
-write, a part the history leaves aside.
+conversation by reading the sources. A client's last use (touchClient) and a routine's
+invitation (setRoutineInvitation) are the app's alone to write, parts the history leaves aside.
 
 Usage:
     ./scripts/check_history_writes.py
@@ -46,7 +46,7 @@ ALLOWED_FILES = {
 ALLOWED_DIRS = ("app/treelune/core/history/", "app/treelune/core/versioning/")
 
 # Writes of a covered table's parts the history leaves to the app (Kept)
-ALLOWED_METHODS = {"touchClient"}
+ALLOWED_METHODS = {"touchClient", "setRoutineInvitation"}
 
 WRITE_SQL = re.compile(r'\b(?:INSERT(?:\s+OR\s+\w+)?\s+INTO|UPDATE|DELETE\s+FROM|REPLACE\s+INTO)\s+`?(\w+)`?', re.I)
 ANNOTATED = re.compile(

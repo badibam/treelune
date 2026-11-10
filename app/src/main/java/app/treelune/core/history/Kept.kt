@@ -30,6 +30,7 @@ internal class Kept(private val context: Context, private val database: AppDatab
         CoveredTable.MCP_CLIENTS -> listOf(Part("secret_hash"), Part("last_used_at"))
         CoveredTable.APP_SETTINGS -> settingsParts(row.getString("category"), secrets = false)
         CoveredTable.APIS -> apiSecrets()
+        CoveredTable.ROUTINES -> listOf(Part("invited_for"), Part("invitation_waiting"))
         else -> emptyList()
     }
 

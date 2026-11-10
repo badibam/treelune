@@ -48,6 +48,9 @@ class RoutineActions(
     fun cancel(sessionId: String) = scope.launch { AIOrchestrator.cancelQueuedSession(sessionId) }
 
     fun chat(routine: Routine) = scope.launch {
+        // Its invitation, if one waits, is answered by opening it
+        if (routine.usage == app.treelune.core.ai.data.RoutineSettings.USAGE_CONVERSATION)
+            coordinator.processUserAction("routines.invitation_opened", mapOf("routine_id" to routine.id))
         val seed = AIOrchestrator.loadSeedMessages(routine.seedSessionId)
         val prefill = seed.firstOrNull { it.sender == app.treelune.core.ai.data.MessageSender.USER }?.richContent?.segments ?: emptyList()
         // The conversation speaks as the routine and calls its provider, as its runs do
@@ -144,8 +147,8 @@ fun RoutineStateLine(routine: Routine, state: RoutineState, actions: RoutineActi
         if (buttons) {
             val queued = state.queuedSessionId
             if (queued != null) UI.ActionButton(action = ButtonAction.CANCEL, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.cancel(queued) })
-            else UI.ActionButton(action = ButtonAction.START, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.run(routine) })
-            UI.ActionButton(action = ButtonAction.AI_CHAT, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.chat(routine) })
+            else if (routine.runsAlone) UI.ActionButton(action = ButtonAction.START, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.run(routine) })
+            if (routine.opensAsConversation) UI.ActionButton(action = ButtonAction.AI_CHAT, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.chat(routine) })
         } else UI.BooleanField(label = "", value = routine.isEnabled, onValueChange = { actions.toggle(routine, it) })
     }
 }
@@ -165,10 +168,10 @@ fun RoutineButtons(routine: Routine, state: RoutineState, actions: RoutineAction
             UI.Button(type = ButtonType.DANGER, size = Size.S, onClick = { actions.cancel(queued) }) {
                 UI.Text(s.shared("ai_routine_cancel_execution"), TextType.LABEL)
             }
-        } else {
+        } else if (routine.runsAlone) {
             UI.ActionButton(action = ButtonAction.START, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.run(routine) })
         }
-        UI.ActionButton(action = ButtonAction.AI_CHAT, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.chat(routine) })
+        if (routine.opensAsConversation) UI.ActionButton(action = ButtonAction.AI_CHAT, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.chat(routine) })
         if (toPage) UI.ActionButton(action = ButtonAction.VIEW, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.history(routine) })
     }
 }

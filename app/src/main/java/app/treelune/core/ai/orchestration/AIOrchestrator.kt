@@ -721,6 +721,14 @@ object AIOrchestrator {
                 return
             }
 
+            // Used as a conversation, it never runs alone: what would start it invites to its
+            // conversation instead (its manual run is refused before, RoutineService.executeManual)
+            if (routine.usage == app.treelune.core.ai.data.RoutineSettings.USAGE_CONVERSATION) {
+                app.treelune.core.ai.scheduling.RoutineInvitations.invite(context, routine,
+                    occurrence = scheduledFor.takeIf { trigger == ExecutionTrigger.SCHEDULED })
+                return
+            }
+
             val seedSessionId = routine.seedSessionId
             // Refused when it is switched on and when it is started: none here is a routine changed since
             val providerId = routine.providerId ?: run {

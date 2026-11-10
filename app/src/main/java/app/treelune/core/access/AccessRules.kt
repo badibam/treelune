@@ -150,6 +150,7 @@ object AccessRules {
                 "get", "config", "next_execution" -> listOf(routineAt(AccessLevel.READ))
                 // Run now, as a Task is: a use of its zone; what its joined pointers name, read
                 "execute_manual" -> listOf(routineAt(AccessLevel.USE)) + pointed(params["joined"])
+                "invitation_opened" -> listOf(routineAt(AccessLevel.USE))
                 "create" -> listOf(zoneAt("zone_id", AccessLevel.FULL))
                 // A routine moved goes into the zone it is moved to
                 "update" -> listOfNotNull(routineAt(AccessLevel.FULL), text("zone_id")?.let { Reach.Zone(it, AccessLevel.FULL) })

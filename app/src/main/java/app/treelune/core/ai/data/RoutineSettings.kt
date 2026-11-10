@@ -16,7 +16,7 @@ import org.json.JSONObject
 
 /**
  * A routine's settings, declared with the fields (docs/DATA.md): its look (its name, a
- * description, an icon, a colour, a texture, a display mode; Looks), the provider it runs with, its group, whether it is on, which of its runs wait for the user,
+ * description, an icon, a colour, a texture, a display mode; Looks), the provider it runs with, its group, whether it is on, how it is used, which of its runs wait for the user,
  * its schedule, and what it does about the runs it missed. Not its zone (its place), its seed session (its message) nor its history.
  *
  * RoutineService checks every write against the schema generated from here, on the settings
@@ -36,6 +36,17 @@ object RoutineSettings {
     const val NOTIFY_ALWAYS = "always"
     const val NOTIFY_ON_PROBLEM = "on_problem"
     const val NOTIFY_NEVER = "never"
+
+    /**
+     * How a routine is used, stored under [USAGE]: run alone at its schedule and its triggers
+     * ([USAGE_ALONE], without a conversation button), opened as a conversation ([USAGE_CONVERSATION]:
+     * nothing runs it, its schedule and its triggers invite to the conversation instead,
+     * RoutineInvitations), or both, the schedule running it ([USAGE_BOTH], by default).
+     */
+    const val USAGE = "usage"
+    const val USAGE_BOTH = "both"
+    const val USAGE_ALONE = "alone"
+    const val USAGE_CONVERSATION = "conversation"
 
     const val SCHEMA_ID = "routine_settings"
 
@@ -121,6 +132,12 @@ object RoutineSettings {
     private fun whenNodes(context: Context): List<SettingNode> {
         val s = Strings.`for`(context = context)
         return listOf(
+            // Above what starts it: the same schedule runs it or invites to its conversation
+            SettingNode.Field(FieldDefinition(USAGE, s.shared("routine_usage"), s.shared("routine_schema_usage"), FieldType.CHOICE, false,
+                mapOf("options" to ChoiceSettings.storedOptions(listOf(USAGE_BOTH, USAGE_ALONE, USAGE_CONVERSATION), mapOf(
+                    USAGE_BOTH to s.shared("routine_usage_both"),
+                    USAGE_ALONE to s.shared("routine_usage_alone"),
+                    USAGE_CONVERSATION to s.shared("routine_usage_conversation"))))), default = USAGE_BOTH),
             // Absent: the routine runs on demand only
             ScheduleSettings.group(s.shared("routine_schedule"), s::shared),
             // Present with the schedule, and only with it (RoutineService)
@@ -182,6 +199,7 @@ object RoutineSettings {
         entity.group?.let { put("group", it) }
         put("is_enabled", entity.isEnabled)
         put("notify_end", entity.notifyEnd)
+        put(USAGE, entity.usage)
         entity.scheduleJson?.let { put("schedule", JSONObject(it)) }
         org.json.JSONArray(entity.triggersJson).takeIf { it.length() > 0 }?.let { put(app.treelune.core.triggers.Triggers.KEY, it) }
         app.treelune.core.events.EventPoints.stored(entity.emitEvent)?.let { put(app.treelune.core.events.EventPoints.KEY, it) }

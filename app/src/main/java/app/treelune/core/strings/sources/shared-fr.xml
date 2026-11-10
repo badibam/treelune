@@ -275,6 +275,11 @@
     <string name="routine_catch_up_delay">Délai</string>
     <string name="routine_is_enabled">Activée</string>
     <string name="routine_notify_end">Me signaler la fin</string>
+    <string name="routine_usage">Utilisée</string>
+    <string name="routine_usage_both">Seule et en conversation</string>
+    <string name="routine_usage_alone">Seule uniquement</string>
+    <string name="routine_usage_conversation">En conversation uniquement</string>
+    <string name="routine_invitation_notification">C\'est l\'heure de cette conversation : ouvre-la depuis la routine</string>
     <string name="routine_notify_end_always">Toujours</string>
     <string name="routine_notify_end_on_problem">En cas de problème</string>
     <string name="routine_notify_end_never">Jamais</string>
@@ -414,6 +419,7 @@
     <string name="action_verbalize_zones_place_section">Disposition des tuiles d\'une zone</string>
     <string name="action_verbalize_tools_waiting">Compte de ce qui attend dans les outils</string>
     <string name="action_verbalize_routines_waiting">Compte des exécutions de routines pas encore lues</string>
+    <string name="action_verbalize_routines_invitation_opened">Ouverture de la conversation de la routine %1$s</string>
 
     <!-- AI Errors - Network and System -->
     <string name="ai_error_network_unavailable">Réseau indisponible</string>
@@ -1238,6 +1244,7 @@
     <string name="ai_error_provider_name_taken">Un fournisseur s\'appelle déjà %1$s : choisis un autre nom</string>
     <string name="ai_error_session_provider_chat_only">Seule une conversation choisit son fournisseur : l\'exécution d\'une routine prend celui de sa routine</string>
     <string name="routine_provider_none">Cette routine n\'a pas de fournisseur d\'IA : choisis-en un dans ses réglages</string>
+    <string name="routine_conversation_only">Cette routine ne sert qu\'en conversation : elle ne tourne pas seule, ouvre plutôt sa conversation</string>
     <string name="routine_provider_required">Dis quel fournisseur d\'IA la routine utilise, ou null pour aucun</string>
     <string name="routine_provider_none_enabled">Une routine sans fournisseur d\'IA ne peut pas être activée : choisis d\'abord un fournisseur</string>
     <string name="routine_status_no_provider">Sans fournisseur d\'IA</string>
@@ -2739,6 +2746,7 @@
     <string name="routine_schema_group">Un des groupes d\'outils de sa zone, où se tient sa tuile</string>
     <string name="routine_schema_is_enabled">Si son planning la lance</string>
     <string name="routine_schema_notify_end">Quand la fin d\'une exécution est notifiée : toujours, sur un problème seulement, ou jamais</string>
+    <string name="routine_schema_usage">Comment la routine sert. « both » (par défaut) : son planning et ses déclencheurs la lancent seule, et sa tuile ouvre aussi une conversation avec son message. « alone » : lancée seule uniquement, sans bouton de conversation. « conversation » : jamais lancée seule (un lancement demandé est refusé) ; son planning et ses déclencheurs invitent à sa conversation à la place, par une notification, sa tuile marquée jusqu\'à ce que la conversation soit ouverte</string>
     <string name="routine_schema_catch_up">Ce qu\'elle fait des exécutions manquées, téléphone éteint ou app arrêtée ; présent avec un planning seulement</string>
     <string name="routine_schema_catch_up_limit">Jusqu\'où les exécutions manquées sont rattrapées</string>
     <string name="routine_schema_catch_up_limited">Seulement celles dans le délai</string>

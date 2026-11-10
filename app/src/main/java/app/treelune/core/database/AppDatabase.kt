@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 114
+        const val VERSION = 115
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2365,6 +2365,15 @@ abstract class AppDatabase : RoomDatabase() {
 
         /** A file's link to a file of the phone, none: every file kept so far is a copy (docs/design/linked-files.md). */
         /** An API says its kind, every one so far a web service: see ApiKindAtV114. */
+        private val MIGRATION_114_115 = object : ConnectionMigration(114, 115) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("ALTER TABLE routines ADD COLUMN usage TEXT NOT NULL DEFAULT 'both'")
+                database.execSQL("ALTER TABLE routines ADD COLUMN invited_for INTEGER")
+                database.execSQL("ALTER TABLE routines ADD COLUMN invitation_waiting INTEGER NOT NULL DEFAULT 0")
+                LogManager.database("MIGRATION 114->115: routines' usage added, every routine run alone and opened as a conversation", "INFO")
+            }
+        }
+
         private val MIGRATION_113_114 = object : ConnectionMigration(113, 114) {
             override fun migrate(database: MigrationDatabase) {
                 val v = app.treelune.core.versioning.ApiKindAtV114
@@ -3550,7 +3559,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_110_111,
                     MIGRATION_111_112,
                     MIGRATION_112_113,
-                    MIGRATION_113_114
+                    MIGRATION_113_114,
+                    MIGRATION_114_115
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

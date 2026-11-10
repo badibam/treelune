@@ -86,6 +86,7 @@ class RoutineService(private val context: Context) : ExecutableService {
                 "enable" -> setEnabled(params, token, true)
                 "disable" -> setEnabled(params, token, false)
                 "execute_manual" -> executeManual(params, token)
+                "invitation_opened" -> invitationOpened(params)
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
             }
         } catch (e: kotlinx.coroutines.CancellationException) {
@@ -382,7 +383,7 @@ class RoutineService(private val context: Context) : ExecutableService {
      */
     private fun settingsGiven(params: JSONObject, stored: JSONObject?): JSONObject {
         val settings = stored?.let { JSONObject(it.toString()) } ?: JSONObject()
-        (app.treelune.core.look.Looks.keys(RoutineSettings.LOOK) + listOf("provider_id", RoutineSettings.IDENTITY_ID, "group", "is_enabled", "notify_end", "schedule", "catch_up", app.treelune.core.triggers.Triggers.KEY, app.treelune.core.events.EventPoints.KEY)).forEach { key ->
+        (app.treelune.core.look.Looks.keys(RoutineSettings.LOOK) + listOf("provider_id", RoutineSettings.IDENTITY_ID, "group", "is_enabled", "notify_end", RoutineSettings.USAGE, "schedule", "catch_up", app.treelune.core.triggers.Triggers.KEY, app.treelune.core.events.EventPoints.KEY)).forEach { key ->
             if (!params.has(key)) return@forEach
             if (params.isNull(key)) settings.remove(key) else settings.put(key, params.get(key))
         }
@@ -433,6 +434,8 @@ class RoutineService(private val context: Context) : ExecutableService {
             isEnabled = SettingValues(RoutineSettings.nodes(context), settings).boolean("is_enabled"),
             notifyEnd = SettingValues(RoutineSettings.nodes(context), settings).string("notify_end")
                 ?: error("Setting 'notify_end' has neither a value nor a default"),
+            usage = SettingValues(RoutineSettings.nodes(context), settings).string(RoutineSettings.USAGE)
+                ?: error("Setting 'usage' has neither a value nor a default"),
             scheduleJson = scheduleJson,
             catchUp = catchUp?.getString("limit"),
             catchUpWindow = catchUp?.takeIf { it.has("window") }?.getLong("window"),
@@ -755,6 +758,8 @@ class RoutineService(private val context: Context) : ExecutableService {
             ?: return OperationResult.error(s.shared("error_routine_not_found"))
         if (AIOrchestrator.isSeedEmpty(entity.seedSessionId)) return OperationResult.error(s.shared("routine_message_empty_run"))
         if (entity.providerId == null) return OperationResult.error(s.shared("routine_provider_none"))
+        // Used as a conversation, it never runs alone: its conversation is opened from its tile
+        if (entity.usage == RoutineSettings.USAGE_CONVERSATION) return OperationResult.error(s.shared("routine_conversation_only"))
 
         // Delegate to AIOrchestrator V2
         // V2 handles session creation, trigger, and scheduling internally
@@ -797,10 +802,21 @@ class RoutineService(private val context: Context) : ExecutableService {
      * of each routine are over and not yet seen, the routines of `zone_id` or all of them, and the
      * sum by zone; the first form of the waiting brick, beside tools.waiting.
      */
+    /** The conversation of a routine used as one opened: its invitation no longer waits (RoutineInvitations). */
+    private suspend fun invitationOpened(params: JSONObject): OperationResult {
+        val routineId = params.optString("routine_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("error_param_routine_id_required"))
+        dao.getRoutineById(routineId) ?: return OperationResult.error(s.shared("error_routine_not_found"))
+        app.treelune.core.ai.scheduling.RoutineInvitations.opened(context, routineId)
+        return OperationResult.success(mapOf("routine_id" to routineId))
+    }
+
     private suspend fun waiting(params: JSONObject): OperationResult {
         val zoneId = params.optString("zone_id").takeIf { it.isNotEmpty() }
         val routines = (if (zoneId != null) dao.getRoutinesByZone(zoneId) else dao.getAllRoutines()).associateBy { it.id }
-        val counts = dao.getWaitingRuns().mapNotNull { it.routineId?.takeIf { id -> id in routines } }.groupingBy { it }.eachCount()
+        // Its runs not read yet, and its invitation to a conversation not opened yet
+        val counts = (dao.getWaitingRuns().mapNotNull { it.routineId?.takeIf { id -> id in routines } } +
+            routines.values.filter { it.invitationWaiting }.map { it.id }).groupingBy { it }.eachCount()
         return OperationResult.success(mapOf(
             "routines" to counts,
             "zones" to counts.entries.groupBy { routines.getValue(it.key).zoneId }.mapValues { (_, inZone) -> inZone.sumOf { it.value } }
@@ -842,6 +858,7 @@ class RoutineService(private val context: Context) : ExecutableService {
             "next_execution" -> s.shared("action_verbalize_routines_next_execution").format(name)
             "list", "list_all" -> s.shared("action_verbalize_routines_list")
             "waiting" -> s.shared("action_verbalize_routines_waiting")
+            "invitation_opened" -> s.shared("action_verbalize_routines_invitation_opened").format(name)
             else -> s.shared("action_verbalize_unknown")
         }
     }

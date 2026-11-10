@@ -275,6 +275,11 @@
     <string name="routine_catch_up_delay">Delay</string>
     <string name="routine_is_enabled">Enabled</string>
     <string name="routine_notify_end">Tell me when it ends</string>
+    <string name="routine_usage">Used</string>
+    <string name="routine_usage_both">Alone and as a conversation</string>
+    <string name="routine_usage_alone">Alone only</string>
+    <string name="routine_usage_conversation">As a conversation only</string>
+    <string name="routine_invitation_notification">Time for this conversation: open it from the routine</string>
     <string name="routine_notify_end_always">Always</string>
     <string name="routine_notify_end_on_problem">When something goes wrong</string>
     <string name="routine_notify_end_never">Never</string>
@@ -414,6 +419,7 @@
     <string name="action_verbalize_zones_place_section">Arrangement of a zone\'s tiles</string>
     <string name="action_verbalize_tools_waiting">Count what waits in the tools</string>
     <string name="action_verbalize_routines_waiting">Count the routines\' runs not yet read</string>
+    <string name="action_verbalize_routines_invitation_opened">Open the conversation of the routine %1$s</string>
 
     <!-- AI Errors - Network and System -->
     <string name="ai_error_network_unavailable">Network unavailable</string>
@@ -1238,6 +1244,7 @@
     <string name="ai_error_provider_name_taken">A provider is already named %1$s: choose another name</string>
     <string name="ai_error_session_provider_chat_only">Only a conversation chooses its provider: a routine\'s run takes its routine\'s</string>
     <string name="routine_provider_none">This routine has no AI provider: choose one in its settings</string>
+    <string name="routine_conversation_only">This routine is used as a conversation only: it does not run alone, open its conversation instead</string>
     <string name="routine_provider_required">Say which AI provider the routine uses, or null for none</string>
     <string name="routine_provider_none_enabled">A routine without an AI provider cannot be on: choose a provider first</string>
     <string name="routine_status_no_provider">No AI provider</string>
@@ -2739,6 +2746,7 @@
     <string name="routine_schema_group">One of the tool groups of its zone, where its tile stands</string>
     <string name="routine_schema_is_enabled">Whether its schedule runs it</string>
     <string name="routine_schema_notify_end">When the end of a run is notified: always, on a problem only, or never</string>
+    <string name="routine_schema_usage">How the routine is used. "both" (default): its schedule and its triggers run it alone, and its tile also opens a conversation with its message. "alone": run alone only, no conversation button. "conversation": never run alone (a run asked for is refused); its schedule and its triggers invite the user to its conversation instead, by a notification, its tile marked until the conversation is opened</string>
     <string name="routine_schema_catch_up">What it does about the runs it missed, the phone off or the app stopped; present with a schedule only</string>
     <string name="routine_schema_catch_up_limit">How far back missed runs are caught up</string>
     <string name="routine_schema_catch_up_limited">Only those within the window</string>

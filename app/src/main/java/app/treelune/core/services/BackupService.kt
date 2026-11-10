@@ -122,7 +122,9 @@ class BackupService(private val context: Context) : ExecutableService {
             texture = item.nullableString("texture"),
             displayMode = item.getString("display_mode"),
             gridX = item.getInt("grid_x"),
-            gridY = item.getInt("grid_y")
+            gridY = item.getInt("grid_y"),
+            // Absent from a backup made before version 115: run alone and opened as a conversation
+            usage = item.optString(app.treelune.core.ai.data.RoutineSettings.USAGE).ifEmpty { app.treelune.core.ai.data.RoutineSettings.USAGE_BOTH }
         )
 
         /** A Task as a backup's [item] holds it, in the form of the current schema. */
@@ -677,6 +679,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("display_mode", routine.displayMode)
                                 put("grid_x", routine.gridX)
                                 put("grid_y", routine.gridY)
+                                put(app.treelune.core.ai.data.RoutineSettings.USAGE, routine.usage)
                                 if (routine.group != null) {
                                     put("group", routine.group)
                                 }
