@@ -57,9 +57,9 @@ fun rememberTrackingTile(tool: ToolInstance): ToolTile {
     val config = remember(tool.config_json) { JSONObject(tool.config_json) }
     val actions = rememberTrackingActions(tool.id, config)
 
-    var running by remember { mutableStateOf<List<RunningEntry>>(emptyList()) }
-    var latest by remember { mutableStateOf<LastEntry?>(null) }
-    var loaded by remember { mutableStateOf(false) }
+    var running by app.treelune.core.ui.rememberShown<List<RunningEntry>>("tile:${tool.id}:running") { emptyList() }
+    var latest by app.treelune.core.ui.rememberShown<LastEntry?>("tile:${tool.id}:latest") { null }
+    var loaded by app.treelune.core.ui.rememberShown<Boolean>("tile:${tool.id}:loaded") { false }
     var version by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(tool.id, version) {

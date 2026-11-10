@@ -56,10 +56,10 @@ fun NotesScreen(
     val coroutineScope = rememberCoroutineScope()
 
     // State
-    var toolInstance by remember { mutableStateOf<Map<String, Any>?>(null) }
-    var notes by remember { mutableStateOf<List<NoteEntry>>(emptyList()) }
+    var toolInstance by app.treelune.core.ui.rememberShown<Map<String, Any>?>("page:${toolInstanceId}:toolInstance") { null }
+    var notes by app.treelune.core.ui.rememberShown<List<NoteEntry>>("page:${toolInstanceId}:notes") { emptyList() }
     var isLoading by remember { mutableStateOf(true) }
-    var notesLoaded by remember { mutableStateOf(false) }
+    var notesLoaded by app.treelune.core.ui.rememberShown("page:${toolInstanceId}:notes_loaded") { false }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var refreshTrigger by remember { mutableIntStateOf(0) }
     var contextMenuNoteId by remember { mutableStateOf<String?>(null) }
@@ -202,7 +202,8 @@ fun NotesScreen(
                 .verticalScroll(rememberScrollState()).chatButtonSpace()
                 .padding(vertical = UI.Space.L)
         ) {
-            if (isLoading) {
+            // Coming back, what it showed stays while it reads again (Shown)
+            if (isLoading && toolInstance == null) {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center

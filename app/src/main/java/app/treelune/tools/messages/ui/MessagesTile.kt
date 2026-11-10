@@ -45,7 +45,7 @@ fun rememberMessagesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolT
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "messages", context = context) }
-    var inbox by remember { mutableStateOf<Inbox?>(null) }
+    var inbox by app.treelune.core.ui.rememberShown<Inbox?>("tile:${tool.id}:inbox") { null }
     var version by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(tool.id, version) {

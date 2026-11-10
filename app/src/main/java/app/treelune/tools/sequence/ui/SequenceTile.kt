@@ -50,7 +50,7 @@ fun rememberSequenceTile(tool: ToolInstance): ToolTile {
     val s = remember { Strings.`for`(tool = "sequence", context = context) }
     val config = remember(tool.config_json) { JSONObject(tool.config_json) }
 
-    var entries by remember { mutableStateOf<List<SequenceEntry>?>(null) }
+    var entries by app.treelune.core.ui.rememberShown<List<SequenceEntry>?>("tile:${tool.id}:entries") { null }
     var version by remember { mutableIntStateOf(0) }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     // The launch's question open, from the tile's button

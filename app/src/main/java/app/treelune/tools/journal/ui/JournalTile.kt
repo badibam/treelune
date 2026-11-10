@@ -48,7 +48,7 @@ fun rememberJournalTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTi
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "journal", context = context) }
-    var entries by remember { mutableStateOf<List<TileEntry>?>(null) }
+    var entries by app.treelune.core.ui.rememberShown<List<TileEntry>?>("tile:${tool.id}:entries") { null }
     var version by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(tool.id, version) {

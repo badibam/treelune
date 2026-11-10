@@ -52,7 +52,7 @@ fun rememberChartTile(tool: ToolInstance): ToolTile {
     val s = remember { Strings.`for`(tool = "chart", context = context) }
     val config = remember(tool.config_json) { JSONObject(tool.config_json) }
 
-    var reading by remember { mutableStateOf<ChartReading?>(null) }
+    var reading by app.treelune.core.ui.rememberShown<ChartReading?>("tile:${tool.id}:reading") { null }
     var version by remember { mutableIntStateOf(0) }
     LaunchedEffect(tool.id, config.toString(), version) { reading = ChartReading.of(config, context) }
     LaunchedEffect(tool.id) {

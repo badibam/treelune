@@ -67,8 +67,8 @@ fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onCo
     val s = remember { Strings.`for`(tool = "questionnaire", context = context) }
     val scope = rememberCoroutineScope()
 
-    var config by remember { mutableStateOf<JSONObject?>(null) }
-    var entries by remember { mutableStateOf<List<QuestionnaireEntry>?>(null) }
+    var config by app.treelune.core.ui.rememberShown<JSONObject?>("page:${toolInstanceId}:config") { null }
+    var entries by app.treelune.core.ui.rememberShown<List<QuestionnaireEntry>?>("page:${toolInstanceId}:entries") { null }
     var version by remember { mutableIntStateOf(0) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     // The passing under way: "" on demand, an entry's id when planned, the one to fill opened

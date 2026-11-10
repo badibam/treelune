@@ -153,8 +153,8 @@ fun SequenceScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigu
     val s = remember { Strings.`for`(tool = "sequence", context = context) }
     val scope = rememberCoroutineScope()
 
-    var config by remember { mutableStateOf<JSONObject?>(null) }
-    var entries by remember { mutableStateOf<List<SequenceEntry>?>(null) }
+    var config by app.treelune.core.ui.rememberShown<JSONObject?>("page:${toolInstanceId}:config") { null }
+    var entries by app.treelune.core.ui.rememberShown<List<SequenceEntry>?>("page:${toolInstanceId}:entries") { null }
     var version by remember { mutableIntStateOf(0) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val live by SequenceLive.running.collectAsState()

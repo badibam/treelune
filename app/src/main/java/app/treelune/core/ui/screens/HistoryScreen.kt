@@ -55,9 +55,9 @@ fun HistoryScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     // Session list
-    var sessions by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
+    var sessions by app.treelune.core.ui.rememberShown<List<SessionSummary>>("page:conversations:sessions") { emptyList() }
     var currentPage by rememberSaveable { mutableStateOf(1) }
-    var totalPages by remember { mutableStateOf(1) }
+    var totalPages by app.treelune.core.ui.rememberShown("page:conversations:pages") { 1 }
     var totalEntries by remember { mutableStateOf(0) }
 
     // Filters

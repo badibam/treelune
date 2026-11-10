@@ -50,7 +50,7 @@ fun rememberQuestionnaireTile(tool: ToolInstance): ToolTile {
     val config = remember(tool.config_json) { JSONObject(tool.config_json) }
     val questions = remember(config) { config.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList() }
 
-    var passings by remember { mutableStateOf<Passings?>(null) }
+    var passings by app.treelune.core.ui.rememberShown<Passings?>("tile:${tool.id}:passings") { null }
     var version by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(tool.id, version) {

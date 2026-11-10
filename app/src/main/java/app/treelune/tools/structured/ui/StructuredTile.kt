@@ -46,7 +46,7 @@ fun rememberStructuredTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): Too
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "structured", context = context) }
-    var sheets by remember { mutableStateOf<List<TileSheet>?>(null) }
+    var sheets by app.treelune.core.ui.rememberShown<List<TileSheet>?>("tile:${tool.id}:sheets") { null }
     var version by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(tool.id, version) {

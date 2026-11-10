@@ -64,7 +64,7 @@ fun rememberListTile(tool: ToolInstance): ToolTile {
 
     val fields = remember(tool.config_json) { JSONObject(tool.config_json).optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList() }
 
-    var items by remember { mutableStateOf<List<ListItem>?>(null) }
+    var items by app.treelune.core.ui.rememberShown<List<ListItem>?>("tile:${tool.id}:items") { null }
     var adding by androidx.compose.runtime.saveable.rememberSaveable(tool.id) { mutableStateOf(false) }
     var version by remember { mutableIntStateOf(0) }
 

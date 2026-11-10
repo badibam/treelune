@@ -38,7 +38,7 @@ fun TrackingScreen(
     val s = remember { Strings.`for`(tool = "tracking", context = context) }
     
     // State
-    var toolInstance by remember { mutableStateOf<Map<String, Any>?>(null) }
+    var toolInstance by app.treelune.core.ui.rememberShown<Map<String, Any>?>("page:${toolInstanceId}:toolInstance") { null }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var historyRefreshTrigger by remember { mutableIntStateOf(0) }
@@ -92,7 +92,8 @@ fun TrackingScreen(
             .padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
-        if (isLoading) {
+        // Coming back, what it showed stays while it reads again (Shown)
+        if (isLoading && toolInstance == null) {
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center

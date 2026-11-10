@@ -54,8 +54,8 @@ fun JournalScreen(
     val coroutineScope = rememberCoroutineScope()
 
     // State (temporary, reloaded on recomposition)
-    var toolInstance by remember { mutableStateOf<Map<String, Any>?>(null) }
-    var entries by remember { mutableStateOf<List<JournalEntry>>(emptyList()) }
+    var toolInstance by app.treelune.core.ui.rememberShown<Map<String, Any>?>("page:${toolInstanceId}:toolInstance") { null }
+    var entries by app.treelune.core.ui.rememberShown<List<JournalEntry>>("page:${toolInstanceId}:entries") { emptyList() }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var refreshTrigger by remember { mutableIntStateOf(0) }
@@ -218,7 +218,8 @@ fun JournalScreen(
                 .verticalScroll(rememberScrollState()).chatButtonSpace()
                 .padding(vertical = UI.Space.L)
         ) {
-            if (isLoading) {
+            // Coming back, what it showed stays while it reads again (Shown)
+            if (isLoading && toolInstance == null) {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center

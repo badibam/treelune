@@ -58,7 +58,7 @@ data class VariableRow(
 fun rememberVariableValue(variable: VariableRow): String? {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
-    var shown by remember(variable.id) { mutableStateOf<String?>(null) }
+    var shown by app.treelune.core.ui.rememberShown<String?>("variable:${variable.id}") { null }
     var version by remember { mutableStateOf(0) }
     LaunchedEffect(variable.toolsRead) {
         DataChangeNotifier.changes.collect { event ->

@@ -69,8 +69,8 @@ fun ListScreen(
     val scope = rememberCoroutineScope()
 
     // Reloaded, never saved: the tool's config and its items
-    var config by remember { mutableStateOf<JSONObject?>(null) }
-    var items by remember { mutableStateOf<List<ListItem>?>(null) }
+    var config by app.treelune.core.ui.rememberShown<JSONObject?>("page:${toolInstanceId}:config") { null }
+    var items by app.treelune.core.ui.rememberShown<List<ListItem>?>("page:${toolInstanceId}:items") { null }
     var loadFailed by remember { mutableStateOf(false) }
     var configVersion by remember { mutableIntStateOf(0) }
     var itemsVersion by remember { mutableIntStateOf(0) }

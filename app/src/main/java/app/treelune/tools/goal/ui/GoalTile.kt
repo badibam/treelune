@@ -64,8 +64,8 @@ fun rememberGoalTile(tool: ToolInstance): ToolTile {
     val s = remember { Strings.`for`(tool = "goal", context = context) }
     val config = remember(tool.config_json) { JSONObject(tool.config_json) }
 
-    var attempts by remember { mutableStateOf<List<TileAttempt>?>(null) }
-    var judgement by remember { mutableStateOf<Map<*, *>?>(null) }
+    var attempts by app.treelune.core.ui.rememberShown<List<TileAttempt>?>("tile:${tool.id}:attempts") { null }
+    var judgement by app.treelune.core.ui.rememberShown<Map<*, *>?>("tile:${tool.id}:judgement") { null }
     var version by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(tool.id, version) {

@@ -71,8 +71,8 @@ fun GoalScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
     val s = remember { Strings.`for`(tool = "goal", context = context) }
     val scope = rememberCoroutineScope()
 
-    var config by remember { mutableStateOf<JSONObject?>(null) }
-    var attempts by remember { mutableStateOf<List<AttemptRow>?>(null) }
+    var config by app.treelune.core.ui.rememberShown<JSONObject?>("page:${toolInstanceId}:config") { null }
+    var attempts by app.treelune.core.ui.rememberShown<List<AttemptRow>?>("page:${toolInstanceId}:attempts") { null }
     var version by remember { mutableIntStateOf(0) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     // An attempt opened from the tile, one to validate, or none

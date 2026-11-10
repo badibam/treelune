@@ -53,9 +53,9 @@ fun FlashcardsScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
     val scope = rememberCoroutineScope()
     val s = remember { Strings.`for`(tool = "flashcards", context = context) }
 
-    var config by remember { mutableStateOf<JSONObject?>(null) }
-    var counts by remember { mutableStateOf<DeckCounts?>(null) }
-    var problem by remember { mutableStateOf<String?>(null) }
+    var config by app.treelune.core.ui.rememberShown<JSONObject?>("page:${toolInstanceId}:config") { null }
+    var counts by app.treelune.core.ui.rememberShown<DeckCounts?>("page:${toolInstanceId}:counts") { null }
+    var problem by app.treelune.core.ui.rememberShown<String?>("page:${toolInstanceId}:problem") { null }
     var version by remember { mutableIntStateOf(0) }
     // The group whose launch window is open: "" for the whole deck; null when none is
     var launching by rememberSaveable { mutableStateOf<String?>(null) }

@@ -45,22 +45,23 @@ private fun ZoneScreenBody(zone: Zone) {
     val coroutineScope = rememberCoroutineScope()
     
     // Load tool instances via command pattern
-    var toolInstances by remember { mutableStateOf<List<ToolInstance>>(emptyList()) }
+    var toolInstances by app.treelune.core.ui.rememberShown<List<ToolInstance>>("zone:${zone.id}:tools") { emptyList() }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     // Load routines for this zone
-    var routines by remember { mutableStateOf<List<app.treelune.core.ai.data.Routine>>(emptyList()) }
+    var routines by app.treelune.core.ui.rememberShown<List<app.treelune.core.ai.data.Routine>>("zone:${zone.id}:routines") { emptyList() }
     var isLoadingRoutines by remember { mutableStateOf(true) }
     // The zone's Tasks, among its tools as its routines are
-    var tasks by remember { mutableStateOf<List<app.treelune.core.tasks.Task>>(emptyList()) }
+    var tasks by app.treelune.core.ui.rememberShown<List<app.treelune.core.tasks.Task>>("zone:${zone.id}:tasks") { emptyList() }
     // Its readouts, their own tiles among its tools, and the lines they raise to its head and its groups'
-    var readouts by remember { mutableStateOf<List<app.treelune.core.readouts.ui.ReadoutRow>>(emptyList()) }
+    var readouts by app.treelune.core.ui.rememberShown<List<app.treelune.core.readouts.ui.ReadoutRow>>("zone:${zone.id}:readouts") { emptyList() }
 
     // The zone shows "loading" until its tools and routines are first read. A later reload
-    // (a routine switched on, a tool changed or duplicated) keeps the content on screen and
-    // updates it when the new data arrives: replaced by "loading", the whole screen would blink.
-    var loadedOnce by remember { mutableStateOf(false) }
+    // (a routine switched on, a tool changed or duplicated, coming back to it) keeps the content
+    // on screen and updates it when the new data arrives: replaced by "loading", the whole screen
+    // would blink, and lose its scroll position (Shown)
+    var loadedOnce by app.treelune.core.ui.rememberShown("zone:${zone.id}:loaded") { false }
     LaunchedEffect(isLoading, isLoadingRoutines) {
         if (!isLoading && !isLoadingRoutines) loadedOnce = true
     }
@@ -81,7 +82,7 @@ private fun ZoneScreenBody(zone: Zone) {
     var duplicating by rememberSaveable { mutableStateOf<app.treelune.core.ui.selectors.DuplicateType?>(null) }
 
     // The zone's tools, variables and routines, read through the dispatcher
-    var variables by remember { mutableStateOf<List<app.treelune.core.ui.variables.VariableRow>>(emptyList()) }
+    var variables by app.treelune.core.ui.rememberShown<List<app.treelune.core.ui.variables.VariableRow>>("zone:${zone.id}:variables") { emptyList() }
     val loadTools: suspend () -> Unit = {
         coordinator.executeWithLoading(
             operation = "tools.list",

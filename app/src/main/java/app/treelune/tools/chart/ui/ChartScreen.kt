@@ -42,8 +42,8 @@ fun ChartScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureC
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "chart", context = context) }
 
-    var config by remember { mutableStateOf<JSONObject?>(null) }
-    var reading by remember { mutableStateOf<ChartReading?>(null) }
+    var config by app.treelune.core.ui.rememberShown<JSONObject?>("page:${toolInstanceId}:config") { null }
+    var reading by app.treelune.core.ui.rememberShown<ChartReading?>("page:${toolInstanceId}:reading") { null }
     var version by remember { mutableIntStateOf(0) }
     // What a touch found: a passing look, gone with a rotation like any tooltip, never produced by the user
     var touched by remember { mutableStateOf<Hit?>(null) }

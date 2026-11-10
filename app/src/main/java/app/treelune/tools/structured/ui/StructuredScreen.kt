@@ -90,9 +90,9 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
     val s = remember { Strings.`for`(tool = "structured", context = context) }
     val scope = rememberCoroutineScope()
 
-    var config by remember { mutableStateOf<JSONObject?>(null) }
-    var sheets by remember { mutableStateOf<List<Sheet>?>(null) }
-    var filterable by remember { mutableStateOf<Map<String, FieldDefinition>>(emptyMap()) }
+    var config by app.treelune.core.ui.rememberShown<JSONObject?>("page:${toolInstanceId}:config") { null }
+    var sheets by app.treelune.core.ui.rememberShown<List<Sheet>?>("page:${toolInstanceId}:sheets") { null }
+    var filterable by app.treelune.core.ui.rememberShown<Map<String, FieldDefinition>>("page:${toolInstanceId}:filterable") { emptyMap() }
     var configVersion by remember { mutableIntStateOf(0) }
     var sheetsVersion by remember { mutableIntStateOf(0) }
     var errorMessage by remember { mutableStateOf<String?>(null) }

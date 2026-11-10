@@ -83,8 +83,8 @@ fun AgendaScreen(
     val zone = remember { AgendaToolType.zone() }
 
     // Reloaded, never saved: the calendar's config and its events
-    var config by remember { mutableStateOf<JSONObject?>(null) }
-    var events by remember { mutableStateOf<List<AgendaEvent>?>(null) }
+    var config by app.treelune.core.ui.rememberShown<JSONObject?>("page:${toolInstanceId}:config") { null }
+    var events by app.treelune.core.ui.rememberShown<List<AgendaEvent>?>("page:${toolInstanceId}:events") { null }
     var loadFailed by remember { mutableStateOf(false) }
     var configVersion by remember { mutableIntStateOf(0) }
     var eventsVersion by remember { mutableIntStateOf(0) }

@@ -47,7 +47,7 @@ fun rememberNotesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "notes", context = context) }
-    var notes by remember { mutableStateOf<List<TileNote>?>(null) }
+    var notes by app.treelune.core.ui.rememberShown<List<TileNote>?>("tile:${tool.id}:notes") { null }
     var version by remember { mutableIntStateOf(0) }
     val titles = remember(tool.config_json) { app.treelune.tools.notes.NotesToolType.hasTitles(org.json.JSONObject(tool.config_json), context) }
 

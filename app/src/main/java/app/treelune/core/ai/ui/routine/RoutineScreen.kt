@@ -64,16 +64,16 @@ fun RoutineScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     // Routine metadata (simple data, not full Routine object)
-    var routineName by remember { mutableStateOf<String?>(null) }
+    var routineName by app.treelune.core.ui.rememberShown<String?>("page:routine:$routineId:name") { null }
     // The routine itself, for what its tile does, and as the service gives it, for its conditions' judgements
-    var routine by remember { mutableStateOf<app.treelune.core.ai.data.Routine?>(null) }
-    var routineMap by remember { mutableStateOf<Map<String, Any>?>(null) }
+    var routine by app.treelune.core.ui.rememberShown<app.treelune.core.ai.data.Routine?>("page:routine:$routineId:routine") { null }
+    var routineMap by app.treelune.core.ui.rememberShown<Map<String, Any>?>("page:routine:$routineId:map") { null }
     val actions = rememberRoutineActions { errorMessage = it }
 
     // Execution list
-    var sessions by remember { mutableStateOf<List<ExecutionSummary>>(emptyList()) }
+    var sessions by app.treelune.core.ui.rememberShown<List<ExecutionSummary>>("page:routine:$routineId:sessions") { emptyList() }
     var currentPage by rememberSaveable { mutableStateOf(1) }
-    var totalPages by remember { mutableStateOf(1) }
+    var totalPages by app.treelune.core.ui.rememberShown("page:routine:$routineId:pages") { 1 }
     var totalEntries by remember { mutableStateOf(0) }
 
     // Filters

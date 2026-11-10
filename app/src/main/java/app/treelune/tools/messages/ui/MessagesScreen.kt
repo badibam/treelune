@@ -82,7 +82,7 @@ fun MessagesScreen(
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "messages", context = context) }
 
-    var toolInstance by remember { mutableStateOf<Map<String, Any>?>(null) }
+    var toolInstance by app.treelune.core.ui.rememberShown<Map<String, Any>?>("page:${toolInstanceId}:toolInstance") { null }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var refreshTrigger by remember { mutableIntStateOf(0) }
@@ -128,7 +128,8 @@ fun MessagesScreen(
         }
     }
 
-    if (isLoading) {
+    // Coming back, what it showed stays while it reads again (Shown)
+    if (isLoading && toolInstance == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             UI.Text(s.shared("tools_loading"), TextType.BODY)
         }
@@ -206,8 +207,8 @@ private fun ReceivedTab(
     // Read means taken into account: only the user's gesture marks a message read, never opening
     // the screen or a notification, so "Unread" stays what still waits for them
     var filter by rememberSaveable { mutableStateOf(ReceivedFilter.UNREAD) }
-    // null while read; a read that fails is said, never shown as an empty inbox
-    var occurrences by remember { mutableStateOf<List<Occurrence>?>(null) }
+    // null while first read; a read that fails is said, never shown as an empty inbox
+    var occurrences by app.treelune.core.ui.rememberShown<List<Occurrence>?>("page:${toolInstanceId}:received:$filter") { null }
     var failed by remember { mutableStateOf(false) }
 
     // Expired and cancelled are two different facts, so they are loaded together only under the
@@ -384,8 +385,8 @@ private fun UpcomingTab(
     val s = remember { Strings.`for`(tool = "messages", context = context) }
     val scope = rememberCoroutineScope()
 
-    // null while read; a read that fails is said, never shown as nothing planned
-    var occurrences by remember { mutableStateOf<List<Occurrence>?>(null) }
+    // null while first read; a read that fails is said, never shown as nothing planned
+    var occurrences by app.treelune.core.ui.rememberShown<List<Occurrence>?>("page:${toolInstanceId}:upcoming") { null }
     var failed by remember { mutableStateOf(false) }
     // The occurrence being edited is kept by id and resolved from the loaded list, so the
     // edit dialog survives a rotation

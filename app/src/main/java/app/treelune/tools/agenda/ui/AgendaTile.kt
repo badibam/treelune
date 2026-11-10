@@ -53,7 +53,7 @@ fun rememberAgendaTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTil
     val zone = remember { AgendaToolType.zone() }
     val fields = remember(tool.config_json) { JSONObject(tool.config_json).optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList() }
 
-    var events by remember { mutableStateOf<List<AgendaEvent>?>(null) }
+    var events by app.treelune.core.ui.rememberShown<List<AgendaEvent>?>("tile:${tool.id}:events") { null }
     var version by remember { mutableIntStateOf(0) }
     LaunchedEffect(tool.id, version) {
         val result = coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to tool.id))

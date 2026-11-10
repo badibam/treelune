@@ -34,8 +34,8 @@ fun rememberFlashcardsTile(tool: ToolInstance): ToolTile {
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "flashcards", context = context) }
-    var counts by remember { mutableStateOf<DeckCounts?>(null) }
-    var problem by remember { mutableStateOf<String?>(null) }
+    var counts by app.treelune.core.ui.rememberShown<DeckCounts?>("tile:${tool.id}:counts") { null }
+    var problem by app.treelune.core.ui.rememberShown<String?>("tile:${tool.id}:problem") { null }
     var version by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(tool.id, tool.config_json, version) {

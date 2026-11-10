@@ -92,7 +92,7 @@ data class ReadoutShown(val core: String, val text: String, val color: TagColor?
 fun rememberReadoutShown(readout: ReadoutRow): ReadoutShown? {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
-    var shown by remember(readout.id) { mutableStateOf<ReadoutShown?>(null) }
+    var shown by app.treelune.core.ui.rememberShown<ReadoutShown?>("readout:${readout.id}") { null }
     var version by remember { mutableStateOf(0) }
     LaunchedEffect(readout.toolsRead) {
         DataChangeNotifier.changes.collect { event ->

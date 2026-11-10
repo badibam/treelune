@@ -60,7 +60,7 @@ fun TrackingHistory(
     val s = remember { Strings.`for`(tool = "tracking", context = context) }
     
     // State
-    var trackingData by remember { mutableStateOf<List<ToolDataEntity>>(emptyList()) }
+    var trackingData by app.treelune.core.ui.rememberShown<List<ToolDataEntity>>("page:${toolInstanceId}:history") { emptyList() }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var showEditDialog by rememberSaveable { mutableStateOf(false) }
