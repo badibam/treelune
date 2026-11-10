@@ -23,8 +23,8 @@ android {
         applicationId = "app.treelune"
         minSdk = 26
         targetSdk = 34
-        versionCode = 39
-        versionName = "0.9.7"
+        versionCode = 40
+        versionName = "0.9.8"
 
         // arm64 alone: the Tailscale node's library is compiled for it only (buildGoLibrary), and
         // an APK whose processors carry different native libraries is refused by F-Droid's checks
