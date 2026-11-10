@@ -130,7 +130,7 @@ class RecipeCall(private val repo: GitHubRepo, private val recipe: String, priva
         /** The spec of the recipe [recipe], read in the repository: what a recipe API keeps of it when saved. */
         suspend fun readSpec(context: Context, recipe: String): RecipeSpec {
             val repo = GitHubRepo.of(context)
-            val text = repo.file("recipes/$recipe/recipe.json")?.first ?: throw ApiCall.Failure("api_error_recipe_absent", recipe, repo.repository)
+            val text = repo.headFile("recipes/$recipe/recipe.json") ?: throw ApiCall.Failure("api_error_recipe_absent", recipe, repo.repository)
             return RecipeSpec.parse(text)
         }
     }

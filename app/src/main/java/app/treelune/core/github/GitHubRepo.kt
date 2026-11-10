@@ -102,17 +102,18 @@ class GitHubRepo(val repository: String, private val token: String) {
      * Every file under the folder [folder] of the default branch, by its path inside it, its bytes
      * whole: a recipe's folder, which a part of the app carries.
      */
-    suspend fun folder(folder: String): Map<String, RepoFile> {
-        val branch = defaultBranch()
-        val tree = json(send(get("repos/$repository/git/trees/${java.net.URLEncoder.encode(branch, "UTF-8")}?recursive=1")))
-        if (tree.optBoolean("truncated")) throw ApiCall.Failure("github_error_tree_truncated", folder)
-        val entries = tree.getJSONArray("tree")
-        return (0 until entries.length()).map { entries.getJSONObject(it) }
-            .filter { it.getString("type") == "blob" && it.getString("path").startsWith("$folder/") }
-            .associate { entry ->
-                val blob = json(send(get("repos/$repository/git/blobs/${entry.getString("sha")}")))
-                entry.getString("path").removePrefix("$folder/") to RepoFile(entry.getString("mode"), Base64.decode(blob.getString("content"), Base64.DEFAULT))
-            }
+    suspend fun folder(folder: String): Map<String, RepoFile> =
+        blobs(head().tree, folder).associate { entry -> entry.getString("path").removePrefix("$folder/") to blob(entry) }
+
+    /**
+     * The text of the file at [path] on the default branch, read through its head commit as
+     * [replaceFolder] writes it; null when there is none. An API of a recipe reads it so right
+     * after an import wrote it: the contents API ([file]) may answer without a file a commit of the
+     * git API has just added — an import was refused so, the lag itself not measured.
+     */
+    suspend fun headFile(path: String): String? {
+        val entry = blobs(head().tree, path.substringBeforeLast('/')).firstOrNull { it.getString("path") == path } ?: return null
+        return String(blob(entry).bytes, Charsets.UTF_8)
     }
 
     /**
@@ -120,13 +121,8 @@ class GitHubRepo(val repository: String, private val token: String) {
      * file), one commit: a file it held and [files] lacks is removed.
      */
     suspend fun replaceFolder(folder: String, files: Map<String, RepoFile>, message: String) {
-        val branch = defaultBranch()
-        val head = json(send(get("repos/$repository/git/ref/heads/${branch}"))).getJSONObject("object").getString("sha")
-        val baseTree = json(send(get("repos/$repository/git/commits/$head"))).getJSONObject("tree").getString("sha")
-        val held = json(send(get("repos/$repository/git/trees/$baseTree?recursive=1"))).getJSONArray("tree").let { entries ->
-            (0 until entries.length()).map { entries.getJSONObject(it) }
-                .filter { it.getString("type") == "blob" && it.getString("path").startsWith("$folder/") }.map { it.getString("path") }
-        }
+        val (branch, head, baseTree) = head()
+        val held = blobs(baseTree, folder).map { it.getString("path") }
         val tree = JSONArray()
         files.forEach { (path, file) ->
             val blob = json(send(post("repos/$repository/git/blobs", JSONObject()
@@ -137,6 +133,31 @@ class GitHubRepo(val repository: String, private val token: String) {
         val newTree = json(send(post("repos/$repository/git/trees", JSONObject().put("base_tree", baseTree).put("tree", tree)))).getString("sha")
         val commit = json(send(post("repos/$repository/git/commits", JSONObject().put("message", message).put("tree", newTree).put("parents", JSONArray().put(head))))).getString("sha")
         send(request("repos/$repository/git/refs/heads/$branch").patch(JSONObject().put("sha", commit).toString().toRequestBody(JSON)).build())
+    }
+
+    /** The default branch, the commit its ref points at, and that commit's tree. */
+    private data class Head(val branch: String, val commit: String, val tree: String)
+
+    private suspend fun head(): Head {
+        val branch = defaultBranch()
+        val commit = json(send(get("repos/$repository/git/ref/heads/$branch"))).getJSONObject("object").getString("sha")
+        val tree = json(send(get("repos/$repository/git/commits/$commit"))).getJSONObject("tree").getString("sha")
+        return Head(branch, commit, tree)
+    }
+
+    /** The entries of the files under [folder] in the tree [tree], whole: a tree GitHub cuts short is a failure. */
+    private suspend fun blobs(tree: String, folder: String): List<JSONObject> {
+        val read = json(send(get("repos/$repository/git/trees/$tree?recursive=1")))
+        if (read.optBoolean("truncated")) throw ApiCall.Failure("github_error_tree_truncated", folder)
+        val entries = read.getJSONArray("tree")
+        return (0 until entries.length()).map { entries.getJSONObject(it) }
+            .filter { it.getString("type") == "blob" && it.getString("path").startsWith("$folder/") }
+    }
+
+    /** The file a tree's [entry] names: its mode and its bytes. */
+    private suspend fun blob(entry: JSONObject): RepoFile {
+        val read = json(send(get("repos/$repository/git/blobs/${entry.getString("sha")}")))
+        return RepoFile(entry.getString("mode"), Base64.decode(read.getString("content"), Base64.DEFAULT))
     }
 
     /** The address of the file at [path] on [ref], as the contents API serves it. */
