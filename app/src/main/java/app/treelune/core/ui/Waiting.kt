@@ -19,8 +19,8 @@ val LocalWaiting = androidx.compose.runtime.staticCompositionLocalOf { Waiting()
 
 /**
  * What waits for the user in the zones (docs/BRICKS.md, Attente, its first form): the entries of
- * each tool (tools.waiting), the runs of each routine (routines.waiting),
- * and both summed by zone.
+ * each tool (tools.waiting), the runs of each routine (routines.waiting) and of each Task
+ * (tasks.waiting), all summed by zone; a Task's own runs are marked on its tile, which reads them.
  */
 data class Waiting(
     val tools: Map<String, Int> = emptyMap(),
@@ -53,14 +53,16 @@ fun rememberWaiting(zoneId: String?): Waiting {
         val coordinator = Coordinator(context)
         val tools = coordinator.processUserAction("tools.waiting", params)
         val runs = coordinator.processUserAction("routines.waiting", params)
-        if (!tools.isSuccess || !runs.isSuccess) {
-            LogManager.ui("rememberWaiting: not read: ${tools.error ?: runs.error}", "ERROR")
+        val taskRuns = coordinator.processUserAction("tasks.waiting", params)
+        if (!tools.isSuccess || !runs.isSuccess || !taskRuns.isSuccess) {
+            LogManager.ui("rememberWaiting: not read: ${tools.error ?: runs.error ?: taskRuns.error}", "ERROR")
             return@LaunchedEffect
         }
         fun counts(result: app.treelune.core.commands.CommandResult, key: String) =
             (result.data?.get(key) as? Map<*, *>)?.entries?.associate { it.key.toString() to (it.value as Number).toInt() } ?: emptyMap()
-        val zones = (counts(tools, "zones").keys + counts(runs, "zones").keys)
-            .associateWith { (counts(tools, "zones")[it] ?: 0) + (counts(runs, "zones")[it] ?: 0) }
+        val zones = listOf(tools, runs, taskRuns).map { counts(it, "zones") }.let { sources ->
+            sources.flatMap { it.keys }.toSet().associateWith { zone -> sources.sumOf { it[zone] ?: 0 } }
+        }
         waiting = Waiting(counts(tools, "tools"), zones, counts(runs, "routines"))
     }
     return waiting

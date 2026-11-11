@@ -2980,6 +2980,8 @@
     <string name="task_step_add">Ajouter une étape</string>
     <string name="task_runs">Exécutions</string>
     <string name="task_runs_empty">Pas encore lancée</string>
+    <string name="runs_mark_all_seen">Tout marquer comme vu (%1$d)</string>
+    <string name="runs_marked_seen">%1$d exécutions marquées comme vues</string>
     <string name="task_trigger_manual">à la main</string>
     <string name="task_trigger_scheduled">par son planning</string>
     <string name="task_trigger_ai">par l\'IA</string>

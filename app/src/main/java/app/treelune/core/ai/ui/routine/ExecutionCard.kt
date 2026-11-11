@@ -51,6 +51,7 @@ fun ExecutionCard(
     livePhase: Phase? = null, // Real-time phase from AIState if this session is active
     summary: String? = null,  // What its AI said of the run, its first sentence shown
     waits: Boolean = false,   // Over and not yet read: marked
+    onSeen: (() -> Unit)? = null, // « OK » while it waits: seen without opening it
     onViewClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -183,11 +184,14 @@ fun ExecutionCard(
 
             UI.Divider()
 
-            // Row 5: VIEW button (right-aligned)
+            // Row 5: « OK » while it waits, then VIEW (right-aligned)
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.spacedBy(UI.Space.S, Alignment.End)
             ) {
+                if (waits && onSeen != null) UI.Button(type = ButtonType.DEFAULT, size = Size.S, onClick = onSeen) {
+                    UI.Text(s.shared("action_ok"), TextType.LABEL)
+                }
                 UI.ActionButton(
                     action = ButtonAction.VIEW,
                     display = ButtonDisplay.LABEL,

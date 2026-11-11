@@ -75,6 +75,8 @@ fun RoutineScreen(
     var currentPage by rememberSaveable { mutableStateOf(1) }
     var totalPages by app.treelune.core.ui.rememberShown("page:routine:$routineId:pages") { 1 }
     var totalEntries by remember { mutableStateOf(0) }
+    // Its runs that wait, on every page and in every period
+    var waitingRuns by remember { mutableStateOf(0) }
 
     // Filters
     var periodFilter by rememberSaveable { mutableStateOf(PeriodFilterType.ALL) }
@@ -200,6 +202,8 @@ fun RoutineScreen(
                             waits = sessionMap["waits"] as Boolean
                         )
                     }
+
+                    waitingRuns = (data["waiting"] as Number).toInt()
 
                     // Parse pagination
                     @Suppress("UNCHECKED_CAST")
@@ -415,6 +419,17 @@ fun RoutineScreen(
             }
         }
 
+        // Several runs waiting: seen at once, without opening each
+        if (waitingRuns >= 2) {
+            UI.Button(type = ButtonType.DEFAULT, onClick = {
+                scope.launch {
+                    val result = coordinator.processUserAction("ai_sessions.seen_all", mapOf("routine_id" to routineId))
+                    if (result.status == CommandStatus.SUCCESS) UI.Toast(s.shared("runs_marked_seen").format((result.data?.get("seen") as Number).toInt()))
+                    else errorMessage = result.error ?: s.shared("message_error_simple")
+                }
+            }) { UI.Text(s.shared("runs_mark_all_seen").format(waitingRuns), TextType.LABEL) }
+        }
+
         // Execution list
         if (sessions.isNotEmpty()) {
             Column(
@@ -444,6 +459,12 @@ fun RoutineScreen(
                         livePhase = livePhase,
                         summary = session.summary,
                         waits = session.waits,
+                        onSeen = {
+                            scope.launch {
+                                val result = coordinator.processUserAction("ai_sessions.seen", mapOf("session_id" to session.sessionId))
+                                if (result.status != CommandStatus.SUCCESS) errorMessage = result.error ?: s.shared("message_error_simple")
+                            }
+                        },
                         onViewClick = { onNavigateToExecution(session.sessionId) }
                     )
                 }

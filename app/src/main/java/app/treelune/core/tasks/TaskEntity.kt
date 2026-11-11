@@ -139,4 +139,8 @@ interface TaskDao {
 
     @Query("UPDATE task_runs SET seen_at = :at WHERE id = :id AND seen_at IS NULL")
     suspend fun markSeen(id: String, at: Long)
+
+    /** Every run of [taskId] over and not seen yet, seen at [at]; how many. */
+    @Query("UPDATE task_runs SET seen_at = :at WHERE task_id = :taskId AND seen_at IS NULL AND ended_at IS NOT NULL")
+    suspend fun markAllSeen(taskId: String, at: Long): Int
 }

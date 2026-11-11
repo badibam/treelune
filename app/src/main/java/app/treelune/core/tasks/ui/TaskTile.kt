@@ -121,16 +121,29 @@ internal fun rememberRuns(taskId: String, limit: Int): List<RunLine> {
     return runs
 }
 
-/** A run in one line: when, how it stands or ended, why it failed; a touch opens it. */
+/**
+ * A run in one line: when, how it stands or ended, why it failed; a touch opens it. While it waits,
+ * its mark, and on the Task's page [onSeen]'s « OK », which sees it without opening it.
+ */
 @Composable
-internal fun RunRow(run: RunLine, task: Task) {
+internal fun RunRow(run: RunLine, task: Task, onSeen: (() -> Unit)? = null) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     TileLine(
         text = listOf(FormatUtils.formatRelativeTimeShort(run.startedAt, context), stateLabel(run.state, s)).joinToString(" · "),
         modifier = Modifier.fillMaxWidth().clickable { Navigator.push(Place.TaskRun(run.id, task.id, task.zoneId)) },
         secondary = run.error,
-        trailing = if (run.waits) { { UI.WaitingMark() } } else null
+        trailing = if (run.waits) { {
+            androidx.compose.foundation.layout.Row(
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(UI.Space.S),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            ) {
+                UI.WaitingMark()
+                if (onSeen != null) UI.Button(type = app.treelune.core.ui.ButtonType.DEFAULT, size = app.treelune.core.ui.Size.S, onClick = onSeen) {
+                    UI.Text(s.shared("action_ok"), app.treelune.core.ui.TextType.LABEL)
+                }
+            }
+        } } else null
     )
 }
 

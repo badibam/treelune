@@ -186,7 +186,7 @@ object AccessRules {
             "tasks" -> {
                 fun taskAt(level: AccessLevel) = text("task_id")?.let { Reach.Task(it, level) } ?: Reach.Unknown("$resource.$operation")
                 when (operation) {
-                    "list", "list_all", "outputs" -> listOf(Reach.Free)
+                    "list", "list_all", "outputs", "waiting" -> listOf(Reach.Free)
                     "get", "runs", "next_execution" -> listOf(taskAt(AccessLevel.READ))
                     "run" -> listOf(taskAt(AccessLevel.USE))
                     "create" -> listOf(zoneAt("zone_id", AccessLevel.FULL))

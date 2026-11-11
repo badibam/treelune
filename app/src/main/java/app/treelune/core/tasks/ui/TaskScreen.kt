@@ -29,10 +29,12 @@ import app.treelune.core.ui.Duration
 import app.treelune.core.ui.Size
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
+import kotlinx.coroutines.launch
 
 /**
  * A Task's page (Place.Task), what one looks at: its state, its switch and its button to run it,
- * then its last runs, each opening. Its steps and its settings are its config (TaskConfigScreen),
+ * then its last runs, each opening, « OK » on one that waits and « Mark all as seen » above them
+ * when several wait. Its steps and its settings are its config (TaskConfigScreen),
  * opened by the header's button.
  */
 @Composable
@@ -43,6 +45,9 @@ fun TaskScreen(place: Place.Task, onName: (String) -> Unit, onBack: () -> Unit) 
     val actions = rememberTaskActions()
 
     var task by remember { mutableStateOf<Task?>(null) }
+    // Its runs that wait, beyond the last ones shown too
+    var waitingRuns by remember { mutableStateOf(0) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
 
     suspend fun load() {
         val result = coordinator.processUserAction("tasks.get", mapOf("task_id" to place.id))
@@ -52,6 +57,15 @@ fun TaskScreen(place: Place.Task, onName: (String) -> Unit, onBack: () -> Unit) 
             return
         }
         task = Task.fromResult(result.data?.get("task") as Map<*, *>)
+        val waiting = coordinator.processUserAction("tasks.waiting", mapOf("zone_id" to place.zoneId))
+        if (waiting.status != CommandStatus.SUCCESS) UI.Toast(waiting.error ?: s.shared("error_unknown"), Duration.LONG)
+        else waitingRuns = ((waiting.data?.get("tasks") as Map<*, *>)[place.id] as? Number)?.toInt() ?: 0
+    }
+    fun write(operation: String, params: Map<String, Any>, done: (Map<String, Any?>?) -> Unit = {}) {
+        scope.launch {
+            val result = coordinator.processUserAction(operation, params)
+            if (result.status == CommandStatus.SUCCESS) done(result.data) else UI.Toast(result.error ?: s.shared("error_unknown"), Duration.LONG)
+        }
     }
     LaunchedEffect(place.id) {
         load()
@@ -92,6 +106,12 @@ fun TaskScreen(place: Place.Task, onName: (String) -> Unit, onBack: () -> Unit) 
 
         UI.Text(s.shared("task_runs"), TextType.HEADING)
         if (runs.isEmpty()) UI.Text(s.shared("task_runs_empty"), TextType.CAPTION)
-        runs.forEach { RunRow(it, shown) }
+        // Several runs waiting: seen at once, without opening each
+        if (waitingRuns >= 2) UI.Button(type = ButtonType.DEFAULT, onClick = {
+            write("tasks.seen_all", mapOf("task_id" to shown.id)) { data ->
+                UI.Toast(s.shared("runs_marked_seen").format((data?.get("seen") as Number).toInt()))
+            }
+        }) { UI.Text(s.shared("runs_mark_all_seen").format(waitingRuns), TextType.LABEL) }
+        runs.forEach { run -> RunRow(run, shown) { write("tasks.seen", mapOf("run_id" to run.id)) } }
     }
 }

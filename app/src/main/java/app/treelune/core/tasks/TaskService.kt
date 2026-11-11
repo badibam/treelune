@@ -67,7 +67,18 @@ class TaskService(private val context: Context) : ExecutableService {
             "cancel" -> cancel(params)
             "runs" -> task(params)?.let { task -> OperationResult.success(mapOf("runs" to dao.getRuns(task.id, params.optInt("limit", 20)).map { runOf(it) })) } ?: notFound()
             "get_run" -> dao.getRun(params.optString("run_id"))?.let { OperationResult.success(mapOf("run" to runOf(it))) } ?: OperationResult.error(s.shared("task_error_run_not_found"))
-            "seen" -> { dao.markSeen(params.optString("run_id"), System.currentTimeMillis()); OperationResult.success() }
+            "seen" -> {
+                dao.markSeen(params.optString("run_id"), System.currentTimeMillis())
+                // The tile, the page and the zone's mark read again
+                app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
+                OperationResult.success()
+            }
+            "seen_all" -> task(params)?.let { task ->
+                val seen = dao.markAllSeen(task.id, System.currentTimeMillis())
+                app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
+                OperationResult.success(mapOf("seen" to seen))
+            } ?: notFound()
+            "waiting" -> waiting(params)
             "next_execution" -> task(params)?.let { task -> OperationResult.success(buildMap { TaskScheduler.nextAt(context, task)?.let { put("next_execution_at", it) } }) } ?: notFound()
             "outputs" -> outputs(params)
             else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
@@ -80,6 +91,21 @@ class TaskService(private val context: Context) : ExecutableService {
     private suspend fun task(params: JSONObject): TaskEntity? = params.optString("task_id").ifEmpty { null }?.let { dao.get(it) }
 
     private fun notFound() = OperationResult.error(s.shared("task_error_not_found"))
+
+    /**
+     * What waits in the Tasks of `zone_id`, or of every zone (docs/BRICKS.md, « Waiting »): their
+     * runs over and not seen yet, counted by Task, and summed by zone — beside tools.waiting and
+     * routines.waiting, which the zone's mark adds up.
+     */
+    private suspend fun waiting(params: JSONObject): OperationResult {
+        val zoneId = params.optString("zone_id").ifEmpty { null }
+        val tasks = (if (zoneId != null) dao.getByZone(zoneId) else dao.getAll()).associateBy { it.id }
+        val counts = dao.getUnseenRuns().mapNotNull { it.taskId.takeIf { id -> id in tasks } }.groupingBy { it }.eachCount()
+        return OperationResult.success(mapOf(
+            "tasks" to counts,
+            "zones" to counts.entries.groupBy { tasks.getValue(it.key).zoneId }.mapValues { (_, inZone) -> inZone.sumOf { it.value } }
+        ))
+    }
 
     /** [task] as a result gives it: what Task.fromResult reads. */
     private suspend fun describe(task: TaskEntity): Map<String, Any?> {

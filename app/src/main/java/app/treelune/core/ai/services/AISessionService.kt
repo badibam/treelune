@@ -89,6 +89,7 @@ class AISessionService(private val context: Context) : ExecutableService {
 
                 // What waits for the user (docs/BRICKS.md, « Waiting »)
                 "seen" -> markSeen(params, token)
+                "seen_all" -> markAllSeen(params, token)
                 "end_run" -> endRun(params, token)
                 "chat_waiting" -> OperationResult.success(mapOf("waits" to aiDao.chatWaits()))
 
@@ -394,6 +395,8 @@ class AISessionService(private val context: Context) : ExecutableService {
 
             return OperationResult.success(mapOf(
                 "sessions" to sessions,
+                // Its runs that wait, on every page and in every period: what « Mark all as seen » takes
+                "waiting" to dao.getWaitingRuns().count { it.routineId == routineId },
                 "pagination" to mapOf(
                     "current_page" to page,
                     "total_pages" to totalPages,
@@ -1035,6 +1038,18 @@ class AISessionService(private val context: Context) : ExecutableService {
         aiDao.updateSeenAt(sessionId, System.currentTimeMillis())
         app.treelune.core.utils.DataChangeNotifier.notifyAISessionsChanged(session.routineId)
         return OperationResult.success(mapOf("session_id" to sessionId))
+    }
+
+    /** Every run of `routine_id` that waits (AIDao.getWaitingRuns), seen now; how many. */
+    private suspend fun markAllSeen(params: JSONObject, token: CancellationToken): OperationResult {
+        if (token.isCancelled) return OperationResult.cancelled()
+        val routineId = params.optString("routine_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("ai_error_param_routine_id_required"))
+        val now = System.currentTimeMillis()
+        val waiting = aiDao.getWaitingRuns().filter { it.routineId == routineId }
+        waiting.forEach { aiDao.updateSeenAt(it.id, now) }
+        app.treelune.core.utils.DataChangeNotifier.notifyAISessionsChanged(routineId)
+        return OperationResult.success(mapOf("seen" to waiting.size))
     }
 
     /**
