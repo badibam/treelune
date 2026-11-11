@@ -2867,6 +2867,7 @@
     <string name="api_error_name_taken">An API is already named “%1$s”</string>
     <string name="api_error_name_twice">Two inputs or two values are named “%1$s”</string>
     <string name="api_type_list">List</string>
+    <string name="api_type_object">Object</string>
     <string name="api_items">Fields of each element</string>
     <string name="api_schema_items">For a list: what each element holds, each by its name and its path in the element; a field an element does not hold is empty</string>
     <string name="api_error_list_items">The list “%1$s” names no field of its elements</string>
@@ -3130,6 +3131,7 @@
     <string name="task_error_list_selection">The entries of %1$s are a tool\'s</string>
     <string name="task_error_list_fields">The entries of %1$s keep no field: say which ones are sent</string>
     <string name="api_error_list_get">The input “%1$s” is a list: it goes in a JSON body, so the API is called with POST</string>
+    <string name="api_error_object_get">The input “%1$s” is an object: it goes in a JSON body, so the API is called with POST</string>
     <string name="task_list_with_id">With the id of each entry</string>
     <string name="task_run_skipped_step">Skipped: step %1$d was</string>
     <string name="task_run_stopped_existing">Stopped there: an entry already had this « %1$s »; the steps after it did not run</string>

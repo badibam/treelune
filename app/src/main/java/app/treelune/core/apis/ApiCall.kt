@@ -220,7 +220,7 @@ class ApiCall(private val config: JSONObject, private val values: SettingValues)
         /**
          * [value] as [type] names it: a text of anything (an object or a list as its JSON), a
          * number of a number or of a text that reads as one, a yes or no of a boolean or of
-         * "true" / "false", a file of an address.
+         * "true" / "false", a file of an address, an object of an object only, sent as it is.
          */
         fun typed(name: String, value: Any, type: String): Any = when (type) {
             ApiSettings.NUMBER -> (value as? Number)?.toDouble()?.let { if (it % 1.0 == 0.0 && kotlin.math.abs(it) < Long.MAX_VALUE) it.toLong() else it }
@@ -228,6 +228,11 @@ class ApiCall(private val config: JSONObject, private val values: SettingValues)
                 ?: throw Failure("api_error_value_type", name, type)
             ApiSettings.BOOLEAN -> value as? Boolean ?: value.toString().toBooleanStrictOrNull() ?: throw Failure("api_error_value_type", name, type)
             ApiSettings.FILE -> value.takeIf { it is String && (it.startsWith("https://") || it.startsWith("http://")) } ?: throw Failure("api_error_value_type", name, type)
+            ApiSettings.OBJECT -> when (value) {
+                is JSONObject -> value
+                is Map<*, *> -> JSONObject(value)
+                else -> throw Failure("api_error_value_type", name, type)
+            }
             else -> value.toString()
         }
     }

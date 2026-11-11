@@ -36,7 +36,7 @@ class RecipeSpec private constructor(
         /** Beyond its longest run, the time for the machine to start, install, and the result to arrive. */
         const val MARGIN_MINUTES = 15
 
-        private val INPUT_TYPES = setOf(ApiSettings.TEXT, ApiSettings.NUMBER, ApiSettings.BOOLEAN)
+        private val INPUT_TYPES = setOf(ApiSettings.TEXT, ApiSettings.NUMBER, ApiSettings.BOOLEAN, ApiSettings.OBJECT)
         private val VALUE_TYPES = setOf(ApiSettings.TEXT, ApiSettings.NUMBER, ApiSettings.BOOLEAN, ApiSettings.FILE)
         private val SECRET_FORM = Regex("[A-Z_][A-Z0-9_]*")
 
