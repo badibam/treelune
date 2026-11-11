@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import app.treelune.core.fields.FieldType
 import app.treelune.core.fields.formatValue
 import app.treelune.core.fields.shownCustomFields
+import app.treelune.core.fields.toFieldDefinitions
 import app.treelune.core.strings.Strings
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
@@ -60,6 +61,14 @@ fun tileItemLines(lines: Int, hasText: Boolean, fieldCount: Int): TileItemLines 
     }
     return TileItemLines(text, minOf(fieldCount, under - text))
 }
+
+/**
+ * The paths of a tool's user's fields a tile asks tool_data.get for (`extra.<name>`), to show
+ * them (tileItemFields): each named, a container being refused whole; a file left out.
+ */
+fun tileItemFieldPaths(config: JSONObject): List<String> =
+    (config.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList())
+        .filter { it.type != FieldType.FILE }.map { "extra.${it.name}" }
 
 /**
  * An entry's user's fields as its tile shows them, one line each: those that hold a value or show

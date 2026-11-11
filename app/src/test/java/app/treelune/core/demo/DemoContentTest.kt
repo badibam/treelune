@@ -98,14 +98,23 @@ class DemoContentTest {
     }
 
     @Test
-    fun `the demo shows every tool type, tracking type and former tile mode's size, every field type among the user's fields, a tool in a group and one outside`() {
+    fun `the demo shows every tool type, tracking type and layout a tile's size gives, every field type among the user's fields, a tool in a group and one outside`() {
         val content = read()
         assertEquals(app.treelune.core.tools.ToolTypeScanner.scanForToolTypes().keys,
             content.tools.map { it.getString("tooltype") }.toSet())
         assertEquals(setOf("numeric", "scale", "choice", "boolean", "text", "timer", "occurrence"),
             content.tools.filter { it.getString("tooltype") == "tracking" }.map { it.getJSONObject("config").getString("type") }.toSet())
-        assertEquals(app.treelune.core.look.TileSize.FORMER_MODES.values.toSet(),
-            content.tools.map { it.getJSONObject("config").getString("tile_size") }.toSet())
+        // Each layout a size gives (docs/design/tile-sizes.md): the icon, a half tile and a line
+        // without a body, the summary under the header 2 wide, a body 4 wide and 2 wide, one
+        // that follows its content
+        val sizes = content.tools.map { app.treelune.core.look.TileSize.ofStored(it.getJSONObject("config").getString("tile_size")) }
+        assertTrue(sizes.any { it.isIcon })
+        assertTrue(sizes.any { it.width == 2 && it.height == 1 })
+        assertTrue(sizes.any { it.width == 4 && it.height == 1 })
+        assertTrue(sizes.any { it.width == 2 && it.height == 2 })
+        assertTrue(sizes.any { it.width == 4 && it.body?.rows != null })
+        assertTrue(sizes.any { it.width == 2 && it.body != null })
+        assertTrue(sizes.any { it.followsContent })
         val fieldTypes = content.tools.flatMap { tool ->
             tool.getJSONObject("config").optJSONArray("extra_fields")?.let { f -> (0 until f.length()).map { f.getJSONObject(it).getString("type") } } ?: emptyList()
         }.toSet()

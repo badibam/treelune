@@ -53,7 +53,7 @@ fun rememberJournalTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTi
     var version by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(tool.id, version) {
-        val result = coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to tool.id, "limit" to FULL_ENTRIES, "fields" to listOf("id", "name", "timestamp", "data", "extra")))
+        val result = coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to tool.id, "limit" to FULL_ENTRIES, "fields" to listOf("id", "name", "timestamp", "data.content") + app.treelune.core.ui.components.tileItemFieldPaths(org.json.JSONObject(tool.config_json))))
         if (!result.isSuccess) {
             LogManager.ui("Journal tile ${tool.id}: entries not read: ${result.error}", "ERROR")
             return@LaunchedEffect

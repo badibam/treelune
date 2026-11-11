@@ -50,7 +50,7 @@ fun rememberStructuredTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): Too
     var version by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(tool.id, version) {
-        val result = coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to tool.id, "fields" to listOf("id", "name", "updated_at", "extra")))
+        val result = coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to tool.id, "fields" to listOf("id", "name", "updated_at") + app.treelune.core.ui.components.tileItemFieldPaths(org.json.JSONObject(tool.config_json))))
         if (!result.isSuccess) {
             LogManager.ui("Structured tile ${tool.id}: sheets not read: ${result.error}", "ERROR")
             return@LaunchedEffect
