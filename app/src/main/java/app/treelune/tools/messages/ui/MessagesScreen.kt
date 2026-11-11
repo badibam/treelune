@@ -297,7 +297,12 @@ private fun ReceivedTab(
             UI.LoadingIndicator()
         } else if (shown.isEmpty()) {
             UI.Text(s.tool("empty_received_messages"), TextType.CAPTION, fillMaxWidth = true)
-        } else shown.forEach { occurrence -> androidx.compose.runtime.key(occurrence.id) {
+        } else {
+            // Several unread: all read in one write, undone in one
+            if (filter == ReceivedFilter.UNREAD && shown.size >= 2) UI.Button(type = ButtonType.DEFAULT, onClick = {
+                markAllRead(context, coordinator, shown, s.tool("toast_marked_all_read").format(shown.size), onError)
+            }) { UI.Text(s.tool("action_mark_all_read").format(shown.size), TextType.LABEL) }
+            shown.forEach { occurrence -> androidx.compose.runtime.key(occurrence.id) {
             val requester = remember { androidx.compose.foundation.relocation.BringIntoViewRequester() }
             if (occurrence.id == target) LaunchedEffect(target) {
                 // Once laid out: before, the card has no place to bring into view
@@ -325,6 +330,7 @@ private fun ReceivedTab(
                 }
             ) }
         } }
+        }
     }
 }
 
@@ -602,6 +608,29 @@ private fun changeFlags(
                     onError = onError
                 )
             }
+        }
+    }
+}
+
+/** [occurrences] marked read in one write, its « Undo » marking them unread in one. */
+private fun markAllRead(
+    context: android.content.Context,
+    coordinator: Coordinator,
+    occurrences: List<Occurrence>,
+    done: String,
+    onError: (String) -> Unit
+) {
+    suspend fun setRead(read: Boolean): Boolean {
+        val result = coordinator.processUserAction("tool_data.batch_update", mapOf(
+            "entries" to occurrences.map { mapOf("id" to it.id, "state" to mapOf("read" to read)) }
+        ))
+        if (!result.isSuccess) onError(result.error ?: Strings.`for`(context = context).shared("message_error_simple"))
+        return result.isSuccess
+    }
+    flagsScope.launch {
+        if (!setRead(true)) return@launch
+        UI.Toast(done, Duration.LONG, Strings.`for`(context = context).shared("history_undo")) {
+            flagsScope.launch { setRead(false) }
         }
     }
 }

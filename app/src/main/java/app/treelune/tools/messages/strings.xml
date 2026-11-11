@@ -111,6 +111,8 @@
     <string name="action_archive">Archive</string>
     <string name="action_unarchive">Unarchive</string>
     <string name="toast_marked_read">Marked as read</string>
+    <string name="action_mark_all_read">Mark all as read (%1$d)</string>
+    <string name="toast_marked_all_read">%1$d messages marked as read</string>
     <string name="toast_marked_unread">Marked as unread</string>
     <string name="toast_archived">Archived</string>
     <string name="toast_unarchived">Unarchived</string>
