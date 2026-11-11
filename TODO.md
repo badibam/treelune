@@ -37,6 +37,8 @@ Codé, jamais vu sur l'appareil.
 
 - Une option d'un choix renommée dans la config d'un outil (sa valeur changée, « Calme » en « Serein ») : la confirmation sans valeur retirée, les entrées et l'historique sous le nouveau nom, le filtre d'un Graphique sur l'ancienne valeur qui suit ; une option retirée à côté, toujours comptée ; par l'IA, « renomme l'option … », le paramètre `renames`.
 - La notification d'un outil touchée, et sa tuile (un questionnaire, une séance prévue, une échéance de Liste, un Objectif à valider) : la page de l'outil, pas l'entrée ; le rappel de l'Agenda et la séance en cours, toujours sur leur entrée.
+- Un message touché sur la tuile de Messages : « Reçus » sous le filtre qui le contient (un lu, un non lu), sa carte amenée à l'écran et marquée, la marque partie en changeant de filtre.
+- Un point d'un Graphique sur un Questionnaire touché : une entrée remplie ouverte comme depuis l'historique, une entrée à remplir qui part en passage.
 - Dix messages marqués comme lus d'affilée dans Messages : un seul bandeau, le dernier, son « Annuler » qui défait le dernier geste.
 - Une copie automatique de la sauvegarde sur le téléphone qui plantait (0.9.8, mémoire pleine) : écrite, sa taille notée ; puis restaurée, la lecture d'un fichier de cette taille n'étant pas encore faite par tranches.
 - Le retour sur un écran après un détour (une zone descendue jusqu'à ses graphiques, un outil ouvert puis quitté ; la page d'un outil, une entrée ouverte puis fermée) : la même position, sans « Chargement » ni saut, le contenu mis à jour sur place.
