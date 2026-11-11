@@ -713,7 +713,7 @@ object UI {
      */
     @Composable
     fun TileIcon(iconName: String?, iconColor: TagColor?, waiting: Boolean, running: Boolean) {
-        val size = (app.treelune.core.ui.components.LocalGridIconRow.current - CurrentTheme.current.tileFrame(DisplayMode.ICON)) / 2
+        val size = (app.treelune.core.ui.components.LocalGridIconRow.current - CurrentTheme.current.tileFrame(app.treelune.core.look.TileSize.Icon)) / 2
         Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
             MarkedIcon(iconName, iconColor, waiting, running, size)
         }
@@ -772,11 +772,15 @@ object UI {
         onClick: () -> Unit,
         onLongClick: () -> Unit = { }
     ) {
-        val look = app.treelune.core.look.Look(zone.name, zone.description, zone.icon_name, zone.icon_color, zone.texture, DisplayMode.valueOf(zone.display_mode))
-        val linesHeld = when (look.displayMode) {
-            DisplayMode.LINE -> 1
-            DisplayMode.CONDENSED -> 2
-            else -> 0
+        val look = app.treelune.core.look.Look(zone.name, zone.description, zone.icon_name, zone.icon_color, zone.texture,
+            requireNotNull(app.treelune.core.look.TileSize.parse(zone.tile_size)) { "Zone ${zone.id}: no tile size '${zone.tile_size}'" })
+        // The lines its readouts' cores or its description have: none in the icon and in 2×1
+        val linesHeld = look.tileSize.let { if (it.isIcon || it.height == 1 && !it.summaryBeside) 0 else if (it.height == 1) 1 else 2 }
+        @Composable
+        fun Glance() {
+            // Each by its icon and its core, side by side as many as the tile holds
+            if (readouts.isNotEmpty() && linesHeld > 0) app.treelune.core.readouts.ui.ReadoutCores(readouts)
+            else zone.description?.let { Text(it, TextType.BODY, maxLines = 2) }
         }
         Box {
             LookCard(
@@ -787,12 +791,8 @@ object UI {
                 running = LocalRunning.current.zone(zone.id),
                 onClick = onClick,
                 onLongClick = onLongClick,
-                summary = { },
-                glance = {
-                    // Each by its icon and its core, side by side as many as the tile holds
-                    if (readouts.isNotEmpty() && linesHeld > 0) app.treelune.core.readouts.ui.ReadoutCores(readouts)
-                    else zone.description?.let { Text(it, TextType.BODY, maxLines = 2) }
-                },
+                summary = { Glance() },
+                glance = { Glance() },
                 body = { },
                 frame = LookFrame.ZONE
             )
@@ -871,7 +871,10 @@ object UI {
     ) {
         val toolType = requireNotNull(ToolTypeManager.getToolType(tool.tooltype)) { "No tool type '${tool.tooltype}' for tool ${tool.id}" }
         val tile = toolType.rememberTile(tool, onOpenEntry)
-        val look = app.treelune.core.look.Looks.read(app.treelune.core.tools.ToolConfigSettings.look(toolType), JSONObject(tool.config_json))
+        val config = remember(tool.config_json) { JSONObject(tool.config_json) }
+        val look = app.treelune.core.look.Looks.read(app.treelune.core.tools.ToolConfigSettings.look(toolType), config)
+        // How its body lays its elements, which TileGrid reads
+        val items = remember(tool.config_json) { app.treelune.core.tools.ToolConfigSettings.itemLayout(toolType, config) }
         // Something waiting among its entries, or a stopwatch running on one, is marked on its icon
         LookCard(
             look = look,
@@ -883,7 +886,9 @@ object UI {
             onLongClick = onLongClick,
             summary = { tile.Summary() },
             glance = { tile.Glance() },
-            body = { rows -> tile.Body(rows) }
+            body = { room ->
+                androidx.compose.runtime.CompositionLocalProvider(app.treelune.core.ui.components.LocalItemLayout provides items) { tile.Body(room) }
+            }
         )
     }
 
@@ -892,11 +897,12 @@ object UI {
 
     /**
      * A tile drawn from its look (Looks), a zone's, a tool's, a variable's or a routine's, laid
-     * out by its display mode, each part on whole cells of the grid: its icon alone, or its name
-     * small in its place without one (ICON); its header, icon and name with [subtitle] under it
-     * (MINIMAL); [glance] beside the header (LINE) or under it (CONDENSED), centered in a section's
-     * tile, flush with the header in a zone's; the header and [summary] side by side, [body] under
-     * them on the rows its mode gives (EXTENDED, SQUARE, FULL). [frame] picks the theme's frame.
+     * out by its size (TileSize, docs/design/tile-sizes.md), each part on whole cells of the grid:
+     * its icon alone, or its name small in its place without one (the icon); its header, icon and
+     * name with [subtitle] under it (2×1); without a body, [glance] beside the header (4×1) or under
+     * it (2×2), centered in a section's tile, flush with the header in a zone's; with one, [summary]
+     * beside the header (4 wide) or under it (2 wide), and [body] in the rows left. In one column
+     * the tile is laid as its size there says (TileSize.inOneColumn). [frame] picks the theme's frame.
      */
     @Composable
     fun LookCard(
@@ -909,10 +915,10 @@ object UI {
         onLongClick: () -> Unit,
         summary: @Composable () -> Unit,
         glance: @Composable () -> Unit,
-        body: @Composable (Int?) -> Unit,
+        body: @Composable (app.treelune.core.look.TileSize.Room) -> Unit,
         frame: LookFrame = LookFrame.SECTION
     ) {
-        val displayMode = look.displayMode
+        val size = look.tileSize
         val color = IconColor.of(look.iconColor)
         val texture = ItemTexture.of(look.texture, look.iconName, color)
         // A zone's description reads from its start, a section tile's preview stands centered
@@ -922,29 +928,33 @@ object UI {
         @Composable
         fun Frame(content: @Composable () -> Unit) = when (frame) {
             LookFrame.ZONE -> CurrentTheme.current.ZoneCardContainer(texture = texture, color = color, seed = seed, onClick = onClick, onLongClick = onLongClick, content = content)
-            LookFrame.SECTION -> CurrentTheme.current.ToolCardContainer(displayMode = displayMode, texture = texture, color = color, seed = seed,
+            LookFrame.SECTION -> CurrentTheme.current.ToolCardContainer(tileSize = size, texture = texture, color = color, seed = seed,
                 onClick = onClick, onLongClick = onLongClick, content = content)
         }
         Frame {
-            // In one column a half of the screen takes its whole width: the two halves of a row, one
-            // under the other, the tile a row taller (Grid.oneColumnSize)
-            val oneColumn = CurrentTheme.oneColumn
+            // In one column every tile is laid as a tile 2 wide across the whole width (Grid.oneColumnSize)
+            val laid = if (CurrentTheme.oneColumn) size.inOneColumn() else size
+            val room = laid.body
 
-            /** [first] and [other], each on half the width, or one over the other in one column. */
+            /** [first] and [other] on half the width each. */
             @Composable
-            fun Halves(modifier: Modifier, first: @Composable () -> Unit, other: @Composable () -> Unit) {
-                if (oneColumn) Column(modifier = modifier) {
-                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.CenterStart) { first() }
-                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = glanceAlign) { other() }
-                } else Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(Space.XS), verticalAlignment = Alignment.CenterVertically) {
+            fun SideBySide(modifier: Modifier, first: @Composable () -> Unit, other: @Composable () -> Unit) =
+                // The smallest space between the two halves, so that their texts never touch
+                Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(Space.XS), verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.CenterStart) { first() }
                     Box(modifier = Modifier.weight(1f).fillMaxHeight(), contentAlignment = glanceAlign) { other() }
                 }
+
+            /** [first] over [other], on half the height each. */
+            @Composable
+            fun Stacked(modifier: Modifier, first: @Composable () -> Unit, other: @Composable () -> Unit) = Column(modifier = modifier) {
+                Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.CenterStart) { first() }
+                Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = glanceAlign) { other() }
             }
 
-            when (displayMode) {
+            when {
                 // The icon alone, centered in its cell
-                DisplayMode.ICON -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                laid.isIcon -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     if (look.iconName.isNullOrBlank()) {
                         // Without an icon, the name stands in its place, small enough for a word to
                         // hold in the cell, centered between the marks in their corners
@@ -957,32 +967,28 @@ object UI {
                         TileIcon(look.iconName, color, waiting, running)
                     }
                 }
-                DisplayMode.MINIMAL -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) { Header() }
-                // The smallest space between the two halves, so that their texts never touch
-                DisplayMode.LINE -> Halves(Modifier.fillMaxSize(), { Header() }, glance)
-                DisplayMode.CONDENSED -> Column(modifier = Modifier.fillMaxSize()) {
-                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.CenterStart) { Header() }
-                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = glanceAlign) { glance() }
+                // Without a body: the header alone 2 wide on one row, the glance beside it 4 wide, under it 2 high
+                room == null -> when {
+                    laid.height == 1 && !laid.summaryBeside -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) { Header() }
+                    laid.summaryBeside -> SideBySide(Modifier.fillMaxSize(), { Header() }, glance)
+                    else -> Stacked(Modifier.fillMaxSize(), { Header() }, glance)
                 }
-                DisplayMode.EXTENDED, DisplayMode.SQUARE, DisplayMode.FULL -> {
-                    // As tall as the body needs, to a whole pixel of the theme (GridLayout): the
-                    // header and the summary on a row less the tile's frame (two in one column), the
-                    // body under them. EXTENDED's body holds one row of cells at most, SQUARE's three,
-                    // each with the gap under it, so that a full tile is as tall as its cells; FULL's
-                    // has no limit. An empty body takes no height, the tile its header's row alone.
+                else -> {
+                    // The header and the summary on a row less the tile's frame, side by side 4
+                    // wide, one under the other on two rows 2 wide; the body under them. A fixed
+                    // height is a fixed box, filled whatever its body shows; a tile that follows its
+                    // content is as tall as its body, which GridLayout measures
                     val row = app.treelune.core.ui.components.LocalGridRow.current
-                    val headerRows = if (oneColumn) 2 else 1
-                    val rows = when (displayMode) {
-                        DisplayMode.EXTENDED -> 1
-                        DisplayMode.SQUARE -> 3
-                        else -> null
-                    }
-                    val gap = with(androidx.compose.ui.platform.LocalDensity.current) { CurrentTheme.current.gridRowGapPx().toDp() }
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Halves(Modifier.fillMaxWidth().height(row * headerRows - CurrentTheme.current.tileFrame(displayMode)), { Header() }, summary)
-                        Box(modifier = Modifier.fillMaxWidth().let { m -> rows?.let { m.heightIn(max = (row + gap) * it) } ?: m }) {
-                            body(rows)
-                        }
+                    val top = (if (laid.summaryBeside) row else row * 2) - CurrentTheme.current.tileFrame(size)
+                    @Composable
+                    fun Top() = if (laid.summaryBeside) SideBySide(Modifier.fillMaxWidth().height(top), { Header() }, summary)
+                        else Stacked(Modifier.fillMaxWidth().height(top), { Header() }, summary)
+                    if (room.rows == null) Column(modifier = Modifier.fillMaxWidth()) {
+                        Top()
+                        body(room)
+                    } else Column(modifier = Modifier.fillMaxSize()) {
+                        Top()
+                        Box(modifier = Modifier.weight(1f).fillMaxWidth()) { body(room) }
                     }
                 }
             }

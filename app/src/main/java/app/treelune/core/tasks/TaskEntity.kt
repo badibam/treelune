@@ -27,7 +27,7 @@ data class TaskEntity(
     @ColumnInfo(name = "icon_name") val iconName: String,
     @ColumnInfo(name = "icon_color") val iconColor: String?,
     val texture: String?,
-    @ColumnInfo(name = "display_mode") val displayMode: String,
+    @ColumnInfo(name = "tile_size") val tileSize: String,
     val group: String?,
     @ColumnInfo(name = "grid_x") val gridX: Int,
     @ColumnInfo(name = "grid_y") val gridY: Int,

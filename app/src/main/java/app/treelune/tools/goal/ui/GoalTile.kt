@@ -151,9 +151,9 @@ fun rememberGoalTile(tool: ToolInstance): ToolTile {
             }
 
             @Composable
-            override fun Body(rows: Int?) {
+            override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 if (attempts == null) return
-                TileGrid(rows, lines(bySubGoal = rows == null), columns = 1) { line ->
+                TileGrid(room, lines(bySubGoal = room.rows == null)) { line ->
                     when (line) {
                         is GoalLine.SubGoal -> TileLine(line.name, type = TextType.LABEL)
                         is GoalLine.Criterion -> TileLine(line.name, trailing = {

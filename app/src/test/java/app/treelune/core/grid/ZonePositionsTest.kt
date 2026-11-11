@@ -10,8 +10,8 @@ import org.junit.Test
  */
 class ZonePositionsTest {
 
-    private fun zone(id: String, group: String?, y: Int, mode: String = "LINE") =
-        Zone(id = id, name = id, group = group, display_mode = mode, grid_x = 0, grid_y = y)
+    private fun zone(id: String, group: String?, y: Int, mode: String = "4x1") =
+        Zone(id = id, name = id, group = group, tile_size = mode, grid_x = 0, grid_y = y)
 
     @Test
     fun aGroupTheHomeScreenLoses_sendsItsZonesUnderTheUngrouped() {
@@ -24,7 +24,7 @@ class ZonePositionsTest {
 
     @Test
     fun eachModeOfAZone_takesItsCells() {
-        assertEquals(Grid.Size(1, 1), ZonePositions.size(zone("a", null, 0, "ICON")))
-        assertEquals(Grid.Size(2, 2), ZonePositions.size(zone("a", null, 0, "CONDENSED")))
+        assertEquals(Grid.Size(1, 1), ZonePositions.size(zone("a", null, 0, "icon")))
+        assertEquals(Grid.Size(2, 2), ZonePositions.size(zone("a", null, 0, "2x2")))
     }
 }

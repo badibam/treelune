@@ -199,10 +199,10 @@ fun RoutineTile(routine: Routine, actions: RoutineActions) {
         onLongClick = { actions.configure(routine) },
         summary = { RoutineStateLine(routine, state, actions) },
         glance = { RoutineStateLine(routine, state, actions, buttons = true) },
-        body = { rows ->
+        body = { room ->
             Column(verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
                 RoutineButtons(routine, state, actions)
-                if (rows == null || rows > 1) LastRuns(routine)
+                if (room.rows == null || room.rows > 1) LastRuns(routine)
             }
         }
     )

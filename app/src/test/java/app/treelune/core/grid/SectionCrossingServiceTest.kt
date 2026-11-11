@@ -46,9 +46,9 @@ class SectionCrossingServiceTest {
     @Test
     fun `a tool crosses into the next group, a variable into the ungrouped section, undone at once`() = runBlocking<Unit> {
         val zone = ok("zones.create", mapOf("name" to "Crossing", "tool_groups" to listOf("A", "B")))["zone_id"] as String
-        val note = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to "notes", "config" to mapOf("name" to "Note", "group" to "A", "display_mode" to "ICON")))["tool_instance_id"] as String
-        val other = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to "notes", "config" to mapOf("name" to "Other", "group" to "B", "display_mode" to "ICON")))["tool_instance_id"] as String
-        val variable = ok("variables.create", mapOf("zone_id" to zone, "name" to "crossing_count", "label" to "Count", "group" to "B", "display_mode" to "ICON",
+        val note = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to "notes", "config" to mapOf("name" to "Note", "group" to "A", "tile_size" to "icon")))["tool_instance_id"] as String
+        val other = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to "notes", "config" to mapOf("name" to "Other", "group" to "B", "tile_size" to "icon")))["tool_instance_id"] as String
+        val variable = ok("variables.create", mapOf("zone_id" to zone, "name" to "crossing_count", "label" to "Count", "group" to "B", "tile_size" to "icon",
             "definition" to mapOf("kind" to "CONSTANT", "value" to 2, "field" to mapOf("type" to "NUMERIC"))))["variable_id"] as String
 
         // The note down from A into the top of B, the variable down from B into the ungrouped section

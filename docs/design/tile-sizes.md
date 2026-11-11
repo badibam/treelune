@@ -47,7 +47,7 @@ Ils vivent dans la config d'un outil, `item_width` (`halves`, `full`) et `item_l
 
 Le nombre d'éléments montrés en découle : autant que la hauteur du corps en contient, la hauteur d'un élément étant fixe (ses lignes au maximum, même quand son texte est plus court). Leurs places se calculent d'après la boîte, jamais d'après leur nombre : un élément qui arrive ou part ne déplace pas les autres ; le reste de hauteur est partagé entre ces places. Ce qui ne tient pas n'est pas montré : la dernière place du corps dit « +12 » au lieu d'un dernier élément, par le composant commun, pour tous les outils. Aucune tuile ne le dit aujourd'hui, bien que le contrat (`ToolTile`) le demande. En « selon le contenu », c'est l'inverse : le corps est aussi haut que ses éléments.
 
-Un élément se remplit par un composant commun, dans cet ordre, coupé quand ses lignes sont épuisées :
+Un élément se remplit par un composant commun (`TileItem`), dans cet ordre, jamais coupé au milieu d'une ligne — quand il a un texte et des champs, le texte garde une ligne au moins et les champs prennent celles qu'il laisse, pour que les deux se voient :
 
 1. sa ligne principale (un titre, un nom, un moment et un nom) ;
 2. son texte, pour un outil qui en a (le début d'une note, d'une entrée de journal, d'un message) ;
@@ -98,6 +98,9 @@ Le 2026-11-11, dans le code :
 - La grille (`Grid` : `resize`, `move`, `pack`, `enter`, `oneColumn`) raisonne sur des rectangles et leurs chevauchements, rien de propre à un mode : des tuiles de 2 de large de hauteurs différentes côte à côte y passent. Aucun test ne les place encore : à écrire avec le code.
 - Les thèmes ne distinguent que l'Icône et parfois le 2×1 (la marge du cadre, `tileFrame`).
 
-## Ouvert
+## Vu sur le téléphone
 
-- Le nombre d'éléments d'une ligne qui tiennent dans une ligne de cases, par thème et par réglage de taille : à voir sur l'émulateur (`Pixel_4a`) ou le téléphone une fois codé.
+Le 2026-11-12, sur le téléphone (411 dp de large), la démo en Rétro et en Cosy :
+
+- Combien d'éléments tiennent dépend du thème : un élément de 2 lignes prend une demi-case dans le thème par défaut et le Rétro, un peu plus en Cosy, dont le texte est plus grand — une tuile 4×2 de raccourcis de Suivi y garde une place par colonne. Les tailles de la démo sont choisies pour le thème au plus grand texte ; ailleurs, du vide reste en bas.
+- Le « +N » prend une place : quand il en prend beaucoup, la tuile est mal réglée (trop petite, trop de lignes par élément), ce n'est pas à lui de se faire plus petit.

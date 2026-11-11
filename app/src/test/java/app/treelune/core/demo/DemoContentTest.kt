@@ -5,7 +5,6 @@ import app.treelune.core.coordinator.Source
 import app.treelune.core.fields.FieldNameGenerator
 import app.treelune.core.grid.Grid
 import app.treelune.core.grid.ZonePositions
-import app.treelune.core.ui.DisplayMode
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -52,11 +51,10 @@ class DemoContentTest {
     }
 
     @Test
-    fun `the zones take a zone's modes, all four of them, and lie on the grid without overlapping`() {
+    fun `the zones take the four sizes without a body, and lie on the grid without overlapping`() {
         val zones = read().zones
-        val modes = zones.map { DisplayMode.valueOf(it.getString("display_mode")) }
-        assertEquals(ZonePositions.MODES.toSet(), modes.toSet())
-        assertTrue(Grid.isLaidOut(zones.map { tile(it, it.getString("display_mode")) }))
+        assertEquals(setOf("icon", "2x1", "4x1", "2x2"), zones.map { it.getString("tile_size") }.toSet())
+        assertTrue(Grid.isLaidOut(zones.map { tile(it, it.getString("tile_size")) }))
     }
 
     @Test
@@ -65,7 +63,7 @@ class DemoContentTest {
         val groups = content.zones.associate { it.getString("id") to it.getJSONArray("tool_groups").strings() }
         content.tools.groupBy { it.getString("zone_id") to it.getJSONObject("config").optString("group") }.forEach { (section, tools) ->
             if (section.second.isNotEmpty()) assertTrue(section.toString(), section.second in groups.getValue(section.first))
-            assertTrue(section.toString(), Grid.isLaidOut(tools.map { tile(it, it.getJSONObject("config").getString("display_mode")) }))
+            assertTrue(section.toString(), Grid.isLaidOut(tools.map { tile(it, it.getJSONObject("config").getString("tile_size")) }))
         }
     }
 
@@ -100,14 +98,23 @@ class DemoContentTest {
     }
 
     @Test
-    fun `the demo shows every tool type, tracking type and tile mode, every field type among the user's fields, a tool in a group and one outside`() {
+    fun `the demo shows every tool type, tracking type and layout a tile's size gives, every field type among the user's fields, a tool in a group and one outside`() {
         val content = read()
         assertEquals(app.treelune.core.tools.ToolTypeScanner.scanForToolTypes().keys,
             content.tools.map { it.getString("tooltype") }.toSet())
         assertEquals(setOf("numeric", "scale", "choice", "boolean", "text", "timer", "occurrence"),
             content.tools.filter { it.getString("tooltype") == "tracking" }.map { it.getJSONObject("config").getString("type") }.toSet())
-        assertEquals(DisplayMode.entries.map { it.name }.toSet(),
-            content.tools.map { it.getJSONObject("config").getString("display_mode") }.toSet())
+        // Each layout a size gives (docs/design/tile-sizes.md): the icon, a half tile and a line
+        // without a body, the summary under the header 2 wide, a body 4 wide and 2 wide, one
+        // that follows its content
+        val sizes = content.tools.map { app.treelune.core.look.TileSize.ofStored(it.getJSONObject("config").getString("tile_size")) }
+        assertTrue(sizes.any { it.isIcon })
+        assertTrue(sizes.any { it.width == 2 && it.height == 1 })
+        assertTrue(sizes.any { it.width == 4 && it.height == 1 })
+        assertTrue(sizes.any { it.width == 2 && it.height == 2 })
+        assertTrue(sizes.any { it.width == 4 && it.body?.rows != null })
+        assertTrue(sizes.any { it.width == 2 && it.body != null })
+        assertTrue(sizes.any { it.followsContent })
         val fieldTypes = content.tools.flatMap { tool ->
             tool.getJSONObject("config").optJSONArray("extra_fields")?.let { f -> (0 until f.length()).map { f.getJSONObject(it).getString("type") } } ?: emptyList()
         }.toSet()
@@ -284,7 +291,7 @@ class DemoContentTest {
     }
 
     private fun tile(item: JSONObject, mode: String): Grid.Tile {
-        val size = Grid.size(DisplayMode.valueOf(mode))
+        val size = app.treelune.core.look.TileSize.ofStored(mode).cells
         return Grid.Tile(item.getString("id"), item.getInt("grid_x"), item.getInt("grid_y"), size.width, size.height)
     }
 

@@ -18,7 +18,7 @@ data class Zone(
     val texture: String? = null,
     val active: Boolean = true,
     /** How its tile shows on the home screen: ICON, MINIMAL, LINE or CONDENSED (ZonePositions.MODES). */
-    val display_mode: String = "LINE",
+    val tile_size: String = "4x1",
     /** Its column and row in the grid of its zone group on the home screen, placed by ZonePositions. */
     val grid_x: Int,
     val grid_y: Int,

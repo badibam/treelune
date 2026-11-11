@@ -21,24 +21,28 @@ object ToolConfigSettings {
 
     /**
      * A tool's look (Looks): its icon its type's when it has none of its own, its tile in its
-     * zone from ICON to FULL.
+     * zone at its type's default size until one is chosen.
      */
     fun look(toolType: ToolTypeContract): app.treelune.core.look.LookSpec = app.treelune.core.look.LookSpec(
         nameKey = "name",
         nameLabel = "tools_config_label_name",
         schemaPrefix = "tools_base_schema_config_",
-        modes = app.treelune.core.ui.DisplayMode.entries,
-        defaultMode = app.treelune.core.ui.DisplayMode.valueOf(toolType.getDefaultDisplayMode()),
+        defaultSize = toolType.getDefaultTileSize(),
         defaultIcon = toolType.getDefaultIconName(),
         suggestedIcons = toolType.getSuggestedIcons()
     )
+
+    /** How [toolType]'s tile lays the elements of its body, as [config] chooses; null for a type that lists none (a Chart). */
+    fun itemLayout(toolType: ToolTypeContract, config: org.json.JSONObject): app.treelune.core.look.ItemLayout? = toolType.getItemSpec()?.read(config)
 
     /** The general settings every tool has, whatever its type. */
     private fun generalNodes(toolType: ToolTypeContract, context: Context): List<SettingNode> {
         val s = Strings.`for`(context = context)
         val text: (String) -> String = s::shared
         return listOf(
-            SettingNode.Section(text("tools_config_section_general_params"), app.treelune.core.look.Looks.nodes(look(toolType), text) + listOf(
+            // The look, then how its tile lays its elements when it lists some (ItemSpec)
+            SettingNode.Section(text("tools_config_section_general_params"), app.treelune.core.look.Looks.nodes(look(toolType), text) +
+                toolType.getItemSpec()?.nodes(text).orEmpty() + listOf(
                 field("group", text("label_group"), FieldType.TEXT, text("tools_base_schema_config_group"),
                     config = mapOf("length" to TextLength.SHORT.name)),
                 // Whether the AI asks before writing the tool's entries; a person alone changes it

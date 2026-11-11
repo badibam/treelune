@@ -104,7 +104,7 @@ import app.treelune.core.ui.ButtonType
 import app.treelune.core.ui.CardType
 import app.treelune.core.ui.ComponentState
 import app.treelune.core.ui.DialogType
-import app.treelune.core.ui.DisplayMode
+import app.treelune.core.look.TileSize
 import app.treelune.core.ui.Duration
 import app.treelune.core.ui.FeedbackType
 import app.treelune.core.ui.FieldInput
@@ -195,8 +195,8 @@ object SwissTheme : ThemeContract {
      * an icon's tile, a block of ink.
      */
     @Composable
-    override fun tileFrame(displayMode: DisplayMode): Dp =
-        if (displayMode == DisplayMode.ICON) swissSize().dp(8f) else swissSize().dp(TILE_RULE + 8f)
+    override fun tileFrame(tileSize: TileSize): Dp =
+        if (tileSize.isIcon) swissSize().dp(8f) else swissSize().dp(TILE_RULE + 8f)
 
     @Composable
     override fun spacing(spacing: Spacing): Dp = (
@@ -709,7 +709,7 @@ object SwissTheme : ThemeContract {
 
     @Composable
     override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
-        Tile(DisplayMode.CONDENSED, texture, onClick, onLongClick, content)
+        Tile(TileSize.of(2, 2), texture, onClick, onLongClick, content)
 
     /** A square of red, empty: something to read, not an alarm. */
     @Composable
@@ -751,8 +751,8 @@ object SwissTheme : ThemeContract {
     }
 
     @Composable
-    override fun ToolCardContainer(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
-        Tile(displayMode, texture, onClick, onLongClick, content)
+    override fun ToolCardContainer(tileSize: TileSize, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+        Tile(tileSize, texture, onClick, onLongClick, content)
 
     /**
      * A tile filling the cells the grid gives it: a rule of 3 dp across its top, its content under
@@ -760,10 +760,10 @@ object SwissTheme : ThemeContract {
      * icon's tile is a block of ink, its icon in the ground's colour. Pressed, a tile inverts.
      */
     @Composable
-    private fun Tile(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
+    private fun Tile(tileSize: TileSize, texture: app.treelune.core.themes.ItemTexture?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
         val c = swissColors
-        val block = displayMode == DisplayMode.ICON
-        val frame = tileFrame(displayMode)
+        val block = tileSize.isIcon
+        val frame = tileFrame(tileSize)
         Pressable(onClick = onClick, onLongClick = onLongClick, modifier = Modifier.fillMaxSize()) { pressed ->
             // An icon's tile is ink at rest and the ground pressed; the others the reverse
             val filled = block != pressed

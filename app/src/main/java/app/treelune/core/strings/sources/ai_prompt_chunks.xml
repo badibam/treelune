@@ -48,7 +48,7 @@ An icon, for a zone or a tool, is named by its **Lucide** name. Every Lucide ico
 
 ## Tiles
 
-Zones on the home screen, and tools, variables, routines and Tasks in their zone, show as tiles in a grid 4 cells wide, one per section (group). Their `display_mode` gives the cells a tile takes, width × height: `ICON` 1×1, `MINIMAL` 2×1, `LINE` 4×1, `CONDENSED` 2×2, `EXTENDED` 4×2, `SQUARE` 4×4, `FULL` the whole width, as tall as what it shows. Two `CONDENSED` stand side by side, a `LINE` takes its row alone; the other tiles make room when one grows.
+Zones on the home screen, and tools, variables, routines and Tasks in their zone, show as tiles in a grid 4 cells wide, one per section (group). Their `tile_size` gives the cells a tile takes, width × height: `icon` 1×1; `2x1` to `2x10`, half the width, 1 to 10 rows high; `4x1` to `4x10`, the whole width; `4xcontent`, the whole width, as tall as what it shows. A tile shows its name on its first row, then its summary (beside the name 4 wide, under it 2 wide), then what it lists in the rows left; a fixed height never shrinks. Two tiles 2 wide stand side by side, a tile 4 wide takes its rows alone; the other tiles make room when one grows.
 
 You choose a tile's mode and its section, never its place in the grid: a new tile or one moved to another section comes at the first free place, and only the user moves a tile, by dragging it on the screen. Asked to put a tile somewhere (at the top, beside another), say so, and do what is in your hands only if it serves the request.]]></string>
 
@@ -301,7 +301,7 @@ Retrieves the configuration of a tool.
 - `id` (string, **required**): the tool_instance_id]]></string>
     <string name="ai_command_zone_contents"><![CDATA[### ZONE_CONTENTS
 
-What a zone holds, to understand its organisation before changing it or adding to it: its sections in the zone\'s order, the ungrouped one last, each with every tile of its grid in reading order (row by row, left to right) — tools, variables, routines, Tasks, readouts —, each with its `kind`, `id`, `name`, `display_mode`, `icon_name`, `icon_color` and `texture`; a tool also with its `tooltype`, its description and its extra fields (name, label, type), a variable with the name formulas write; then the zone\'s events. Without `zone_id`, every zone, in the home screen\'s order. A tile\'s whole definition is read with its own command (TOOL_CONFIG, VARIABLES, ROUTINE_CONFIG, TASK_CONFIG, READOUTS).
+What a zone holds, to understand its organisation before changing it or adding to it: its sections in the zone\'s order, the ungrouped one last, each with every tile of its grid in reading order (row by row, left to right) — tools, variables, routines, Tasks, readouts —, each with its `kind`, `id`, `name`, `tile_size`, `icon_name`, `icon_color` and `texture`; a tool also with its `tooltype`, its description and its extra fields (name, label, type), a variable with the name formulas write; then the zone\'s events. Without `zone_id`, every zone, in the home screen\'s order. A tile\'s whole definition is read with its own command (TOOL_CONFIG, VARIABLES, ROUTINE_CONFIG, TASK_CONFIG, READOUTS).
 
 **Parameters**:
 
@@ -575,7 +575,7 @@ Changes the configuration of a tool, or moves it to another zone.
 
 - `tool_instance_id` (string, **required**)
 - `config` (object, optional): the **whole** new configuration, which replaces the old one: read it with TOOL_CONFIG, change what you mean to, send it all back
-- `look` (object, optional), in place of `config`: only its place and appearance, merged into its configuration, the rest left as it is: any of `group`, `display_mode`, `icon_name`, `icon_color`, `texture`, `null` taking one out; to rearrange or recolour tools without reading their configuration
+- `look` (object, optional), in place of `config`: only its place and appearance, merged into its configuration, the rest left as it is: any of `group`, `tile_size`, `icon_name`, `icon_color`, `texture`, `null` taking one out; to rearrange or recolour tools without reading their configuration
 - `zone_id` (string, optional): the zone to move the tool to; its group stays behind, unless `config` or `look` names one of the new zone's tool groups
 - `confirm_migration` (boolean, optional): `true` to agree to what the change does to the recorded entries; needed only while the protection of recorded data is off
 - `fill_values` (object, optional): the values to give the entries a change leaves without a required value, `{"data": {"value": 3}}`
@@ -603,7 +603,7 @@ Creates a zone.
 - `icon_color` (string, optional): the icon's colour, one of `RED`, `ORANGE`, `YELLOW`, `GREEN`, `TEAL`, `BLUE`, `PURPLE`, `PINK`; neutral when left out. A tool's icon has its own, in its config
 - `texture` (string, optional): a motif on its tile and at the top of its page, one of `LINES`, `DIAGONALS`, `GRID`, `ZIGZAG`, `WAVES`, `DOTS`, `CROSSES`, `STARS`, `RINGS`, `DIAMONDS`, `CONFETTI`, `CHECKER`, `BRICKS`, `SCALES`, `ICON` (`ICON` repeats its icon, and needs one); none when left out. A tool has its own, in its config. Set it when the person asks
 - `group` (string, optional): one of the zone groups of the home screen
-- `display_mode` (string, optional): how its tile shows on the home screen, `ICON`, `MINIMAL`, `LINE` or `CONDENSED`; `LINE` when left out
+- `tile_size` (string, optional): the size of its tile on the home screen, as for every tile; `4x1` (its description beside its name) when left out
 - `tool_groups` (array, optional): the groups its tools are sorted into
 - `identity_id` (string, optional): the identity its tile opens a conversation with (IDENTITIES); none when left out
 - `readout_columns` (string, optional): the columns of the readouts gathered at its head and its tool groups\' heads, `one` or `two`; `home`, as the home screen sets, when left out
@@ -623,7 +623,7 @@ Changes a zone. Only what you give changes; `null` empties a field, except the n
 - `icon_color` (string, optional): `null` makes the icon neutral
 - `texture` (string, optional): `null` removes it
 - `group` (string, optional)
-- `display_mode` (string, optional)
+- `tile_size` (string, optional)
 - `tool_groups` (array, optional): the **whole** list, which replaces the old one. A group still held by a tool, a routine or a variable cannot be removed
 - `renames` (object, optional): the tool groups renamed in `tool_groups`, `{"tool_groups": {"former name": "new name"}}`: what holds a former name takes the new one
 - `identity_id` (string, optional): `null` removes it
@@ -650,7 +650,7 @@ Creates a variable in a zone. Its name is unique in the app and can be written i
 - `icon_name` (string, optional): a Lucide icon name, `variable` when left out
 - `icon_color` (string, optional): as a tool's
 - `texture` (string, optional): as a tool's
-- `display_mode` (string, optional): `ICON`, `MINIMAL` (icon and label), `LINE` (its value beside, the default), `CONDENSED` (its value below)
+- `tile_size` (string, optional): the size of its tile; `4x1` (its value beside its label) when left out, `2x2` its value below
 - `group` (string, optional): a group of the zone
 - `definition` (object, **required**), one of:
   - a constant: `{ "kind": "CONSTANT", "value": 2100, "field": { "type": "NUMERIC", "config": { "decimals": 0, "unit": "kcal" } } }`
@@ -708,7 +708,7 @@ Changes a variable. Only what you give changes; a `definition` given replaces th
 - `icon_name` (string, optional)
 - `icon_color` (string, optional): null empties it
 - `texture` (string, optional): null empties it
-- `display_mode` (string, optional): as CREATE_VARIABLE
+- `tile_size` (string, optional): as CREATE_VARIABLE
 - `definition` (object, optional)
 - `group` (string, optional): one of its zone's tool groups
 - `zone_id` (string, optional): the zone to move it to; its group stays behind unless you give one of the new zone's]]></string>
@@ -737,7 +737,7 @@ Creates a routine in a zone: a message for the AI, prepared once, for what comes
 **Parameters**:
 
 - `zone_id` (string, **required**)
-- `settings` (object, **required**): `name` required; `provider_id` required too, the `id` of one of the AI providers (AI providers, in the app\'s state), `null` for none: the routine is then off (`is_enabled` `false`) and cannot run until one is set, so never leave it out to take the default; `identity_id` required too, the identity its runs speak as (IDENTITIES), `null` for none: say it even when the zone has one, never take it for granted; its look, shown on its tile among the zone\'s tools: `description`, `icon_name` (a Lucide icon name, `bot` by default), `icon_color`, `texture`, `display_mode` (`ICON`, `MINIMAL`, `LINE`, `CONDENSED`, `EXTENDED` the default, with its buttons, `SQUARE` with its last runs); `group` (one of the zone\'s tool groups), `is_enabled` (`true` by default), `schedule` (left out, it runs when the user starts it) and `catch_up` (with a schedule and only with it: `limit`, `limited` with its `window`, a duration, or `unlimited`; `dismiss_older_instances`, `true` to run only the latest of the runs missed)
+- `settings` (object, **required**): `name` required; `provider_id` required too, the `id` of one of the AI providers (AI providers, in the app\'s state), `null` for none: the routine is then off (`is_enabled` `false`) and cannot run until one is set, so never leave it out to take the default; `identity_id` required too, the identity its runs speak as (IDENTITIES), `null` for none: say it even when the zone has one, never take it for granted; its look, shown on its tile among the zone\'s tools: `description`, `icon_name` (a Lucide icon name, `bot` by default), `icon_color`, `texture`, `tile_size` (`4x2` the default, with its buttons; taller, with its last runs); `group` (one of the zone\'s tool groups), `is_enabled` (`true` by default), `schedule` (left out, it runs when the user starts it) and `catch_up` (with a schedule and only with it: `limit`, `limited` with its `window`, a duration, or `unlimited`; `dismiss_older_instances`, `true` to run only the latest of the runs missed)
 - `message` (array, **required**): its blocks, in order, `{"type": "text", "text": "..."}` and `{"type": "pointer", "pointer": {"selection": {...}, "attach": {"config": false, "entries": true}}}`. A pointer\'s selection is the one a chart\'s config holds, with a `period` whose relative dates are those of the run\'s scheduled time; `attach` says whether the target\'s config and its entries go with the message. No file, no image
 - `access` (array, optional): what its AI may reach, `[{"target": {"kind": "ZONE", "id": "..."}, "level": "read"}]`, kinds `ZONE` and `TOOL_INSTANCE`, levels `read`, `use`, `full`. Empty or left out, everything; when your own access is listed, it is refused, and you give only what you reach yourself
 
@@ -905,7 +905,7 @@ Reads what a readout says now: its core and its sentence with each value written
 - `id` (string, **required**): the readout\'s id]]></string>
     <string name="ai_command_create_readout"><![CDATA[### CREATE_READOUT
 
-Creates a readout in a zone, its own tile in a group of it. Its `settings`, described by SCHEMA with `id` `readout_settings`: its look (`name`, `icon_name`, `display_mode`…) and `group`; `core`, the short form shown where room is short, each value written `{name}` (“{done} / {expected}”); `text`, optional, the long form shown where room is, placing the core with `{}` (“Water: {}”), without it the core showing everywhere; `values`, each `{"name", "value"}`, `value` a term (`{"constant"}`, `{"variable"}`, `{"reading"}` over a period relative to the moment it shows); `target`, what a touch opens (`{"kind": "APP"}`, a ZONE or a TOOL_INSTANCE by its id), required; `colors`, in order, each `{"when", "color", "signal"}`, `when` a condition whose sides are its values by name (`{"field": "done"}`) or written values, the first that holds giving its colour; `signal` true only where the user should look; `places`, among `group_head`, `zone_head`, `zone_tile`, `zone_group_head`, `home_head`. A value that computes a formula in each entry is a variable\'s: make one, and read it.
+Creates a readout in a zone, its own tile in a group of it. Its `settings`, described by SCHEMA with `id` `readout_settings`: its look (`name`, `icon_name`, `tile_size`…) and `group`; `core`, the short form shown where room is short, each value written `{name}` (“{done} / {expected}”); `text`, optional, the long form shown where room is, placing the core with `{}` (“Water: {}”), without it the core showing everywhere; `values`, each `{"name", "value"}`, `value` a term (`{"constant"}`, `{"variable"}`, `{"reading"}` over a period relative to the moment it shows); `target`, what a touch opens (`{"kind": "APP"}`, a ZONE or a TOOL_INSTANCE by its id), required; `colors`, in order, each `{"when", "color", "signal"}`, `when` a condition whose sides are its values by name (`{"field": "done"}`) or written values, the first that holds giving its colour; `signal` true only where the user should look; `places`, among `group_head`, `zone_head`, `zone_tile`, `zone_group_head`, `home_head`. A value that computes a formula in each entry is a variable\'s: make one, and read it.
 
 **Parameters**:
 

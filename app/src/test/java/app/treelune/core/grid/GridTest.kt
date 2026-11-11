@@ -2,7 +2,7 @@ package app.treelune.core.grid
 
 import app.treelune.core.grid.Grid.Size
 import app.treelune.core.grid.Grid.Tile
-import app.treelune.core.ui.DisplayMode
+import app.treelune.core.look.TileSize
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -15,10 +15,10 @@ import org.junit.Test
  */
 class GridTest {
 
-    private val icon = Grid.size(DisplayMode.ICON)
-    private val minimal = Grid.size(DisplayMode.MINIMAL)
-    private val line = Grid.size(DisplayMode.LINE)
-    private val condensed = Grid.size(DisplayMode.CONDENSED)
+    private val icon = TileSize.Icon.cells
+    private val minimal = TileSize.of(2, 1).cells
+    private val line = TileSize.of(4, 1).cells
+    private val condensed = TileSize.of(2, 2).cells
 
     /** Each tile's column and row, by id. */
     private fun places(tiles: List<Tile>) = tiles.associate { it.id to (it.column to it.row) }
@@ -34,13 +34,14 @@ class GridTest {
     }
 
     @Test
-    fun eachMode_takesTheCellsOfTheSpec() {
-        val sizes = DisplayMode.values().associateWith { Grid.size(it) }
+    fun eachFormerMode_takesTheCellsItHad() {
+        val sizes = TileSize.FORMER_MODES.mapValues { TileSize.ofStored(it.value).cells }
         assertEquals(
             mapOf(
-                DisplayMode.ICON to Size(1, 1), DisplayMode.MINIMAL to Size(2, 1), DisplayMode.LINE to Size(4, 1),
-                DisplayMode.CONDENSED to Size(2, 2), DisplayMode.EXTENDED to Size(4, 2), DisplayMode.SQUARE to Size(4, 4),
-                DisplayMode.FULL to Size(4, 1)
+                "ICON" to Size(1, 1), "MINIMAL" to Size(2, 1), "LINE" to Size(4, 1),
+                "CONDENSED" to Size(2, 2), "EXTENDED" to Size(4, 2), "SQUARE" to Size(4, 4),
+                // A tile that follows its content takes one row, its height being its content's
+                "FULL" to Size(4, 1)
             ),
             sizes
         )

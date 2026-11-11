@@ -129,12 +129,12 @@ fun rememberTrackingTile(tool: ToolInstance): ToolTile {
             }
 
             @Composable
-            override fun Body(rows: Int?) {
+            override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 if (!loaded) return
                 val s = remember { Strings.`for`(tool = "tracking", context = context) }
                 // A shortcut, or an option of a choice
                 val items: List<Any> = actions.shortcuts + actions.choice?.options.orEmpty()
-                app.treelune.core.ui.components.TileGrid(rows, items, columns = 2) { item ->
+                app.treelune.core.ui.components.TileGrid(room, items) { item ->
                     when (item) {
                         is TrackingShortcut -> TileLine(
                             shortcutLabel(item, actions.kind) { app.treelune.core.utils.NumberFormatting.formatForDisplay(it.toDouble(), context = context) },

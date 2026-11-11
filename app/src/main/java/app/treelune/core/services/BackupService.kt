@@ -120,7 +120,7 @@ class BackupService(private val context: Context) : ExecutableService {
             iconName = item.getString("icon_name"),
             iconColor = item.nullableString("icon_color"),
             texture = item.nullableString("texture"),
-            displayMode = item.getString("display_mode"),
+            tileSize = item.getString("tile_size"),
             gridX = item.getInt("grid_x"),
             gridY = item.getInt("grid_y"),
             // Absent from a backup made before version 115: run alone and opened as a conversation
@@ -136,7 +136,7 @@ class BackupService(private val context: Context) : ExecutableService {
             iconName = item.getString("icon_name"),
             iconColor = item.nullableString("icon_color"),
             texture = item.nullableString("texture"),
-            displayMode = item.getString("display_mode"),
+            tileSize = item.getString("tile_size"),
             group = item.nullableString("group"),
             gridX = item.getInt("grid_x"),
             gridY = item.getInt("grid_y"),
@@ -164,7 +164,7 @@ class BackupService(private val context: Context) : ExecutableService {
             put("icon_name", readout.iconName)
             put("icon_color", readout.iconColor ?: JSONObject.NULL)
             put("texture", readout.texture ?: JSONObject.NULL)
-            put("display_mode", readout.displayMode)
+            put("tile_size", readout.tileSize)
             put("group", readout.group ?: JSONObject.NULL)
             put("grid_x", readout.gridX)
             put("grid_y", readout.gridY)
@@ -181,7 +181,7 @@ class BackupService(private val context: Context) : ExecutableService {
             iconName = item.getString("icon_name"),
             iconColor = item.nullableString("icon_color"),
             texture = item.nullableString("texture"),
-            displayMode = item.getString("display_mode"),
+            tileSize = item.getString("tile_size"),
             group = item.nullableString("group"),
             gridX = item.getInt("grid_x"),
             gridY = item.getInt("grid_y"),
@@ -517,7 +517,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("icon_color", zone.icon_color)
                                 put("texture", zone.texture)
                                 put("active", zone.active)
-                                put("display_mode", zone.display_mode)
+                                put("tile_size", zone.tile_size)
                                 put("validate", zone.validate)
                                 put("grid_x", zone.grid_x)
                                 put("grid_y", zone.grid_y)
@@ -681,7 +681,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("icon_name", routine.iconName)
                                 routine.iconColor?.let { put("icon_color", it) }
                                 routine.texture?.let { put("texture", it) }
-                                put("display_mode", routine.displayMode)
+                                put("tile_size", routine.tileSize)
                                 put("grid_x", routine.gridX)
                                 put("grid_y", routine.gridY)
                                 put(app.treelune.core.ai.data.RoutineSettings.USAGE, routine.usage)
@@ -705,7 +705,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("icon_name", variable.iconName)
                                 variable.iconColor?.let { put("icon_color", it) }
                                 variable.texture?.let { put("texture", it) }
-                                put("display_mode", variable.displayMode)
+                                put("tile_size", variable.tileSize)
                                 put("grid_x", variable.gridX)
                                 put("grid_y", variable.gridY)
                                 put("definition_json", variable.definitionJson)
@@ -757,7 +757,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("icon_name", task.iconName)
                                 put("icon_color", task.iconColor ?: JSONObject.NULL)
                                 put("texture", task.texture ?: JSONObject.NULL)
-                                put("display_mode", task.displayMode)
+                                put("tile_size", task.tileSize)
                                 put("group", task.group ?: JSONObject.NULL)
                                 put("grid_x", task.gridX)
                                 put("grid_y", task.gridY)
@@ -1161,7 +1161,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         // Absent from a backup made before version 75: no texture
                         texture = item.optString("texture", null),
                         active = item.optBoolean("active", true),
-                        display_mode = item.getString("display_mode"),
+                        tile_size = item.getString("tile_size"),
                         grid_x = item.getInt("grid_x"),
                         grid_y = item.getInt("grid_y"),
                         created_at = item.getLong("created_at"),
@@ -1387,7 +1387,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         iconName = item.getString("icon_name"),
                         iconColor = item.optString("icon_color").takeIf { it.isNotEmpty() },
                         texture = item.optString("texture").takeIf { it.isNotEmpty() },
-                        displayMode = item.getString("display_mode"),
+                        tileSize = item.getString("tile_size"),
                         gridX = item.getInt("grid_x"),
                         gridY = item.getInt("grid_y"),
                         definitionJson = item.getString("definition_json"),
@@ -1630,6 +1630,9 @@ class BackupService(private val context: Context) : ExecutableService {
             }
             if (fromVersion < 116 && toVersion >= 116) {
                 app.treelune.core.versioning.SelectionSortAtV116.backup(data)
+            }
+            if (fromVersion < 117 && toVersion >= 117) {
+                app.treelune.core.versioning.TileSizesAtV117.backup(data)
             }
 
             // Transform app settings

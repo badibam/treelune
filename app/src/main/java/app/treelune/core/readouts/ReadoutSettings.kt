@@ -13,7 +13,6 @@ import app.treelune.core.look.LookSpec
 import app.treelune.core.look.Looks
 import app.treelune.core.strings.Strings
 import app.treelune.core.themes.IconColor
-import app.treelune.core.ui.DisplayMode
 import app.treelune.core.validation.Schema
 import app.treelune.core.validation.SchemaCategory
 import org.json.JSONObject
@@ -59,13 +58,12 @@ object ReadoutSettings {
         }
     }
 
-    /** A readout's look: an icon always, its sentence from LINE on, as a variable shows its value. */
+    /** A readout's look: an icon always, its sentence beside or under its name, as a variable shows its value. */
     val LOOK = LookSpec(
         nameKey = "name",
         nameLabel = "label_name",
         schemaPrefix = "readout_schema_",
-        modes = listOf(DisplayMode.ICON, DisplayMode.MINIMAL, DisplayMode.LINE, DisplayMode.CONDENSED),
-        defaultMode = DisplayMode.LINE,
+        defaultSize = app.treelune.core.look.TileSize.of(4, 1),
         defaultIcon = DEFAULT_ICON,
         suggestedIcons = listOf("gauge", "eye", "bell", "flag", "list-checks", "circle-check", "target", "hourglass")
     )
@@ -118,7 +116,7 @@ object ReadoutSettings {
         put(Looks.ICON, readout.iconName)
         readout.iconColor?.let { put(IconColor.KEY, it) }
         readout.texture?.let { put(app.treelune.core.themes.Texture.KEY, it) }
-        put(Looks.DISPLAY_MODE, readout.displayMode)
+        put(Looks.TILE_SIZE, readout.tileSize)
         readout.group?.let { put("group", it) }
     }
 

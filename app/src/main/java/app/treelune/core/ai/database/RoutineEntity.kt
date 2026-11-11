@@ -65,7 +65,7 @@ data class RoutineEntity(
     /** The motif of its tile, a name of Texture.NAMES; null for none */
     val texture: String? = null,
     /** How its tile shows among its section's tools, ICON to SQUARE */
-    @ColumnInfo(name = "display_mode") val displayMode: String = RoutineSettings.DEFAULT_MODE,
+    @ColumnInfo(name = "tile_size") val tileSize: String = RoutineSettings.DEFAULT_SIZE.stored,
     /** Its column and row in the grid of its group's section (SectionGrid) */
     @ColumnInfo(name = "grid_x") val gridX: Int = 0,
     @ColumnInfo(name = "grid_y") val gridY: Int = 0,

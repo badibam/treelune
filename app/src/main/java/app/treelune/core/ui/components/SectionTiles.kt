@@ -3,7 +3,6 @@ package app.treelune.core.ui.components
 import androidx.compose.runtime.Composable
 import app.treelune.core.database.entities.ToolInstance
 import app.treelune.core.grid.SectionItem
-import app.treelune.core.ui.DisplayMode
 import app.treelune.core.ui.UI
 import app.treelune.core.ui.variables.VariableCard
 import app.treelune.core.ui.variables.VariableRow
@@ -13,45 +12,44 @@ import org.json.JSONObject
 sealed interface SectionTile {
     val id: String
     val tile: app.treelune.core.grid.Grid.Tile
-    val mode: DisplayMode
+    val size: app.treelune.core.look.TileSize
 
     data class Tool(val tool: ToolInstance) : SectionTile {
         override val id get() = tool.id
         override val tile get() = SectionItem.of(tool).tile
-        override val mode get() = DisplayMode.valueOf(JSONObject(tool.config_json).getString("display_mode"))
+        override val size get() = app.treelune.core.look.TileSize.ofStored(JSONObject(tool.config_json).getString("tile_size"))
     }
 
     data class Variable(val variable: VariableRow) : SectionTile {
         override val id get() = variable.id
         override val tile get() = variable.tile
-        override val mode get() = variable.look.displayMode
+        override val size get() = variable.look.tileSize
     }
 
     data class Routine(val routine: app.treelune.core.ai.data.Routine) : SectionTile {
         override val id get() = routine.id
         override val tile get() = routine.tile
-        override val mode get() = routine.look.displayMode
+        override val size get() = routine.look.tileSize
     }
 
     data class TaskTile(val task: app.treelune.core.tasks.Task) : SectionTile {
         override val id get() = task.id
         override val tile get() = task.tile
-        override val mode get() = task.look.displayMode
+        override val size get() = task.look.tileSize
     }
 
     data class Readout(val readout: app.treelune.core.readouts.ui.ReadoutRow) : SectionTile {
         override val id get() = readout.id
         override val tile get() = readout.tile
-        override val mode get() = readout.look.displayMode
+        override val size get() = readout.look.tileSize
     }
 }
 
 /**
  * The tiles of one group section laid on their grid (GridLayout), tools, variables, routines, Tasks and readouts together,
- * each at its column and row as many cells as its mode takes, in edit mode when [edit] is given.
- * A tile of four cells' width with a body (EXTENDED, SQUARE, FULL) is as tall as its content
- * (GridLayout's grows), EXTENDED and SQUARE at most their cells (LookCard); in edit mode
- * EXTENDED and SQUARE show all their cells, which their place is chosen on.
+ * each at its column and row as many cells as its size takes, in edit mode when [edit] is given.
+ * A tile of a fixed height fills its cells whatever it shows; one that follows its content is
+ * as tall as what it shows (GridLayout's grows).
  */
 @Composable
 fun SectionTiles(
@@ -64,7 +62,8 @@ fun SectionTiles(
     edit: GridEdit? = null
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val grows = tiles.map { it.mode == DisplayMode.FULL || (edit == null && (it.mode == DisplayMode.EXTENDED || it.mode == DisplayMode.SQUARE)) }
+    // Only a tile that follows its content grows with it: a fixed height is a fixed box
+    val grows = tiles.map { it.size.followsContent }
     GridLayout(tiles, tiles.map { it.tile }, grows, edit) { tile ->
         when (tile) {
             is SectionTile.Tool -> UI.ToolCard(

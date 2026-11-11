@@ -23,7 +23,6 @@ import app.treelune.core.database.entities.ToolInstance
 import app.treelune.core.grid.Grid
 import app.treelune.core.grid.ToolPositions
 import app.treelune.core.themes.CurrentTheme
-import app.treelune.core.ui.DisplayMode
 import app.treelune.core.ui.GridTileState
 import app.treelune.core.ui.UI
 import org.json.JSONObject
@@ -59,11 +58,11 @@ val LocalGridIconRow = androidx.compose.runtime.staticCompositionLocalOf<android
  * (LocalGridIconRow). The sample is measured before the tiles are composed (SubcomposeLayout).
  *
  * A row is one row high, except the row of a tile that grows with its content ([grows]: a
- * tool in FULL, EXTENDED or SQUARE), which is as tall as what it shows, a row at least, rounded up to a whole pixel of
+ * tile sized `4xcontent`, TileSize), which is as tall as what it shows, a row at least, rounded up to a whole pixel of
  * the theme's drawings (drawingUnit) so the rows under it stay on whole pixels. Such a tile is measured
  * once, its width fixed and its height free, and keeps the height it takes: the rest of its row
- * stays empty under it. It is as wide as the grid, alone on its rows: when it spans several
- * (EXTENDED, SQUARE), the first takes its height and the others close, with their gaps. It is never asked for its intrinsic height, which a tile holding a layout
+ * stays empty under it. It is as wide as the grid, alone on its rows: when it spans several,
+ * the first takes its height and the others close, with their gaps. It is never asked for its intrinsic height, which a tile holding a layout
  * measured by its constraints (BoxWithConstraints, a lazy list) cannot give. An empty cell stays
  * empty.
  *
@@ -94,7 +93,7 @@ fun <T> GridLayout(items: List<T>, stored: List<Grid.Tile>, grows: List<Boolean>
         val rowGap = CurrentTheme.current.gridRowGapPx()
         val unit = kotlin.math.ceil(CurrentTheme.current.drawingUnit()).toInt().coerceAtLeast(1)
         val framePx = with(LocalDensity.current) {
-            listOf(DisplayMode.ICON, DisplayMode.MINIMAL, DisplayMode.LINE, DisplayMode.CONDENSED)
+            listOf(app.treelune.core.look.TileSize.Icon, app.treelune.core.look.TileSize.of(2, 1), app.treelune.core.look.TileSize.of(4, 1), app.treelune.core.look.TileSize.of(2, 2))
                 .maxOf { CurrentTheme.current.tileFrame(it) }.roundToPx()
         }
         val iconRow = with(LocalDensity.current) { rowPx.toDp() }

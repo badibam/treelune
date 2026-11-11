@@ -152,7 +152,7 @@ class TaskService(private val context: Context) : ExecutableService {
             is app.treelune.core.coordinator.GivenId.Read.Refused -> return OperationResult.error(s.shared("service_error_id_not_given").format(given.id))
         }
         val now = System.currentTimeMillis()
-        val base = TaskEntity(taskId, zoneId, "", null, TaskSettings.DEFAULT_ICON, null, null, TaskSettings.DEFAULT_MODE,
+        val base = TaskEntity(taskId, zoneId, "", null, TaskSettings.DEFAULT_ICON, null, null, TaskSettings.DEFAULT_SIZE.stored,
             null, 0, 0, true, null, null, null, false, "", "[]", now, now)
         val task = checked(base, given(params, null), null, params).getOrElse { return OperationResult.error(it.message ?: s.shared("message_validation_error_simple")) }
         database.transaction {
@@ -279,7 +279,7 @@ class TaskService(private val context: Context) : ExecutableService {
         fun refused(message: String) = Result.failure<TaskEntity>(IllegalArgumentException(message))
         val settings = JsonNulls.withoutNullKeys(sent)
         if (!settings.has(Looks.ICON)) settings.put(Looks.ICON, TaskSettings.DEFAULT_ICON)
-        if (!settings.has(Looks.DISPLAY_MODE)) settings.put(Looks.DISPLAY_MODE, TaskSettings.DEFAULT_MODE)
+        if (!settings.has(Looks.TILE_SIZE)) settings.put(Looks.TILE_SIZE, TaskSettings.DEFAULT_SIZE.stored)
         (Looks.check(TaskSettings.LOOK, settings, before, context) as? Looks.Checked.Refused)?.let { return refused(it.message) }
         val look = Looks.read(TaskSettings.LOOK, settings)
         val validation = SchemaValidator.validate(TaskSettings.schema(context), JsonUtils.toMap(settings), context)
@@ -323,7 +323,7 @@ class TaskService(private val context: Context) : ExecutableService {
             iconName = look.iconName!!,
             iconColor = look.iconColor,
             texture = look.texture,
-            displayMode = look.displayMode.name,
+            tileSize = look.tileSize.stored,
             group = group,
             isEnabled = values.boolean("is_enabled"),
             notifyEnd = values.string("notify_end") ?: error("Setting 'notify_end' has neither a value nor a default"),

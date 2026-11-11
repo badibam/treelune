@@ -103,7 +103,7 @@ import app.treelune.core.ui.ButtonType
 import app.treelune.core.ui.CardType
 import app.treelune.core.ui.ComponentState
 import app.treelune.core.ui.DialogType
-import app.treelune.core.ui.DisplayMode
+import app.treelune.core.look.TileSize
 import app.treelune.core.ui.Duration
 import app.treelune.core.ui.FeedbackType
 import app.treelune.core.ui.FieldInput
@@ -191,8 +191,8 @@ object InkTheme : ThemeContract {
 
     /** Eight above and below, fourteen at the sides, as the mockup's tile; eight round an icon alone. */
     @Composable
-    override fun tileFrame(displayMode: DisplayMode): Dp =
-        if (displayMode == DisplayMode.ICON) inkSize().dp(8f) else inkSize().dp(TILE_PAD)
+    override fun tileFrame(tileSize: TileSize): Dp =
+        if (tileSize.isIcon) inkSize().dp(8f) else inkSize().dp(TILE_PAD)
 
     @Composable
     override fun spacing(spacing: Spacing): Dp = (
@@ -682,7 +682,7 @@ object InkTheme : ThemeContract {
 
     @Composable
     override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
-        Tile(DisplayMode.CONDENSED, texture, onClick, onLongClick, content)
+        Tile(TileSize.of(2, 2), texture, onClick, onLongClick, content)
 
     /** A round seal of red with an exclamation mark. */
     @Composable
@@ -714,8 +714,8 @@ object InkTheme : ThemeContract {
     }
 
     @Composable
-    override fun ToolCardContainer(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
-        Tile(displayMode, texture, onClick, onLongClick, content)
+    override fun ToolCardContainer(tileSize: TileSize, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+        Tile(tileSize, texture, onClick, onLongClick, content)
 
     /**
      * A tile filling the cells the grid gives it: a wash of irregular edge, dense at its heart and
@@ -724,10 +724,10 @@ object InkTheme : ThemeContract {
      * wash at rest, its icon alone on the paper. Pressed or lifted, the wash darkens a step.
      */
     @Composable
-    private fun Tile(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
+    private fun Tile(tileSize: TileSize, texture: app.treelune.core.themes.ItemTexture?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
         val c = inkColors
-        val bare = displayMode == DisplayMode.ICON
-        val frame = tileFrame(displayMode)
+        val bare = tileSize.isIcon
+        val frame = tileFrame(tileSize)
         val lifted = LocalInkLifted.current
         // The motif in the ink, whatever the icon's colour: the user's colours are marks, never a fill
         val brush = app.treelune.core.themes.rememberTextureBrush(texture?.copy(color = null), c.ground, textureStyle())

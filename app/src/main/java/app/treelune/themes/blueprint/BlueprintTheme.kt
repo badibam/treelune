@@ -111,7 +111,7 @@ import app.treelune.core.ui.ButtonType
 import app.treelune.core.ui.CardType
 import app.treelune.core.ui.ComponentState
 import app.treelune.core.ui.DialogType
-import app.treelune.core.ui.DisplayMode
+import app.treelune.core.look.TileSize
 import app.treelune.core.ui.Duration
 import app.treelune.core.ui.Emphasis
 import app.treelune.core.ui.FeedbackType
@@ -199,8 +199,8 @@ object BlueprintTheme : ThemeContract {
 
     /** How far the content stands from the tile's top: 6 dp under its line; 8 dp all round an icon's tile. */
     @Composable
-    override fun tileFrame(displayMode: DisplayMode): Dp =
-        if (displayMode == DisplayMode.ICON) blueprintSize().dp(8f) else blueprintSize().dp(6f)
+    override fun tileFrame(tileSize: TileSize): Dp =
+        if (tileSize.isIcon) blueprintSize().dp(8f) else blueprintSize().dp(6f)
 
     @Composable
     override fun spacing(spacing: Spacing): Dp = (
@@ -716,7 +716,7 @@ object BlueprintTheme : ThemeContract {
     /** A zone's tile is a tool's; every tile drawn alike, its [seed] unused. */
     @Composable
     override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
-        Tile(DisplayMode.CONDENSED, texture, color, onClick, onLongClick, content)
+        Tile(TileSize.of(2, 2), texture, color, onClick, onLongClick, content)
 
     /**
      * A revision triangle drawn in the ink, empty on the paper: something to read, as a drawing's
@@ -774,8 +774,8 @@ object BlueprintTheme : ThemeContract {
     }
 
     @Composable
-    override fun ToolCardContainer(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
-        Tile(displayMode, texture, color, onClick, onLongClick, content)
+    override fun ToolCardContainer(tileSize: TileSize, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+        Tile(tileSize, texture, color, onClick, onLongClick, content)
 
     /**
      * A tile filling the cells the grid gives it: the paper, hiding the grid, in a frame whose sides
@@ -783,11 +783,11 @@ object BlueprintTheme : ThemeContract {
      * (LocalBlueprintCrayon). Lifted, its frame thickens. Pressed, it fills with light hatching.
      */
     @Composable
-    private fun Tile(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
+    private fun Tile(tileSize: TileSize, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
         val c = blueprintColors
         val size = blueprintSize()
-        val icon = displayMode == DisplayMode.ICON
-        val frame = tileFrame(displayMode)
+        val icon = tileSize.isIcon
+        val frame = tileFrame(tileSize)
         val paper = c.paper.srgb
         val ink = c.ink.srgb
         val line = blueprintStroke(if (LocalBlueprintLifted.current) LIFTED_LINE else LINE)

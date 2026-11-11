@@ -16,7 +16,7 @@ import org.json.JSONObject
 
 /**
  * A routine's settings, declared with the fields (docs/DATA.md): its look (its name, a
- * description, an icon, a colour, a texture, a display mode; Looks), the provider it runs with, its group, whether it is on, how it is used, which of its runs wait for the user,
+ * description, an icon, a colour, a texture, a tile size; Looks), the provider it runs with, its group, whether it is on, how it is used, which of its runs wait for the user,
  * its schedule, and what it does about the runs it missed. Not its zone (its place), its seed session (its message) nor its history.
  *
  * RoutineService checks every write against the schema generated from here, on the settings
@@ -51,23 +51,21 @@ object RoutineSettings {
     const val SCHEMA_ID = "routine_settings"
 
     const val DEFAULT_ICON = "bot"
-    const val DEFAULT_MODE = "EXTENDED"
+    val DEFAULT_SIZE = app.treelune.core.look.TileSize.of(4, 2)
 
     /** Where the icon picker starts for a routine. */
     val SUGGESTED_ICONS = listOf("bot", "sparkles", "repeat", "alarm-clock", "calendar-clock", "sunrise", "moon", "newspaper", "clipboard-check", "brain")
 
     /**
      * A routine's look (Looks): an icon always, `bot` until one is chosen; its tile among its
-     * section's tools from ICON to SQUARE, its state, its switch and its buttons from LINE on,
-     * its last runs in SQUARE (RoutineTile).
+     * section's tools, its state, its switch and its buttons beside or under its name, its last
+     * runs in its body (RoutineTile).
      */
     val LOOK = app.treelune.core.look.LookSpec(
         nameKey = "name",
         nameLabel = "label_name",
         schemaPrefix = "routine_schema_",
-        modes = listOf(app.treelune.core.ui.DisplayMode.ICON, app.treelune.core.ui.DisplayMode.MINIMAL, app.treelune.core.ui.DisplayMode.LINE,
-            app.treelune.core.ui.DisplayMode.CONDENSED, app.treelune.core.ui.DisplayMode.EXTENDED, app.treelune.core.ui.DisplayMode.SQUARE),
-        defaultMode = app.treelune.core.ui.DisplayMode.valueOf(DEFAULT_MODE),
+        defaultSize = DEFAULT_SIZE,
         defaultIcon = DEFAULT_ICON,
         suggestedIcons = SUGGESTED_ICONS
     )
@@ -193,7 +191,7 @@ object RoutineSettings {
         put(app.treelune.core.look.Looks.ICON, entity.iconName)
         entity.iconColor?.let { put(app.treelune.core.themes.IconColor.KEY, it) }
         entity.texture?.let { put(app.treelune.core.themes.Texture.KEY, it) }
-        put(app.treelune.core.look.Looks.DISPLAY_MODE, entity.displayMode)
+        put(app.treelune.core.look.Looks.TILE_SIZE, entity.tileSize)
         entity.providerId?.let { put(PROVIDER_ID, it) }
         entity.identityId?.let { put(IDENTITY_ID, it) }
         entity.group?.let { put("group", it) }

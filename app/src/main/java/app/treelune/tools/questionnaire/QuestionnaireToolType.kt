@@ -53,7 +53,8 @@ object QuestionnaireToolType : ToolTypeContract {
     override fun getUsage(context: Context): String = s(context).tool("usage")
     override fun getFamily() = app.treelune.core.tools.ToolFamily.PLAN
 
-    override fun getDefaultDisplayMode(): String = "LINE"
+    override fun getDefaultTileSize(): app.treelune.core.look.TileSize = app.treelune.core.look.TileSize.of(4, 1)
+    override fun getItemSpec(): app.treelune.core.look.ItemSpec? = app.treelune.core.look.ItemSpec.LINES
     override fun getDefaultShowFieldLabels(): Boolean = true
     override fun getDefaultIconName(): String = "clipboard-list"
     override fun getSuggestedIcons(): List<String> = listOf("clipboard-list", "list-checks", "message-circle-question-mark", "notebook-pen")

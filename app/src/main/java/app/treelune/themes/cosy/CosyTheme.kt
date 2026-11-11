@@ -108,7 +108,7 @@ import app.treelune.core.ui.ButtonType
 import app.treelune.core.ui.CardType
 import app.treelune.core.ui.ComponentState
 import app.treelune.core.ui.DialogType
-import app.treelune.core.ui.DisplayMode
+import app.treelune.core.look.TileSize
 import app.treelune.core.ui.Duration
 import app.treelune.core.ui.FeedbackType
 import app.treelune.core.ui.FieldInput
@@ -193,10 +193,10 @@ object CosyTheme : ThemeContract {
 
     /** The tile's padding round its content: less on a small tile, which has little room. */
     @Composable
-    override fun tileFrame(displayMode: DisplayMode): Dp = cosySize().dp(
-        when (displayMode) {
-            DisplayMode.ICON -> 6f
-            DisplayMode.MINIMAL -> 10f
+    override fun tileFrame(tileSize: TileSize): Dp = cosySize().dp(
+        when {
+            tileSize.isIcon -> 6f
+            tileSize == TileSize.of(2, 1) -> 10f
             else -> 14f
         }
     )
@@ -701,7 +701,7 @@ object CosyTheme : ThemeContract {
 
     @Composable
     override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
-        Tile(DisplayMode.CONDENSED, texture, onClick, onLongClick, content)
+        Tile(TileSize.of(2, 2), texture, onClick, onLongClick, content)
 
     /** A bubble of the accent, on its own small shadow, empty: something to read, not an alarm. */
     @Composable
@@ -753,12 +753,12 @@ object CosyTheme : ThemeContract {
     }
 
     @Composable
-    override fun ToolCardContainer(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
-        Tile(displayMode, texture, onClick, onLongClick, content)
+    override fun ToolCardContainer(tileSize: TileSize, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+        Tile(tileSize, texture, onClick, onLongClick, content)
 
     /** A tile filling the cells the grid gives it, on its shadow, its motif on its face; its content padded in. */
     @Composable
-    private fun Tile(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
+    private fun Tile(tileSize: TileSize, texture: app.treelune.core.themes.ItemTexture?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
         val size = cosySize()
         val c = cosyColors
         val brush = app.treelune.core.themes.rememberTextureBrush(texture, c.tile.srgb, textureStyle())
@@ -767,7 +767,7 @@ object CosyTheme : ThemeContract {
                 modifier = Modifier.fillMaxSize(),
                 shape = RoundedCornerShape(size.tileRadius), fill = c.tile.srgb, shadow = c.shadow.srgb,
                 depth = if (LocalCosyLifted.current) size.tileDepth * 2 else size.tileDepth,
-                pressed = pressed, padding = tileFrame(displayMode), contentModifier = Modifier.fillMaxSize(), texture = brush
+                pressed = pressed, padding = tileFrame(tileSize), contentModifier = Modifier.fillMaxSize(), texture = brush
             ) {
                 CompositionLocalProvider(LocalCosyLayer provides CosyLayer.TILE) { content() }
             }

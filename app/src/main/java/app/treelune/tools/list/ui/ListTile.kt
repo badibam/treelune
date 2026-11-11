@@ -43,9 +43,9 @@ import org.json.JSONObject
  * A list's tile, its boxes checked and its items added without opening the tool. The summary
  * counts the items left unchecked ("3 restants"), or the late ones in a list with due dates
  * ("2 en retard"), beside a button adding one; the body shows the unchecked items, the late
- * ones first and the others in their order, on two columns, each with its box: four per row of
- * cells, an item having room for two lines, or eight on one line each in a list of short items;
- * all of them in FULL. The checked ones stay in the tool.
+ * ones first and the others in their order, each with its box, its name and its fields on the
+ * lines its tile gives it, by halves by default (TileItem, ItemSpec); all of them when it follows
+ * its content. The checked ones stay in the tool.
  */
 @Composable
 fun rememberListTile(tool: ToolInstance): ToolTile {
@@ -58,9 +58,6 @@ fun rememberListTile(tool: ToolInstance): ToolTile {
         ToolConfigSettings.read(ListToolType, JSONObject(tool.config_json), context).boolean(ListToolType.REMOVE_WHEN_CHECKED)
     }
     val dueDates = remember(tool.config_json) { ListToolType.hasDueDates(JSONObject(tool.config_json)) }
-    val shortItems = remember(tool.config_json) {
-        ToolConfigSettings.read(ListToolType, JSONObject(tool.config_json), context).boolean(ListToolType.SHORT_ITEMS)
-    }
 
     val fields = remember(tool.config_json) { JSONObject(tool.config_json).optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList() }
 
@@ -100,7 +97,7 @@ fun rememberListTile(tool: ToolInstance): ToolTile {
         )
     }
 
-    return remember(tool.id, removeWhenChecked, dueDates, shortItems) {
+    return remember(tool.id, removeWhenChecked, dueDates) {
         object : ToolTile {
             @Composable
             override fun Summary() {
@@ -131,16 +128,16 @@ fun rememberListTile(tool: ToolInstance): ToolTile {
             }
 
             @Composable
-            override fun Body(rows: Int?) {
+            override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val loaded = items ?: return
                 val now = System.currentTimeMillis()
                 // The late ones first, each part keeping the list's order: a stable sort
                 val left = ListItems.shown(loaded).filterNot { it.isChecked }.sortedBy { if (DueNotice.isLate(it, now)) 0 else 1 }
-                TileGrid(rows, left, columns = 2, perRow = if (shortItems) 4 else 2) { item ->
-                    TileLine(
+                TileGrid(room, left) { item ->
+                    app.treelune.core.ui.components.TileItem(
                         item.name,
-                        leading = { UI.Checkbox(checked = item.isChecked, onCheckedChange = { checked -> check(item, checked) }) },
-                        maxLines = if (shortItems) 1 else 2
+                        fields = app.treelune.core.ui.components.tileItemFields(ListToolType, org.json.JSONObject(tool.config_json), item.extra, context),
+                        leading = { UI.Checkbox(checked = item.isChecked, onCheckedChange = { checked -> check(item, checked) }) }
                     )
                 }
             }

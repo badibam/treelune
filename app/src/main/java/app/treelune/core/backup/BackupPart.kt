@@ -80,8 +80,8 @@ object BackupPart {
     /** The metadata's mark of a part: true, absent from a whole backup. */
     const val PARTIAL = "partial"
 
-    /** The tile of a zone kept without its details: the zones' default (Zone.display_mode). */
-    private const val HOLDER_DISPLAY_MODE = "LINE"
+    /** The tile of a zone kept without its details: the zones' default (Zone.tile_size). */
+    private const val HOLDER_TILE_SIZE = "4x1"
 
     /** Whether the backup [document] is a part. */
     fun isPartial(document: JSONObject): Boolean =
@@ -154,7 +154,7 @@ object BackupPart {
                     put("icon_name", JSONObject.NULL)
                     put("icon_color", JSONObject.NULL)
                     put("texture", JSONObject.NULL)
-                    put("display_mode", HOLDER_DISPLAY_MODE)
+                    put("tile_size", HOLDER_TILE_SIZE)
                     put("validate", false)
                     put("identity_id", JSONObject.NULL)
                     put("readout_columns", JSONObject.NULL)

@@ -20,7 +20,6 @@ import app.treelune.core.scheduling.SchedulersHeld
 import app.treelune.core.services.BackupService
 import app.treelune.core.tools.ToolConfigSettings
 import app.treelune.core.tools.ToolTypeManager
-import app.treelune.core.ui.DisplayMode
 import app.treelune.core.utils.JsonUtils
 import app.treelune.core.utils.LogManager
 import app.treelune.core.variables.Formula
@@ -170,7 +169,7 @@ class PartImport(private val context: Context) {
         newZones.forEach { zone ->
             run("zones.create", JSONObject().apply {
                 put("id", zone.getString("id"))
-                listOf("name", "description", "icon_name", "icon_color", "texture", "display_mode", "group", "readout_columns").forEach { key ->
+                listOf("name", "description", "icon_name", "icon_color", "texture", "tile_size", "group", "readout_columns").forEach { key ->
                     if (zone.has(key) && !zone.isNull(key)) put(key, zone.get(key))
                 }
                 put("validate", zone.optBoolean("validate", false))
@@ -278,7 +277,7 @@ class PartImport(private val context: Context) {
                     .put("zone_id", zone)
                     .put("name", names.getValue(element.getString("id")))
                     .apply {
-                        listOf("label", "description", "group", "icon_name", "icon_color", "texture", "display_mode").forEach { key ->
+                        listOf("label", "description", "group", "icon_name", "icon_color", "texture", "tile_size").forEach { key ->
                             element.optString(key).takeIf { it.isNotEmpty() }?.let { put(key, it) }
                         }
                     }
@@ -332,17 +331,17 @@ class PartImport(private val context: Context) {
 
         // The tools, the variables, the routines, the Tasks and the readouts of a new zone at the places they
         // had, section by section; a row left empty by what does not come is closed as the grid closes them
-        val tiles = rows(data, "tool_instances").map { it to JSONObject(it.getString("config_json")).let { c -> c.optString("group") to c.getString("display_mode") } } +
-            rows(data, "variables").map { it to (it.optString("group") to it.getString("display_mode")) } +
-            rows(data, "routines").map { it to (it.optString("group") to it.getString("display_mode")) } +
+        val tiles = rows(data, "tool_instances").map { it to JSONObject(it.getString("config_json")).let { c -> c.optString("group") to c.getString("tile_size") } } +
+            rows(data, "variables").map { it to (it.optString("group") to it.getString("tile_size")) } +
+            rows(data, "routines").map { it to (it.optString("group") to it.getString("tile_size")) } +
             // A Task's row holds no group as null, which optString would read as "null"
-            rows(data, "tasks").map { it to ((if (it.isNull("group")) "" else it.getString("group")) to it.getString("display_mode")) } +
-            rows(data, "readouts").map { it to ((if (it.isNull("group")) "" else it.getString("group")) to it.getString("display_mode")) }
+            rows(data, "tasks").map { it to ((if (it.isNull("group")) "" else it.getString("group")) to it.getString("tile_size")) } +
+            rows(data, "readouts").map { it to ((if (it.isNull("group")) "" else it.getString("group")) to it.getString("tile_size")) }
         tiles.filter { (item, _) -> item.getString("zone_id") !in existing }
             .groupBy({ (item, look) -> item.getString("zone_id") to look.first.takeIf { it.isNotEmpty() } }, { (item, look) -> item to look.second })
             .forEach { (section, items) ->
                 val placed = Grid.closeEmptyRows(items.map { (item, mode) ->
-                    val size = Grid.size(DisplayMode.valueOf(mode))
+                    val size = app.treelune.core.look.TileSize.ofStored(mode).cells
                     Grid.Tile(item.getString("id"), item.getInt("grid_x"), item.getInt("grid_y"), size.width, size.height)
                 })
                 run("zones.place_section", JSONObject()
@@ -536,7 +535,7 @@ class PartImport(private val context: Context) {
         val sections = newZones.groupBy { ZonePositions.section(it.optString("group").takeIf { g -> g.isNotEmpty() }, groups) }.map { (section, arriving) ->
             val there = stored.filter { it.id !in newIds && ZonePositions.section(it.group, groups) == section }.map { ZonePositions.tile(it) }
             val block = arriving.map { zone ->
-                val size = Grid.size(DisplayMode.valueOf(zone.getString("display_mode")))
+                val size = app.treelune.core.look.TileSize.ofStored(zone.getString("tile_size")).cells
                 Grid.Tile(zone.getString("id"), zone.getInt("grid_x"), zone.getInt("grid_y"), size.width, size.height)
             }
             val places = JSONObject()

@@ -1,7 +1,6 @@
 package app.treelune.core.variables
 
 import app.treelune.core.look.LookSpec
-import app.treelune.core.ui.DisplayMode
 
 /**
  * A variable's look (Looks): its label, the name its tile shows (`name` being the one formulas
@@ -19,8 +18,7 @@ object VariableLook {
         nameKey = "label",
         nameLabel = "variable_label_label",
         schemaPrefix = "variable_schema_",
-        modes = app.treelune.core.grid.ZonePositions.MODES,
-        defaultMode = DisplayMode.LINE,
+        defaultSize = app.treelune.core.look.TileSize.of(4, 1),
         defaultIcon = DEFAULT_ICON,
         suggestedIcons = SUGGESTED_ICONS
     )

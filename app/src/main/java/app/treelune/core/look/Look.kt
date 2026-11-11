@@ -9,13 +9,12 @@ import app.treelune.core.fields.settings.SettingNode
 import app.treelune.core.icons.Icons
 import app.treelune.core.themes.IconColor
 import app.treelune.core.themes.Texture
-import app.treelune.core.ui.DisplayMode
 import org.json.JSONObject
 
 /**
  * How a thing of the app shows itself on its tile and its page (docs/BRICKS.md, « Look »): a
  * zone, a tool, a variable. Its name, a description, an icon, the icon's colour, a texture, and
- * the display mode its tile takes in its grid. Each owner keeps it where it keeps the rest — a
+ * the size its tile takes in its grid (TileSize). Each owner keeps it where it keeps the rest — a
  * zone and a variable in their columns, a tool in its config — under the same keys, read and
  * checked here.
  */
@@ -25,7 +24,7 @@ data class Look(
     val iconName: String?,
     val iconColor: String?,
     val texture: String?,
-    val displayMode: DisplayMode
+    val tileSize: TileSize
 )
 
 /**
@@ -36,9 +35,8 @@ data class Look(
  * @property nameLabel The shared string that names the name in a form
  * @property schemaPrefix The shared strings that tell the AI each setting: `<prefix>name`,
  *   `<prefix>description`, `<prefix>icon_name`, `<prefix>icon_color`, `<prefix>texture`,
- *   `<prefix>display_mode`
- * @property modes The display modes its tile may take, from the smallest
- * @property defaultMode The mode a new one takes
+ *   `<prefix>tile_size`
+ * @property defaultSize The size a new one's tile takes; every size is open to every owner
  * @property defaultIcon The icon a new one takes, and the one it shows without its own; null when
  *   an icon is optional, the tile its name alone without one
  * @property suggestedIcons Where the icon picker starts
@@ -47,8 +45,7 @@ data class LookSpec(
     val nameKey: String,
     val nameLabel: String,
     val schemaPrefix: String,
-    val modes: List<DisplayMode>,
-    val defaultMode: DisplayMode,
+    val defaultSize: TileSize,
     val defaultIcon: String?,
     val suggestedIcons: List<String>
 )
@@ -58,10 +55,17 @@ object Looks {
 
     const val DESCRIPTION = "description"
     const val ICON = "icon_name"
-    const val DISPLAY_MODE = "display_mode"
+    const val TILE_SIZE = "tile_size"
 
     /** The keys a look of [spec] is kept under, beside the owner's other settings. */
-    fun keys(spec: LookSpec): List<String> = listOf(spec.nameKey, DESCRIPTION, ICON, IconColor.KEY, Texture.KEY, DISPLAY_MODE)
+    fun keys(spec: LookSpec): List<String> = listOf(spec.nameKey, DESCRIPTION, ICON, IconColor.KEY, Texture.KEY, TILE_SIZE)
+
+    /** [size] in words, as the size's choice shows it: « Icon », « 2 × 3 », « 4 × as tall as its content ». */
+    fun sizeLabel(size: TileSize, text: (String) -> String): String = when {
+        size.isIcon -> text("tile_size_icon")
+        size.followsContent -> text("tile_size_content")
+        else -> text("tile_size_cells").format(size.width, size.height)
+    }
 
     /**
      * The look's settings, declared with the fields: the form and the AI's schema are generated
@@ -71,16 +75,16 @@ object Looks {
     fun nodes(spec: LookSpec, text: (String) -> String): List<SettingNode> {
         fun field(name: String, label: String, type: FieldType, config: Map<String, Any>, required: Boolean = false, default: Any? = null) =
             SettingNode.Field(FieldDefinition(name, label, text("${spec.schemaPrefix}$name"), type, false, config), required = required, default = default)
-        val modes = spec.modes.map { it.name }
+        val sizes = TileSize.ALL.map { it.stored }
         return listOf(
             field(spec.nameKey, text(spec.nameLabel), FieldType.TEXT, mapOf("length" to TextLength.SHORT.name), required = true),
             field(DESCRIPTION, text("label_description"), FieldType.TEXT, mapOf("length" to TextLength.MEDIUM.name)),
             field(ICON, text("label_icon"), FieldType.TEXT, mapOf("length" to TextLength.SHORT.name), default = spec.defaultIcon),
             field(IconColor.KEY, text("label_icon_color"), FieldType.CHOICE, mapOf("options" to IconColor.options(text))),
             field(Texture.KEY, text("label_texture"), FieldType.CHOICE, mapOf("options" to Texture.options(text))),
-            field(DISPLAY_MODE, text("tools_config_label_display_mode"), FieldType.CHOICE,
-                mapOf("options" to ChoiceSettings.storedOptions(modes, modes.associateWith { text("tools_config_display_${it.lowercase()}") })),
-                default = spec.defaultMode.name)
+            field(TILE_SIZE, text("tools_config_label_tile_size"), FieldType.CHOICE,
+                mapOf("options" to ChoiceSettings.storedOptions(sizes, TileSize.ALL.associate { it.stored to sizeLabel(it, text) })),
+                default = spec.defaultSize.stored)
         )
     }
 
@@ -91,7 +95,7 @@ object Looks {
         iconName = values.text(ICON) ?: spec.defaultIcon,
         iconColor = values.text(IconColor.KEY),
         texture = values.text(Texture.KEY),
-        displayMode = values.text(DISPLAY_MODE)?.let { DisplayMode.valueOf(it) } ?: spec.defaultMode
+        tileSize = values.text(TILE_SIZE)?.let { requireNotNull(TileSize.parse(it)) { "No tile size '$it'" } } ?: spec.defaultSize
     )
 
     /** What checking a look comes to: kept, its icon maybe stored under its current name, or refused. */
@@ -109,7 +113,7 @@ object Looks {
      * icon, a colour or a texture given as null or blank is taken out (how a write empties it); an
      * icon is a Lucide name, a former one stored under the name it became, one that names no
      * icon refused; a colour and a texture are of their names; a texture ICON needs an icon to
-     * repeat, the owner's or its default; the mode is one [spec] allows.
+     * repeat, the owner's or its default; the size is one of TileSize's.
      *
      * Only an icon that changes from [before]'s is checked: a thing saved again with the icon it
      * already had stays savable.
@@ -128,9 +132,9 @@ object Looks {
         val color = values.text(IconColor.KEY)
         if (!IconColor.accepts(color)) return Checked.Refused(s.shared("service_error_icon_color_unknown").format(color, IconColor.NAMES.joinToString(", ")))
         Texture.refusal(values.text(Texture.KEY), values.text(ICON) ?: spec.defaultIcon.orEmpty(), s::shared)?.let { return Checked.Refused(it) }
-        values.text(DISPLAY_MODE)?.let { mode ->
-            if (spec.modes.none { it.name == mode }) {
-                return Checked.Refused(s.shared("look_error_display_mode").format(mode, spec.modes.joinToString(", ") { it.name }))
+        values.text(TILE_SIZE)?.let { size ->
+            if (TileSize.parse(size) == null) {
+                return Checked.Refused(s.shared("look_error_tile_size").format(size, TileSize.ALL.joinToString(", ") { it.stored }))
             }
         }
         return kept

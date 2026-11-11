@@ -851,7 +851,7 @@
 
     <!-- Tools CONFIG - Strings shared by the tooltypes for configuration -->
     <string name="tools_config_label_name">Name</string>
-    <string name="tools_config_label_display_mode">Display mode</string>
+    <string name="tools_config_label_tile_size">Size</string>
     <string name="tools_config_label_icon">Icon</string>
 
     <!-- Base schemas - Config -->
@@ -875,14 +875,23 @@
     <string name="tools_config_error_tooltype_not_found">Tool type not found</string>
     <string name="tools_config_error_save">Error while saving</string>
     
-    <!-- Tools CONFIG - Display mode options -->
-    <string name="tools_config_display_icon">Icon</string>
-    <string name="tools_config_display_minimal">Minimal</string>
-    <string name="tools_config_display_line">Line</string>
-    <string name="tools_config_display_condensed">Condensed</string>
-    <string name="tools_config_display_extended">Extended</string>
-    <string name="tools_config_display_square">Square</string>
-    <string name="tools_config_display_full">Full</string>
+    <!-- Tools CONFIG - Tile size options -->
+    <string name="tile_size_icon">Icon</string>
+    <string name="tile_size_cells">%1$d × %2$d</string>
+    <string name="tile_size_content">4 × as tall as its content</string>
+    <string name="tile_more">+%1$d</string>
+    <string name="tile_width_label">Width</string>
+    <string name="tile_width_icon">Icon</string>
+    <string name="tile_width_half">Half</string>
+    <string name="tile_width_full">Whole</string>
+    <string name="tile_height_label">Height</string>
+    <string name="tile_height_content">As tall as its content</string>
+    <string name="tools_config_label_item_width">Elements</string>
+    <string name="item_width_halves">By halves</string>
+    <string name="item_width_full">Whole width</string>
+    <string name="tools_config_label_item_lines">Lines per element</string>
+    <string name="tools_base_schema_config_item_width">How wide each element its tile lists is: `halves` (two side by side in a tile 4 wide, one in a tile 2 wide) or `full` (the whole width)</string>
+    <string name="tools_base_schema_config_item_lines">How many lines of text each element its tile lists has, 1 to 10: more lines show more of each, fewer show more of them</string>
     
     <!-- Tools CONFIG - Icon dialog -->
     <string name="tools_config_dialog_choose_icon">Choose an icon</string>
@@ -903,7 +912,7 @@
     <!-- Tools BASE SCHEMA CONFIG - Shared descriptions for configuration validation -->
     <string name="tools_base_schema_config_name">Name of the tool, shown in its zone</string>
     <string name="tools_base_schema_config_description">Optional description of what the tool is for</string>
-    <string name="tools_base_schema_config_display_mode">How the tool is drawn in its zone, from the smallest (ICON) to the largest (FULL)</string>
+    <string name="tools_base_schema_config_tile_size">The size of the tool\'s tile in its zone: `icon` (one cell), `2x1` to `2x10` (half the width, 1 to 10 rows high), `4x1` to `4x10` (the whole width), or `4xcontent` (the whole width, as tall as what it shows); its name takes the first row, the rest under it 2 wide or beside it 4 wide, then what the tile lists</string>
     <string name="tools_base_schema_config_icon_name">Name of the tool\'s icon (a Lucide icon name)</string>
     <string name="tools_base_schema_config_icon_color">Colour of the tool\'s icon, one of RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK; null or absent for a neutral icon. Each theme draws it its own way</string>
     <string name="tools_base_schema_config_always_send">Always send the data to the AI (Level 2)</string>
@@ -1536,14 +1545,14 @@
     <string name="reading_failure_source_not_found">what is read no longer exists</string>
     <string name="action_verbalize_readings_read">Reading a value from entries</string>
     <string name="variable_error_param">A variable needs "%1$s".</string>
-    <string name="look_error_display_mode">This tile shows as %2$s, not “%1$s”.</string>
+    <string name="look_error_tile_size">No tile is “%1$s”: a tile is %2$s.</string>
     <string name="variable_label_label">Label</string>
     <string name="variable_schema_label">What the variable\'s tile and page show, free text (“Calories left”); required, never made from its name, which formulas write</string>
     <string name="variable_schema_description">Optional description of what the variable is for, shown on its page</string>
     <string name="variable_schema_icon_name">Name of the variable\'s icon (a Lucide icon name); variable when left out</string>
     <string name="variable_schema_icon_color">Colour of the variable\'s icon, one of RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK; null or absent for a neutral icon. Each theme draws it its own way</string>
     <string name="variable_schema_texture">Motif laid on the variable\'s tile, one of LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON (ICON repeats the variable\'s icon); null or absent for none. A matter of taste: set it when the person asks</string>
-    <string name="variable_schema_display_mode">How the variable\'s tile shows among its section\'s tools: ICON (its icon), MINIMAL (icon and label), LINE (its value beside), CONDENSED (its value below); LINE when left out</string>
+    <string name="variable_schema_tile_size">The size of the variable\'s tile among its section\'s tools: `icon` (one cell), `2x1` to `2x10` (half the width, 1 to 10 rows high), `4x1` to `4x10` (the whole width), or `4xcontent` (the whole width, as tall as what it shows); its name takes the first row, the rest under it 2 wide or beside it 4 wide, then what the tile lists; `4x1` (its value beside its name) when left out</string>
     <string name="variable_error_not_found">No variable with the id %1$s.</string>
     <string name="variable_error_name">"%1$s" cannot be a name in a formula: a letter or _, then letters, digits or _.</string>
     <string name="variable_error_name_taken">A variable is already named %1$s: names are unique in the app.</string>
@@ -1924,7 +1933,7 @@
     <string name="routine_schema_icon_name">Name of the routine\'s icon (a Lucide icon name); bot when left out</string>
     <string name="routine_schema_icon_color">Colour of the routine\'s icon, one of RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK; null or absent for a neutral icon. Each theme draws it its own way</string>
     <string name="routine_schema_texture">Motif laid on the routine\'s tile, one of LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON (ICON repeats the routine\'s icon); null or absent for none. A matter of taste: set it when the person asks</string>
-    <string name="routine_schema_display_mode">How the routine\'s tile shows among its section\'s tools: ICON (its icon), MINIMAL (icon and name), LINE and CONDENSED (its state and its switch beside or below), EXTENDED (with its buttons, the default), SQUARE (with its last runs)</string>
+    <string name="routine_schema_tile_size">The size of the routine\'s tile among its section\'s tools: `icon` (one cell), `2x1` to `2x10` (half the width, 1 to 10 rows high), `4x1` to `4x10` (the whole width), or `4xcontent` (the whole width, as tall as what it shows); its name takes the first row, the rest under it 2 wide or beside it 4 wide, then what the tile lists: its last runs; `4x2` (its state, its switch and its buttons) when left out</string>
     <string name="routine_display_name">Routine</string>
     <string name="routine_runs_display_name">Runs of a routine</string>
     <string name="routine_message_placeholder">Start message of the routine...</string>
@@ -2235,7 +2244,7 @@
     <string name="readout_columns_one">One column</string>
     <string name="readout_columns_two">Two columns</string>
     <string name="zone_schema_validate">The AI of the conversation and of the connector asks for your approval before creating, changing or deleting a tool of this zone, its tool groups, its routines or its variables. Changed in the app alone. A routine never asks.</string>
-    <string name="zone_schema_display_mode">How the zone shows on the main screen: ICON (its icon), MINIMAL (icon and name), LINE (with its description beside), CONDENSED (its description below); it gives the cells the zone takes</string>
+    <string name="zone_schema_tile_size">The size of the zone\'s tile on the main screen, the cells it takes: `icon` (one cell), `2x1` to `2x10` (half the width, 1 to 10 rows high), `4x1` to `4x10` (the whole width), or `4xcontent` (the whole width, as tall as what it shows); its name takes the first row, the rest under it 2 wide or beside it 4 wide, then what the tile lists</string>
     <string name="zone_schema_icon_color">Colour of the zone\'s icon, one of RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK; null or absent for a neutral icon. A zone\'s tools do not take it</string>
     <string name="zone_schema_group">Organisation group of the zone</string>
 
@@ -2920,7 +2929,7 @@
     <string name="task_schema_icon_name">Name of the Task\'s icon (a Lucide icon name); list-ordered when left out</string>
     <string name="task_schema_icon_color">Colour of the Task\'s icon, one of RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK; null or absent for a neutral icon</string>
     <string name="task_schema_texture">Motif laid on the Task\'s tile, one of LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON; null or absent for none</string>
-    <string name="task_schema_display_mode">How the Task\'s tile shows among its section\'s tools: ICON, MINIMAL, LINE and CONDENSED (its state and its switch), EXTENDED (with its buttons, the default), SQUARE (with its last runs)</string>
+    <string name="task_schema_tile_size">The size of the Task\'s tile among its section\'s tools: `icon` (one cell), `2x1` to `2x10` (half the width, 1 to 10 rows high), `4x1` to `4x10` (the whole width), or `4xcontent` (the whole width, as tall as what it shows); its name takes the first row, the rest under it 2 wide or beside it 4 wide, then what the tile lists: its last runs; `4x2` (its state, its switch and its buttons) when left out</string>
     <string name="task_schema_group">One of the tool groups of its zone, where its tile stands</string>
     <string name="task_schema_is_enabled">Whether its schedule runs it</string>
     <string name="task_schema_notify_end">When the end of a run is notified: always, on a problem only, or never</string>
@@ -3202,7 +3211,7 @@
     <string name="piece_zone_screen">- Its tile on the home screen opens it; a long touch opens its config\n- {plus} On a section of the zone: creates a tool, a variable, a routine or a Task in it\n- At its top, its identity when it has one: its button opens a conversation with it</string>
     <string name="piece_tool_name">Tool</string>
     <string name="piece_tool_usage">Records the entries of one tool type and shows them; its type says what it is for and what its buttons do.</string>
-    <string name="piece_tool_screen">- Its tile in its zone\'s section, from Icon to Full by its display mode: the larger ones carry its type\'s buttons\n- A touch opens its screen; a long touch opens its config</string>
+    <string name="piece_tool_screen">- Its tile in its zone\'s section, at the size chosen for it, from one cell to the whole width: the larger ones carry its type\'s buttons\n- A touch opens its screen; a long touch opens its config</string>
     <string name="piece_routine_name">Routine</string>
     <string name="piece_routine_usage">A message for the AI, prepared once and used again at will. An AI works on it alone (when you start it, on a schedule, or on a trigger: an entry written in a tool, an event emitted, a condition become true) and you read its result later; or you open a conversation that starts from it, to think a recurring subject through together, such as a weekly review.</string>
     <string name="piece_routine_screen">- {play} Runs it now, the AI alone\n- {message-circle} Opens a conversation with its message, sent as it is or changed first\n- {eye} Its page: each run, what the AI read, did and answered\n- A switch turns its schedule and triggers on or off\n- A notification when a run ends, if its config asks for it</string>
@@ -3240,7 +3249,7 @@
     <string name="readout_schema_icon_name">Name of the readout\'s icon (a Lucide icon name); gauge when left out</string>
     <string name="readout_schema_icon_color">Colour of the readout\'s icon, one of RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK; null or absent for a neutral icon</string>
     <string name="readout_schema_texture">Motif laid on the readout\'s own tile, one of LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON; null or absent for none</string>
-    <string name="readout_schema_display_mode">How the readout\'s own tile shows among its section\'s tools: ICON and MINIMAL (its icon, to keep it small), LINE (its sentence beside its name, the default), CONDENSED (its sentence under it)</string>
+    <string name="readout_schema_tile_size">The size of the readout\'s own tile among its section\'s tools: `icon` (one cell), `2x1` to `2x10` (half the width, 1 to 10 rows high), `4x1` to `4x10` (the whole width), or `4xcontent` (the whole width, as tall as what it shows); its name takes the first row, the rest under it 2 wide or beside it 4 wide, then what the tile lists; `4x1` (its sentence beside its name) when left out</string>
     <string name="readout_schema_group">One of the tool groups of its zone, where its own tile stands</string>
     <string name="readout_text">Sentence</string>
     <string name="readout_schema_text">Optional: the long form, shown where room is (the head of a group, of a zone, of the home screen), placing its core with {}: \"Water: {}\", \"Still {} glasses today\"; without it, its core shows everywhere</string>

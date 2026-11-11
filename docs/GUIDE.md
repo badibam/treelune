@@ -108,7 +108,7 @@ The content of tutorials 2 to 4 is written at their building: it names screens t
 
 One chapter per subject, read in any order one wants, tutorial optional:
 
-- **Configure a tool**, at the head of Getting started, as a tutorial, without an AI: the configuration opened by a long press, the icon, its colour and the display mode, an extra field filled in an entry, what the validation and "Always send" change for the AI, then the export of its entries as CSV.
+- **Configure a tool**, at the head of Getting started, as a tutorial, without an AI: the configuration opened by a long press, the icon, its colour and the tile size, an extra field filled in an entry, what the validation and "Always send" change for the AI, then the export of its entries as CSV.
 
 - Organize: groups of zones on the home screen, groups of tools in a zone, the layout of the tiles — the same gesture at two levels, in a single chapter.
 - The tools, in their own part after Getting started, which is also the glance at the tools: each line gives the type's `tagline` under its name, and the part has for subtitle the advice to look at what the right tool provides before assembling several of them. One chapter per type, provided by the tool type in its folder (`tools/<type>/`), beside its texts, and discovered as the tool is; a new tool arrives with its chapter. Its text is the type's `usage` (what it is for, what it already does, not for), the same the AI reads.

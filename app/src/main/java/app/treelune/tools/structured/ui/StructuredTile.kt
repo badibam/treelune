@@ -33,13 +33,13 @@ import app.treelune.core.utils.LogManager
 /** How many sheets a FULL tile shows. */
 private const val FULL_SHEETS = 10
 
-/** A sheet as the tile shows it. */
-private data class TileSheet(val id: String, val name: String, val updatedAt: Long)
+/** A sheet as the tile shows it: its name and its user's fields. */
+private data class TileSheet(val id: String, val name: String, val updatedAt: Long, val extra: Map<String, Any?>)
 
 /**
  * A Records tool's tile. The summary is how many records it holds and a button that opens the
- * tool on a new sheet; the body the sheets last changed, one per line, their name alone, ten in
- * FULL. Touching a sheet opens it.
+ * tool on a new sheet; the body the sheets last changed, each its name, then its user's fields on
+ * the lines its tile gives it (TileItem), ten when it follows its content. Touching a sheet opens it.
  */
 @Composable
 fun rememberStructuredTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile {
@@ -50,13 +50,14 @@ fun rememberStructuredTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): Too
     var version by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(tool.id, version) {
-        val result = coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to tool.id, "fields" to listOf("id", "name", "updated_at")))
+        val result = coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to tool.id, "fields" to listOf("id", "name", "updated_at") + app.treelune.core.ui.components.tileItemFieldPaths(org.json.JSONObject(tool.config_json))))
         if (!result.isSuccess) {
             LogManager.ui("Structured tile ${tool.id}: sheets not read: ${result.error}", "ERROR")
             return@LaunchedEffect
         }
         sheets = (result.data?.get("entries") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
-            .map { TileSheet(it["id"] as String, it["name"] as? String ?: "", (it["updated_at"] as Number).toLong()) }
+            .map { TileSheet(it["id"] as String, it["name"] as? String ?: "", (it["updated_at"] as Number).toLong(),
+                (it["extra"] as? Map<*, *>)?.entries?.associate { e -> e.key.toString() to e.value }.orEmpty()) }
             .sortedByDescending { it.updatedAt }
     }
     LaunchedEffect(tool.id) {
@@ -82,10 +83,11 @@ fun rememberStructuredTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): Too
             }
 
             @Composable
-            override fun Body(rows: Int?) {
+            override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val loaded = sheets ?: return
-                TileGrid(rows, if (rows == null) loaded.take(FULL_SHEETS) else loaded, columns = 1) { sheet ->
-                    TileLine(sheet.name, modifier = Modifier.clickable { open(EntryToOpen.Existing(sheet.id)) })
+                TileGrid(room, if (room.rows == null) loaded.take(FULL_SHEETS) else loaded) { sheet ->
+                    app.treelune.core.ui.components.TileItem(sheet.name, modifier = Modifier.clickable { open(EntryToOpen.Existing(sheet.id)) },
+                        fields = app.treelune.core.ui.components.tileItemFields(app.treelune.tools.structured.StructuredToolType, org.json.JSONObject(tool.config_json), sheet.extra, context))
                 }
             }
         }

@@ -61,7 +61,7 @@ data class Routine(
     val opensAsConversation: Boolean get() = usage != RoutineSettings.USAGE_ALONE
 
     val tile: app.treelune.core.grid.Grid.Tile
-        get() = app.treelune.core.grid.Grid.size(look.displayMode).let { app.treelune.core.grid.Grid.Tile(id, gridX, gridY, it.width, it.height) }
+        get() = look.tileSize.cells.let { app.treelune.core.grid.Grid.Tile(id, gridX, gridY, it.width, it.height) }
 
     companion object {
         /**

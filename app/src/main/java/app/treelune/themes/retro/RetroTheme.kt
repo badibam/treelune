@@ -98,7 +98,7 @@ import app.treelune.core.ui.ButtonType
 import app.treelune.core.ui.CardType
 import app.treelune.core.ui.ComponentState
 import app.treelune.core.ui.DialogType
-import app.treelune.core.ui.DisplayMode
+import app.treelune.core.look.TileSize
 import app.treelune.core.ui.Duration
 import app.treelune.core.ui.FeedbackType
 import app.treelune.core.ui.FieldInput
@@ -205,7 +205,7 @@ object RetroTheme : ThemeContract {
 
     /** The frame's cell: the content of a tile starts one cell in. */
     @Composable
-    override fun tileFrame(displayMode: DisplayMode): Dp = retroGrid().cells(1)
+    override fun tileFrame(tileSize: TileSize): Dp = retroGrid().cells(1)
 
     /** Every space a whole number of cells: the three small ones and the page's edge one cell, then two, then three. */
     @Composable
@@ -774,7 +774,7 @@ object RetroTheme : ThemeContract {
     }
 
     @Composable
-    override fun ToolCardContainer(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+    override fun ToolCardContainer(tileSize: TileSize, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(texture, onClick, onLongClick, content)
 
     /** A tile: a frame filling the cells the grid gives it, its motif inside; its content a cell in from the frame's edge. */

@@ -4,7 +4,6 @@ import android.content.Context
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.database.entities.ToolInstance
 import app.treelune.core.database.entities.VariableEntity
-import app.treelune.core.ui.DisplayMode
 import org.json.JSONObject
 
 /**
@@ -28,20 +27,20 @@ data class SectionItem(
         fun of(tool: ToolInstance): SectionItem {
             val config = JSONObject(tool.config_json)
             return SectionItem(tool.id, Kind.TOOL, tool.zone_id, config.optString("group").takeIf { it.isNotEmpty() },
-                tool.grid_x, tool.grid_y, Grid.size(DisplayMode.valueOf(config.getString("display_mode"))))
+                tool.grid_x, tool.grid_y, app.treelune.core.look.TileSize.ofStored(config.getString("tile_size")).cells)
         }
 
         fun of(variable: VariableEntity): SectionItem = SectionItem(variable.id, Kind.VARIABLE, variable.zoneId, variable.group,
-            variable.gridX, variable.gridY, Grid.size(DisplayMode.valueOf(variable.displayMode)))
+            variable.gridX, variable.gridY, app.treelune.core.look.TileSize.ofStored(variable.tileSize).cells)
 
         fun of(routine: app.treelune.core.ai.database.RoutineEntity): SectionItem = SectionItem(routine.id, Kind.ROUTINE, routine.zoneId,
-            routine.group, routine.gridX, routine.gridY, Grid.size(DisplayMode.valueOf(routine.displayMode)))
+            routine.group, routine.gridX, routine.gridY, app.treelune.core.look.TileSize.ofStored(routine.tileSize).cells)
 
         fun of(task: app.treelune.core.tasks.TaskEntity): SectionItem = SectionItem(task.id, Kind.TASK, task.zoneId,
-            task.group, task.gridX, task.gridY, Grid.size(DisplayMode.valueOf(task.displayMode)))
+            task.group, task.gridX, task.gridY, app.treelune.core.look.TileSize.ofStored(task.tileSize).cells)
 
         fun of(readout: app.treelune.core.readouts.ReadoutEntity): SectionItem = SectionItem(readout.id, Kind.READOUT, readout.zoneId,
-            readout.group, readout.gridX, readout.gridY, Grid.size(DisplayMode.valueOf(readout.displayMode)))
+            readout.group, readout.gridX, readout.gridY, app.treelune.core.look.TileSize.ofStored(readout.tileSize).cells)
     }
 }
 

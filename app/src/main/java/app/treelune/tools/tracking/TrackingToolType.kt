@@ -46,7 +46,8 @@ object TrackingToolType : ToolTypeContract {
 
     override fun getFamily() = app.treelune.core.tools.ToolFamily.NOTE
 
-    override fun getDefaultDisplayMode(): String = "LINE"
+    override fun getDefaultTileSize(): app.treelune.core.look.TileSize = app.treelune.core.look.TileSize.of(4, 1)
+    override fun getItemSpec(): app.treelune.core.look.ItemSpec? = app.treelune.core.look.ItemSpec(listOf(app.treelune.core.look.ItemWidth.HALVES), app.treelune.core.look.ItemWidth.HALVES, 2..2, 2)
 
 
     override fun getDefaultShowFieldLabels(): Boolean = true

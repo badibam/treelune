@@ -115,7 +115,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             icon_name = look.iconName,
             icon_color = look.iconColor,
             texture = look.texture,
-            display_mode = look.displayMode.name,
+            tile_size = look.tileSize.stored,
             grid_x = 0,
             grid_y = 0,
             tool_groups = toolGroupsJson,
@@ -153,7 +153,7 @@ class ZoneService(private val context: Context) : ExecutableService {
         zone.icon_name?.let { put(Looks.ICON, it) }
         zone.icon_color?.let { put(IconColor.KEY, it) }
         zone.texture?.let { put(Texture.KEY, it) }
-        put(Looks.DISPLAY_MODE, zone.display_mode)
+        put(Looks.TILE_SIZE, zone.tile_size)
     }
 
     /** A zone's identity is one that exists, or none. */
@@ -185,7 +185,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             zone.texture?.let { put(Texture.KEY, it) }
             zone.group?.let { put("group", it) }
             zone.identity_id?.let { put("identity_id", it) }
-            put("display_mode", zone.display_mode)
+            put("tile_size", zone.tile_size)
             zone.tool_groups?.let { put("tool_groups", JsonUtils.toList(it)) }
             put("validate", zone.validate)
             put(ReadoutColumns.KEY, zone.readout_columns ?: ReadoutColumns.HOME)
@@ -358,7 +358,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             is Looks.Checked.Kept -> checked
         }
         // A mode given as null keeps the zone's
-        if (!lookValues.has(Looks.DISPLAY_MODE) || lookValues.isNull(Looks.DISPLAY_MODE)) lookValues.put(Looks.DISPLAY_MODE, existingZone.display_mode)
+        if (!lookValues.has(Looks.TILE_SIZE) || lookValues.isNull(Looks.TILE_SIZE)) lookValues.put(Looks.TILE_SIZE, existingZone.tile_size)
         val look = Looks.read(ZoneSettings.LOOK, lookValues)
         val validate = if (params.has("validate")) params.optBoolean("validate") else existingZone.validate
         app.treelune.core.coordinator.Protections.refusal(s.shared("label_zone_validate"), existingZone.validate, validate, s)?.let { return OperationResult.error(it) }
@@ -372,7 +372,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             icon_name = look.iconName,
             icon_color = look.iconColor,
             texture = look.texture,
-            display_mode = look.displayMode.name,
+            tile_size = look.tileSize.stored,
             tool_groups = toolGroupsJson,
             group = group,
             validate = validate,
@@ -493,7 +493,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             "icon_name" to zone.icon_name,
             IconColor.KEY to zone.icon_color,
             Texture.KEY to zone.texture,
-            "display_mode" to zone.display_mode,
+            "tile_size" to zone.tile_size,
             "validate" to zone.validate,
             ReadoutColumns.KEY to (zone.readout_columns ?: ReadoutColumns.HOME),
             "created_at" to zone.created_at,
@@ -533,7 +533,7 @@ class ZoneService(private val context: Context) : ExecutableService {
                 "icon_name" to zone.icon_name,
                 IconColor.KEY to zone.icon_color,
                 Texture.KEY to zone.texture,
-                "display_mode" to zone.display_mode,
+                "tile_size" to zone.tile_size,
                 "validate" to zone.validate,
                 ReadoutColumns.KEY to (zone.readout_columns ?: ReadoutColumns.HOME),
                 "created_at" to zone.created_at,

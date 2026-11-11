@@ -122,7 +122,7 @@ class ReadoutService(private val context: Context) : ExecutableService {
             is app.treelune.core.coordinator.GivenId.Read.Refused -> throw Refused(s.shared("service_error_id_not_given").format(given.id))
         }
         val now = System.currentTimeMillis()
-        val base = ReadoutEntity(id, zoneId, "", null, ReadoutSettings.DEFAULT_ICON, null, null, ReadoutSettings.LOOK.defaultMode.name,
+        val base = ReadoutEntity(id, zoneId, "", null, ReadoutSettings.DEFAULT_ICON, null, null, ReadoutSettings.LOOK.defaultSize.stored,
             null, 0, 0, "{}", now, now)
         val readout = checked(base, given(params, null), null)
         database.transaction {
@@ -176,7 +176,7 @@ class ReadoutService(private val context: Context) : ExecutableService {
     private suspend fun checked(readout: ReadoutEntity, sent: JSONObject, before: JSONObject?): ReadoutEntity {
         val settings = JsonNulls.withoutNullKeys(sent)
         if (!settings.has(Looks.ICON)) settings.put(Looks.ICON, ReadoutSettings.DEFAULT_ICON)
-        if (!settings.has(Looks.DISPLAY_MODE)) settings.put(Looks.DISPLAY_MODE, ReadoutSettings.LOOK.defaultMode.name)
+        if (!settings.has(Looks.TILE_SIZE)) settings.put(Looks.TILE_SIZE, ReadoutSettings.LOOK.defaultSize.stored)
         (Looks.check(ReadoutSettings.LOOK, settings, before, context) as? Looks.Checked.Refused)?.let { throw Refused(it.message) }
         val look = Looks.read(ReadoutSettings.LOOK, settings)
         val validation = SchemaValidator.validate(ReadoutSettings.schema(context), JsonUtils.toMap(settings), context)
@@ -201,7 +201,7 @@ class ReadoutService(private val context: Context) : ExecutableService {
             iconName = look.iconName!!,
             iconColor = look.iconColor,
             texture = look.texture,
-            displayMode = look.displayMode.name,
+            tileSize = look.tileSize.stored,
             group = group,
             settingsJson = body.toString()
         )

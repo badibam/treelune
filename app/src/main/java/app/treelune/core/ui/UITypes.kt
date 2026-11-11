@@ -109,23 +109,6 @@ enum class Duration {
 }
 
 // =====================================
-// DISPLAY MODES TOOL INSTANCES
-// =====================================
-
-/**
- * Display modes for tool instances
- */
-enum class DisplayMode {
-    ICON,       // 1/4×1/4 - icon only
-    MINIMAL,    // 1/2×1/4 - icon + title side by side
-    LINE,       // 1×1/4 - icon + title left, free content right
-    CONDENSED,  // 1/2×1/2 - icon + title top, free space below
-    EXTENDED,   // 1×1/2 - icon + title top, free zone below
-    SQUARE,     // 1×1 - icon + title top, large free zone
-    FULL        // 1×∞ - icon + title top, infinite free zone
-}
-
-// =====================================
 // INTEGRATED DIALOG SYSTEM
 // =====================================
 

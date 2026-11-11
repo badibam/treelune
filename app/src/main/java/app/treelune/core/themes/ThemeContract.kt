@@ -24,7 +24,7 @@ import app.treelune.core.ui.CardType
 import app.treelune.core.ui.Duration
 import app.treelune.core.ui.FeedbackType
 import app.treelune.core.ui.DialogType
-import app.treelune.core.ui.DisplayMode
+import app.treelune.core.look.TileSize
 import app.treelune.core.ui.FieldModifier
 
 /**
@@ -92,10 +92,10 @@ interface ThemeContract {
 
     /**
      * How far a tool's tile frame (ToolCardContainer) keeps its content from the edge of its
-     * cells, on each side, in [displayMode]: the space between tiles and the frame's own margin.
+     * cells, on each side, at [tileSize]: the space between tiles and the frame's own margin.
      */
     @Composable
-    fun tileFrame(displayMode: DisplayMode): Dp
+    fun tileFrame(tileSize: TileSize): Dp
 
     /**
      * The size of a named space (UI.Space). Composable, as a size in whole cells depends on the
@@ -440,7 +440,7 @@ interface ThemeContract {
      */
     @Composable
     fun ToolCardContainer(
-        displayMode: DisplayMode,
+        tileSize: TileSize,
         texture: ItemTexture?,
         /** The colour of the tool's icon (docs/reference.md, « Icons »), null for a neutral one: a theme may draw the tile in it. */
         color: TagColor?,

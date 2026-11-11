@@ -1,7 +1,6 @@
 package app.treelune.core.versioning
 
 import app.treelune.core.grid.Grid
-import app.treelune.core.ui.DisplayMode
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -39,11 +38,11 @@ object RoutinesAtV89 {
 
     /** The tile of zone [zoneId] in [group] at row [gridY], [mode] giving its height. */
     fun below(zoneId: String, group: String?, gridY: Int, mode: String): Below =
-        Below(zoneId, group?.takeIf { it.isNotEmpty() }, gridY + Grid.size(DisplayMode.valueOf(mode)).height)
+        Below(zoneId, group?.takeIf { it.isNotEmpty() }, gridY + app.treelune.core.look.TileSize.ofStored(app.treelune.core.look.TileSize.FORMER_MODES.getValue(mode)).cells.height)
 
     /** The row of each routine of [routines], by id: one under the other in the order made, from under [tiles] of its section. */
     fun placed(routines: List<Routine>, tiles: List<Below>): Map<String, Int> {
-        val height = Grid.size(DisplayMode.valueOf(MODE)).height
+        val height = app.treelune.core.look.TileSize.ofStored(app.treelune.core.look.TileSize.FORMER_MODES.getValue(MODE)).cells.height
         return routines.groupBy { it.zoneId to it.group }.flatMap { (section, list) ->
             val start = tiles.filter { (it.zoneId to it.group) == section }.maxOfOrNull { it.bottom } ?: 0
             list.sortedBy { it.createdAt }.mapIndexed { i, routine -> routine.id to start + i * height }
