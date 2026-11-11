@@ -32,6 +32,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- Les nouvelles d'une séance de Flashcards : « Nouvelle » sur la carte jamais vue, ratée puis revenue comprise, absent sur les autres ; la fin « 29 cartes revues et 5 nouvelles », « 5 nouvelles cartes » seules, « Revenir » après la fin qui suit ; une rotation en cours de séance qui garde la marque.
 - Une option d'un choix renommée dans la config d'un outil (sa valeur changée, « Calme » en « Serein ») : la confirmation sans valeur retirée, les entrées et l'historique sous le nouveau nom, le filtre d'un Graphique sur l'ancienne valeur qui suit ; une option retirée à côté, toujours comptée ; par l'IA, « renomme l'option … », le paramètre `renames`.
 - La notification d'un outil touchée, et sa tuile (un questionnaire, une séance prévue, une échéance de Liste, un Objectif à valider) : la page de l'outil, pas l'entrée ; le rappel de l'Agenda et la séance en cours, toujours sur leur entrée.
 - Un message touché sur la tuile de Messages : « Reçus » sous le filtre qui le contient (un lu, un non lu), sa carte amenée à l'écran et marquée, la marque partie en changeant de filtre.
@@ -110,7 +111,6 @@ Codé, jamais vu sur l'appareil.
 - L'outil Schéma, le schéma écrit : `docs/design/schema.md` (config JSON au vocabulaire de Mermaid, placement par ELK, largeur, tuile, écran), ses vérifications d'abord (« Ouvert »).
 - Le fournisseur « Abonnement Claude », `docs/design/github-worker.md` (Claude Code lancé sur GitHub Actions dans le dépôt de Réglages › GitHub, le jeton de l'abonnement jamais dans l'app), ses vérifications d'abord (« Ouvert », le point 2), sur `badibam/treelune-worker`.
 
-- Les nouvelles des Flashcards, qui passent inaperçues (signalé le 2026-11-11 : « pas de nouvelle aujourd'hui », alors que 5 sont passées après 29 révisions) : une carte jamais vue marquée « Nouvelle » pendant la séance, et la fin de séance qui compte les revues et les nouvelles.
 
 ## À concevoir
 
