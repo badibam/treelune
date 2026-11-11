@@ -269,7 +269,8 @@ class StepForEachTest {
 
         // Resumed once the service answers: the entry is not written twice
         answer = """{"words": []}"""
-        ok("tasks.resume", mapOf("run_id" to failed.id, "awaited" to true))
+        val resume = coordinator.processUserAction("tasks.resume", mapOf("run_id" to failed.id, "awaited" to true))
+        assertTrue(resume.error, resume.isSuccess)
         val resumed = AppDatabase.getDatabase(context).taskDao().getRun(failed.id)!!
         assertEquals(resumed.resultsJson, TaskRun.State.DONE.key, resumed.state)
         assertEquals(1, entries(notesId).size)
