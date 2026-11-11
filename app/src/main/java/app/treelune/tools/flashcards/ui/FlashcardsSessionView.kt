@@ -41,7 +41,7 @@ import org.json.JSONObject
 
 /**
  * A session under way (docs/TOOLS.md, « Flashcards », « La séance », « La face d'une carte »): the card's
- * front; touched, its back under a line, the front kept, and the four ratings under it. Each rating
+ * front, marked « New » for a card never reviewed before; touched, its back under a line, the front kept, and the four ratings under it. Each rating
  * is written at once (flashcards.review); undoing goes back to the card before, its back hidden, its
  * rating deleted. Leaving stops the session where it stands: a failed card not passed again stays due.
  *
@@ -114,7 +114,7 @@ fun FlashcardsSessionView(
         val known = fields
         when {
             state.session.over || shown == null -> {
-                UI.Text(s.tool(if (state.session.done == 1) "session_over_singular" else "session_over_plural").format(state.session.done), TextType.BODY)
+                UI.Text(overText(state, s), TextType.BODY)
                 ButtonRow {
                     UI.Button(type = ButtonType.PRIMARY, onClick = onLeave) { UI.Text(s.tool("session_back"), TextType.LABEL) }
                     if (state.session.history.isNotEmpty()) UI.Button(type = ButtonType.DEFAULT, onClick = { if (!busy) undo() }) { UI.Text(s.tool("action_undo"), TextType.LABEL) }
@@ -128,6 +128,8 @@ fun FlashcardsSessionView(
                         verticalArrangement = Arrangement.spacedBy(UI.Space.M),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        // A card never reviewed before this session says so, failed and back again included
+                        if (shown in state.fresh) UI.Tag(s.tool("session_new"), app.treelune.core.themes.TagColor.BLUE)
                         Face(faces.front, known, s)
                         if (state.turned) {
                             UI.Divider()
@@ -147,6 +149,23 @@ fun FlashcardsSessionView(
             }
         }
     }
+}
+
+/**
+ * What the session's end says: the cards passed that had been seen before, then the new ones, each
+ * count left out when it is zero.
+ */
+private fun overText(state: SessionState, s: app.treelune.core.strings.StringsContext): String {
+    val passed = state.passed
+    val new = passed.count { it in state.fresh }
+    val reviewed = passed.size - new
+    val reviewedText = s.tool(if (reviewed == 1) "session_reviewed_singular" else "session_reviewed_plural").format(reviewed)
+    val counts = when {
+        new == 0 -> reviewedText
+        reviewed == 0 -> s.tool(if (new == 1) "session_new_only_singular" else "session_new_only_plural").format(new)
+        else -> s.tool(if (new == 1) "session_and_new_singular" else "session_and_new_plural").format(reviewedText, new)
+    }
+    return s.tool("session_over").format(counts)
 }
 
 /**
