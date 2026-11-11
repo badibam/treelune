@@ -98,6 +98,9 @@ Le 2026-11-11, dans le code :
 - La grille (`Grid` : `resize`, `move`, `pack`, `enter`, `oneColumn`) raisonne sur des rectangles et leurs chevauchements, rien de propre à un mode : des tuiles de 2 de large de hauteurs différentes côte à côte y passent. Aucun test ne les place encore : à écrire avec le code.
 - Les thèmes ne distinguent que l'Icône et parfois le 2×1 (la marge du cadre, `tileFrame`).
 
-## Ouvert
+## Vu sur le téléphone
 
-- Le nombre d'éléments d'une ligne qui tiennent dans une ligne de cases, par thème et par réglage de taille : à voir sur l'émulateur (`Pixel_4a`) ou le téléphone une fois codé.
+Le 2026-11-12, sur le téléphone (411 dp de large), la démo en Rétro et en Cosy :
+
+- Combien d'éléments tiennent dépend du thème : un élément de 2 lignes prend une demi-case dans le thème par défaut et le Rétro, un peu plus en Cosy, dont le texte est plus grand — une tuile 4×2 de raccourcis de Suivi y garde une place par colonne. Les tailles de la démo sont choisies pour le thème au plus grand texte ; ailleurs, du vide reste en bas.
+- Le « +N » prend une place : quand il en prend beaucoup, la tuile est mal réglée (trop petite, trop de lignes par élément), ce n'est pas à lui de se faire plus petit.
