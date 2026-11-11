@@ -94,11 +94,11 @@ sealed interface Term {
         /**
          * The problem with [ifNone] on a reading of [field] reduced by [reduction] (grouped when
          * [grouped]), in words; null when it takes it: a date and time, one of its entries' kept
-         * (EARLIEST, LATEST, LAST), not grouped.
+         * (MIN, MAX, FIRST), not grouped.
          */
         fun ifNoneProblem(ifNone: IfNone?, field: app.treelune.core.fields.FieldDefinition?, reduction: Reduction, grouped: Boolean, text: (String) -> String): String? =
             if (ifNone == null || (field?.type == app.treelune.core.fields.FieldType.DATETIME &&
-                    reduction in setOf(Reduction.EARLIEST, Reduction.LATEST, Reduction.LAST) && !grouped)) null
+                    reduction in setOf(Reduction.MIN, Reduction.MAX, Reduction.FIRST) && !grouped)) null
             else text("reading_error_if_none")
 
         /**

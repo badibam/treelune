@@ -6,9 +6,13 @@ import app.treelune.core.fields.FieldType
 import app.treelune.core.fields.RunningDurations
 import app.treelune.core.utils.JsonUtils
 
-/** How a reading reduces the values of a field across entries to one. */
+/**
+ * How a reading reduces the values of a field across entries to one. FIRST is the value of the
+ * entry its selection's order puts first (EntrySelection.sort: the newest, by default); MIN and
+ * MAX the smallest and the largest, a date's or a time's the earliest and the latest.
+ */
 enum class Reduction {
-    LAST, SUM, AVERAGE, MIN, MAX, COUNT, EARLIEST, LATEST;
+    FIRST, SUM, AVERAGE, MIN, MAX, COUNT;
 
     companion object {
         /**
@@ -17,13 +21,13 @@ enum class Reduction {
          */
         private fun forType(type: FieldType?): Set<Reduction> = when (type) {
             null -> setOf(COUNT)
-            FieldType.NUMERIC, FieldType.DURATION -> setOf(LAST, SUM, AVERAGE, MIN, MAX)
-            FieldType.SCALE -> setOf(LAST, AVERAGE, MIN, MAX)
-            FieldType.BOOLEAN, FieldType.CHOICE, FieldType.TEXT -> setOf(LAST)
-            FieldType.DATE, FieldType.DATETIME, FieldType.TIME -> setOf(LAST, EARLIEST, LATEST)
+            FieldType.NUMERIC, FieldType.DURATION -> setOf(FIRST, SUM, AVERAGE, MIN, MAX)
+            FieldType.SCALE -> setOf(FIRST, AVERAGE, MIN, MAX)
+            FieldType.BOOLEAN, FieldType.CHOICE, FieldType.TEXT -> setOf(FIRST)
+            FieldType.DATE, FieldType.DATETIME, FieldType.TIME -> setOf(FIRST, MIN, MAX)
             FieldType.RANGE, FieldType.REFERENCE -> emptySet()
             // A file field's value read as it is, its file followed; only one of a single file
-            FieldType.FILE -> setOf(LAST)
+            FieldType.FILE -> setOf(FIRST)
         }
 
         /**
@@ -32,6 +36,18 @@ enum class Reduction {
          */
         fun forField(field: FieldDefinition?): Set<Reduction> =
             if (field?.type == FieldType.FILE && app.treelune.core.fields.FileField.max(field.config) != 1) emptySet() else forType(field?.type)
+
+        /**
+         * The shared key of [reduction]'s name on a field of [type] (null to count, or unknown):
+         * a date's or a time's minimum and maximum are its earliest and its latest.
+         */
+        fun labelKey(reduction: Reduction, type: FieldType?): String = when {
+            reduction == MIN && type in DATES -> "reduction_earliest"
+            reduction == MAX && type in DATES -> "reduction_latest"
+            else -> "reduction_${reduction.name.lowercase()}"
+        }
+
+        private val DATES = setOf(FieldType.DATE, FieldType.DATETIME, FieldType.TIME)
     }
 }
 
@@ -56,7 +72,7 @@ sealed interface ReadingResult {
 
 /**
  * A field reduced across entries (docs/DATA.md, « Reading of the core »). Pure: the entries are
- * given, newest first, as tool_data hands them out.
+ * given in their selection's order, as tool_data hands them out.
  *
  * A reduction keeps its source's type and settings (the average of a 1-10 scale is a 1-10 scale,
  * whose step only matters to entering it); counting gives a whole number. Without an entry, a sum
@@ -95,12 +111,12 @@ object FieldReading {
         }
 
         val value: Any = when (reduction) {
-            Reduction.LAST -> present.first()
+            Reduction.FIRST -> present.first()
             Reduction.SUM -> if (field.type == FieldType.DURATION) present.sumOf { (it as Number).toLong() } else present.sumOf { (it as Number).toDouble() }
             Reduction.AVERAGE -> present.map { (it as Number).toDouble() }.average()
                 .let { if (field.type == FieldType.DURATION) Math.round(it) else it }
-            Reduction.MIN, Reduction.EARLIEST -> present.minWith(order(field.type))
-            Reduction.MAX, Reduction.LATEST -> present.maxWith(order(field.type))
+            Reduction.MIN -> present.minWith(order(field.type))
+            Reduction.MAX -> present.maxWith(order(field.type))
             Reduction.COUNT -> error("counted above")
         }
         return ReadingResult.Value(value, field)

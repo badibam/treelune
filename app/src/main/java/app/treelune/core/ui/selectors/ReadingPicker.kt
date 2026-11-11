@@ -75,7 +75,7 @@ fun ReadingPicker(reading: JSONObject, s: StringsContext, where: ReadingContext,
             // Another source's fields are not this one's, nor what no entry of them is worth
             if (next.tool != current.tool || next.variable != current.variable) { remove("field"); remove(app.treelune.core.terms.Term.IF_NONE) }
         }
-    }, READ, fields, where.reference, offerFields = false, emptyPeriod = where.emptyPeriod)
+    }, READ, fields, where.reference, offerFields = false, emptyPeriod = where.emptyPeriod, offerOrder = true)
 
     // What is reduced: a field, a formula per entry, or the entries themselves counted
     val perEntry = reading.has("per_entry")
@@ -110,7 +110,7 @@ fun ReadingPicker(reading: JSONObject, s: StringsContext, where: ReadingContext,
     }
     val readField = reading.optString("field").takeIf { it.isNotEmpty() }?.let { fields[it] }
     val reductions = when {
-        perEntry -> listOf(Reduction.SUM, Reduction.AVERAGE, Reduction.MIN, Reduction.MAX, Reduction.LAST, Reduction.COUNT)
+        perEntry -> listOf(Reduction.SUM, Reduction.AVERAGE, Reduction.MIN, Reduction.MAX, Reduction.FIRST, Reduction.COUNT)
         // Nothing to offer until the field is read
         reading.has("field") -> readField?.let { Reduction.forField(it).toList() } ?: emptyList()
         else -> listOf(Reduction.COUNT)
@@ -120,7 +120,8 @@ fun ReadingPicker(reading: JSONObject, s: StringsContext, where: ReadingContext,
         reductions = reductions,
         selected = reductions.firstOrNull { it.name == reading.optString("reduction") },
         onSelect = { reduction -> edit { put("reduction", reduction.name); regroup(); remove(app.treelune.core.terms.Term.IF_NONE) } },
-        s = s
+        s = s,
+        type = readField?.type
     )
 
     // A date and time kept from one entry: what no entry is worth, set by hand, never implied

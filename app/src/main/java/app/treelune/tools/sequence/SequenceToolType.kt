@@ -160,7 +160,6 @@ object SequenceToolType : ToolTypeContract {
                 SettingNode.Selection(SequenceVariants.MEDIA_SOURCE, text("field_media_source"), text("reference_session_start"), required = true),
                 SettingNode.Field(field(SequenceVariants.MEDIA_FIELD, text("field_media_field"), FieldType.TEXT, text("schema_media_field"), mapOf("length" to TextLength.SHORT.name)),
                     required = true, fieldOf = SequenceVariants.MEDIA_SOURCE, fieldOfKinds = setOf(FileKind.AUDIO, FileKind.VIDEO)),
-                SettingNode.Sort(SequenceVariants.MEDIA_SORT, text("field_media_sort"), SequenceVariants.MEDIA_SOURCE),
                 SettingNode.ListOf(SequenceVariants.MEDIA_SHOWN, text("field_media_shown"),
                     SettingNode.Item.Value(field("media_shown_field", text("field_media_shown_field"), FieldType.TEXT, text("schema_media_shown_field"), mapOf("length" to TextLength.SHORT.name)),
                         fieldOf = SequenceVariants.MEDIA_SOURCE),

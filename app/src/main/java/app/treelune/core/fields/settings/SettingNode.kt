@@ -201,29 +201,20 @@ sealed class SettingNode {
 
     /**
      * Entries of one tool stored under [name] (the Sélection d'entrées brick, docs/BRICKS.md):
-     * `{"target", "filters", "fields"}`, without a period, which the config gives elsewhere (a
-     * chart's displayed period); drawn by SelectionSetting.
+     * `{"target", "filters", "fields", "sort", "limit"}`, without a period, which the config gives
+     * elsewhere (a chart's displayed period); drawn by SelectionSetting, its order and its count
+     * below its filters.
      *
      * @property reference The name of the instant its filters' relative dates resolve against
+     * @property ordered Whether its entries are read in an order (its sort, never empty, and its
+     *   limit); not a trigger's, which judges one entry written
      */
     data class Selection(
         val name: String,
         val label: String,
         val reference: String,
-        val required: Boolean = false
-    ) : SettingNode()
-
-    /**
-     * The order of the entries a selection beside it holds, stored under [name] (the Sort brick,
-     * docs/BRICKS.md, EntrySort): `[{"field", "direction"}]`, each field one of that selection's
-     * tool, empty for the newest first; drawn by SortSetting.
-     *
-     * @property selection The name of the Selection setting beside it whose entries it orders
-     */
-    data class Sort(
-        val name: String,
-        val label: String,
-        val selection: String
+        val required: Boolean = false,
+        val ordered: Boolean = true
     ) : SettingNode()
 
     /**
@@ -298,7 +289,7 @@ fun List<SettingNode>.storedField(name: String): FieldDefinition? {
                 ?: node.cases.values.firstNotNullOfOrNull { it.storedField(name) }
             is SettingNode.Section -> node.nodes.storedField(name)
             is SettingNode.Group, is SettingNode.ListOf, is SettingNode.Condition,
-            is SettingNode.Term, is SettingNode.Selection, is SettingNode.Sort, is SettingNode.Period, is SettingNode.Instants,
+            is SettingNode.Term, is SettingNode.Selection, is SettingNode.Period, is SettingNode.Instants,
             is SettingNode.FieldValues -> null
         }
         if (found != null) return found
@@ -340,7 +331,6 @@ fun List<SettingNode>.labelOf(name: String): String? {
             is SettingNode.Condition -> node.label.takeIf { node.name == name }
             is SettingNode.Term -> node.label.takeIf { node.name == name }
             is SettingNode.Selection -> node.label.takeIf { node.name == name }
-            is SettingNode.Sort -> node.label.takeIf { node.name == name }
             is SettingNode.Period -> node.label.takeIf { node.name == name }
             is SettingNode.Instants -> node.label.takeIf { node.name == name }
             is SettingNode.FieldValues -> node.label.takeIf { node.name == name }

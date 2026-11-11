@@ -218,7 +218,6 @@
     <string name="field_media_source">Entries to choose from</string>
     <string name="field_media_field">File played</string>
     <string name="schema_media_field">The path of the file field of those entries that holds the sound or the video (“data.audio”)</string>
-    <string name="field_media_sort">Order</string>
     <string name="field_media_entry">Entry played</string>
     <string name="schema_complete_entry">For a session of a sound or a video, required: the id of the entry played, one of its selection</string>
     <string name="error_media_field">The file played, %1$s, is not a field of sounds or videos of the entries to choose from</string>

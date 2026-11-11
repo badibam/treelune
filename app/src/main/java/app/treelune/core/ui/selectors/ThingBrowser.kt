@@ -294,13 +294,13 @@ suspend fun variablePath(variableId: String, context: android.content.Context): 
  * or read; a read that fails is logged and said by a toast.
  */
 @Composable
-fun rememberToolFields(toolInstanceId: String?): Map<String, app.treelune.core.fields.FieldDefinition> {
+fun rememberToolFields(toolInstanceId: String?, sortKeys: Boolean = false): Map<String, app.treelune.core.fields.FieldDefinition> {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     var fields by remember { mutableStateOf<Map<String, app.treelune.core.fields.FieldDefinition>>(emptyMap()) }
-    LaunchedEffect(toolInstanceId) {
+    LaunchedEffect(toolInstanceId, sortKeys) {
         fields = if (toolInstanceId == null) emptyMap() else try {
-            app.treelune.core.fields.ToolFields.filterable(toolInstanceId, context, s)
+            app.treelune.core.fields.ToolFields.filterable(toolInstanceId, context, s, sortKeys)
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {

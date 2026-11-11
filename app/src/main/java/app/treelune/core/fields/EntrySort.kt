@@ -72,6 +72,56 @@ object EntrySort {
         return Parsed.Ready(keys)
     }
 
+    /**
+     * The keys [json] stores, as written: a list of `{"field", "direction"}`, its fields not
+     * checked against any tool (parse does that, where the fields are known).
+     *
+     * @throws IllegalArgumentException on what is not a list of keys
+     */
+    fun read(json: Any, text: (String) -> String): List<SortKey> {
+        val array = json as? JSONArray ?: throw IllegalArgumentException(text("service_error_sort_unreadable").format(json.toString()))
+        return (0 until array.length()).map { i ->
+            val key = array.opt(i) as? JSONObject ?: throw IllegalArgumentException(text("service_error_sort_unreadable").format(array.opt(i).toString()))
+            val direction = key.optString(DIRECTION)
+            if (direction !in DIRECTIONS) throw IllegalArgumentException(text("service_error_sort_direction").format(key.optString(FIELD), direction, DIRECTIONS.joinToString(", ")))
+            SortKey(key.optString(FIELD).ifEmpty { throw IllegalArgumentException(text("service_error_sort_unreadable").format(key.toString())) }, direction == ASC)
+        }
+    }
+
+    /**
+     * [rows] put in the order of [keys] in memory, for entries no query reads (a variable's
+     * series, computed): what the SQL does (EntryFilters.select), the entries without a value
+     * after the others, a text without its case, a choice by its option's place, the order given
+     * kept where the keys leave them equal.
+     */
+    fun ordered(rows: List<Map<String, Any?>>, keys: List<SortKey>, fields: Map<String, FieldDefinition>): List<Map<String, Any?>> {
+        if (keys.isEmpty()) return rows
+        val comparator = keys.map { key ->
+            val field = fields[key.field]
+            val rank: (Any) -> Comparable<Any> = when (field?.type) {
+                FieldType.TEXT -> { v -> (v as String).lowercase() as Comparable<Any> }
+                FieldType.BOOLEAN -> { v -> (v as Boolean) as Comparable<Any> }
+                FieldType.DATE, FieldType.TIME -> { v -> (v as String) as Comparable<Any> }
+                FieldType.CHOICE -> {
+                    val options = ChoiceSettings.fromConfig(field.config).options
+                    ({ v -> options.indexOf(v as String).let { if (it < 0) options.size else it } as Comparable<Any> })
+                }
+                else -> { v -> (v as Number).toDouble() as Comparable<Any> }
+            }
+            Comparator<Map<String, Any?>> { a, b ->
+                val left = app.treelune.core.reading.FieldReading.valueAt(a, key.field)
+                val right = app.treelune.core.reading.FieldReading.valueAt(b, key.field)
+                when {
+                    left == null && right == null -> 0
+                    left == null -> 1
+                    right == null -> -1
+                    else -> rank(left).compareTo(rank(right)).let { if (key.ascending) it else -it }
+                }
+            }
+        }.reduce { first, next -> first.then(next) }
+        return rows.sortedWith(comparator)
+    }
+
     /** The stored form of [keys]. */
     fun toJson(keys: List<SortKey>): JSONArray = JSONArray(keys.map {
         JSONObject().put(FIELD, it.field).put(DIRECTION, if (it.ascending) ASC else DESC)

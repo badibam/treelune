@@ -145,6 +145,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
         // Its look checked and brought to its stored form (Looks)
         val lookConfig = JSONObject(namedConfigJson)
+        // A selection written without its order gets its default, stored whole (SelectionOrder)
+        completeSorts(toolType, lookConfig)
         val iconCheck = when (val checked = lookCheck(toolType, lookConfig, null)) {
             is Looks.Checked.Refused -> return OperationResult.error(checked.message)
             is Looks.Checked.Kept -> checked
@@ -296,6 +298,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             val followed = followFieldValues(existingTool, JSONObject(configJson), renames)
             configJson = followed.config.toString()
             removedFieldValues = followed.removed
+            // A selection written without its order gets its default, stored whole (SelectionOrder)
+            configJson = JSONObject(configJson).also { completeSorts(existingTool.tooltype, it) }.toString()
             checkConfig(existingTool.tooltype, configJson)?.let { return OperationResult.error(it) }
             // The user's fields it takes out, what reads them named, to anyone but a person (Dependents)
             val removedFields = userFieldNames(existingTool.config_json) - userFieldNames(configJson)
@@ -678,6 +682,16 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         return OwnedFiles.plan(context, OwnedFiles.Owner.Tool(toolId), OwnedFiles.configSlots(nodes, config), s::shared)
     }
 
+    /**
+     * The selections of [config] that read in order (a layer's, a Session's media, a deck's
+     * source, a reading's) given their default sort when written without one, in place
+     * (SelectionOrder): the sort is then stored explicit, like one chosen.
+     */
+    private suspend fun completeSorts(tooltype: String, config: JSONObject) {
+        val nodes = ToolTypeManager.getToolType(tooltype)?.let { app.treelune.core.tools.ToolConfigSettings.nodes(it, context) } ?: return
+        app.treelune.core.selection.SelectionOrder.complete(config, context, app.treelune.core.fields.ConfigSorts.orderedKeys(nodes))
+    }
+
     private fun checkConfig(tooltype: String, configJson: String): String? {
         val toolType = ToolTypeManager.getToolType(tooltype)
             ?: return s.shared("error_tooltype_not_found").format(tooltype)
@@ -701,7 +715,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             .refuse(nodes, JSONObject(configJson))
             // A file's term follows one entry's file field (ConfigTerms)
             ?: app.treelune.core.terms.ConfigTerms.refuseFiles(nodes, JSONObject(configJson), context, s)
-            // A sort names fields of its selection's tool (ConfigSorts)
+            // A selection's order names fields of its tool, a trigger's has none (ConfigSorts)
             ?: app.treelune.core.fields.ConfigSorts.refuse(nodes, JSONObject(configJson), context, s)
     }
 

@@ -16,9 +16,11 @@ fun ReductionPicker(
     reductions: List<Reduction>,
     selected: Reduction?,
     onSelect: (Reduction) -> Unit,
-    s: StringsContext
+    s: StringsContext,
+    type: app.treelune.core.fields.FieldType? = null
 ) {
-    fun name(reduction: Reduction) = s.shared("reduction_${reduction.name.lowercase()}")
+    // A date's or a time's minimum is its earliest (Reduction.labelKey)
+    fun name(reduction: Reduction) = s.shared(Reduction.labelKey(reduction, type))
     if (reductions.isEmpty()) return
     if (reductions.size == 1) {
         UI.Text(s.shared("label_value").format(label, name(reductions.single())), TextType.CAPTION)

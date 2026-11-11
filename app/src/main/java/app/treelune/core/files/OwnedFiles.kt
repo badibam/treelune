@@ -161,7 +161,7 @@ class OwnedFiles private constructor(
                         ?.let { listOf(Slot(it, app.treelune.core.terms.Term.Kind.CONSTANT.key, FileField.kinds(value.config))) }
                 }.orEmpty()
                 // A file field takes no value there (ConfigFieldValues.fieldsOf)
-                is SettingNode.Condition, is SettingNode.Selection, is SettingNode.Sort, is SettingNode.Period, is SettingNode.Instants,
+                is SettingNode.Condition, is SettingNode.Selection, is SettingNode.Period, is SettingNode.Instants,
                 is SettingNode.FieldValues -> emptyList()
             }
         }

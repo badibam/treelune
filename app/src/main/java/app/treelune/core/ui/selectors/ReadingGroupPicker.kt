@@ -97,7 +97,8 @@ fun ReadingGroupPicker(
         reductions = reductions,
         selected = reductions.firstOrNull { it.name == group.optString(ReadingGroup.REDUCTION) },
         onSelect = { reduction -> edit { put(ReadingGroup.REDUCTION, reduction.name) } },
-        s = s
+        s = s,
+        type = value.type
     )
 }
 

@@ -577,13 +577,14 @@ class ToolDataService(private val context: Context) : ExecutableService {
                 is EntryFilters.Parsed.Refused -> return OperationResult.error(parsed.error)
                 is EntryFilters.Parsed.Ready -> parsed.filters
             }
-            // The order, newest first without one (EntrySort)
-            val sort = when (val parsed = app.treelune.core.fields.EntrySort.parse(params.optJSONArray("sort") ?: JSONArray(), fields) { s.shared(it) }) {
+            // The order, newest first without one (EntrySort); a manual position orders, never filters
+            val sortFields = EntryFilters.sortableFields(declared, userFields(target)) { s.shared(it) }
+            val sort = when (val parsed = app.treelune.core.fields.EntrySort.parse(params.optJSONArray("sort") ?: JSONArray(), sortFields) { s.shared(it) }) {
                 is app.treelune.core.fields.EntrySort.Parsed.Refused -> return OperationResult.error(parsed.error)
                 is app.treelune.core.fields.EntrySort.Parsed.Ready -> parsed.keys
             }
 
-            val select = EntryFilters.select(toolInstanceId, filters, fields, limit.takeIf { hasLimit }, offset, sort)
+            val select = EntryFilters.select(toolInstanceId, filters, sortFields, limit.takeIf { hasLimit }, offset, sort)
             val count = EntryFilters.count(toolInstanceId, filters, fields)
             Pair(
                 dao.getFiltered(SimpleSQLiteQuery(select.clause, select.args.toTypedArray())),

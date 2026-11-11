@@ -46,7 +46,7 @@ class SequenceMediaTest {
 
         val follows = JSONObject().put("reading", JSONObject()
             .put("selection", JSONObject().put("target", JSONObject().put("kind", "ENTRY").put("id", entryId)))
-            .put("field", "extra.induction").put("reduction", "LAST"))
+            .put("field", "extra.induction").put("reduction", "FIRST"))
         val config = JSONObject().put("steps", org.json.JSONArray().put(JSONObject()
             .put("kind", "step").put("name", "Induction").put("length", "media").put("auto_next", true).put("media", follows)))
         val session = coordinator.processUserAction("tools.create", mapOf("zone_id" to zone.data!!["zone_id"], "tooltype" to "sequence",

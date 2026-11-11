@@ -11,12 +11,6 @@ import app.treelune.core.utils.JsonUtils
 object ToolFields {
 
     /**
-     * The fields the entries of [toolInstanceId] can be filtered and read on, by path
-     * (EntryFilters.filterableFields).
-     *
-     * @throws IllegalStateException when the tool cannot be read
-     */
-    /**
      * The fields of the entries a selection's [target] holds, by path: a tool instance's, for one
      * entry its tool's, for a variable with a series its steps' (VariableSeries).
      *
@@ -49,7 +43,14 @@ object ToolFields {
         return unit to app.treelune.core.variables.VariableSeries.fields(definition, variable.label) { s.shared(it) }
     }
 
-    suspend fun filterable(toolInstanceId: String, context: Context, s: StringsContext): Map<String, FieldDefinition> {
+    /**
+     * The fields the entries of [toolInstanceId] can be filtered and read on, by path
+     * (EntryFilters.filterableFields); with [sortKeys], also those offered as sort keys alone, a
+     * manual position (EntryFilters.sortableFields).
+     *
+     * @throws IllegalStateException when the tool cannot be read
+     */
+    suspend fun filterable(toolInstanceId: String, context: Context, s: StringsContext, sortKeys: Boolean = false): Map<String, FieldDefinition> {
         val result = Coordinator(context).processUserAction("tools.get", mapOf("tool_instance_id" to toolInstanceId))
         val toolInstance = result.data?.get("tool_instance") as? Map<*, *>
         @Suppress("UNCHECKED_CAST")
@@ -59,6 +60,7 @@ object ToolFields {
             throw IllegalStateException(s.shared("service_error_tool_instance_not_found"))
         }
         val extra = config.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList()
-        return EntryFilters.filterableFields(toolType.getEntryFields(config, context), extra) { s.shared(it) }
+        val declared = toolType.getEntryFields(config, context)
+        return if (sortKeys) EntryFilters.sortableFields(declared, extra) { s.shared(it) } else EntryFilters.filterableFields(declared, extra) { s.shared(it) }
     }
 }

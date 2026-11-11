@@ -33,12 +33,10 @@ object SequenceVariants {
 
     /** The timer's length proposed at launch, and taken by `complete` without one. */
     const val TIMER_DURATION = "timer_duration"
-    /** The entries a medium is chosen among (SettingNode.Selection) */
+    /** The entries a medium is chosen among, in their order and their count (SettingNode.Selection) */
     const val MEDIA_SOURCE = "media_source"
     /** The file field of those entries the medium is played from, by its path */
     const val MEDIA_FIELD = "media_field"
-    /** The order those entries are offered in (SettingNode.Sort) */
-    const val MEDIA_SORT = "media_sort"
     /** The fields of those entries an entry touched in « What to play? » shows before it starts, by their paths, in their order */
     const val MEDIA_SHOWN = "media_shown"
     /** The image field of those entries whose images the session shows while it plays, by its path; none, no image */
@@ -101,7 +99,7 @@ object SequenceVariants {
         val reading = JSONObject()
             .put("selection", JSONObject().put("target", entry.toJson()))
             .put("field", config.optString(MEDIA_FIELD))
-            .put("reduction", "LAST")
+            .put("reduction", app.treelune.core.reading.Reduction.FIRST.name)
         // Its images, when the config names a field of them, followed the same way
         val images = config.optString(MEDIA_IMAGES).takeIf { it.isNotEmpty() }?.let { field ->
             JSONObject().put("reading", JSONObject(reading.toString()).put("field", field))
@@ -110,8 +108,8 @@ object SequenceVariants {
     }
 
     /**
-     * The entries a medium is chosen among, in its sort's order: its selection's, holding a file
-     * in its field; with [only], that one entry alone if it is one of them.
+     * The entries a medium is chosen among, in its selection's order and count, holding a file in
+     * its field; with [only], that one entry alone if it is one of them.
      *
      * @throws IllegalStateException when the selection's tool cannot be read, its error as message
      */
@@ -121,14 +119,15 @@ object SequenceVariants {
         val field = config.optString(MEDIA_FIELD).takeIf { it.isNotEmpty() } ?: return emptyList()
         val filters = JSONArray(selection.optJSONArray("filters")?.toString() ?: "[]")
             .put(JSONObject().put("left", JSONObject().put("field", field)).put("op", "present"))
-        only?.let { filters.put(JSONObject().put("left", JSONObject().put("field", "id")).put("op", "=").put("right", JSONObject().put("constant", it))) }
+        // One entry is one of them only within the count kept: looked for among those read
         val result = Coordinator(context).processUserAction("tool_data.get", mapOf(
             "tool_instance_id" to toolId,
             "filters" to JsonUtils.toValue(filters),
-            "sort" to JsonUtils.toValue(config.optJSONArray(MEDIA_SORT) ?: JSONArray())
-        ))
+            "sort" to JsonUtils.toValue(selection.optJSONArray("sort") ?: JSONArray())
+        ) + (selection.opt("limit") as? Number)?.let { mapOf("limit" to it.toInt()) }.orEmpty())
         if (!result.isSuccess) throw IllegalStateException(result.error ?: "")
         @Suppress("UNCHECKED_CAST")
-        return (result.data?.get("entries") as? List<Map<String, Any?>>).orEmpty()
+        val offered = (result.data?.get("entries") as? List<Map<String, Any?>>).orEmpty()
+        return if (only == null) offered else offered.filter { it["id"] == only }
     }
 }

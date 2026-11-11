@@ -237,10 +237,11 @@
     <string name="term_schema_constant">{\"constant\": ...}, une valeur écrite, une date ou une durée comme partout (partie E)</string>
     <string name="term_schema_variable">{\"variable\": \"id\"}, une variable par son id</string>
     <string name="term_schema_reading">{\"reading\": {\"selection\", \"field\"?, \"reduction\", \"group\"?}}, un champ d\'un outil réduit sur ses entrées, compté sans champ ; la période de sa sélection est relative à l\'instant lu, et sans période elle lit celle que donne le contexte. Sa cible peut être une variable qui a une série, {\"kind\": \"VARIABLE\", \"id\"} : une entrée par pas, `timestamp` et `data.value`, lue comme celles d\'un outil ; sa période a alors besoin d\'un début</string>
-    <string name="reading_group_schema">Une lecture peut regrouper ses entrées, \"group\" : {\"field\" : le champ par lequel elle regroupe (\"timestamp\" pour la date de l\'entrée), \"unit\"? : DAY, WEEK ou MONTH (une date, obligatoire pour un instant), \"keep\"? : {\"op\", \"right\"} jugé sur la valeur de chaque groupe (le champ et la réduction de la lecture, par groupe), \"reduction\" : des groupes gardés, COUNT, SUM, AVERAGE, MIN, MAX, EARLIEST ou LATEST} ; « 2 par jour », comptés : {\"field\" : \"timestamp\", \"unit\" : \"DAY\", \"keep\" : {\"op\" : \">=\", \"right\" : {\"constant\" : 2}}, \"reduction\" : \"COUNT\"}. Regroupée par la date de l\'entrée, chaque unité de la période est un groupe, un groupe vide comptant 0 : finis la période à maintenant pour laisser de côté les jours à venir, et commence-la au début d\'un jour (« il y a 7 jours » coupe 8 jours). Un champ multiple met son entrée dans chacun de ses groupes : une somme sur tous les compte deux fois.</string>
-    <string name="term_schema_reading_file">{\"reading\": {\"selection\": {\"target\": {\"kind\": \"ENTRY\", \"id\"}}, \"field\", \"reduction\": \"LAST\"}}, le champ fichier d\'une entrée suivi, qui garde un seul fichier des sortes acceptées, relu à chaque usage</string>
-    <string name="selection_schema_description">Des entrées d\'un outil : {\"target\": {\"kind\": \"TOOL_INSTANCE\", \"id\"}, \"filters\"?: [conditions sur chaque entrée], \"fields\"?: [chemins gardés]} ; sa période est donnée ailleurs.</string>
-    <string name="sort_schema_description">L\'ordre des entrées de la sélection \'%1$s\' : des clés appliquées l\'une après l\'autre, chacune un champ de son outil (\"name\", \"timestamp\", \"data.number\") et \"asc\" ou \"desc\" ; vide ou absent, la plus récente en tête. Les entrées sans valeur viennent en dernier.</string>
+    <string name="reading_group_schema">Une lecture peut regrouper ses entrées, \"group\" : {\"field\" : le champ par lequel elle regroupe (\"timestamp\" pour la date de l\'entrée), \"unit\"? : DAY, WEEK ou MONTH (une date, obligatoire pour un instant), \"keep\"? : {\"op\", \"right\"} jugé sur la valeur de chaque groupe (le champ et la réduction de la lecture, par groupe), \"reduction\" : des groupes gardés, COUNT, SUM, AVERAGE, MIN ou MAX} ; « 2 par jour », comptés : {\"field\" : \"timestamp\", \"unit\" : \"DAY\", \"keep\" : {\"op\" : \">=\", \"right\" : {\"constant\" : 2}}, \"reduction\" : \"COUNT\"}. Regroupée par la date de l\'entrée, chaque unité de la période est un groupe, un groupe vide comptant 0 : finis la période à maintenant pour laisser de côté les jours à venir, et commence-la au début d\'un jour (« il y a 7 jours » coupe 8 jours). Un champ multiple met son entrée dans chacun de ses groupes : une somme sur tous les compte deux fois.</string>
+    <string name="term_schema_reading_file">{\"reading\": {\"selection\": {\"target\": {\"kind\": \"ENTRY\", \"id\"}}, \"field\", \"reduction\": \"FIRST\"}}, le champ fichier d\'une entrée suivi, qui garde un seul fichier des sortes acceptées, relu à chaque usage</string>
+    <string name="selection_schema_description">Des entrées d\'un outil : {\"target\": {\"kind\": \"TOOL_INSTANCE\", \"id\"}, \"filters\"?: [conditions sur chaque entrée], \"fields\"?: [chemins gardés], \"sort\"?: [clés], \"limit\"?: un nombre} ; sa période est donnée ailleurs.</string>
+    <string name="sort_schema_description">L\'ordre des entrées : des clés appliquées l\'une après l\'autre, chacune un champ de son outil (\"name\", \"timestamp\", \"data.number\", \"state.position\" pour l\'ordre d\'une liste) et \"asc\" ou \"desc\". Absent, l\'app écrit la plus récente en tête, [{\"field\": \"timestamp\", \"direction\": \"desc\"}] (\"created_at\" pour un outil dont les entrées n\'ont pas de date), et le stocke ainsi. Les entrées sans valeur viennent en dernier.</string>
+    <string name="limit_schema_description">Combien d\'entrées sont gardées : les premières de l\'ordre, après la période et les filtres, avant tout regroupement. Absent, toutes.</string>
     <string name="period_schema_description">Une période, {\"start\"?, \"end\"?}, bornes comprises, une borne absente pour sans limite : un instant fixe, ou une date relative, {\"relative\": {\"unit\": \"DAY\", \"offset\": -29, \"edge\": \"START\"}} ou {\"relative\": \"NOW\"}.</string>
     <string name="instants_schema_description">Des instants, chacun une date relative au moment que dit le réglage, jamais une date fixe : {\"relative\": {\"unit\": \"HOUR\", \"offset\": -1, \"edge\": \"SAME\"}} pour une heure avant, {\"relative\": {\"unit\": \"MINUTE\", \"offset\": -15, \"edge\": \"SAME\"}}, {\"relative\": {\"unit\": \"DAY\", \"offset\": -1, \"edge\": {\"at\": \"18:00\"}}} pour la veille à 18:00, {\"relative\": \"NOW\"} pour le moment même.</string>
     <string name="service_error_filter_unknown_field">Filtre sur \'%1$s\' : les entrées de cet outil n\'ont pas ce champ à filtrer. Champs : %2$s</string>
@@ -1604,6 +1605,11 @@
     <string name="reading_error_series_start">La série d\'une variable se lit sur une période qui a un début : elle n\'a pas de première entrée.</string>
     <string name="selection_problem_variable">Une variable ne se sélectionne que dans une lecture, et seulement si elle a une série (une valeur par heure, par jour…) ; ailleurs, elle se lit comme terme.</string>
     <string name="selection_problem_field">Une sélection prend une chose, sans champ : le champ lu se dit à côté.</string>
+    <string name="selection_problem_sort_missing">Une sélection d\'un outil ou d\'une série dit son ordre : « sort », une liste de clés, [{\"field\": \"timestamp\", \"direction\": \"desc\"}] pour la plus récente en tête.</string>
+    <string name="selection_problem_order">Un ordre et un nombre rangent les entrées d\'une instance d\'outil ou d\'une série, pas d\'un %1$s.</string>
+    <string name="selection_problem_order_zone">Une zone se limite par sa période seule : ses outils n\'ont aucun champ en commun pour ranger leurs entrées dans un seul ordre ou les compter.</string>
+    <string name="selection_problem_order_trigger">Un déclencheur juge l\'entrée écrite seule : il ne prend ni ordre ni nombre.</string>
+    <string name="selection_problem_limit">Le nombre gardé est un nombre entier à partir de 1 : %1$s n\'en est pas un.</string>
     <string name="import_missing_column">colonne « %1$s » : non déclarée</string>
     <string name="import_missing_in_file">colonne « %1$s » : absente du fichier</string>
     <string name="import_missing_key">colonne « %1$s » : cet outil ne retrouve pas ses entrées par leur nom</string>
@@ -1789,7 +1795,7 @@
     <string name="variable_term_kind">Sorte de terme</string>
     <string name="variable_term_reading">Lecture d\'entrées</string>
     <string name="variable_term_constant">Valeur fixe</string>
-    <string name="term_error_file_follow">%1$s : un fichier se suit dans le champ d\'une entrée, {\"selection\": {\"target\": {\"kind\": \"ENTRY\", \"id\"}}, \"field\", \"reduction\": \"LAST\"}.</string>
+    <string name="term_error_file_follow">%1$s : un fichier se suit dans le champ d\'une entrée, {\"selection\": {\"target\": {\"kind\": \"ENTRY\", \"id\"}}, \"field\", \"reduction\": \"FIRST\"}.</string>
     <string name="term_error_file_source">%1$s : l\'entrée suivie ne se lit pas : %2$s</string>
     <string name="sort_error_without_selection">%1$s : un tri ordonne les entrées d\'une sélection, qui n\'a pas encore d\'outil.</string>
     <string name="sort_error_source">%1$s : l\'outil de la sélection ne se lit pas : %2$s</string>
@@ -1807,7 +1813,7 @@
     <string name="variable_type_deduced">Déduit de la formule</string>
     <string name="variable_delete_confirm">Supprimer la variable %1$s ? Une formule qui la nomme ne se calculera plus.</string>
     <string name="label_value">%1$s : %2$s</string>
-    <string name="reduction_last">Dernière</string>
+    <string name="reduction_first">Celle de la première entrée</string>
     <string name="reduction_sum">Somme</string>
     <string name="reduction_average">Moyenne</string>
     <string name="reduction_min">Minimum</string>
@@ -2329,9 +2335,11 @@
     <string name="label_yes">Oui</string>
     <string name="label_with_default">%1$s (par défaut : %2$s)</string>
     <string name="setting_field_of_tool_first">choisis d\'abord l\'outil</string>
-    <string name="sort_none">La plus récente en tête</string>
     <string name="sort_direction_asc">Croissant</string>
     <string name="sort_direction_desc">Décroissant</string>
+    <string name="selection_order">Ordre</string>
+    <string name="selection_limit">Seulement les premières</string>
+    <string name="selection_limit_hint">Combien d\'entrées de cet ordre sont gardées ; vide, toutes.</string>
     <string name="label_on">On</string>
     <string name="label_off">Off</string>
     <string name="label_no">Non</string>

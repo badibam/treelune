@@ -503,7 +503,8 @@ object TaskSteps {
 
     /**
      * Why the entries [json] gives an API's list input ([name] says which) cannot be read; null
-     * when they can: a tool's, its fields kept being the tool's or the entry's id, one at least.
+     * when they can: a tool's, its fields kept being the tool's or the entry's id, one at least,
+     * its order naming fields with an order of the tool.
      */
     private suspend fun selectionRefusal(json: JSONObject, name: String, context: Context, s: StringsContext): String? {
         val selection = try {
@@ -523,6 +524,11 @@ object TaskSteps {
         val kept = selection.fields.orEmpty()
         if (kept.isEmpty()) return s.shared("task_error_list_fields").format(name)
         kept.firstOrNull { it != ENTRY_ID && it !in fields }?.let { return s.shared("condition_error_field").format(name, it, fields.keys.joinToString(", ")) }
+        // Its order, written whole (its default given at the writing, SelectionOrder), and its count
+        (selection.problem { s.shared(it) } ?: selection.unordered { s.shared(it) })?.let { return "$name: $it" }
+        val sortable = try { ToolFields.filterable(toolId, context, s, sortKeys = true) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { return s.shared("task_error_tool").format(name, toolId) }
+        (app.treelune.core.fields.EntrySort.parse(app.treelune.core.fields.EntrySort.toJson(selection.sort), sortable) { s.shared(it) } as? app.treelune.core.fields.EntrySort.Parsed.Refused)
+            ?.let { return "$name: ${it.error}" }
         return null
     }
 

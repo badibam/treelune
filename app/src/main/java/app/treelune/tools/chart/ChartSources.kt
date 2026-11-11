@@ -123,7 +123,8 @@ class ChartSources(private val context: Context) {
         val result = coordinator.processUserAction("tool_data.get", mapOf(
             "tool_instance_id" to toolId,
             "filters" to JsonUtils.toList(selection.storedFilters(fields, TimeResolver.at(now)) { s.shared(it) })
-        ))
+        // Its order and its count: the first entries of that order, within the period shown
+        ) + selection.orderParams())
         if (!result.isSuccess) throw IllegalStateException(result.error ?: s.shared("service_error_operation_failed"))
         val read = (result.data?.get("entries") as? List<*>).orEmpty().filterIsInstance<Map<String, Any?>>()
         // A reference shows the name of what it designates: the names read once for the whole

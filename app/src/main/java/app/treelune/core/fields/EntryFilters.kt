@@ -126,6 +126,19 @@ object EntryFilters {
         declared.state.filter { it.filterable }.forEach { put("state.${it.definition.name}", it.definition) }
     }
 
+    /**
+     * The fields the entries of a tool can be put in order by, by path: the filterable ones
+     * ([filterableFields]) and the state keys offered as sort keys alone (a manual position).
+     * Which of them have an order is EntrySort's to say.
+     */
+    fun sortableFields(
+        declared: EntryFields,
+        extra: List<FieldDefinition>,
+        text: (String) -> String
+    ): Map<String, FieldDefinition> = filterableFields(declared, extra, text) + buildMap {
+        declared.state.filter { it.sortable && !it.filterable }.forEach { put("state.${it.definition.name}", it.definition) }
+    }
+
     /** The field [path] names among [fields], the entry's id included; null for none. */
     private fun fieldAt(path: String, fields: Map<String, FieldDefinition>): FieldDefinition? =
         fields[path] ?: ID_FIELD.takeIf { path == ID }

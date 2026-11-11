@@ -83,7 +83,7 @@ class VariableEvaluatorTest {
     @Test
     fun `now() is the instant the variable is read at, not the clock`() {
         readings["meals"] = Outcome.Value(600.0)
-        val fast = formula("jeune", "now() - dernier", mapOf("dernier" to Term.Reading(meals, "timestamp", Reduction.LATEST)), FieldType.DURATION)
+        val fast = formula("jeune", "now() - dernier", mapOf("dernier" to Term.Reading(meals, "timestamp", Reduction.MAX)), FieldType.DURATION)
         assertEquals(400L, value(fast, at = 1000L))
         assertEquals(1400L, value(fast, at = 2000L))
     }
@@ -107,7 +107,7 @@ class VariableEvaluatorTest {
         readings["meals"] = Outcome.Failed(listOf(Cause("NO_ENTRY", field = "data.kcal")))
         readings["sport"] = Outcome.Value(300.0)
         val bilan = formula("bilan", "mange - depense", mapOf(
-            "mange" to Term.Reading(meals, "data.kcal", Reduction.LAST),
+            "mange" to Term.Reading(meals, "data.kcal", Reduction.FIRST),
             "depense" to Term.Reading(sport, "data.kcal", Reduction.SUM)
         ))
         assertEquals(listOf(Cause("NO_ENTRY", term = "mange", field = "data.kcal")), causes(bilan))

@@ -99,7 +99,7 @@ object AICommands {
     val ALL: List<AICommand> = listOf(
         query("TOOL_DATA",
             p("id", "string", true), p("fields", "array", true), p("period", "object"), p("filters", "array"),
-            p("limit", "integer"), p("page", "integer"), p("running", "boolean")),
+            p("sort", "array"), p("limit", "integer"), p("page", "integer"), p("running", "boolean")),
         query("TOOL_CONFIG", p("id", "string", true)),
         query("ZONE_CONTENTS", p("zone_id", "string")),
         query("ZONE_CONFIG", p("id", "string", true)),

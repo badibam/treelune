@@ -11,8 +11,8 @@ import app.treelune.core.strings.Strings
 import app.treelune.core.utils.JsonUtils
 
 /**
- * The lines of a deck's source, read through tool_data.get as the deck filters them, in the order
- * they were added: what the cards are made of. A card is a line in a direction whose first front
+ * The lines of a deck's source, read through tool_data.get as the deck filters, orders and counts
+ * them, in the order they were added: what the cards are made of. A card is a line in a direction whose first front
  * field the line fills; the line's groups are the values of the field group_by.
  *
  * @property fields The source's fields, by path
@@ -54,7 +54,8 @@ class FlashcardsSource(
             val result = coordinator.processUserAction("tool_data.get", mapOf(
                 "tool_instance_id" to deck.sourceId,
                 "filters" to JsonUtils.toList(deck.source.storedFilters(fields, TimeResolver.at(now)) { s.shared(it) })
-            ))
+            // Its order and its count choose the lines kept; the lines then go in the order added
+            ) + deck.source.orderParams())
             if (!result.isSuccess) throw IllegalStateException(result.error ?: s.shared("service_error_operation_failed"))
             @Suppress("UNCHECKED_CAST")
             val entries = (result.data?.get("entries") as? List<*>).orEmpty().filterIsInstance<Map<String, Any?>>()

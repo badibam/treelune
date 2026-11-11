@@ -50,7 +50,8 @@ class ReadingGroupServiceTest {
 
     /** The cups summed per day, the days kept by [keep], counted. */
     private fun perDay(tool: String, keep: JSONObject?) = Term.fromJson(JSONObject().put("reading", JSONObject()
-        .put("selection", JSONObject().put("target", JSONObject().put("kind", "TOOL_INSTANCE").put("id", tool)))
+        .put("selection", JSONObject().put("target", JSONObject().put("kind", "TOOL_INSTANCE").put("id", tool))
+            .put("sort", org.json.JSONArray().put(JSONObject().put("field", "timestamp").put("direction", "desc"))))
         .put("field", "data.value").put("reduction", "SUM")
         .put("group", JSONObject().put("field", "timestamp").put("unit", "DAY").put("reduction", "COUNT").apply { keep?.let { put("keep", it) } })), "t") { it }
 

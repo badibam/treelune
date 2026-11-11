@@ -556,7 +556,7 @@
                           "id": "demo-course-weight"
                         }
                       },
-                      "reduction": "LAST",
+                      "reduction": "FIRST",
                       "field": "data.value"
                     }
                   },
@@ -3408,7 +3408,7 @@
                     "id": "demo-balcony-weather"
                   }
                 },
-                "reduction": "LAST",
+                "reduction": "FIRST",
                 "field": "data.value"
               }
             },

@@ -47,7 +47,7 @@ object ConfigFieldValues {
             is SettingNode.Variant -> node.cases.values.flatMap { walk(it, obj, label) }
             is SettingNode.Section -> walk(node.nodes, obj, label)
             is SettingNode.Field, is SettingNode.Condition, is SettingNode.Term, is SettingNode.Selection,
-            is SettingNode.Sort, is SettingNode.Period, is SettingNode.Instants -> emptyList()
+            is SettingNode.Period, is SettingNode.Instants -> emptyList()
         }
     }
 

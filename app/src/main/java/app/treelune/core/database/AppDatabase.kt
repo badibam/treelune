@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 115
+        const val VERSION = 116
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2365,6 +2365,50 @@ abstract class AppDatabase : RoomDatabase() {
 
         /** A file's link to a file of the phone, none: every file kept so far is a copy (docs/design/linked-files.md). */
         /** An API says its kind, every one so far a web service: see ApiKindAtV114. */
+        /** Selections say their order, readings their first entry: see SelectionSortAtV116. */
+        private val MIGRATION_115_116 = object : ConnectionMigration(115, 116) {
+            override fun migrate(database: MigrationDatabase) {
+                val v = app.treelune.core.versioning.SelectionSortAtV116
+                val tools = app.treelune.core.versioning.SelectionSortAtV116.Tools(buildMap {
+                    database.query("SELECT id, tooltype FROM tool_instances").use { cursor -> while (cursor.moveToNext()) put(cursor.getString(0), cursor.getString(1)) }
+                })
+                var rewritten = 0
+                /** Each [columns] of [table] rewritten by [transform] (null: unchanged); a row that cannot be read stays as it was and is logged. */
+                fun rewrite(table: String, columns: List<String>, transform: (column: String, json: String, row: Map<String, String?>) -> String?) {
+                    database.query("SELECT id, ${columns.joinToString(", ")}${if (table == "tool_instances") ", tooltype" else ""} FROM $table").use { cursor ->
+                        while (cursor.moveToNext()) {
+                            val id = cursor.getString(0)
+                            val row = (0 until cursor.columnCount).associate { cursor.getColumnName(it) to (if (cursor.isNull(it)) null else cursor.getString(it)) }
+                            columns.forEach { column ->
+                                val json = row[column]?.takeIf { it.isNotEmpty() } ?: return@forEach
+                                try {
+                                    transform(column, json, row)?.let { database.execSQL("UPDATE $table SET $column = ? WHERE id = ?", arrayOf<Any?>(it, id)); rewritten++ }
+                                } catch (e: Exception) {
+                                    LogManager.database("MIGRATION 115->116: $table $id $column left as it was: ${e.message}", "ERROR", e)
+                                }
+                            }
+                        }
+                    }
+                }
+                rewrite("tool_instances", listOf("config_json")) { _, json, row -> v.config(row["tooltype"] ?: "", json, tools) }
+                v.COLUMNS.forEach { (table, columns) -> rewrite(table, columns) { _, json, _ -> v.json(json, tools) } }
+                rewrite("session_messages", listOf("rich_content_json")) { _, json, _ -> v.richContent(json, tools) }
+                // A Session started: its run holds its steps' readings
+                database.query("SELECT id, state FROM tool_data WHERE tooltype = 'sequence' AND state LIKE '%reduction%'").use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getString(0)
+                        try {
+                            v.entryState(cursor.getString(1), tools)?.let { database.execSQL("UPDATE tool_data SET state = ? WHERE id = ?", arrayOf<Any?>(it, id)); rewritten++ }
+                        } catch (e: Exception) {
+                            LogManager.database("MIGRATION 115->116: tool_data $id state left as it was: ${e.message}", "ERROR", e)
+                        }
+                    }
+                }
+                (v.COLUMNS.keys + "tool_instances" + "tool_data").forEach { table -> app.treelune.core.versioning.HistoryCopies.rewrite(database, table) { v.row(table, it, tools) } }
+                LogManager.database("MIGRATION 115->116: $rewritten column(s) with their selections' order and their readings' reductions", "INFO")
+            }
+        }
+
         private val MIGRATION_114_115 = object : ConnectionMigration(114, 115) {
             override fun migrate(database: MigrationDatabase) {
                 database.execSQL("ALTER TABLE routines ADD COLUMN usage TEXT NOT NULL DEFAULT 'both'")
@@ -3560,7 +3604,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_111_112,
                     MIGRATION_112_113,
                     MIGRATION_113_114,
-                    MIGRATION_114_115
+                    MIGRATION_114_115,
+                    MIGRATION_115_116
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

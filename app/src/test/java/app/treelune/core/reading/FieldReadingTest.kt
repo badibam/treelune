@@ -49,7 +49,7 @@ class FieldReadingTest {
 
     @Test
     fun `the last is the newest, a sum and an average run over all`() {
-        assertEquals(80.0, value("data.weight", weight, Reduction.LAST))
+        assertEquals(80.0, value("data.weight", weight, Reduction.FIRST))
         assertEquals(244.5, value("data.weight", weight, Reduction.SUM))
         assertEquals(81.5, value("data.weight", weight, Reduction.AVERAGE))
         assertEquals(83.0, value("data.weight", weight, Reduction.MAX))
@@ -66,8 +66,8 @@ class FieldReadingTest {
 
     @Test
     fun `hours compare by time of day`() {
-        assertEquals("9:05", value("data.bedtime", bedtime, Reduction.EARLIEST))
-        assertEquals("23:30", value("data.bedtime", bedtime, Reduction.LATEST))
+        assertEquals("9:05", value("data.bedtime", bedtime, Reduction.MIN))
+        assertEquals("23:30", value("data.bedtime", bedtime, Reduction.MAX))
     }
 
     @Test
@@ -81,7 +81,7 @@ class FieldReadingTest {
 
     @Test
     fun `without an entry, anything but a sum or a count fails`() {
-        val failure = FieldReading.reduce(emptyList(), "data.weight", weight, Reduction.LAST, 0L) as ReadingResult.Failure
+        val failure = FieldReading.reduce(emptyList(), "data.weight", weight, Reduction.FIRST, 0L) as ReadingResult.Failure
         assertEquals(FailureReason.NO_ENTRY, failure.reason)
         assertEquals("data.weight", failure.field)
     }
@@ -104,7 +104,7 @@ class FieldReadingTest {
     @Test
     fun `a file field is read as its value, only when it holds a single file`() {
         fun file(max: Int?) = FieldDefinition("f", "F", null, FieldType.FILE, false, app.treelune.core.fields.FileField.config(listOf(app.treelune.core.files.FileKind.AUDIO), max))
-        assertEquals(setOf(Reduction.LAST), Reduction.forField(file(1)))
+        assertEquals(setOf(Reduction.FIRST), Reduction.forField(file(1)))
         assertTrue(Reduction.forField(file(3)).isEmpty())
         assertTrue(Reduction.forField(file(null)).isEmpty())
     }

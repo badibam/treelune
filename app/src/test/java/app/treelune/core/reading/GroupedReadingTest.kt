@@ -110,7 +110,7 @@ class GroupedReadingTest {
     @Test
     fun `the last of groups is refused, as a unit on what is not a date and an instant without one`() {
         val fields = mapOf("timestamp" to timestamp, "data.cups" to cups, "data.category" to category)
-        assertNotNull(byDay(null, Reduction.LAST).problem(fields, cups) { it })
+        assertNotNull(byDay(null, Reduction.FIRST).problem(fields, cups) { it })
         assertNull(byDay(null, Reduction.AVERAGE).problem(fields, cups) { it })
         assertNotNull(ReadingGroup("data.category", PeriodType.DAY, null, Reduction.COUNT).problem(fields, cups) { it })
         assertNotNull(ReadingGroup("timestamp", null, null, Reduction.COUNT).problem(fields, cups) { it })

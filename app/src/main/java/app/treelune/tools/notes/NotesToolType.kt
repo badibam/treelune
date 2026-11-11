@@ -98,7 +98,8 @@ object NotesToolType : ToolTypeContract {
                         alwaysVisible = false,
                         config = mapOf("min" to 0, "decimals" to 0)
                     ),
-                    filterable = false
+                    filterable = false,
+                    sortable = true
                 )
             )
         )

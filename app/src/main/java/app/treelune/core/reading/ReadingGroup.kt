@@ -71,10 +71,10 @@ data class ReadingGroup(val field: String, val unit: PeriodType?, val keep: JSON
 
         /**
          * The reductions of the groups' values, each being of [value]: counting the groups, and
-         * those [value] takes, the last excepted, which groups have none of.
+         * those [value] takes, the first entry's excepted, which groups have no order to give.
          */
         fun reductions(value: FieldDefinition): Set<Reduction> =
-            (Reduction.forField(value) - Reduction.LAST) + Reduction.COUNT
+            (Reduction.forField(value) - Reduction.FIRST) + Reduction.COUNT
 
         /** The field a reduction of the groups' values, each of [value], gives: a count is a whole number. */
         fun resultField(value: FieldDefinition, reduction: Reduction): FieldDefinition = when {

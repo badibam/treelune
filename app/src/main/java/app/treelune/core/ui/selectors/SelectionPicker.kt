@@ -42,6 +42,9 @@ import app.treelune.core.ui.components.PeriodPicker
  *   displayed period)
  * @param fixed Whether the thing is the context's own and stays it (the tool whose entries are
  *   exported): named without "change"
+ * @param offerOrder Whether a tool's or a series' entries are read in order here, their sort and
+ *   their count chosen below their conditions (not a trigger's entry, nor an export's); the sort
+ *   is never empty, its default written as soon as the tool's fields are read (SelectionOrder)
  */
 @Composable
 fun SelectionPicker(
@@ -53,7 +56,8 @@ fun SelectionPicker(
     offerFields: Boolean,
     emptyPeriod: String? = null,
     offerPeriod: Boolean = true,
-    fixed: Boolean = false
+    fixed: Boolean = false,
+    offerOrder: Boolean = false
 ) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
@@ -103,6 +107,7 @@ fun SelectionPicker(
             PointerDescription.narrowing(draft.copy(period = app.treelune.core.selection.EntryPeriod()), fields, s).forEach {
                 UI.Text(text = it, type = TextType.CAPTION)
             }
+            if (offerOrder) OrderSetting(draft, onChange, tool.id.takeIf { draft.variable == null }, fields, s)
             if (editing) {
                 PointerFiltersDialog(
                     toolInstanceId = tool.id,
@@ -120,6 +125,32 @@ fun SelectionPicker(
             }
         }
     }
+}
+
+/**
+ * The order and the count of [draft]'s entries: its sort (SortSetting) on the keys of the tool
+ * [toolId] (a manual position included), or of the series' [fields]; then « The first N ».
+ * A draft without a sort gets its default once the keys are read.
+ */
+@Composable
+private fun OrderSetting(draft: SelectionDraft, onChange: (SelectionDraft) -> Unit, toolId: String?, fields: Map<String, FieldDefinition>, s: app.treelune.core.strings.StringsContext) {
+    val keys = if (toolId != null) rememberToolFields(toolId, sortKeys = true) else fields
+    androidx.compose.runtime.LaunchedEffect(keys, draft.sort.isEmpty()) {
+        if (draft.sort.isEmpty() && keys.isNotEmpty()) {
+            onChange(draft.copy(sort = if (toolId == null) app.treelune.core.selection.SelectionOrder.SERIES_DEFAULT
+                else app.treelune.core.selection.SelectionOrder.defaultSort(dated = "timestamp" in keys)))
+        }
+    }
+    if (draft.sort.isEmpty()) return
+    SortSetting(s.shared("selection_order"), draft.sort, keys) { onChange(draft.copy(sort = it)) }
+    UI.FormField(
+        label = s.shared("selection_limit"),
+        value = draft.limit?.toString() ?: "",
+        onChange = { text -> onChange(draft.copy(limit = text.filter { it.isDigit() }.toIntOrNull()?.takeIf { it > 0 })) },
+        fieldType = app.treelune.core.ui.FieldType.NUMERIC,
+        required = false
+    )
+    UI.Text(text = s.shared("selection_limit_hint"), type = TextType.CAPTION)
 }
 
 /** The browser's place across a rotation, null while folded. */
