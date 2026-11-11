@@ -3,10 +3,8 @@ package app.treelune.tools.notes.ui
 import app.treelune.core.markup.Markup
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,7 +22,6 @@ import app.treelune.core.strings.Strings
 import app.treelune.core.tools.EntryToOpen
 import app.treelune.core.tools.ToolTile
 import app.treelune.core.ui.ButtonType
-import app.treelune.core.ui.CardType
 import app.treelune.core.ui.Size
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
@@ -38,9 +35,9 @@ private data class TileNote(val id: String, val title: String?, val content: Str
 
 /**
  * A notes tool's tile. The summary is a button that opens the tool on a new note, and how many
- * notes there are; the body the notes in their manual order, two per row side by side, each a
- * card showing the start of its text, under its title when the notes take titles, on as many
- * lines as its slot holds; all of them in FULL. Touching a note opens it.
+ * notes there are; the body the notes in their manual order, by halves by default, each its
+ * title when the notes take titles, then the start of its text, on the lines its tile gives it
+ * (TileItem); all of them when it follows its content. Touching a note opens it.
  */
 @Composable
 fun rememberNotesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile {
@@ -97,19 +94,14 @@ fun rememberNotesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile
             override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val loaded = notes ?: return
                 TileGrid(room, loaded) { note ->
-                    Box(modifier = Modifier.fillMaxSize().padding(vertical = UI.Space.XS).clickable { open(EntryToOpen.Existing(note.id)) }) {
-                        UI.Card(type = CardType.DEFAULT) {
-                            Box(modifier = Modifier.fillMaxSize().padding(UI.Space.XS)) {
-                                // On one line, without its marks
-                                val text = Markup.plain(note.content).ifBlank { s.tool("content_empty") }
-                                // No count of lines: the slot's height bounds the text, its last line cut by an ellipsis
-                                if (note.title != null) Column {
-                                    UI.Text(note.title, TextType.LABEL, maxLines = 1)
-                                    UI.Text(text, TextType.CAPTION)
-                                } else UI.Text(text, TextType.CAPTION)
-                            }
-                        }
-                    }
+                    // Its text without its marks; under its title, or in its place when the notes take none
+                    val text = Markup.plain(note.content).ifBlank { s.tool("content_empty") }
+                    app.treelune.core.ui.components.TileItem(
+                        note.title ?: text,
+                        modifier = Modifier.clickable { open(EntryToOpen.Existing(note.id)) },
+                        text = text.takeIf { note.title != null },
+                        mainType = if (note.title != null) TextType.STRONG else TextType.BODY
+                    )
                 }
             }
         }
