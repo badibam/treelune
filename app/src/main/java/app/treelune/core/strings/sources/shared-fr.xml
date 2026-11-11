@@ -3115,6 +3115,7 @@
     <string name="task_existing_then">Alors</string>
     <string name="task_existing_skip">La laisser telle quelle</string>
     <string name="task_existing_update">La modifier avec ces valeurs</string>
+    <string name="task_existing_stop">Arrêter la Tâche là</string>
     <string name="task_error_existing_field">L\'étape %1$s cherche une entrée déjà là par le champ « %2$s », qu\'elle n\'écrit pas ; elle écrit : %3$s</string>
     <string name="task_error_existing_then">L\'étape %1$s fait « %2$s » d\'une entrée déjà là ; elle prend : %3$s</string>
     <string name="task_append">Ajouter à la ligne, après ce que le champ contient, plutôt que remplacer</string>
@@ -3126,6 +3127,7 @@
     <string name="api_error_list_get">L\'entrée « %1$s » est une liste : elle part dans un corps JSON, donc l\'API s\'appelle en POST</string>
     <string name="task_list_with_id">Avec l\'identifiant de chaque entrée</string>
     <string name="task_run_skipped_step">Sautée : l\'étape %1$d l\'a été</string>
+    <string name="task_run_stopped_existing">Arrêtée là : une entrée avait déjà ce « %1$s » ; les étapes suivantes ne sont pas parties</string>
     <string name="task_run_skipped_false">Sautée : sa condition %1$d n\'est pas vraie</string>
     <string name="task_run_skipped_unknown">Sautée : il manque une valeur pour juger sa condition %1$d</string>
 

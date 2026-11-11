@@ -239,7 +239,7 @@ private fun Existing(step: JSONObject, fields: List<FieldDefinition>, s: Strings
         }
     }
     if (existing == null) return
-    Choice(s.shared("task_existing_then"), listOf(TaskSteps.SKIP to s.shared("task_existing_skip"), TaskSteps.UPDATE to s.shared("task_existing_update")),
+    Choice(s.shared("task_existing_then"), listOf(TaskSteps.SKIP to s.shared("task_existing_skip"), TaskSteps.UPDATE to s.shared("task_existing_update"), TaskSteps.STOP to s.shared("task_existing_stop")),
         existing.optString(TaskSteps.THEN)) { then -> with { put(TaskSteps.EXISTING, JSONObject(existing.toString()).put(TaskSteps.THEN, then)) } }
 }
 

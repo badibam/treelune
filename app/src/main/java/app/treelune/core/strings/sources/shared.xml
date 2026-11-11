@@ -3115,6 +3115,7 @@
     <string name="task_existing_then">Then</string>
     <string name="task_existing_skip">Leave it as it is</string>
     <string name="task_existing_update">Change it with these values</string>
+    <string name="task_existing_stop">Stop the Task there</string>
     <string name="task_error_existing_field">Step %1$s looks for an entry already there by the field “%2$s”, which it does not write; it writes: %3$s</string>
     <string name="task_error_existing_then">Step %1$s does “%2$s” with an entry already there; it takes: %3$s</string>
     <string name="task_append">Add on a line after what it holds, rather than replace</string>
@@ -3126,6 +3127,7 @@
     <string name="api_error_list_get">The input “%1$s” is a list: it goes in a JSON body, so the API is called with POST</string>
     <string name="task_list_with_id">With the id of each entry</string>
     <string name="task_run_skipped_step">Skipped: step %1$d was</string>
+    <string name="task_run_stopped_existing">Stopped there: an entry already had this « %1$s »; the steps after it did not run</string>
     <string name="task_run_skipped_false">Skipped: its condition %1$d does not hold</string>
     <string name="task_run_skipped_unknown">Skipped: a value is missing to judge its condition %1$d</string>
 

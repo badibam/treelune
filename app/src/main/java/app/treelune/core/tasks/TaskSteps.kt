@@ -80,6 +80,8 @@ object TaskSteps {
     const val THEN = "then"
     const val SKIP = "skip"
     const val UPDATE = "update"
+    /** The run ends there, done: what a step does once per entry received */
+    const val STOP = "stop"
     const val APPEND = "append"
     const val SELECTION = "selection"
 
@@ -460,7 +462,7 @@ object TaskSteps {
                         if (step.optJSONObject(VALUES)?.has(field) != true) {
                             return s.shared("task_error_existing_field").format(number, field, step.optJSONObject(VALUES)?.keys()?.asSequence()?.joinToString(", ").orEmpty().ifEmpty { "-" })
                         }
-                        if (existing.optString(THEN) !in setOf(SKIP, UPDATE)) return s.shared("task_error_existing_then").format(number, existing.optString(THEN), "$SKIP, $UPDATE")
+                        if (existing.optString(THEN) !in setOf(SKIP, UPDATE, STOP)) return s.shared("task_error_existing_then").format(number, existing.optString(THEN), "$SKIP, $UPDATE")
                     }
                     // Added after what a text field holds, on a change alone
                     step.optJSONArray(APPEND)?.let { append ->

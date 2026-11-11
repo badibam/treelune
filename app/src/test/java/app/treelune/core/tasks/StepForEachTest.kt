@@ -191,6 +191,26 @@ class StepForEachTest {
     }
 
     @Test
+    fun anEntryAlreadyThere_stopsTheRun_doneAndSaidSo_whenSaidSo() = runBlocking {
+        val steps = listOf(
+            mapOf("kind" to TaskSteps.CREATE_ENTRY, "tool_instance_id" to notesId, "values" to mapOf("data.content" to mapOf("constant" to "once")),
+                "existing" to mapOf("field" to "data.content", "then" to TaskSteps.STOP)),
+            mapOf("kind" to TaskSteps.CREATE_ENTRY, "tool_instance_id" to notesId, "values" to mapOf("data.content" to mapOf("constant" to "after")))
+        )
+        val taskId = task(steps)
+        // The first run creates the entry and goes on
+        assertEquals(TaskRun.State.DONE.key, run(taskId).state)
+        assertEquals(2, entries(notesId).size)
+        // The second finds it: done, the step after it not run, and why said
+        val second = run(taskId)
+        assertEquals(second.resultsJson, TaskRun.State.DONE.key, second.state)
+        assertEquals(2, entries(notesId).size)
+        val results = TaskRun.results(second.resultsJson)
+        assertEquals(1, results.size)
+        assertTrue(results.single().stopped != null)
+    }
+
+    @Test
     fun anEntryAlreadyThere_isFoundByAFieldTheStepWrites() = runBlocking {
         val result = coordinator.processUserAction("tasks.create", mapOf("zone_id" to zoneId, "name" to "Store", "steps" to listOf(
             mapOf("kind" to TaskSteps.CREATE_ENTRY, "tool_instance_id" to notesId, "values" to mapOf("data.content" to mapOf("constant" to "sim")),

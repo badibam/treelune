@@ -139,7 +139,8 @@ object TaskRunner {
             when (outcome) {
                 is Outcome.Waiting -> { LogManager.service("Task ${task.id} run $runId waits on step ${run.step + 1}", "INFO"); return }
                 is Outcome.Failed -> { end(context, task, run, TaskRun.State.FAILED); return }
-                is Outcome.Done -> Unit
+                // « Stop the Task »: done, the steps after it not run
+                is Outcome.Done -> if (outcome.result.stopped != null) { end(context, task, run, TaskRun.State.DONE); return }
             }
         }
         end(context, task, run, TaskRun.State.DONE)
@@ -419,6 +420,9 @@ object TaskRunner {
         val existing = step.optJSONObject(TaskSteps.EXISTING)?.takeIf { kind == TaskSteps.CREATE_ENTRY }
         val found = existing?.let { found(context, step.getString(TaskSteps.TOOL_INSTANCE_ID), it.getString(TaskSteps.FIELD), resolved[it.getString(TaskSteps.FIELD)]) }
         if (found != null && existing.optString(TaskSteps.THEN) == TaskSteps.SKIP) return TaskRun.StepResult(summary, entryId = found, at = System.currentTimeMillis())
+        // Or the run ends there, done, saying why: what follows is done once per entry
+        if (found != null && existing.optString(TaskSteps.THEN) == TaskSteps.STOP) return TaskRun.StepResult(summary, entryId = found, at = System.currentTimeMillis(),
+            stopped = s.shared("task_run_stopped_existing").format(existing.getString(TaskSteps.FIELD).let { path -> fieldName(context, step.getString(TaskSteps.TOOL_INSTANCE_ID), path) }))
         // What it changes adds to what its text fields hold, where it says so
         val written = appended(context, step, resolved, if (kind == TaskSteps.UPDATE_ENTRY) idOf(resolved[TaskSteps.ENTRY]) as? String else found)
         val (action, params) = if (found != null) "tool_data.update" to entryParams(step.getString(TaskSteps.TOOL_INSTANCE_ID), written) + ("id" to found)
@@ -444,6 +448,15 @@ object TaskRunner {
             TaskSteps.CREATE_ENTRY -> TaskRun.StepResult(summary, entryId = found ?: done.data?.get("id") as? String, at = now)
             else -> TaskRun.StepResult(summary, at = now)
         }
+    }
+
+    /** The name of the field [path] of [toolId], for a run's words; its path when the tool no longer reads. */
+    private suspend fun fieldName(context: Context, toolId: String, path: String): String = try {
+        app.treelune.core.fields.ToolFields.filterable(toolId, context, Strings.`for`(context = context))[path]?.displayName ?: path
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        throw e
+    } catch (e: IllegalStateException) {
+        path
     }
 
     /**
