@@ -67,6 +67,7 @@ internal fun StepEditor(step: JSONObject, earlier: Earlier, onChange: (JSONObjec
                 TaskSteps.TOOL_OPERATION -> ToolOperation(step, earlier, s, ::with)
                 TaskSteps.RUN_ROUTINE -> RunRoutine(step, earlier, s, ::with)
                 TaskSteps.EMIT_EVENT -> EmitEvent(step, earlier, s, ::with)
+                TaskSteps.ASSEMBLE -> AssembleEditor(step, earlier, s, ::with)
             }
             if (step.optString(TaskSteps.KIND).isNotEmpty()) StepWhen(step, earlier, s, ::with)
         }
@@ -239,7 +240,7 @@ private fun Existing(step: JSONObject, fields: List<FieldDefinition>, s: Strings
         }
     }
     if (existing == null) return
-    Choice(s.shared("task_existing_then"), listOf(TaskSteps.SKIP to s.shared("task_existing_skip"), TaskSteps.UPDATE to s.shared("task_existing_update")),
+    Choice(s.shared("task_existing_then"), listOf(TaskSteps.SKIP to s.shared("task_existing_skip"), TaskSteps.UPDATE to s.shared("task_existing_update"), TaskSteps.STOP to s.shared("task_existing_stop")),
         existing.optString(TaskSteps.THEN)) { then -> with { put(TaskSteps.EXISTING, JSONObject(existing.toString()).put(TaskSteps.THEN, then)) } }
 }
 
@@ -373,11 +374,11 @@ private fun StepBlocksEditor(step: JSONObject, earlier: Earlier, s: StringsConte
 }
 
 /** The field an entry block's input fills: an entry, of any tool. */
-private fun blockEntryField(s: StringsContext) = FieldDefinition(StepBlocks.ENTRY, s.shared("task_block_entry"), null, FieldType.REFERENCE, false,
+internal fun blockEntryField(s: StringsContext) = FieldDefinition(StepBlocks.ENTRY, s.shared("task_block_entry"), null, FieldType.REFERENCE, false,
     mapOf(ReferenceTarget.TARGET to mapOf(ReferenceTarget.KINDS to listOf(ReferenceKind.ENTRY.name))))
 
 /** The field a value block's input fills: a text, as long as it is. */
-private fun blockValueField(s: StringsContext) = FieldDefinition(StepBlocks.VALUE, s.shared("task_block_value"), null, FieldType.TEXT, false,
+internal fun blockValueField(s: StringsContext) = FieldDefinition(StepBlocks.VALUE, s.shared("task_block_value"), null, FieldType.TEXT, false,
     mapOf("length" to TextLength.UNLIMITED.name))
 
 private const val ATTACHED = "attached"
@@ -431,7 +432,7 @@ private fun Inputs(inputs: JSONObject, fields: List<FieldDefinition>, earlier: E
  * value written here: it is followed in an entry, or comes from an API.
  */
 @Composable
-private fun StepInput(input: JSONObject?, field: FieldDefinition, earlier: Earlier, s: StringsContext, optional: Boolean, onChange: (JSONObject?) -> Unit) {
+internal fun StepInput(input: JSONObject?, field: FieldDefinition, earlier: Earlier, s: StringsContext, optional: Boolean, onChange: (JSONObject?) -> Unit) {
     val results = earlier.flatMap { (index, outputs) ->
         // A list is what a step repeats over, never a value
         outputs.filter { (it.value == null) == (field.type == FieldType.REFERENCE) && it.type != ApiSettings.LIST }.map { output ->

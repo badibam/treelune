@@ -119,9 +119,12 @@ fun FieldValue(
         FieldType.REFERENCE -> ReferenceValue(value, context)
 
         // Selectable or not as what holds it is: never a selection of its own inside another
-        FieldType.TEXT -> if (!oneLine && fieldDef.formatted() && value.toString().isNotEmpty())
-            MarkupText(value.toString(), icons = false, selectable = false)
-        else UI.Text(text = fieldDef.formatValue(value, context), type = TextType.BODY)
+        FieldType.TEXT -> when {
+            // A JSON field read through the JSON reader, folded below its first level
+            !oneLine && !short && fieldDef.json() && value.toString().isNotEmpty() -> app.treelune.core.ui.components.JsonReader(value.toString())
+            !oneLine && fieldDef.formatted() && value.toString().isNotEmpty() -> MarkupText(value.toString(), icons = false, selectable = false)
+            else -> UI.Text(text = fieldDef.formatValue(value, context), type = TextType.BODY)
+        }
 
         FieldType.FILE ->
             if (short || oneLine) app.treelune.core.files.FileAbbreviation(FileField.ids(value))

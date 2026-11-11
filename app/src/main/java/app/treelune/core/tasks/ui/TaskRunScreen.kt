@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import app.treelune.core.commands.CommandStatus
 import app.treelune.core.coordinator.Coordinator
+import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.navigation.Navigator
 import app.treelune.core.navigation.Place
 import app.treelune.core.strings.Strings
@@ -35,7 +36,8 @@ import kotlinx.coroutines.launch
 /**
  * One run of a Task (Place.TaskRun): when and why it started, where it stands, then each step
  * reached — what it did, the values an API gave, the entry it created, why it failed, the start
- * of the raw answer. Opening it reads its end; a run going on or waiting can be cancelled.
+ * of the raw answer. Opening it reads its end; a run going on or waiting can be cancelled, a
+ * failed one resumed at the step that failed.
  *
  * @param onTaskName Names its Task in the breadcrumb, opened from a notification with nothing under it
  */
@@ -90,20 +92,37 @@ fun TaskRunScreen(place: Place.TaskRun, onTaskName: (String) -> Unit, onBack: ()
         if (!state.ended) UI.Button(type = ButtonType.DANGER, onClick = {
             scope.launch { coordinator.processUserAction("tasks.cancel", mapOf("run_id" to place.runId)); load() }
         }) { UI.Text(s.shared("task_run_cancel"), TextType.BODY) }
+        // Failed: it goes on from the step that failed, with what the steps before it gave (TaskRunner.resume)
+        if (state == app.treelune.core.tasks.TaskRun.State.FAILED) UI.Button(type = ButtonType.PRIMARY, onClick = {
+            scope.launch {
+                val resumed = coordinator.processUserAction("tasks.resume", mapOf("run_id" to place.runId))
+                if (!resumed.isSuccess) UI.Toast(resumed.error ?: s.shared("error_unknown"))
+                load()
+            }
+        }) { UI.Text(s.shared("task_run_resume"), TextType.BODY) }
 
         (shown["results"] as List<*>).filterIsInstance<Map<*, *>>().forEachIndexed { index, result ->
             UI.Card(type = CardType.DEFAULT, size = Size.M) {
                 Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
                     UI.Text(s.shared("task_step_line").format(index + 1, result["summary"]), TextType.STRONG)
-                    (result["values"] as? Map<*, *>)?.forEach { (name, value) -> UI.Text(s.shared("label_value").format(name, value), TextType.BODY) }
+                    (result["values"] as? Map<*, *>)?.forEach { (name, value) ->
+                        // An object made (its type said by the step's result), read through the JSON reader
+                        if ((result["types"] as? Map<*, *>)?.get(name) == app.treelune.core.apis.ApiSettings.OBJECT && value is Map<*, *>) {
+                            UI.Text(name.toString(), TextType.LABEL)
+                            app.treelune.core.ui.components.JsonReader(org.json.JSONObject(value), open = false)
+                        } else UI.Text(s.shared("label_value").format(name, value), TextType.BODY)
+                    }
                     (result["entry_id"] as? String)?.let { UI.Text(s.shared("task_run_entry_created"), TextType.CAPTION) }
                     (result["skipped"] as? String)?.let { UI.Text(it, TextType.CAPTION) }
+                    (result["stopped"] as? String)?.let { UI.Text(it, TextType.CAPTION) }
                     (result["repeated"] as? Number)?.let { UI.Text(s.shared("task_run_repeated").format(it.toInt()), TextType.CAPTION) }
                     (result["error"] as? String)?.let { UI.Text(it, TextType.ERROR) }
                     (result["raw"] as? String)?.let { raw ->
                         UI.Text(s.shared("api_try_raw"), TextType.LABEL)
-                        // An empty answer is said, not left as a blank under its label
-                        UI.Text(raw.ifEmpty { s.shared("api_raw_empty") }, TextType.CAPTION)
+                        // An empty answer is said, not left as a blank under its label; an API
+                        // answers JSON, read through the JSON reader (one that does not read shows as it is)
+                        if (raw.isEmpty()) UI.Text(s.shared("api_raw_empty"), TextType.CAPTION)
+                        else app.treelune.core.ui.components.JsonReader(raw, open = false)
                     }
                 }
             }

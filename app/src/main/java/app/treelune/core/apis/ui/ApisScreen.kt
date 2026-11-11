@@ -231,7 +231,13 @@ private fun Tried(result: Map<String, Any?>, s: app.treelune.core.strings.String
         UI.Text(s.shared("label_value").format(value["name"], shown), if (value.containsKey("error")) TextType.ERROR else TextType.BODY)
     }
     UI.Text(s.shared("api_try_raw"), TextType.LABEL)
-    UI.Text((result["raw"] as String).take(SHOWN_RAW).ifEmpty { s.shared("api_raw_empty") }, TextType.CAPTION)
+    // An API answers JSON, read through the JSON reader; one that does not read shows as it is, cut
+    val raw = result["raw"] as String
+    when {
+        raw.isEmpty() -> UI.Text(s.shared("api_raw_empty"), TextType.CAPTION)
+        raw.length <= SHOWN_RAW -> app.treelune.core.ui.components.JsonReader(raw)
+        else -> UI.Text(raw.take(SHOWN_RAW), TextType.CAPTION)
+    }
 }
 
 /** The most of a raw answer « Try » shows: enough to find a path, short enough to scroll past. */

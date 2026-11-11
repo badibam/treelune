@@ -1368,6 +1368,9 @@
     <string name="text_length_medium_display_name">Short</string>
     <string name="text_length_long_display_name">Long</string>
     <string name="text_length_unlimited_display_name">Unlimited</string>
+    <string name="text_length_json_display_name">JSON (an object or a list)</string>
+    <string name="json_reader_keys">%1$d keys</string>
+    <string name="json_reader_items">%1$d items</string>
 
     <string name="field_type_numeric_display_name">Numeric</string>
     <string name="field_type_numeric_description">Numeric value with a unit and optional constraints</string>
@@ -1449,6 +1452,7 @@
     <string name="field_validation_reference_kinds">Choose at least one thing the field can point to.</string>
     <string name="field_validation_reference_tool_instances">The tools of the list are for entries only: check Entry.</string>
     <string name="field_value_reference_invalid">Not a reference: %1$s. Expected {"kind": "ENTRY", "id": "..."}, with no id for the app.</string>
+    <string name="field_value_json_invalid">A JSON field holds a JSON object or list, written whole: “%1$s” does not read as one</string>
     <string name="field_value_reference_kind">Points to a %1$s, which this field does not take (it takes %2$s).</string>
     <string name="field_value_reference_not_found">Nothing of kind %1$s has the id %2$s.</string>
     <string name="field_value_reference_entry_gone">the entry it designates has been deleted</string>
@@ -2876,6 +2880,7 @@
     <string name="api_error_name_taken">An API is already named “%1$s”</string>
     <string name="api_error_name_twice">Two inputs or two values are named “%1$s”</string>
     <string name="api_type_list">List</string>
+    <string name="api_type_object">Object</string>
     <string name="api_items">Fields of each element</string>
     <string name="api_schema_items">For a list: what each element holds, each by its name and its path in the element; a field an element does not hold is empty</string>
     <string name="api_error_list_items">The list “%1$s” names no field of its elements</string>
@@ -2931,6 +2936,9 @@
     <string name="task_error">Task: %1$s</string>
     <string name="task_error_not_found">This Task no longer exists</string>
     <string name="task_error_run_not_found">This run no longer exists</string>
+    <string name="task_error_resume_not_failed">Only a failed run resumes: an interrupted one may have done its step, which is never done twice</string>
+    <string name="task_error_resume_changed">The Task changed since this run started: its steps may no longer be those its results stand for. Run it again.</string>
+    <string name="task_error_resume_busy">Another run of this Task goes on: resume this one once it ends.</string>
     <string name="task_error_running">“%1$s” is already running: wait for its run to end</string>
     <string name="chain_capped">“%1$s” did not start: %2$s runs followed one another, each started by the one before, without you or a planned time in between. The cap is in Settings › AI limits.</string>
     <string name="task_error_steps">A Task\'s steps are a list</string>
@@ -2970,6 +2978,7 @@
     <string name="task_verbalize_delete">Deletion of the Task “%1$s”</string>
     <string name="task_verbalize_duplicate">Copy of the Task “%1$s”</string>
     <string name="task_verbalize_run">Run of the Task “%1$s”</string>
+    <string name="task_verbalize_resume">Run of the Task “%1$s” resumed</string>
     <string name="in_use_tasks">Tasks: %1$s</string>
     <string name="task_step_api">API</string>
     <string name="task_step_tool">Tool</string>
@@ -3045,6 +3054,7 @@
     <string name="trigger_schema_kind_event">An event emitted (by a Task\'s step): each run then receives the values it carries</string>
     <string name="trigger_error_event">A trigger listens to the event %1$s, which does not exist</string>
     <string name="task_kind_emit_event">Emit an event</string>
+    <string name="task_kind_assemble">Assemble an object</string>
     <string name="task_step_event">Event</string>
     <string name="task_trigger_event">by an event</string>
     <string name="task_input_received_value">Received › %1$s</string>
@@ -3099,6 +3109,7 @@
     <string name="task_input_received_field">The entry written › %1$s</string>
     <string name="task_run_next_poll">Asked again %1$s</string>
     <string name="task_run_cancel">Cancel the run</string>
+    <string name="task_run_resume">Resume at the step that failed</string>
     <string name="task_run_entry_created">Entry created</string>
     <string name="task_error_when">Step %1$d: its conditions (when) are a list</string>
     <string name="task_when_label">step %1$d (“only if” %2$d)</string>
@@ -3124,6 +3135,37 @@
     <string name="task_existing_then">Then</string>
     <string name="task_existing_skip">Leave it as it is</string>
     <string name="task_existing_update">Change it with these values</string>
+    <string name="task_existing_stop">Stop the Task there</string>
+    <string name="task_error_object_key">Step %1$s: a key of the object is named</string>
+    <string name="task_error_object_part">Step %1$s: the key holds a text, a pointer, an entry, a value or an object</string>
+    <string name="task_error_object_pointer_target">Step %1$s: a pointer of the object names entries of a tool, or one entry</string>
+    <string name="task_error_object_labels">Step %1$s: two fields kept are called “%2$s”; rename one, or keep only one</string>
+    <string name="task_error_object_input">Step %1$s: the input “%2$s” takes an object, which only an object made by an earlier step gives, and an object goes to an input of type object alone</string>
+    <string name="task_error_object_field">Step %1$s: an object is written into a JSON field alone, not into “%2$s”</string>
+    <string name="task_error_object_empty">Step %1$s: the object has no key</string>
+    <string name="task_error_object_no_entry">The entry the object names is not there</string>
+    <string name="task_object_summary">An object made, %1$d key(s)</string>
+    <string name="task_object_label">Object</string>
+    <string name="task_object_help">Each key holds one thing: a text, a pointer, an entry, a value of the run, or more keys. The steps after it read the object made.</string>
+    <string name="task_object_key">Key</string>
+    <string name="task_object_new_text">text</string>
+    <string name="task_object_new_pointer">entries</string>
+    <string name="task_object_new_entry">entry</string>
+    <string name="task_object_new_value">value</string>
+    <string name="task_object_new_object">object</string>
+    <string name="task_object_kind_object">Object</string>
+    <string name="task_object_rendering">Rendered</string>
+    <string name="task_object_readable">Readable</string>
+    <string name="task_object_technical">Technical</string>
+    <string name="task_object_readable_help">Each field under its label, a value as the app says it, each entry\'s id; its config attached, the tool\'s name, its description and what its fields mean.</string>
+    <string name="task_object_technical_help">Each field under the last part of its path, its stored value, as an API\'s list receives it; its config attached, whole.</string>
+    <string name="task_object_open">Open its keys (%1$d)</string>
+    <string name="task_object_tool">Tool</string>
+    <string name="task_object_description">Description</string>
+    <string name="task_object_fields">Fields</string>
+    <string name="task_object_entries">Entries</string>
+    <string name="task_object_entry">Entry</string>
+    <string name="task_object_scale">from %1$s to %2$s</string>
     <string name="task_error_existing_field">Step %1$s looks for an entry already there by the field “%2$s”, which it does not write; it writes: %3$s</string>
     <string name="task_error_existing_then">Step %1$s does “%2$s” with an entry already there; it takes: %3$s</string>
     <string name="task_append">Add on a line after what it holds, rather than replace</string>
@@ -3133,8 +3175,10 @@
     <string name="task_error_list_selection">The entries of %1$s are a tool\'s</string>
     <string name="task_error_list_fields">The entries of %1$s keep no field: say which ones are sent</string>
     <string name="api_error_list_get">The input “%1$s” is a list: it goes in a JSON body, so the API is called with POST</string>
+    <string name="api_error_object_get">The input “%1$s” is an object: it goes in a JSON body, so the API is called with POST</string>
     <string name="task_list_with_id">With the id of each entry</string>
     <string name="task_run_skipped_step">Skipped: step %1$d was</string>
+    <string name="task_run_stopped_existing">Stopped there: an entry already had this “%1$s”; the steps after it did not run</string>
     <string name="task_run_skipped_false">Skipped: its condition %1$d does not hold</string>
     <string name="task_run_skipped_unknown">Skipped: a value is missing to judge its condition %1$d</string>
 

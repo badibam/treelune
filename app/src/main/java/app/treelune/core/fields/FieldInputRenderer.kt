@@ -46,7 +46,7 @@ fun FieldInput(
                 TextLength.SHORT -> UIFieldType.TEXT
                 TextLength.MEDIUM -> UIFieldType.TEXT_MEDIUM
                 TextLength.LONG -> UIFieldType.TEXT_LONG
-                TextLength.UNLIMITED -> UIFieldType.TEXT_UNLIMITED
+                TextLength.UNLIMITED, TextLength.JSON -> UIFieldType.TEXT_UNLIMITED
             }
 
             UI.FormField(

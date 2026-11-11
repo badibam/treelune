@@ -65,6 +65,7 @@ class TaskService(private val context: Context) : ExecutableService {
             "duplicate" -> duplicate(params)
             "run" -> run(params)
             "cancel" -> cancel(params)
+            "resume" -> resume(params)
             "runs" -> task(params)?.let { task -> OperationResult.success(mapOf("runs" to dao.getRuns(task.id, params.optInt("limit", 20)).map { runOf(it) })) } ?: notFound()
             "get_run" -> dao.getRun(params.optString("run_id"))?.let { OperationResult.success(mapOf("run" to runOf(it))) } ?: OperationResult.error(s.shared("task_error_run_not_found"))
             "seen" -> {
@@ -239,6 +240,13 @@ class TaskService(private val context: Context) : ExecutableService {
         return OperationResult.success()
     }
 
+    /** A failed run going on from the step that failed (TaskRunner.resume); `awaited` to wait for its end. */
+    private suspend fun resume(params: JSONObject): OperationResult {
+        val run = dao.getRun(params.optString("run_id")) ?: return OperationResult.error(s.shared("task_error_run_not_found"))
+        val task = dao.get(run.taskId) ?: return notFound()
+        return TaskRunner.resume(context, task, run, params.optBoolean("awaited", false))?.let { OperationResult.error(it) } ?: OperationResult.success()
+    }
+
     private suspend fun outputs(params: JSONObject): OperationResult {
         val steps = params.optJSONArray("steps") ?: JSONArray()
         return OperationResult.success(mapOf("outputs" to (0 until steps.length()).map { index ->
@@ -338,6 +346,7 @@ class TaskService(private val context: Context) : ExecutableService {
             "delete" -> s.shared("task_verbalize_delete").format(name)
             "duplicate" -> s.shared("task_verbalize_duplicate").format(name)
             "run" -> s.shared("task_verbalize_run").format(name)
+            "resume" -> s.shared("task_verbalize_resume").format(name)
             else -> s.shared("action_verbalize_unknown")
         }
     }

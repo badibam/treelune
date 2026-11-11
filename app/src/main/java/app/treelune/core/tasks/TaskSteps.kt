@@ -5,6 +5,7 @@ import app.treelune.core.apis.ApiSettings
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.ToolFields
+import app.treelune.core.fields.json
 import app.treelune.core.strings.StringsContext
 import app.treelune.core.terms.Term
 import app.treelune.core.tools.ToolOperations
@@ -33,6 +34,8 @@ import org.json.JSONObject
  * - `tool_operation`: `tool_instance_id`, `operation` (one the tool type declares), `params` (by name)
  * - `run_routine`: `routine_id`, `blocks` (what joins its run's message: StepBlocks)
  * - `emit_event`: `event_id`, `inputs` (by the value's name the event declares, every one given)
+ * - `assemble`: `object`, keys the user names each holding a text, a pointer, an entry, a value or
+ *   more keys (StepObject); it writes nothing and gives the object made, `object`, of type object
  *
  * Any of them may hold `when`, conditions on its inputs that all hold for it to run (StepConditions),
  * and `for_each`, an input giving a list an earlier API answered (`{"result": {"step", "value"}}`):
@@ -56,8 +59,9 @@ object TaskSteps {
     const val TOOL_OPERATION = "tool_operation"
     const val RUN_ROUTINE = "run_routine"
     const val EMIT_EVENT = "emit_event"
+    const val ASSEMBLE = "assemble"
 
-    val KINDS = listOf(CALL_API, CREATE_ENTRY, UPDATE_ENTRY, TOOL_OPERATION, RUN_ROUTINE, EMIT_EVENT)
+    val KINDS = listOf(CALL_API, CREATE_ENTRY, UPDATE_ENTRY, TOOL_OPERATION, RUN_ROUTINE, EMIT_EVENT, ASSEMBLE)
 
     const val KIND = "kind"
     const val API_ID = "api_id"
@@ -80,6 +84,8 @@ object TaskSteps {
     const val THEN = "then"
     const val SKIP = "skip"
     const val UPDATE = "update"
+    /** The run ends there, done: what a step does once per entry received */
+    const val STOP = "stop"
     const val APPEND = "append"
     const val SELECTION = "selection"
 
@@ -191,6 +197,12 @@ object TaskSteps {
      */
     data class Output(val value: String?, val type: String, val items: List<Output> = emptyList())
 
+    /** The type of what [input] gives, when it is what an earlier step gave ([given], by step); null otherwise. */
+    private fun givenType(input: JSONObject?, given: List<List<Output>>): String? {
+        val result = input?.optJSONObject(RESULT) ?: return null
+        return given.getOrNull(result.optInt(STEP, -1))?.firstOrNull { it.value == result.optString(VALUE).ifEmpty { null } }?.type
+    }
+
     /** Whether [step] is made once per element of a list (`for_each`). */
     fun repeats(step: JSONObject?): Boolean = step?.optJSONObject(FOR_EACH) != null
 
@@ -217,6 +229,7 @@ object TaskSteps {
             }
         }.orEmpty()
         CREATE_ENTRY -> listOf(Output(null, ENTRY))
+        ASSEMBLE -> listOf(Output(StepObject.OUTPUT, ApiSettings.OBJECT))
         else -> emptyList()
     }
 
@@ -304,11 +317,17 @@ object TaskSteps {
                 "joined" to blocksOf(step).let { blocks -> StepBlocks.fixedPointers(blocks).map { JSONObject().put(StepBlocks.TYPE, StepBlocks.POINTER).put(StepBlocks.POINTER, it) } }
                     .map { app.treelune.core.utils.JsonUtils.toMap(it) }))
             EMIT_EVENT -> reach("events.emit", mapOf("event_id" to step.optString(EVENT_ID)))
+            // Its pointers read the entries they name
+            ASSEMBLE -> objectParts(step).filterIsInstance<StepObject.Part.Pointer>().flatMap { part ->
+                reach("tool_data.get", mapOf("tool_instance_id" to (part.pointer.selection.target.id ?: "")))
+            }
             else -> emptyList()
         }
         val reads = listOf(INPUTS, VALUES, PARAMS).mapNotNull { step.optJSONObject(it) }
             .flatMap { holder -> holder.keys().asSequence().mapNotNull { holder.optJSONObject(it) }.toList() } +
             listOfNotNull(step.optJSONObject(ENTRY)) +
+            // An object's entries and values are read as its inputs are
+            objectParts(step).mapNotNull { (it as? StepObject.Part.Entry)?.input ?: (it as? StepObject.Part.Value)?.input } +
             blocksOf(step).mapNotNull { block ->
                 when (block) {
                     is StepBlocks.Block.Entry -> block.input
@@ -348,6 +367,13 @@ object TaskSteps {
     }
 
     /** The blocks of [step], none when they do not read: the step's refusal says so (refusal). */
+    /** Every part of an `assemble` step's object, down every level; none for another step, or one that does not read (refusal says it). */
+    private fun objectParts(step: JSONObject): List<StepObject.Part> = try {
+        step.optJSONObject(StepObject.OBJECT)?.takeIf { step.optString(KIND) == ASSEMBLE }?.let { StepObject.flat(StepObject.read(it, { k -> k })).map { it.second } }.orEmpty()
+    } catch (e: IllegalArgumentException) {
+        emptyList()
+    }
+
     private fun blocksOf(step: JSONObject): List<StepBlocks.Block> = try {
         StepBlocks.of(step)
     } catch (e: IllegalArgumentException) {
@@ -432,6 +458,14 @@ object TaskSteps {
                     }
                     val declared = ApiSettings.inputs(JSONObject(api.configJson)).map { it.getString(ApiSettings.NAME) }
                     inputs(step.optJSONObject(INPUTS), declared.toSet())?.let { return it }
+                    // An object goes to an input of type object, and such an input takes an object alone
+                    val types = ApiSettings.inputs(JSONObject(api.configJson)).associate { it.getString(ApiSettings.NAME) to it.optString(ApiSettings.TYPE, ApiSettings.TEXT) }
+                    step.optJSONObject(INPUTS)?.let { holder ->
+                        for (name in holder.keys()) {
+                            val gives = givenType(holder.optJSONObject(name), given)
+                            if ((gives == ApiSettings.OBJECT) != (types[name] == ApiSettings.OBJECT)) return s.shared("task_error_object_input").format(number, name)
+                        }
+                    }
                     // A list is filled by entries, and entries fill a list alone
                     val lists = ApiSettings.listInputs(JSONObject(api.configJson))
                     step.optJSONObject(INPUTS)?.let { given ->
@@ -453,6 +487,12 @@ object TaskSteps {
                         return s.shared("task_error_tool").format(number, toolId)
                     }
                     inputs(step.optJSONObject(VALUES), fields.keys)?.let { return it }
+                    // An object is written into a JSON field alone
+                    step.optJSONObject(VALUES)?.let { holder ->
+                        for (path in holder.keys()) {
+                            if (givenType(holder.optJSONObject(path), given) == ApiSettings.OBJECT && fields[path]?.json() != true) return s.shared("task_error_object_field").format(number, path)
+                        }
+                    }
                     // The entry already there is found by a value the step writes
                     step.optJSONObject(EXISTING)?.let { existing ->
                         if (step.optString(KIND) != CREATE_ENTRY) return s.shared("task_error_input_unknown").format(number, EXISTING, VALUES)
@@ -460,7 +500,7 @@ object TaskSteps {
                         if (step.optJSONObject(VALUES)?.has(field) != true) {
                             return s.shared("task_error_existing_field").format(number, field, step.optJSONObject(VALUES)?.keys()?.asSequence()?.joinToString(", ").orEmpty().ifEmpty { "-" })
                         }
-                        if (existing.optString(THEN) !in setOf(SKIP, UPDATE)) return s.shared("task_error_existing_then").format(number, existing.optString(THEN), "$SKIP, $UPDATE")
+                        if (existing.optString(THEN) !in setOf(SKIP, UPDATE, STOP)) return s.shared("task_error_existing_then").format(number, existing.optString(THEN), "$SKIP, $UPDATE")
                     }
                     // Added after what a text field holds, on a change alone
                     step.optJSONArray(APPEND)?.let { append ->
@@ -492,6 +532,19 @@ object TaskSteps {
                     val declared = app.treelune.core.events.EventValues.read(event.valuesJson).map { it.name }
                     inputs(step.optJSONObject(INPUTS), declared.toSet())?.let { return it }
                     declared.firstOrNull { step.optJSONObject(INPUTS)?.has(it) != true }?.let { return s.shared("task_error_event_value").format(number, it, event.name) }
+                }
+                ASSEMBLE -> {
+                    val parts = try {
+                        StepObject.read(step.optJSONObject(StepObject.OBJECT) ?: return s.shared("task_error_object_empty").format(number), { s.shared(it) })
+                    } catch (e: IllegalArgumentException) {
+                        return "$number › ${e.message}"
+                    }
+                    if (parts.isEmpty()) return s.shared("task_error_object_empty").format(number)
+                    val flat = StepObject.flat(parts)
+                    inputs(JSONObject().apply {
+                        flat.forEach { (path, part) -> ((part as? StepObject.Part.Entry)?.input ?: (part as? StepObject.Part.Value)?.input)?.let { put(path, it) } }
+                    }, null)?.let { return it }
+                    flat.forEach { (path, part) -> if (part is StepObject.Part.Pointer) StepObject.pointerRefusal("$number › $path", part, context, s)?.let { return it } }
                 }
                 else -> return s.shared("task_error_kind").format(number, step.optString(KIND), KINDS.joinToString(", "))
             }

@@ -1368,6 +1368,9 @@
     <string name="text_length_medium_display_name">Court</string>
     <string name="text_length_long_display_name">Long</string>
     <string name="text_length_unlimited_display_name">Illimité</string>
+    <string name="text_length_json_display_name">JSON (un objet ou une liste)</string>
+    <string name="json_reader_keys">%1$d clés</string>
+    <string name="json_reader_items">%1$d éléments</string>
 
     <string name="field_type_numeric_display_name">Numérique</string>
     <string name="field_type_numeric_description">Valeur numérique avec unité et contraintes optionnelles</string>
@@ -1449,6 +1452,7 @@
     <string name="field_validation_reference_kinds">Choisis au moins une chose que le champ peut désigner.</string>
     <string name="field_validation_reference_tool_instances">Les outils de la liste ne servent qu\'aux entrées : coche Entrée.</string>
     <string name="field_value_reference_invalid">Pas une référence : %1$s. Attendu {"kind": "ENTRY", "id": "..."}, sans id pour l\'app.</string>
+    <string name="field_value_json_invalid">Un champ JSON tient un objet ou une liste JSON, écrit en entier : « %1$s » ne se lit pas ainsi</string>
     <string name="field_value_reference_kind">Désigne un %1$s, que ce champ n\'accepte pas (il accepte %2$s).</string>
     <string name="field_value_reference_not_found">Rien de la sorte %1$s n\'a l\'id %2$s.</string>
     <string name="field_value_reference_entry_gone">l\'entrée qu\'il désigne a été supprimée</string>
@@ -2876,6 +2880,7 @@
     <string name="api_error_name_taken">Une API s\'appelle déjà « %1$s »</string>
     <string name="api_error_name_twice">Deux entrées ou deux valeurs s\'appellent « %1$s »</string>
     <string name="api_type_list">Liste</string>
+    <string name="api_type_object">Objet</string>
     <string name="api_items">Champs de chaque élément</string>
     <string name="api_schema_items">Pour une liste : ce que contient chaque élément, chacun par son nom et son chemin dans l\'élément ; un champ qu\'un élément n\'a pas reste vide</string>
     <string name="api_error_list_items">La liste « %1$s » ne nomme aucun champ de ses éléments</string>
@@ -2931,6 +2936,9 @@
     <string name="task_error">Tâche : %1$s</string>
     <string name="task_error_not_found">Cette Tâche n\'existe plus</string>
     <string name="task_error_run_not_found">Cette exécution n\'existe plus</string>
+    <string name="task_error_resume_not_failed">Seule une exécution en échec reprend : une exécution interrompue a peut-être fait son étape, qui n\'est jamais faite deux fois</string>
+    <string name="task_error_resume_changed">La Tâche a changé depuis le début de cette exécution : ses étapes ne sont peut-être plus celles dont elle garde les résultats. Relance-la.</string>
+    <string name="task_error_resume_busy">Une autre exécution de cette Tâche est en cours : reprends celle-ci une fois l\'autre finie.</string>
     <string name="task_error_running">« %1$s » tourne déjà : attends la fin de son exécution</string>
     <string name="chain_capped">« %1$s » n\'est pas partie : %2$s exécutions se sont suivies, chacune lancée par la précédente, sans toi ni une heure prévue entre elles. Le plafond est dans Réglages › Limites IA.</string>
     <string name="task_error_steps">Les étapes d\'une Tâche sont une liste</string>
@@ -2970,6 +2978,7 @@
     <string name="task_verbalize_delete">Suppression de la Tâche « %1$s »</string>
     <string name="task_verbalize_duplicate">Copie de la Tâche « %1$s »</string>
     <string name="task_verbalize_run">Exécution de la Tâche « %1$s »</string>
+    <string name="task_verbalize_resume">Exécution de la Tâche « %1$s » reprise</string>
     <string name="in_use_tasks">Tâches : %1$s</string>
     <string name="task_step_api">API</string>
     <string name="task_step_tool">Outil</string>
@@ -3045,6 +3054,7 @@
     <string name="trigger_schema_kind_event">Un événement émis (par une étape de Tâche) : chaque exécution reçoit alors les valeurs qu\'il porte</string>
     <string name="trigger_error_event">Un déclencheur écoute l\'événement %1$s, qui n\'existe pas</string>
     <string name="task_kind_emit_event">Émettre un événement</string>
+    <string name="task_kind_assemble">Assembler un objet</string>
     <string name="task_step_event">Événement</string>
     <string name="task_trigger_event">par un événement</string>
     <string name="task_input_received_value">Reçu › %1$s</string>
@@ -3099,6 +3109,7 @@
     <string name="task_input_received_field">L\'entrée écrite › %1$s</string>
     <string name="task_run_next_poll">Redemandé %1$s</string>
     <string name="task_run_cancel">Annuler l\'exécution</string>
+    <string name="task_run_resume">Reprendre à l\'étape en échec</string>
     <string name="task_run_entry_created">Entrée créée</string>
     <string name="task_error_when">Étape %1$d : ses conditions (when) sont une liste</string>
     <string name="task_when_label">l\'étape %1$d (« seulement si » %2$d)</string>
@@ -3124,6 +3135,37 @@
     <string name="task_existing_then">Alors</string>
     <string name="task_existing_skip">La laisser telle quelle</string>
     <string name="task_existing_update">La modifier avec ces valeurs</string>
+    <string name="task_existing_stop">Arrêter la Tâche là</string>
+    <string name="task_error_object_key">Étape %1$s : une clé de l\'objet porte un nom</string>
+    <string name="task_error_object_part">Étape %1$s : la clé tient un texte, un pointeur, une entrée, une valeur ou un objet</string>
+    <string name="task_error_object_pointer_target">Étape %1$s : un pointeur de l\'objet désigne des entrées d\'un outil, ou une entrée</string>
+    <string name="task_error_object_labels">Étape %1$s : deux champs gardés s\'appellent « %2$s » ; renomme l\'un, ou n\'en garde qu\'un</string>
+    <string name="task_error_object_input">Étape %1$s : l\'entrée « %2$s » prend un objet, que seul un objet fait par une étape précédente donne, et un objet va à une entrée de type objet seulement</string>
+    <string name="task_error_object_field">Étape %1$s : un objet s\'écrit dans un champ JSON seulement, pas dans « %2$s »</string>
+    <string name="task_error_object_empty">Étape %1$s : l\'objet n\'a aucune clé</string>
+    <string name="task_error_object_no_entry">L\'entrée que l\'objet désigne n\'est plus là</string>
+    <string name="task_object_summary">Un objet assemblé, %1$d clé(s)</string>
+    <string name="task_object_label">Objet</string>
+    <string name="task_object_help">Chaque clé tient une seule chose : un texte, un pointeur, une entrée, une valeur de l\'exécution, ou d\'autres clés. Les étapes suivantes lisent l\'objet assemblé.</string>
+    <string name="task_object_key">Clé</string>
+    <string name="task_object_new_text">texte</string>
+    <string name="task_object_new_pointer">entrees</string>
+    <string name="task_object_new_entry">entree</string>
+    <string name="task_object_new_value">valeur</string>
+    <string name="task_object_new_object">objet</string>
+    <string name="task_object_kind_object">Objet</string>
+    <string name="task_object_rendering">Rendu</string>
+    <string name="task_object_readable">Lisible</string>
+    <string name="task_object_technical">Technique</string>
+    <string name="task_object_readable_help">Chaque champ sous son libellé, une valeur comme l\'app la dit, l\'identifiant de chaque entrée ; sa config jointe, le nom de l\'outil, sa description et ce que veulent dire ses champs.</string>
+    <string name="task_object_technical_help">Chaque champ sous la dernière partie de son chemin, sa valeur stockée, comme la reçoit la liste d\'une API ; sa config jointe, entière.</string>
+    <string name="task_object_open">Ouvrir ses clés (%1$d)</string>
+    <string name="task_object_tool">Outil</string>
+    <string name="task_object_description">Description</string>
+    <string name="task_object_fields">Champs</string>
+    <string name="task_object_entries">Entrées</string>
+    <string name="task_object_entry">Entrée</string>
+    <string name="task_object_scale">de %1$s à %2$s</string>
     <string name="task_error_existing_field">L\'étape %1$s cherche une entrée déjà là par le champ « %2$s », qu\'elle n\'écrit pas ; elle écrit : %3$s</string>
     <string name="task_error_existing_then">L\'étape %1$s fait « %2$s » d\'une entrée déjà là ; elle prend : %3$s</string>
     <string name="task_append">Ajouter à la ligne, après ce que le champ contient, plutôt que remplacer</string>
@@ -3133,8 +3175,10 @@
     <string name="task_error_list_selection">Les entrées de %1$s sont celles d\'un outil</string>
     <string name="task_error_list_fields">Les entrées de %1$s ne gardent aucun champ : dis lesquels partent</string>
     <string name="api_error_list_get">L\'entrée « %1$s » est une liste : elle part dans un corps JSON, donc l\'API s\'appelle en POST</string>
+    <string name="api_error_object_get">L\'entrée « %1$s » est un objet : elle part dans un corps JSON, donc l\'API s\'appelle en POST</string>
     <string name="task_list_with_id">Avec l\'identifiant de chaque entrée</string>
     <string name="task_run_skipped_step">Sautée : l\'étape %1$d l\'a été</string>
+    <string name="task_run_stopped_existing">Arrêtée là : une entrée avait déjà ce « %1$s » ; les étapes suivantes ne sont pas parties</string>
     <string name="task_run_skipped_false">Sautée : sa condition %1$d n\'est pas vraie</string>
     <string name="task_run_skipped_unknown">Sautée : il manque une valeur pour juger sa condition %1$d</string>
 

@@ -12,6 +12,7 @@ import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.fields.FieldType
 import app.treelune.core.fields.FileField
+import app.treelune.core.fields.json
 import app.treelune.core.files.FilePreparation
 import app.treelune.core.strings.Strings
 import app.treelune.core.terms.Term
@@ -78,6 +79,34 @@ object TaskRunner {
         return run.id
     }
 
+    /**
+     * The failed run [run] of [task] going on again from the step that failed, with what the steps
+     * before it gave and the entry it received, as they are: nothing assembled again, nothing
+     * created twice. The step that failed wrote nothing (an API that fails writes nothing, a
+     * repeated step is undone whole), its failure taken out of the results. Refused, said why,
+     * when the run did not fail (an interrupted one may have done its step), when the Task changed
+     * since it started (its steps may no longer be the ones the results stand for), or while
+     * another of its runs goes on.
+     *
+     * @return why it cannot go on; null when it went on
+     */
+    suspend fun resume(context: Context, task: TaskEntity, run: TaskRunEntity, awaited: Boolean): String? {
+        val s = Strings.`for`(context = context)
+        val dao = AppDatabase.getDatabase(context).taskDao()
+        if (TaskRun.State.of(run.state) != TaskRun.State.FAILED) return s.shared("task_error_resume_not_failed")
+        if (task.updatedAt > run.startedAt) return s.shared("task_error_resume_changed")
+        if (dao.getRunsIn(listOf(TaskRun.State.QUEUED.key, TaskRun.State.RUNNING.key, TaskRun.State.WAITING.key)).any { it.taskId == task.id }) {
+            return s.shared("task_error_resume_busy")
+        }
+        val results = TaskRun.results(run.resultsJson)
+        val kept = if (results.lastOrNull()?.error != null) results.dropLast(1) else results
+        dao.updateRun(run.copy(state = TaskRun.State.RUNNING.key, endedAt = null, step = kept.size, resultsJson = TaskRun.resultsJson(kept), waitJson = null, seenAt = System.currentTimeMillis()))
+        LogManager.service("Task ${task.id} run ${run.id} resumed at step ${kept.size + 1}", "INFO")
+        app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
+        if (awaited) proceed(context, run.id) else scope.launch { proceed(context, run.id) }
+        return null
+    }
+
     /** The oldest run of [taskId] waiting its turn started, when there is one. */
     suspend fun next(context: Context, taskId: String) {
         val dao = AppDatabase.getDatabase(context).taskDao()
@@ -139,7 +168,8 @@ object TaskRunner {
             when (outcome) {
                 is Outcome.Waiting -> { LogManager.service("Task ${task.id} run $runId waits on step ${run.step + 1}", "INFO"); return }
                 is Outcome.Failed -> { end(context, task, run, TaskRun.State.FAILED); return }
-                is Outcome.Done -> Unit
+                // « Stop the Task »: done, the steps after it not run
+                is Outcome.Done -> if (outcome.result.stopped != null) { end(context, task, run, TaskRun.State.DONE); return }
             }
         }
         end(context, task, run, TaskRun.State.DONE)
@@ -241,6 +271,10 @@ object TaskRunner {
 
     /** What [step] does, said in words: its service's verbalization of it. */
     private suspend fun summary(context: Context, step: JSONObject): String {
+        // An object made runs no operation: it says what it makes
+        if (step.optString(TaskSteps.KIND) == TaskSteps.ASSEMBLE) {
+            return Strings.`for`(context = context).shared("task_object_summary").format(step.optJSONObject(StepObject.OBJECT)?.length() ?: 0)
+        }
         val (action, params) = actionOf(step, emptyMap(), context)
         val (resource, operation) = action.split('.', limit = 2).let { it[0] to it[1] }
         return ServiceRegistry(context).getService(resource)?.verbalize(operation, JsonUtils.toJSONObject(params), context) ?: action
@@ -384,6 +418,8 @@ object TaskRunner {
                                 item: Map<String, Any?>? = null): TaskRun.StepResult {
         val s = Strings.`for`(context = context)
         val kind = step.getString(TaskSteps.KIND)
+        // An object made: nothing written, the object given to the steps after it (StepObject)
+        if (kind == TaskSteps.ASSEMBLE) return assembled(context, step, results, at, received, item)
         // The fields an entry's values go to, for a file to come down into one
         val fields = if (kind == TaskSteps.CREATE_ENTRY || kind == TaskSteps.UPDATE_ENTRY)
             TaskSteps.writableFields(step.getString(TaskSteps.TOOL_INSTANCE_ID), context, s) else emptyMap()
@@ -401,6 +437,8 @@ object TaskRunner {
                 put(key, when {
                     // A file an API gives comes down into the field, with that API's key on its server
                     field?.type == FieldType.FILE && value is String -> listOf(download(context, value, FileField.kinds(field.config), apiOf(input, step, steps)))
+                    // An object, written into a JSON field as its text
+                    field != null && field.json() && (value is Map<*, *> || value is List<*>) -> said(value)
                     // The entry a step created, designated in a field that holds a Reference; a
                     // multiple one holds it as a list of one
                     field?.type == FieldType.REFERENCE && value is String -> mapOf("kind" to "ENTRY", "id" to value)
@@ -419,6 +457,9 @@ object TaskRunner {
         val existing = step.optJSONObject(TaskSteps.EXISTING)?.takeIf { kind == TaskSteps.CREATE_ENTRY }
         val found = existing?.let { found(context, step.getString(TaskSteps.TOOL_INSTANCE_ID), it.getString(TaskSteps.FIELD), resolved[it.getString(TaskSteps.FIELD)]) }
         if (found != null && existing.optString(TaskSteps.THEN) == TaskSteps.SKIP) return TaskRun.StepResult(summary, entryId = found, at = System.currentTimeMillis())
+        // Or the run ends there, done, saying why: what follows is done once per entry
+        if (found != null && existing.optString(TaskSteps.THEN) == TaskSteps.STOP) return TaskRun.StepResult(summary, entryId = found, at = System.currentTimeMillis(),
+            stopped = s.shared("task_run_stopped_existing").format(existing.getString(TaskSteps.FIELD).let { path -> fieldName(context, step.getString(TaskSteps.TOOL_INSTANCE_ID), path) }))
         // What it changes adds to what its text fields hold, where it says so
         val written = appended(context, step, resolved, if (kind == TaskSteps.UPDATE_ENTRY) idOf(resolved[TaskSteps.ENTRY]) as? String else found)
         val (action, params) = if (found != null) "tool_data.update" to entryParams(step.getString(TaskSteps.TOOL_INSTANCE_ID), written) + ("id" to found)
@@ -444,6 +485,15 @@ object TaskRunner {
             TaskSteps.CREATE_ENTRY -> TaskRun.StepResult(summary, entryId = found ?: done.data?.get("id") as? String, at = now)
             else -> TaskRun.StepResult(summary, at = now)
         }
+    }
+
+    /** The name of the field [path] of [toolId], for a run's words; its path when the tool no longer reads. */
+    private suspend fun fieldName(context: Context, toolId: String, path: String): String = try {
+        app.treelune.core.fields.ToolFields.filterable(toolId, context, Strings.`for`(context = context))[path]?.displayName ?: path
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        throw e
+    } catch (e: IllegalStateException) {
+        path
     }
 
     /**
@@ -547,6 +597,35 @@ object TaskRunner {
                 }
             }
         }.map { JsonUtils.toMap(it) }
+    }
+
+    /**
+     * The object an `assemble` [step] makes at this run (StepObject.render), given under
+     * StepObject.OUTPUT; what it reads that is gone or cannot be read fails it, said.
+     */
+    private suspend fun assembled(context: Context, step: JSONObject, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?, item: Map<String, Any?>?): TaskRun.StepResult {
+        val s = Strings.`for`(context = context)
+        val parts = try {
+            StepObject.read(step.getJSONObject(StepObject.OBJECT), { s.shared(it) })
+        } catch (e: IllegalArgumentException) {
+            throw StepFailed(e.message ?: s.shared("error_unknown"))
+        }
+        val made = try {
+            StepObject.render(parts, at, context, s,
+                resolve = { input -> resolve(context, TaskSteps.input(input, TaskSteps.VALUE) { s.shared(it) }, results, at, received, item) },
+                entryOf = { input ->
+                    val id = idOf(resolve(context, TaskSteps.input(input, TaskSteps.ENTRY) { s.shared(it) }, results, at, received, item)) as? String
+                        ?: throw StepFailed(s.shared("task_error_object_no_entry"))
+                    AppDatabase.getDatabase(context).toolDataDao().getById(id) ?: throw StepFailed(s.shared("task_error_object_no_entry"))
+                    id
+                })
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            throw StepFailed(e.message ?: s.shared("error_unknown"))
+        }
+        return TaskRun.StepResult(s.shared("task_object_summary").format(parts.size), values = mapOf(StepObject.OUTPUT to made),
+            types = mapOf(StepObject.OUTPUT to ApiSettings.OBJECT), at = System.currentTimeMillis())
     }
 
     /** [value] as a text: an object or a list in JSON, anything else as it writes. */

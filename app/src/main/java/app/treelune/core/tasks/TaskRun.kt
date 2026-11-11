@@ -58,7 +58,9 @@ object TaskRun {
         val error: String? = null,
         val skipped: String? = null,
         val repeated: Int? = null,
-        val at: Long
+        val at: Long,
+        /** Why the run stops after this step, done (« Stop the Task » of a create_entry's guard); null, it goes on. */
+        val stopped: String? = null
     ) {
         fun toJson(): JSONObject = JSONObject().apply {
             put("summary", summary)
@@ -69,6 +71,7 @@ object TaskRun {
             error?.let { put("error", it) }
             skipped?.let { put("skipped", it) }
             repeated?.let { put("repeated", it) }
+            stopped?.let { put("stopped", it) }
             put("at", at)
         }
 
@@ -81,6 +84,7 @@ object TaskRun {
                 raw = json.optString("raw").ifEmpty { null },
                 error = json.optString("error").ifEmpty { null },
                 skipped = json.optString("skipped").ifEmpty { null },
+                stopped = json.optString("stopped").ifEmpty { null },
                 repeated = if (json.has("repeated")) json.getInt("repeated") else null,
                 at = json.getLong("at")
             )

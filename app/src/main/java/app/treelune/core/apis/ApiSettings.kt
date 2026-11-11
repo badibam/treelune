@@ -127,6 +127,12 @@ object ApiSettings {
     const val LIST = "list"
     const val ITEMS = "items"
 
+    /**
+     * An input's type beside those: an object, sent as it is in the JSON the API receives (what a
+     * Task's « Assemble » step gives), never written as a text.
+     */
+    const val OBJECT = "object"
+
     /** Whether the answer is the result, or an id to follow until the result is ready. */
     const val RESPONSE = "response"
     const val IMMEDIATE = "immediate"
@@ -173,7 +179,7 @@ object ApiSettings {
             ),
             SettingNode.ListOf(INPUTS, s.shared("api_$INPUTS"), SettingNode.Item.Of(listOf(
                 text(NAME, required = true, length = TextLength.SHORT),
-                choice(TYPE, listOf(TEXT, NUMBER, BOOLEAN, LIST), TEXT)
+                choice(TYPE, listOf(TEXT, NUMBER, BOOLEAN, LIST, OBJECT), TEXT)
             )), summary = listOf(NAME, TYPE), description = s.shared("api_schema_$INPUTS")),
             SettingNode.ListOf(VALUES, s.shared("api_$VALUES"), SettingNode.Item.Of(listOf(
                 text(NAME, required = true, length = TextLength.SHORT),
@@ -252,8 +258,9 @@ object ApiSettings {
                 names.groupBy { it }.filter { it.value.size > 1 }.keys.firstOrNull()?.let { return s.shared("api_error_name_twice").format(it) }
                 names.firstOrNull { !NAME_FORM.matches(it) }?.let { return s.shared("api_error_name_form").format(it) }
             }
-        // A list goes in a JSON body, never in an address
+        // A list and an object go in a JSON body, never in an address
         if (config.optString(METHOD) != POST) inputs(config).firstOrNull { it.optString(TYPE) == LIST }?.let { return s.shared("api_error_list_get").format(it.optString(NAME)) }
+        if (config.optString(METHOD) != POST) inputs(config).firstOrNull { it.optString(TYPE) == OBJECT }?.let { return s.shared("api_error_object_get").format(it.optString(NAME)) }
         if (config.optString(RESPONSE) == DEFERRED) {
             if (!config.optString(STATUS_URL).contains(ID_MARK)) return s.shared("api_error_status_url").format(ID_MARK)
             if (config.optString(FAILED_PATH).isBlank() != config.optString(FAILED_VALUE).isBlank()) return s.shared("api_error_failed_half")
