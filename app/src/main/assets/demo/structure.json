@@ -1163,7 +1163,7 @@
         "name": "@meals_name",
         "description": "@meals_description",
         "icon_name": "utensils",
-        "tile_size": "4x2",
+        "tile_size": "4x3",
         "group": "@kitchen_group_meals",
         "type": "choice",
         "value": {
@@ -1259,7 +1259,7 @@
         "texture": "ICON"
       },
       "grid_x": 0,
-      "grid_y": 2
+      "grid_y": 3
     },
     {
       "id": "demo-kitchen-chart-kcal",
@@ -1367,7 +1367,7 @@
         ]
       },
       "grid_x": 0,
-      "grid_y": 3
+      "grid_y": 4
     },
     {
       "id": "demo-kitchen-shopping",
@@ -1464,7 +1464,7 @@
         "name": "@hours_name",
         "description": "@hours_description",
         "icon_name": "timer",
-        "tile_size": "4x2",
+        "tile_size": "4x3",
         "type": "timer",
         "value": {
           "units": "HOUR_MINUTE"
@@ -1542,7 +1542,7 @@
         "item_width": "full"
       },
       "grid_x": 0,
-      "grid_y": 5
+      "grid_y": 6
     },
     {
       "id": "demo-work-invoicing",
@@ -1570,7 +1570,7 @@
         }
       },
       "grid_x": 0,
-      "grid_y": 8
+      "grid_y": 9
     },
     {
       "id": "demo-work-notebook",
@@ -1585,7 +1585,7 @@
         "item_lines": 3
       },
       "grid_x": 0,
-      "grid_y": 9
+      "grid_y": 10
     },
     {
       "id": "demo-work-chart-hours",
@@ -1885,7 +1885,7 @@
         ]
       },
       "grid_x": 2,
-      "grid_y": 9
+      "grid_y": 10
     },
     {
       "id": "demo-course-chart-work-sleep",
@@ -2890,7 +2890,7 @@
       "icon_name": "target",
       "tile_size": "2x2",
       "grid_x": 0,
-      "grid_y": 5,
+      "grid_y": 6,
       "definition": {
         "kind": "CONSTANT",
         "value": 2300,
@@ -2912,7 +2912,7 @@
       "icon_name": "flame",
       "tile_size": "2x2",
       "grid_x": 2,
-      "grid_y": 5,
+      "grid_y": 6,
       "definition": {
         "kind": "FORMULA",
         "formula": "eaten",
@@ -2960,7 +2960,7 @@
       "icon_name": "gauge",
       "tile_size": "4x1",
       "grid_x": 0,
-      "grid_y": 7,
+      "grid_y": 8,
       "definition": {
         "kind": "FORMULA",
         "formula": "objectif_calorique_demo - kcal_jour_demo",
@@ -2982,7 +2982,7 @@
       "icon_name": "clock",
       "tile_size": "4x1",
       "grid_x": 0,
-      "grid_y": 14,
+      "grid_y": 15,
       "definition": {
         "kind": "FORMULA",
         "formula": "hours",
