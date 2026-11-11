@@ -20,7 +20,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 - Mode d'affichage 2x1 'vertical' — UI — Idée
 - Rendre seances d'hypnose réutilisables d'autres jours ? — Orga — Amélioration
 - Revoir le mode dlaffichage complet pour chaque outil certajs dvraient être + complets — UI — Amélioration
-- "préparer la séa'ce" pourrait peut etre etre une tache plutot qu'u'e routine ? — Orga — Amélioration
 - Système pour garder à jour agenda, grace a discussion recurrente et aussi api qui recupere le evenelejts et propose etc — Orga — Idée
 
 ## Bugs
@@ -106,11 +105,13 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
+- Le tri et la limite dans la sélection d'entrées : `docs/design/entry-sort-limit.md` (« Dernière » devenue « Celle de la première entrée », `EARLIEST` et `LATEST` dans `MIN` et `MAX`, la position triable), d'abord, avant la Tâche de « Préparer la séance » qui s'en sert.
 - L'outil Schéma, le schéma écrit : `docs/design/schema.md` (config JSON au vocabulaire de Mermaid, placement par ELK, largeur, tuile, écran), ses vérifications d'abord (« Ouvert »).
 - Le fournisseur « Abonnement Claude », `docs/design/github-worker.md` (Claude Code lancé sur GitHub Actions dans le dépôt de Réglages › GitHub, le jeton de l'abonnement jamais dans l'app), ses vérifications d'abord (« Ouvert », le point 2), sur `badibam/treelune-worker`.
 
 ## À concevoir
 
+- « Préparer la séance » sans IA, pour son coût : la routine ne fait que recopier jusqu'à 65 000 caractères dans le contexte d'hypnogen. hypnogen reste générique (un seul texte, `context`, ce que d'autres importent), le montage reste dans l'app : dans une Tâche, l'entrée d'une API remplie par un texte assemblé de blocs (du texte écrit, des pointeurs), que l'app rend sans IA ; ce rendu lisible, par balises (`<outil nom="…">`, `<entree titre="…" date="…">`, les champs sous leur libellé, sans identifiants), le contenu d'une note gardant ses titres sans casser le découpage. Les 3 dernières Escales par la limite (`docs/design/entry-sort-limit.md`).
 - Une variable dans le message d'une routine, `docs/design/variable-pointers.md` : sa valeur à un instant, sa série sur une période, sa définition ; le pointeur d'une zone qui joint ses variables. Écrite sans relire le code des pointeurs, tout y est à revérifier avant de coder.
 - La suppression d'une copie quand sa source est supprimée (une séance d'Hypnose supprimée, sa ligne de Décrochage qui reste), dans la même Tâche que la copie. Proposition, non retenue faute de confiance : « Seulement si » qui teste ce qui est arrivé à l'entrée reçue (créée, modifiée, supprimée) ; dans une Tâche, la valeur d'un filtre qui pointe ce que pointe un « Seulement si » (l'entrée reçue, le résultat d'une étape) ; une étape « Supprimer des entrées » qui supprime ce qu'une sélection d'entrées désigne (« Décrochage, source = l'entrée reçue »), d'une seule étape de l'historique.
 - Une Séance média lue piste par piste : dans la fenêtre d'avant le lancement, les réponses de fin des séances précédentes sur cette entrée (un récit, daté), choisies par un second sélecteur sur les champs de la Séance elle-même ; peut-être une vue de la Séance, la bibliothèque avec les écoutes et les retours de chaque entrée.
@@ -154,6 +155,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 
 ## Idée sans besoin
 
+- Un classement de groupes dans une lecture : la limite après le regroupement (« les 3 personnes que je vois le plus »), avec un tri des groupes, par leur valeur ou leur nom, une brique à part de celui des entrées.
 - Démarrer et arrêter le chronomètre d'un Suivi depuis une Tâche : le Suivi ne déclare aucune opération (`getOperations`), quand `ToolDataService` sait déjà `start_duration` et `stop_duration` ; un premier repas noté qui arrête un jeûne. Avec, une condition qui dit si un chronomètre tourne (`state.running`), non vérifiée : le toucher du coucher qui prévient quand le jeûne ne tourne pas.
 - Les liens d'un événement dans la config de sa zone : sous chacun, ce qui l'émet et ce qui l'écoute (les Tâches, les routines, les outils qui préviennent), que l'app connaît déjà (`EventUses`, qui refuse la suppression d'un événement utilisé).
 - L'occurrence d'un questionnaire ouvert par sa notification ou sa tuile, dite quand plusieurs attendent (deux en retard, on croit répondre à la dernière) : sur l'écran de saisie (« Prévu il y a 2 jours · 1 sur 2 à remplir »), ou un écran intermédiaire, la liste « À remplir », quand plusieurs attendent.
