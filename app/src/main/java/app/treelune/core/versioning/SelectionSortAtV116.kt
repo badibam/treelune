@@ -4,7 +4,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Brings the stored selections and readings to their v116 form (docs/design/entry-sort-limit.md):
+ * Brings the stored selections and readings to their v116 form (docs/BRICKS.md, « Entry selection », « Sort »):
  *
  * - a selection of a tool or a variable's series says its order, `sort`, which was implied: the
  *   newest first, by the entry's date (`timestamp`), or by its creation (`created_at`) for a tool
