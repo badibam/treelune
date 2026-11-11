@@ -95,7 +95,7 @@ data class TileSize private constructor(val width: Int, val height: Int?) {
         fun parse(text: String?): TileSize? = text?.let { byStored[it.trim()] }
 
         /**
-         * The stored size a former display mode's name became (migration 115 → 116, an older
+         * The stored size a former display mode's name became (migration 116 → 117, an older
          * backup's or part's tiles); null for a name that was never one.
          */
         val FORMER_MODES: Map<String, String> = mapOf(
