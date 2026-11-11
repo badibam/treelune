@@ -435,6 +435,10 @@ fun extraForUpdate(before: Map<String, Any?>, after: Map<String, Any?>): JSONObj
     return app.treelune.core.utils.JsonUtils.toJSONObject(kept + (before.keys - kept.keys).associateWith { null })
 }
 
+/** Whether this field holds JSON (TextLength.JSON), drawn by the JSON reader. */
+fun FieldDefinition.json(): Boolean =
+    type == FieldType.TEXT && TextLength.fromString(config?.get("length") as? String).json
+
 /** Whether this field holds a long text, written in the app's markup (TextLength.formatted). */
 fun FieldDefinition.formatted(): Boolean =
     type == FieldType.TEXT && TextLength.fromString(config?.get("length") as? String).formatted

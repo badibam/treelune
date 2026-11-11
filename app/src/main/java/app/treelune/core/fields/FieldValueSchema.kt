@@ -134,10 +134,12 @@ object FieldValueSchema {
                     val length = TextLength.fromString(lengthStr)
 
                     // Only set maxLength if not UNLIMITED
-                    if (length != TextLength.UNLIMITED) {
+                    if (length != TextLength.UNLIMITED && length != TextLength.JSON) {
                         put("maxLength", length.getLimit())
                     }
                     if (length.formatted) put("format", MARKUP)
+                    // A JSON object or list, written as a text
+                    if (length.json) put("contentMediaType", "application/json")
 
                     if (fieldDef.description != null) {
                         put("description", fieldDef.description)

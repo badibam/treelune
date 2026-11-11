@@ -1359,6 +1359,9 @@
     <string name="text_length_medium_display_name">Court</string>
     <string name="text_length_long_display_name">Long</string>
     <string name="text_length_unlimited_display_name">Illimité</string>
+    <string name="text_length_json_display_name">JSON (un objet ou une liste)</string>
+    <string name="json_reader_keys">%1$d clés</string>
+    <string name="json_reader_items">%1$d éléments</string>
 
     <string name="field_type_numeric_display_name">Numérique</string>
     <string name="field_type_numeric_description">Valeur numérique avec unité et contraintes optionnelles</string>
@@ -1440,6 +1443,7 @@
     <string name="field_validation_reference_kinds">Choisis au moins une chose que le champ peut désigner.</string>
     <string name="field_validation_reference_tool_instances">Les outils de la liste ne servent qu\'aux entrées : coche Entrée.</string>
     <string name="field_value_reference_invalid">Pas une référence : %1$s. Attendu {"kind": "ENTRY", "id": "..."}, sans id pour l\'app.</string>
+    <string name="field_value_json_invalid">Un champ JSON tient un objet ou une liste JSON, écrit en entier : « %1$s » ne se lit pas ainsi</string>
     <string name="field_value_reference_kind">Désigne un %1$s, que ce champ n\'accepte pas (il accepte %2$s).</string>
     <string name="field_value_reference_not_found">Rien de la sorte %1$s n\'a l\'id %2$s.</string>
     <string name="field_value_reference_entry_gone">l\'entrée qu\'il désigne a été supprimée</string>

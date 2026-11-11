@@ -113,8 +113,10 @@ fun TaskRunScreen(place: Place.TaskRun, onTaskName: (String) -> Unit, onBack: ()
                     (result["error"] as? String)?.let { UI.Text(it, TextType.ERROR) }
                     (result["raw"] as? String)?.let { raw ->
                         UI.Text(s.shared("api_try_raw"), TextType.LABEL)
-                        // An empty answer is said, not left as a blank under its label
-                        UI.Text(raw.ifEmpty { s.shared("api_raw_empty") }, TextType.CAPTION)
+                        // An empty answer is said, not left as a blank under its label; an API
+                        // answers JSON, read through the JSON reader (one that does not read shows as it is)
+                        if (raw.isEmpty()) UI.Text(s.shared("api_raw_empty"), TextType.CAPTION)
+                        else app.treelune.core.ui.components.JsonReader(raw, open = false)
                     }
                 }
             }

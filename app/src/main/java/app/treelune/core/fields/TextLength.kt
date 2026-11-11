@@ -43,7 +43,18 @@ enum class TextLength {
      * Example: Long-form content, documentation
      * DEFAULT value for TEXT fields
      */
-    UNLIMITED;
+    UNLIMITED,
+
+    /**
+     * A JSON object or list, without a length constraint: written as raw text, refused at the
+     * writing when it does not read as JSON (FieldValueValidator), read through the JSON reader
+     * (JsonReader) — declared, never guessed from how a text looks. What a Task's « Assemble » step
+     * writes into a field.
+     */
+    JSON;
+
+    /** Whether a text of this length holds JSON (JSON), drawn by the JSON reader. */
+    val json: Boolean get() = this == JSON
 
     /**
      * Whether a text of this length is written in the app's markup (Markup): helped at the input,
@@ -62,7 +73,7 @@ enum class TextLength {
             SHORT -> FieldLimits.SHORT_LENGTH
             MEDIUM -> FieldLimits.MEDIUM_LENGTH
             LONG -> FieldLimits.LONG_LENGTH
-            UNLIMITED -> FieldLimits.UNLIMITED_LENGTH
+            UNLIMITED, JSON -> FieldLimits.UNLIMITED_LENGTH
         }
     }
 
@@ -80,6 +91,7 @@ enum class TextLength {
             MEDIUM -> s.shared("text_length_medium_display_name")
             LONG -> s.shared("text_length_long_display_name")
             UNLIMITED -> s.shared("text_length_unlimited_display_name")
+            JSON -> s.shared("text_length_json_display_name")
         }
     }
 

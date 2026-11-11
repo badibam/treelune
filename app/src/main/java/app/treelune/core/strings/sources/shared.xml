@@ -1359,6 +1359,9 @@
     <string name="text_length_medium_display_name">Short</string>
     <string name="text_length_long_display_name">Long</string>
     <string name="text_length_unlimited_display_name">Unlimited</string>
+    <string name="text_length_json_display_name">JSON (an object or a list)</string>
+    <string name="json_reader_keys">%1$d keys</string>
+    <string name="json_reader_items">%1$d items</string>
 
     <string name="field_type_numeric_display_name">Numeric</string>
     <string name="field_type_numeric_description">Numeric value with a unit and optional constraints</string>
@@ -1440,6 +1443,7 @@
     <string name="field_validation_reference_kinds">Choose at least one thing the field can point to.</string>
     <string name="field_validation_reference_tool_instances">The tools of the list are for entries only: check Entry.</string>
     <string name="field_value_reference_invalid">Not a reference: %1$s. Expected {"kind": "ENTRY", "id": "..."}, with no id for the app.</string>
+    <string name="field_value_json_invalid">A JSON field holds a JSON object or list, written whole: “%1$s” does not read as one</string>
     <string name="field_value_reference_kind">Points to a %1$s, which this field does not take (it takes %2$s).</string>
     <string name="field_value_reference_not_found">Nothing of kind %1$s has the id %2$s.</string>
     <string name="field_value_reference_entry_gone">the entry it designates has been deleted</string>
