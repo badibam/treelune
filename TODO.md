@@ -17,6 +17,14 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 (titre à laisser en place, même une fois la section vidée - section ciblée par le script d'import depuis l'appareil :)
 ## En provenance du tel
 
+- Mode d'affichage 2x1 'vertical' — UI — Idée
+- Rendre seances d'hypnose réutilisables d'autres jours ? — Orga — Amélioration
+- Revoir le mode dlaffichage complet pour chaque outil certajs dvraient être + complets — UI — Amélioration
+- "préparer la séa'ce" pourrait peut etre etre une tache plutot qu'u'e routine ? — Orga — Amélioration
+- Toast par ex e marquer comme lu: s'empile. Si 10 clic : reste 10 fois le temps. ... — UI — Bug
+- Système pour garder à jour agenda, grace a discussion recurrente et aussi api qui recupere le evenelejts et propose etc — Orga — Idée
+- Reset des notifs niveau outil sur son écran : voir ce qui correspond a chaqie outil. Cf marqué comme lu etc. — Outils — Amélioration
+- Désormais, normalement, la notif d'un questionnaire par exemple ouvre l eran de l'outil, pas l occire'ce a remplir direct. Je voudrais que xe soit pareil pour le cmic sur la tuile. — Outils — Amélioration
 
 ## Bugs
 

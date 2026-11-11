@@ -393,9 +393,14 @@ class BackupService(private val context: Context) : ExecutableService {
         if (!app.treelune.core.backup.AutoBackup.due(context, now, state.copies)) return OperationResult.success(mapOf("written" to false))
 
         val built = build(token) ?: return OperationResult.cancelled()
-        val hash = java.security.MessageDigest.getInstance("SHA-256")
-            .digest(built.json.getJSONObject("data").toString().toByteArray(Charsets.UTF_8))
-            .joinToString("") { "%02x".format(it) }
+        // The data hashed as they are written, never held whole as one text
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        val hashed = object : java.io.OutputStream() {
+            override fun write(b: Int) = digest.update(b.toByte())
+            override fun write(b: ByteArray, off: Int, len: Int) = digest.update(b, off, len)
+        }
+        app.treelune.core.utils.JsonUtils.write(built.json.getJSONObject("data"), hashed.writer(Charsets.UTF_8))
+        val hash = digest.digest().joinToString("") { "%02x".format(it) }
         if (hash == app.treelune.core.backup.AutoBackup.lastHash(context)) {
             app.treelune.core.backup.AutoBackup.unchanged(context, now)
             return OperationResult.success(mapOf("written" to false))
@@ -822,10 +827,11 @@ class BackupService(private val context: Context) : ExecutableService {
 
     /** [built] written to [output] as a backup zip, closed after; false when [token] stopped it midway. */
     internal fun writeZip(output: java.io.OutputStream, built: Built, token: CancellationToken): Boolean {
-        val jsonString = built.json.toString(2) // Pretty print with 2-space indent
         java.util.zip.ZipOutputStream(output.buffered()).use { zip ->
             zip.putNextEntry(java.util.zip.ZipEntry(BACKUP_JSON))
-            zip.write(jsonString.toByteArray(Charsets.UTF_8))
+            // Written into the entry as it goes, never held whole as one text: a backup of tens of
+            // megabytes beside the tree it comes from is more than the app's memory
+            app.treelune.core.utils.JsonUtils.write(built.json, zip.writer(Charsets.UTF_8), indent = "  ")
             zip.closeEntry()
             for (file in built.files) {
                 if (token.isCancelled) return false

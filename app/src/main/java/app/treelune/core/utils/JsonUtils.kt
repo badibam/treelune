@@ -28,6 +28,42 @@ import org.json.JSONObject
 object JsonUtils {
 
     /**
+     * [value] (a JSONObject or a JSONArray) written to [out] as it goes, indented by [indent] when
+     * it is not empty: never held whole as one text, which a backup of tens of megabytes cannot
+     * afford beside the tree it comes from. [out] is flushed, not closed, so it can be a zip's
+     * entry. A whole Double is written as a whole number, as `toString()` does.
+     */
+    fun write(value: Any, out: java.io.Writer, indent: String = "") {
+        val writer = android.util.JsonWriter(out)
+        if (indent.isNotEmpty()) writer.setIndent(indent)
+        fun put(item: Any?) {
+            when (item) {
+                null, JSONObject.NULL -> writer.nullValue()
+                is JSONObject -> {
+                    writer.beginObject()
+                    item.keys().forEach { key -> writer.name(key); put(item.opt(key)) }
+                    writer.endObject()
+                }
+                is JSONArray -> {
+                    writer.beginArray()
+                    for (i in 0 until item.length()) put(item.opt(i))
+                    writer.endArray()
+                }
+                is String -> writer.value(item)
+                is Boolean -> writer.value(item)
+                is Double -> if (item == Math.rint(item) && Math.abs(item) < 9.0E15) writer.value(item.toLong()) else writer.value(item)
+                is Float -> put(item.toDouble())
+                is Number -> writer.value(item)
+                // An enum put as it is (a session's type) goes as its text, as `toString()` writes it
+                is Enum<*> -> writer.value(item.toString())
+                else -> throw IllegalArgumentException("No JSON form for ${item::class.java.name}")
+            }
+        }
+        put(value)
+        writer.flush()
+    }
+
+    /**
      * Convert a Kotlin Map to JSONObject with recursive conversion of nested structures
      *
      * @param map Map potentially containing nested Maps and Lists
