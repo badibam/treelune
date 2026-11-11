@@ -2922,6 +2922,9 @@
     <string name="task_error">Task: %1$s</string>
     <string name="task_error_not_found">This Task no longer exists</string>
     <string name="task_error_run_not_found">This run no longer exists</string>
+    <string name="task_error_resume_not_failed">Only a failed run resumes: an interrupted one may have done its step, which is never done twice</string>
+    <string name="task_error_resume_changed">The Task changed since this run started: its steps may no longer be those its results stand for. Run it again.</string>
+    <string name="task_error_resume_busy">Another run of this Task goes on: resume this one once it ends.</string>
     <string name="task_error_running">“%1$s” is already running: wait for its run to end</string>
     <string name="chain_capped">“%1$s” did not start: %2$s runs followed one another, each started by the one before, without you or a planned time in between. The cap is in Settings › AI limits.</string>
     <string name="task_error_steps">A Task\'s steps are a list</string>
@@ -2961,6 +2964,7 @@
     <string name="task_verbalize_delete">Deletion of the Task “%1$s”</string>
     <string name="task_verbalize_duplicate">Copy of the Task “%1$s”</string>
     <string name="task_verbalize_run">Run of the Task “%1$s”</string>
+    <string name="task_verbalize_resume">Run of the Task “%1$s” resumed</string>
     <string name="in_use_tasks">Tasks: %1$s</string>
     <string name="task_step_api">API</string>
     <string name="task_step_tool">Tool</string>
@@ -3090,6 +3094,7 @@
     <string name="task_input_received_field">The entry written › %1$s</string>
     <string name="task_run_next_poll">Asked again %1$s</string>
     <string name="task_run_cancel">Cancel the run</string>
+    <string name="task_run_resume">Resume at the step that failed</string>
     <string name="task_run_entry_created">Entry created</string>
     <string name="task_error_when">Step %1$d: its conditions (when) are a list</string>
     <string name="task_when_label">step %1$d (“only if” %2$d)</string>

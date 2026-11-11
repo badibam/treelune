@@ -211,6 +211,32 @@ class StepForEachTest {
     }
 
     @Test
+    fun aFailedRun_resumesAtTheStepThatFailed_withWhatTheStepsBeforeItGave() = runBlocking {
+        val taskId = task(listOf(
+            mapOf("kind" to TaskSteps.CREATE_ENTRY, "tool_instance_id" to notesId, "values" to mapOf("data.content" to mapOf("constant" to "context"))),
+            mapOf("kind" to TaskSteps.CALL_API, "api_id" to api("pt" to "text"))
+        ))
+        // The service answers what cannot be read: the run fails at its second step, the entry written
+        answer = "not an answer"
+        val failed = run(taskId)
+        assertEquals(failed.resultsJson, TaskRun.State.FAILED.key, failed.state)
+        assertEquals(1, entries(notesId).size)
+
+        // Resumed once the service answers: the entry is not written twice
+        answer = """{"words": []}"""
+        ok("tasks.resume", mapOf("run_id" to failed.id, "awaited" to true))
+        val resumed = AppDatabase.getDatabase(context).taskDao().getRun(failed.id)!!
+        assertEquals(resumed.resultsJson, TaskRun.State.DONE.key, resumed.state)
+        assertEquals(1, entries(notesId).size)
+        val results = TaskRun.results(resumed.resultsJson)
+        assertEquals(2, results.size)
+        assertTrue(results.none { it.error != null })
+
+        // Only a failed run resumes
+        assertFalse(coordinator.processUserAction("tasks.resume", mapOf("run_id" to failed.id)).isSuccess)
+    }
+
+    @Test
     fun anEntryAlreadyThere_isFoundByAFieldTheStepWrites() = runBlocking {
         val result = coordinator.processUserAction("tasks.create", mapOf("zone_id" to zoneId, "name" to "Store", "steps" to listOf(
             mapOf("kind" to TaskSteps.CREATE_ENTRY, "tool_instance_id" to notesId, "values" to mapOf("data.content" to mapOf("constant" to "sim")),

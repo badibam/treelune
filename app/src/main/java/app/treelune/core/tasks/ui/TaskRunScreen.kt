@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import app.treelune.core.commands.CommandStatus
 import app.treelune.core.coordinator.Coordinator
+import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.navigation.Navigator
 import app.treelune.core.navigation.Place
 import app.treelune.core.strings.Strings
@@ -35,7 +36,8 @@ import kotlinx.coroutines.launch
 /**
  * One run of a Task (Place.TaskRun): when and why it started, where it stands, then each step
  * reached — what it did, the values an API gave, the entry it created, why it failed, the start
- * of the raw answer. Opening it reads its end; a run going on or waiting can be cancelled.
+ * of the raw answer. Opening it reads its end; a run going on or waiting can be cancelled, a
+ * failed one resumed at the step that failed.
  *
  * @param onTaskName Names its Task in the breadcrumb, opened from a notification with nothing under it
  */
@@ -90,6 +92,14 @@ fun TaskRunScreen(place: Place.TaskRun, onTaskName: (String) -> Unit, onBack: ()
         if (!state.ended) UI.Button(type = ButtonType.DANGER, onClick = {
             scope.launch { coordinator.processUserAction("tasks.cancel", mapOf("run_id" to place.runId)); load() }
         }) { UI.Text(s.shared("task_run_cancel"), TextType.BODY) }
+        // Failed: it goes on from the step that failed, with what the steps before it gave (TaskRunner.resume)
+        if (state == app.treelune.core.tasks.TaskRun.State.FAILED) UI.Button(type = ButtonType.PRIMARY, onClick = {
+            scope.launch {
+                val resumed = coordinator.processUserAction("tasks.resume", mapOf("run_id" to place.runId))
+                if (!resumed.isSuccess) UI.Toast(resumed.error ?: s.shared("error_unknown"))
+                load()
+            }
+        }) { UI.Text(s.shared("task_run_resume"), TextType.BODY) }
 
         (shown["results"] as List<*>).filterIsInstance<Map<*, *>>().forEachIndexed { index, result ->
             UI.Card(type = CardType.DEFAULT, size = Size.M) {

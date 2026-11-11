@@ -78,6 +78,34 @@ object TaskRunner {
         return run.id
     }
 
+    /**
+     * The failed run [run] of [task] going on again from the step that failed, with what the steps
+     * before it gave and the entry it received, as they are: nothing assembled again, nothing
+     * created twice. The step that failed wrote nothing (an API that fails writes nothing, a
+     * repeated step is undone whole), its failure taken out of the results. Refused, said why,
+     * when the run did not fail (an interrupted one may have done its step), when the Task changed
+     * since it started (its steps may no longer be the ones the results stand for), or while
+     * another of its runs goes on.
+     *
+     * @return why it cannot go on; null when it went on
+     */
+    suspend fun resume(context: Context, task: TaskEntity, run: TaskRunEntity, awaited: Boolean): String? {
+        val s = Strings.`for`(context = context)
+        val dao = AppDatabase.getDatabase(context).taskDao()
+        if (TaskRun.State.of(run.state) != TaskRun.State.FAILED) return s.shared("task_error_resume_not_failed")
+        if (task.updatedAt > run.startedAt) return s.shared("task_error_resume_changed")
+        if (dao.getRunsIn(listOf(TaskRun.State.QUEUED.key, TaskRun.State.RUNNING.key, TaskRun.State.WAITING.key)).any { it.taskId == task.id }) {
+            return s.shared("task_error_resume_busy")
+        }
+        val results = TaskRun.results(run.resultsJson)
+        val kept = if (results.lastOrNull()?.error != null) results.dropLast(1) else results
+        dao.updateRun(run.copy(state = TaskRun.State.RUNNING.key, endedAt = null, step = kept.size, resultsJson = TaskRun.resultsJson(kept), waitJson = null, seenAt = System.currentTimeMillis()))
+        LogManager.service("Task ${task.id} run ${run.id} resumed at step ${kept.size + 1}", "INFO")
+        app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
+        if (awaited) proceed(context, run.id) else scope.launch { proceed(context, run.id) }
+        return null
+    }
+
     /** The oldest run of [taskId] waiting its turn started, when there is one. */
     suspend fun next(context: Context, taskId: String) {
         val dao = AppDatabase.getDatabase(context).taskDao()

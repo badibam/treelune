@@ -2922,6 +2922,9 @@
     <string name="task_error">Tâche : %1$s</string>
     <string name="task_error_not_found">Cette Tâche n\'existe plus</string>
     <string name="task_error_run_not_found">Cette exécution n\'existe plus</string>
+    <string name="task_error_resume_not_failed">Seule une exécution en échec reprend : une exécution interrompue a peut-être fait son étape, qui n\'est jamais faite deux fois</string>
+    <string name="task_error_resume_changed">La Tâche a changé depuis le début de cette exécution : ses étapes ne sont peut-être plus celles dont elle garde les résultats. Relance-la.</string>
+    <string name="task_error_resume_busy">Une autre exécution de cette Tâche est en cours : reprends celle-ci une fois l\'autre finie.</string>
     <string name="task_error_running">« %1$s » tourne déjà : attends la fin de son exécution</string>
     <string name="chain_capped">« %1$s » n\'est pas partie : %2$s exécutions se sont suivies, chacune lancée par la précédente, sans toi ni une heure prévue entre elles. Le plafond est dans Réglages › Limites IA.</string>
     <string name="task_error_steps">Les étapes d\'une Tâche sont une liste</string>
@@ -2961,6 +2964,7 @@
     <string name="task_verbalize_delete">Suppression de la Tâche « %1$s »</string>
     <string name="task_verbalize_duplicate">Copie de la Tâche « %1$s »</string>
     <string name="task_verbalize_run">Exécution de la Tâche « %1$s »</string>
+    <string name="task_verbalize_resume">Exécution de la Tâche « %1$s » reprise</string>
     <string name="in_use_tasks">Tâches : %1$s</string>
     <string name="task_step_api">API</string>
     <string name="task_step_tool">Outil</string>
@@ -3090,6 +3094,7 @@
     <string name="task_input_received_field">L\'entrée écrite › %1$s</string>
     <string name="task_run_next_poll">Redemandé %1$s</string>
     <string name="task_run_cancel">Annuler l\'exécution</string>
+    <string name="task_run_resume">Reprendre à l\'étape en échec</string>
     <string name="task_run_entry_created">Entrée créée</string>
     <string name="task_error_when">Étape %1$d : ses conditions (when) sont une liste</string>
     <string name="task_when_label">l\'étape %1$d (« seulement si » %2$d)</string>

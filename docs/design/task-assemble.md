@@ -53,6 +53,10 @@ Deux champs gardés d'un même pointeur Lisible au même libellé : l'enregistre
 
 Une troisième issue au garde-fou de « Créer une entrée » (`existing.then`), à côté de « La laisser telle quelle » et « La modifier avec ces valeurs » : une entrée a déjà la même valeur dans ce champ, l'exécution s'arrête là, réussie, et dit pourquoi (« une fiche avait déjà cette Réponse »). Ce qu'une étape ne doit faire qu'une fois par entrée reçue.
 
+## « Reprendre à l'étape en échec »
+
+Une exécution en échec reprend, depuis l'écran de l'exécution, à l'étape qui a échoué, avec ce que les étapes d'avant ont rendu et l'entrée reçue, tels quels : rien de réassemblé, rien de recréé (une fiche créée, puis hypnogen en échec : l'appel repart avec le même contexte). L'étape en échec n'a rien écrit. Refusée en le disant : une exécution interrompue (son étape a peut-être été faite), une Tâche modifiée depuis le début de l'exécution, une autre exécution en cours. Pour toutes les Tâches.
+
 ## La doc, avec le code
 
 Écrite en même temps que le code, pas après : `docs/CORE.md` (« Tasks » : l'étape, l'issue « Arrêter la Tâche », l'entrée d'API « objet »), `docs/BRICKS.md` (le pointeur et ses deux rendus, le champ texte « JSON »), le schéma de l'étape que l'IA lit (`task_config`), et le guide de conception (`ai_design_guide`) : le montage « assembler, puis appeler une API », quand le préférer à une routine.
