@@ -58,7 +58,7 @@ object FlashcardsToolType : ToolTypeContract {
     override fun getFamily() = app.treelune.core.tools.ToolFamily.USE
 
     override fun getDefaultTileSize(): app.treelune.core.look.TileSize = app.treelune.core.look.TileSize.of(4, 1)
-    override fun getItemSpec(): app.treelune.core.look.ItemSpec? = app.treelune.core.look.ItemSpec.LINES
+    override fun getItemSpec(): app.treelune.core.look.ItemSpec? = app.treelune.core.look.ItemSpec.ONE_LINE
     override fun getDefaultShowFieldLabels(): Boolean = false
     override fun getDefaultIconName(): String = "layers"
     override fun getSuggestedIcons(): List<String> = listOf("layers", "languages", "brain", "graduation-cap", "book-open-check", "repeat")

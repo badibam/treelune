@@ -69,5 +69,11 @@ data class ItemSpec(val widths: List<ItemWidth>, val defaultWidth: ItemWidth, va
     companion object {
         /** Elements on whole lines, two lines each, every width and 1 to 10 lines open: a journal, messages, an agenda. */
         val LINES = ItemSpec(listOf(ItemWidth.FULL, ItemWidth.HALVES), ItemWidth.FULL, 1..ItemLayout.MAX_LINES, 2)
+
+        /**
+         * Elements that are one line each — a goal's criterion, a deck's group, a past session —, on
+         * whole lines, one line each by default: given two, they would stand apart for nothing.
+         */
+        val ONE_LINE = ItemSpec(listOf(ItemWidth.FULL, ItemWidth.HALVES), ItemWidth.FULL, 1..ItemLayout.MAX_LINES, 1)
     }
 }

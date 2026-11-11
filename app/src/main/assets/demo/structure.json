@@ -2840,9 +2840,9 @@
       "name": "poids_moyen_7j_demo",
       "label": "@var_weight_7d_label",
       "icon_name": "scale",
-      "tile_size": "4x1",
-      "grid_x": 0,
-      "grid_y": 3,
+      "tile_size": "2x2",
+      "grid_x": 2,
+      "grid_y": 1,
       "definition": {
         "kind": "FORMULA",
         "formula": "average",
