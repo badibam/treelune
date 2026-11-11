@@ -75,7 +75,7 @@ fun GoalScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
     var attempts by app.treelune.core.ui.rememberShown<List<AttemptRow>?>("page:${toolInstanceId}:attempts") { null }
     var version by remember { mutableIntStateOf(0) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    // An attempt opened from the tile, one to validate, or none
+    // An attempt open: one asked for elsewhere (a Chart's point), one to validate touched, or none
     var openId by rememberSaveable { mutableStateOf(openEntryId) }
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var confirmLaunch by remember { mutableStateOf(false) }

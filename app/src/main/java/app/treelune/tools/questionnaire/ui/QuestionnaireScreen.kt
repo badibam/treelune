@@ -55,10 +55,11 @@ data class QuestionnaireEntry(val id: String, val timestamp: Long, val status: S
 /**
  * A questionnaire's screen (docs/TOOLS.md, « Questionnaire »), in two tabs, always
  * there, the first open: « To fill », its label counting the entries waiting, lists them oldest
- * first as the tile opens them, with « Ignore all », then « Fill in now » and « With the AI »;
+ * first, with « Ignore all », then « Fill in now » and « With the AI »;
  * « History », newest first, each entry with its title and state, touching one opens it, its
  * answers changed there. An entry's title is the questionnaire's name and the moment it is about,
- * relative, never stored.
+ * relative, never stored. [openEntryId], an entry asked for elsewhere (a Chart's point): passed
+ * when it is to fill, opened as from the history otherwise.
  */
 @Composable
 fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureClick: () -> Unit, openEntryId: String? = null) {
@@ -71,10 +72,11 @@ fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onCo
     var entries by app.treelune.core.ui.rememberShown<List<QuestionnaireEntry>?>("page:${toolInstanceId}:entries") { null }
     var version by remember { mutableIntStateOf(0) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    // The passing under way: "" on demand, an entry's id when planned, the one to fill opened
-    // from the tile; null when none
-    var passing by rememberSaveable { mutableStateOf(openEntryId) }
+    // The passing under way: "" on demand, an entry's id when planned; null when none
+    var passing by rememberSaveable { mutableStateOf<String?>(null) }
     var openId by rememberSaveable { mutableStateOf<String?>(null) }
+    // The entry asked for, opened once the entries are read and its status known
+    var asked by rememberSaveable { mutableStateOf(openEntryId) }
     var tab by rememberSaveable { mutableIntStateOf(0) }
 
     LaunchedEffect(toolInstanceId, version) {
@@ -118,6 +120,14 @@ fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onCo
     val name = settings.string("name")!!
     val questions: List<FieldDefinition> = loadedConfig.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList()
     fun title(entry: QuestionnaireEntry) = "$name · ${FormatUtils.formatRelativeTimePast(entry.timestamp, context)}"
+
+    asked?.let { id ->
+        LaunchedEffect(id) {
+            val entry = loaded.find { it.id == id }
+            if (entry?.status == QuestionnaireToolType.Status.TO_FILL) passing = id else if (entry != null) openId = id
+            asked = null
+        }
+    }
 
     val current = passing
     if (current != null) {
