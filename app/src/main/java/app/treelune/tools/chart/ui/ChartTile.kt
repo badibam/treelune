@@ -74,12 +74,12 @@ fun rememberChartTile(tool: ToolInstance): ToolTile {
             }
 
             @Composable
-            override fun Body(rows: Int?) {
+            override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val read = reading as? ChartReading.Drawn ?: return
                 if (read.empty) return
                 val detail = when {
-                    rows == null -> ChartDetail.WHOLE
-                    rows <= 1 -> ChartDetail.STRIP
+                    room.rows == null -> ChartDetail.WHOLE
+                    room.rows <= 1 -> ChartDetail.STRIP
                     else -> ChartDetail.REDUCED
                 }
                 ChartView(read.spec, read.tables, read.period, read.now, onTap = null,
@@ -89,7 +89,7 @@ fun rememberChartTile(tool: ToolInstance): ToolTile {
             @Composable
             override fun Glance() {
                 val read = reading
-                if (read is ChartReading.Drawn && !read.empty) Body(1) else Summary()
+                if (read is ChartReading.Drawn && !read.empty) Body(app.treelune.core.look.TileSize.Room(2, 1)) else Summary()
             }
         }
     }

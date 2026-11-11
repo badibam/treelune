@@ -34,6 +34,14 @@ class TileSizesAtV117Test {
     }
 
     @Test
+    fun aListsShortItems_becomeOneLinePerElement_otherwiseTwo() {
+        val short = JSONObject(TileSizesAtV117.config("""{"display_mode":"EXTENDED","short_items":true}""")!!)
+        assertEquals(1, short.getInt("item_lines"))
+        assertFalse(short.has("short_items"))
+        assertEquals(2, JSONObject(TileSizesAtV117.config("""{"tile_size":"4x2","short_items":false}""")!!).getInt("item_lines"))
+    }
+
+    @Test
     fun aBackup_hasEveryTileRewritten() {
         val data = JSONObject()
         TileSizesAtV117.TABLES.forEach { table -> data.put(table, JSONArray().put(JSONObject().put("id", table).put("display_mode", "CONDENSED"))) }

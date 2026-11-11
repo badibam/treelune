@@ -64,9 +64,9 @@ fun rememberFlashcardsTile(tool: ToolInstance): ToolTile {
             }
 
             @Composable
-            override fun Body(rows: Int?) {
+            override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val loaded = counts ?: return
-                TileGrid(rows, loaded.groups, columns = 1) { group ->
+                TileGrid(room, loaded.groups) { group ->
                     TileLine(group.label ?: "", trailing = { UI.Text(countsText(group, s), TextType.CAPTION, maxLines = 1) })
                 }
             }

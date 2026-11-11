@@ -45,6 +45,7 @@ object ChartToolType : ToolTypeContract {
     override fun getFamily() = app.treelune.core.tools.ToolFamily.USE
 
     override fun getDefaultTileSize(): app.treelune.core.look.TileSize = app.treelune.core.look.TileSize.of(4, 1)
+    override fun getItemSpec(): app.treelune.core.look.ItemSpec? = null
     override fun getDefaultShowFieldLabels(): Boolean = true
     override fun getDefaultIconName(): String = "chart-line"
     override fun getSuggestedIcons(): List<String> = listOf("chart-line", "chart-column", "chart-pie", "chart-area", "chart-scatter", "trending-up")

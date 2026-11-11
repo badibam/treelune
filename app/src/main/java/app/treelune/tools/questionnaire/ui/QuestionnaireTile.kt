@@ -100,9 +100,9 @@ fun rememberQuestionnaireTile(tool: ToolInstance): ToolTile {
             }
 
             @Composable
-            override fun Body(rows: Int?) {
+            override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val answers = passings?.lastFilled?.answers ?: return
-                TileGrid(rows, questions, columns = 1) { question ->
+                TileGrid(room, questions) { question ->
                     // The answer under its question: on the right, a long one would leave the question no room
                     TileLine(
                         question.displayName,

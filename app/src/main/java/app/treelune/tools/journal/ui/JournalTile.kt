@@ -84,9 +84,9 @@ fun rememberJournalTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTi
             }
 
             @Composable
-            override fun Body(rows: Int?) {
+            override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val loaded = entries ?: return
-                TileGrid(rows, loaded, columns = 1) { entry ->
+                TileGrid(room, loaded) { entry ->
                     TileLine(
                         entry.title,
                         modifier = Modifier.clickable { open(EntryToOpen.Existing(entry.id)) },

@@ -82,9 +82,9 @@ fun rememberStructuredTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): Too
             }
 
             @Composable
-            override fun Body(rows: Int?) {
+            override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val loaded = sheets ?: return
-                TileGrid(rows, if (rows == null) loaded.take(FULL_SHEETS) else loaded, columns = 1) { sheet ->
+                TileGrid(room, if (room.rows == null) loaded.take(FULL_SHEETS) else loaded) { sheet ->
                     TileLine(sheet.name, modifier = Modifier.clickable { open(EntryToOpen.Existing(sheet.id)) })
                 }
             }

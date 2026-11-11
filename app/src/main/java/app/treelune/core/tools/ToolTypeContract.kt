@@ -55,6 +55,12 @@ interface ToolTypeContract {
     fun getDefaultTileSize(): app.treelune.core.look.TileSize
 
     /**
+     * What the elements its tile's body lists accept, width and lines, and their defaults
+     * (docs/design/tile-sizes.md); null for a type whose body is one drawing (a Chart).
+     */
+    fun getItemSpec(): app.treelune.core.look.ItemSpec?
+
+    /**
      * Whether the user's fields show their names beside their values, until the tool's config
      * says otherwise (show_field_labels): where values speak for themselves, a list item's, no.
      */

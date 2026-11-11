@@ -76,6 +76,7 @@ object MessageToolType : ToolTypeContract {
     override fun getFamily() = app.treelune.core.tools.ToolFamily.PLAN
 
     override fun getDefaultTileSize(): app.treelune.core.look.TileSize = app.treelune.core.look.TileSize.of(4, 1)
+    override fun getItemSpec(): app.treelune.core.look.ItemSpec? = app.treelune.core.look.ItemSpec.LINES
 
 
     override fun getDefaultShowFieldLabels(): Boolean = true

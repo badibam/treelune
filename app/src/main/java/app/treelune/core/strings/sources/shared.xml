@@ -879,6 +879,13 @@
     <string name="tile_size_icon">Icon</string>
     <string name="tile_size_cells">%1$d × %2$d</string>
     <string name="tile_size_content">4 × as tall as its content</string>
+    <string name="tile_more">+%1$d</string>
+    <string name="tools_config_label_item_width">Elements</string>
+    <string name="item_width_halves">By halves</string>
+    <string name="item_width_full">Whole width</string>
+    <string name="tools_config_label_item_lines">Lines per element</string>
+    <string name="tools_base_schema_config_item_width">How wide each element its tile lists is: `halves` (two side by side in a tile 4 wide, one in a tile 2 wide) or `full` (the whole width)</string>
+    <string name="tools_base_schema_config_item_lines">How many lines of text each element its tile lists has, 1 to 10: more lines show more of each, fewer show more of them</string>
     
     <!-- Tools CONFIG - Icon dialog -->
     <string name="tools_config_dialog_choose_icon">Choose an icon</string>

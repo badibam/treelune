@@ -871,7 +871,10 @@ object UI {
     ) {
         val toolType = requireNotNull(ToolTypeManager.getToolType(tool.tooltype)) { "No tool type '${tool.tooltype}' for tool ${tool.id}" }
         val tile = toolType.rememberTile(tool, onOpenEntry)
-        val look = app.treelune.core.look.Looks.read(app.treelune.core.tools.ToolConfigSettings.look(toolType), JSONObject(tool.config_json))
+        val config = remember(tool.config_json) { JSONObject(tool.config_json) }
+        val look = app.treelune.core.look.Looks.read(app.treelune.core.tools.ToolConfigSettings.look(toolType), config)
+        // How its body lays its elements, which TileGrid reads
+        val items = remember(tool.config_json) { app.treelune.core.tools.ToolConfigSettings.itemLayout(toolType, config) }
         // Something waiting among its entries, or a stopwatch running on one, is marked on its icon
         LookCard(
             look = look,
@@ -883,7 +886,9 @@ object UI {
             onLongClick = onLongClick,
             summary = { tile.Summary() },
             glance = { tile.Glance() },
-            body = { rows -> tile.Body(rows) }
+            body = { room ->
+                androidx.compose.runtime.CompositionLocalProvider(app.treelune.core.ui.components.LocalItemLayout provides items) { tile.Body(room) }
+            }
         )
     }
 
@@ -910,7 +915,7 @@ object UI {
         onLongClick: () -> Unit,
         summary: @Composable () -> Unit,
         glance: @Composable () -> Unit,
-        body: @Composable (Int?) -> Unit,
+        body: @Composable (app.treelune.core.look.TileSize.Room) -> Unit,
         frame: LookFrame = LookFrame.SECTION
     ) {
         val size = look.tileSize
@@ -980,10 +985,10 @@ object UI {
                         else Stacked(Modifier.fillMaxWidth().height(top), { Header() }, summary)
                     if (room.rows == null) Column(modifier = Modifier.fillMaxWidth()) {
                         Top()
-                        body(null)
+                        body(room)
                     } else Column(modifier = Modifier.fillMaxSize()) {
                         Top()
-                        Box(modifier = Modifier.weight(1f).fillMaxWidth()) { body(room.rows) }
+                        Box(modifier = Modifier.weight(1f).fillMaxWidth()) { body(room) }
                     }
                 }
             }

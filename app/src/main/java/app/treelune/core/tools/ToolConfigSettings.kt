@@ -32,12 +32,17 @@ object ToolConfigSettings {
         suggestedIcons = toolType.getSuggestedIcons()
     )
 
+    /** How [toolType]'s tile lays the elements of its body, as [config] chooses; null for a type that lists none (a Chart). */
+    fun itemLayout(toolType: ToolTypeContract, config: org.json.JSONObject): app.treelune.core.look.ItemLayout? = toolType.getItemSpec()?.read(config)
+
     /** The general settings every tool has, whatever its type. */
     private fun generalNodes(toolType: ToolTypeContract, context: Context): List<SettingNode> {
         val s = Strings.`for`(context = context)
         val text: (String) -> String = s::shared
         return listOf(
-            SettingNode.Section(text("tools_config_section_general_params"), app.treelune.core.look.Looks.nodes(look(toolType), text) + listOf(
+            // The look, then how its tile lays its elements when it lists some (ItemSpec)
+            SettingNode.Section(text("tools_config_section_general_params"), app.treelune.core.look.Looks.nodes(look(toolType), text) +
+                toolType.getItemSpec()?.nodes(text).orEmpty() + listOf(
                 field("group", text("label_group"), FieldType.TEXT, text("tools_base_schema_config_group"),
                     config = mapOf("length" to TextLength.SHORT.name)),
                 // Whether the AI asks before writing the tool's entries; a person alone changes it

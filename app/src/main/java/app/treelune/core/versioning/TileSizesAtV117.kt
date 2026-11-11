@@ -7,7 +7,8 @@ import org.json.JSONObject
  * Brings a tile's size to its v117 form (docs/design/tile-sizes.md): the display mode
  * (`display_mode`, ICON … FULL) becomes the tile size (`tile_size`, `icon`, `2x1` … `4xcontent`),
  * each mode the size it had (TileSize.FORMER_MODES). A zone, a variable, a routine, a Task and a
- * readout keep it in a column, a tool in its config.
+ * readout keep it in a column, a tool in its config. A List's short items become the lines of its
+ * tile's elements.
  *
  * Shared by the database migration, the backup import and the history's copies.
  */
@@ -33,11 +34,25 @@ object TileSizesAtV117 {
         return values
     }
 
-    /** A tool's config (its JSON) at v117, null when it holds no display mode. */
+    /** A List's former setting: its tile gave each item one line rather than two. */
+    const val SHORT_ITEMS = "short_items"
+
+    /** The lines an element of a tile takes (ItemLayout.LINES). */
+    const val ITEM_LINES = "item_lines"
+
+    /**
+     * A tool's config (its JSON) at v117, null when it holds neither a display mode nor a List's
+     * short items: the mode as its size, short items as one line per element, two otherwise.
+     */
     fun config(json: String): String? {
         val config = JSONObject(json)
-        if (!config.has(FORMER)) return null
-        return values(config).toString()
+        if (!config.has(FORMER) && !config.has(SHORT_ITEMS)) return null
+        values(config)
+        if (config.has(SHORT_ITEMS)) {
+            config.put(ITEM_LINES, if (config.getBoolean(SHORT_ITEMS)) 1 else 2)
+            config.remove(SHORT_ITEMS)
+        }
+        return config.toString()
     }
 
     /** A tool's row (column -> value) at v117: its config's mode. */

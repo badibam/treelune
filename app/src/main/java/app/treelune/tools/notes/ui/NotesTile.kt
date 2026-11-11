@@ -94,9 +94,9 @@ fun rememberNotesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile
             }
 
             @Composable
-            override fun Body(rows: Int?) {
+            override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val loaded = notes ?: return
-                TileGrid(rows, loaded, columns = 2, perRow = 1) { note ->
+                TileGrid(room, loaded) { note ->
                     Box(modifier = Modifier.fillMaxSize().padding(vertical = UI.Space.XS).clickable { open(EntryToOpen.Existing(note.id)) }) {
                         UI.Card(type = CardType.DEFAULT) {
                             Box(modifier = Modifier.fillMaxSize().padding(UI.Space.XS)) {

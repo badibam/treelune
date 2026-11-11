@@ -58,9 +58,6 @@ fun rememberListTile(tool: ToolInstance): ToolTile {
         ToolConfigSettings.read(ListToolType, JSONObject(tool.config_json), context).boolean(ListToolType.REMOVE_WHEN_CHECKED)
     }
     val dueDates = remember(tool.config_json) { ListToolType.hasDueDates(JSONObject(tool.config_json)) }
-    val shortItems = remember(tool.config_json) {
-        ToolConfigSettings.read(ListToolType, JSONObject(tool.config_json), context).boolean(ListToolType.SHORT_ITEMS)
-    }
 
     val fields = remember(tool.config_json) { JSONObject(tool.config_json).optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList() }
 
@@ -100,7 +97,7 @@ fun rememberListTile(tool: ToolInstance): ToolTile {
         )
     }
 
-    return remember(tool.id, removeWhenChecked, dueDates, shortItems) {
+    return remember(tool.id, removeWhenChecked, dueDates) {
         object : ToolTile {
             @Composable
             override fun Summary() {
@@ -131,16 +128,15 @@ fun rememberListTile(tool: ToolInstance): ToolTile {
             }
 
             @Composable
-            override fun Body(rows: Int?) {
+            override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val loaded = items ?: return
                 val now = System.currentTimeMillis()
                 // The late ones first, each part keeping the list's order: a stable sort
                 val left = ListItems.shown(loaded).filterNot { it.isChecked }.sortedBy { if (DueNotice.isLate(it, now)) 0 else 1 }
-                TileGrid(rows, left, columns = 2, perRow = if (shortItems) 4 else 2) { item ->
+                TileGrid(room, left) { item ->
                     TileLine(
                         item.name,
-                        leading = { UI.Checkbox(checked = item.isChecked, onCheckedChange = { checked -> check(item, checked) }) },
-                        maxLines = if (shortItems) 1 else 2
+                        leading = { UI.Checkbox(checked = item.isChecked, onCheckedChange = { checked -> check(item, checked) }) }
                     )
                 }
             }

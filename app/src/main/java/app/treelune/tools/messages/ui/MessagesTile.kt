@@ -86,10 +86,10 @@ fun rememberMessagesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolT
             }
 
             @Composable
-            override fun Body(rows: Int?) {
+            override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val loaded = inbox ?: return
-                val shown = (loaded.unread + loaded.read).let { if (rows == null) it.take(FULL_MESSAGES) else it }
-                TileGrid(rows, shown, columns = 1) { message ->
+                val shown = (loaded.unread + loaded.read).let { if (room.rows == null) it.take(FULL_MESSAGES) else it }
+                TileGrid(room, shown) { message ->
                     TileLine(
                         message.displayTitle,
                         modifier = Modifier.clickable { open(EntryToOpen.Existing(message.id)) },

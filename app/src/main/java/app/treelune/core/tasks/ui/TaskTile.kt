@@ -171,13 +171,13 @@ fun TaskTile(task: Task) {
         onLongClick = { Navigator.push(Place.TaskConfig(task.zoneId, task.id)) },
         summary = { TaskStateLine(task, last) { actions.toggle(task, it) } },
         glance = { TaskStateLine(task, last, onRun = { actions.run(task) }, onOpen = open) { actions.toggle(task, it) } },
-        body = { rows ->
+        body = { room ->
             Column(verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     UI.ActionButton(action = ButtonAction.START, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.run(task) })
                     UI.ActionButton(action = ButtonAction.VIEW, display = ButtonDisplay.ICON, size = Size.S, onClick = open)
                 }
-                if (rows == null || rows > 1) runs.forEach { RunRow(it, task) }
+                if (room.rows == null || room.rows > 1) runs.forEach { RunRow(it, task) }
             }
         }
     )

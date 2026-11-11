@@ -73,6 +73,7 @@ object AgendaToolType : ToolTypeContract {
     override fun getFamily() = app.treelune.core.tools.ToolFamily.PLAN
 
     override fun getDefaultTileSize(): app.treelune.core.look.TileSize = app.treelune.core.look.TileSize.of(4, 2)
+    override fun getItemSpec(): app.treelune.core.look.ItemSpec? = app.treelune.core.look.ItemSpec.LINES
     override fun getDefaultShowFieldLabels(): Boolean = false
     override fun getDefaultIconName(): String = "calendar"
     override fun getSuggestedIcons(): List<String> = listOf("calendar", "calendar-days", "calendar-clock", "stethoscope", "cake")

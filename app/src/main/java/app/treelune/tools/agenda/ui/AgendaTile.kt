@@ -81,10 +81,10 @@ fun rememberAgendaTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTil
             }
 
             @Composable
-            override fun Body(rows: Int?) {
+            override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val loaded = events ?: return
                 val now = System.currentTimeMillis()
-                TileGrid(rows, coming(loaded, now), columns = 1) { event ->
+                TileGrid(room, coming(loaded, now)) { event ->
                     TileLine(
                         text = if (event.isPlanned) event.name else s.tool("cancelled_name").format(event.name),
                         modifier = Modifier.clickable { open(EntryToOpen.Existing(event.id)) },
