@@ -22,7 +22,7 @@ import app.treelune.core.utils.JsonUtils
 import org.json.JSONObject
 
 /**
- * The object an `assemble` step makes (docs/design/task-assemble.md): keys the user names, each
+ * The object an `assemble` step makes (docs/CORE.md, « Tasks »): keys the user names, each
  * holding one part, stored under `object` as `{"<key>": <part>}`, a part being one of
  *
  * - `{"text": "…"}`, a text as written;
