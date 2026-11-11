@@ -37,8 +37,9 @@ private data class Inbox(val unread: List<Occurrence>, val read: List<Occurrence
 /**
  * A messages tool's tile. The summary counts the unread messages and names the oldest, which a
  * touch on the tile opens; with none, it says all are read and when the next one goes out. The
- * body lists the unread messages from the oldest, then the last read ones, one per line, their
- * title (the unread ones stronger) and how long ago, ten in FULL. Opening a message reads it.
+ * body lists the unread messages from the oldest, then the last read ones, each its title (the
+ * unread ones stronger) and how long ago, then on the lines its tile gives it its text and its
+ * user's fields (TileItem), ten when it follows its content. Opening a message reads it.
  */
 @Composable
 fun rememberMessagesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile {
@@ -89,11 +90,14 @@ fun rememberMessagesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolT
             override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val loaded = inbox ?: return
                 val shown = (loaded.unread + loaded.read).let { if (room.rows == null) it.take(FULL_MESSAGES) else it }
+                val config = org.json.JSONObject(tool.config_json)
                 TileGrid(room, shown) { message ->
-                    TileLine(
+                    app.treelune.core.ui.components.TileItem(
                         message.displayTitle,
                         modifier = Modifier.clickable { open(EntryToOpen.Existing(message.id)) },
-                        type = if (message.read) TextType.CAPTION else TextType.STRONG,
+                        text = message.displayContent?.let { app.treelune.core.markup.Markup.plain(it) },
+                        fields = app.treelune.core.ui.components.tileItemFields(app.treelune.tools.messages.MessageToolType, config, message.extra, context),
+                        mainType = if (message.read) TextType.CAPTION else TextType.STRONG,
                         trailing = { UI.Text(FormatUtils.formatRelativeTimeShort(message.dueAt, context), TextType.CAPTION, maxLines = 1) }
                     )
                 }

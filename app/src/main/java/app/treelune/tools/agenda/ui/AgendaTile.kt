@@ -20,7 +20,6 @@ import app.treelune.core.database.entities.ToolInstance
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
 import app.treelune.core.fields.FileField
-import app.treelune.core.fields.formatValue
 import app.treelune.core.fields.toFieldDefinitions
 import app.treelune.core.strings.Strings
 import app.treelune.core.strings.StringsContext
@@ -42,7 +41,8 @@ import org.json.JSONObject
  * A calendar's tile (docs/TOOLS.md, « Agenda »): the summary says the event going
  * on or the next one, its name and its moment in relative words, « Nothing coming » otherwise; the
  * body lists the events to come, one line each, the moment at the start, the name, the
- * calendar's fields below; in FULL, all of them. A cancelled event says so, a removed one
+ * calendar's fields under it on the lines its tile gives it (TileItem); all of them when it
+ * follows its content. A cancelled event says so, a removed one
  * is not there. An event touched opens; elsewhere, the tool.
  */
 @Composable
@@ -51,7 +51,8 @@ fun rememberAgendaTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTil
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "agenda", context = context) }
     val zone = remember { AgendaToolType.zone() }
-    val fields = remember(tool.config_json) { JSONObject(tool.config_json).optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList() }
+    val config = remember(tool.config_json) { JSONObject(tool.config_json) }
+    val fields = remember(tool.config_json) { config.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList() }
 
     var events by app.treelune.core.ui.rememberShown<List<AgendaEvent>?>("tile:${tool.id}:events") { null }
     var version by remember { mutableIntStateOf(0) }
@@ -85,10 +86,10 @@ fun rememberAgendaTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTil
                 val loaded = events ?: return
                 val now = System.currentTimeMillis()
                 TileGrid(room, coming(loaded, now)) { event ->
-                    TileLine(
-                        text = if (event.isPlanned) event.name else s.tool("cancelled_name").format(event.name),
+                    app.treelune.core.ui.components.TileItem(
+                        if (event.isPlanned) event.name else s.tool("cancelled_name").format(event.name),
                         modifier = Modifier.clickable { open(EntryToOpen.Existing(event.id)) },
-                        secondary = fieldsLine(event, fields, context),
+                        fields = app.treelune.core.ui.components.tileItemFields(app.treelune.tools.agenda.AgendaToolType, config, event.extra, context),
                         leading = { UI.Text(shortWhen(event, now, s), TextType.LABEL) },
                         trailing = images(event, fields).takeIf { it.isNotEmpty() }?.let { ids -> { app.treelune.core.files.FileAbbreviation(ids) } }
                     )
@@ -104,10 +105,6 @@ private fun coming(events: List<AgendaEvent>, now: Long): List<AgendaEvent> {
     return events.filter { !it.isRemoved && it.end(zone) >= now }.sortedBy { it.start }
 }
 
-/** The calendar's fields of [event] on one line, its files apart ([images]), or nothing when it has none. */
-private fun fieldsLine(event: AgendaEvent, fields: List<FieldDefinition>, context: android.content.Context): String? =
-    fields.filter { it.type != FieldType.FILE }.mapNotNull { field -> event.extra[field.name]?.let { field.formatValue(it, context) } }
-        .filter { it.isNotBlank() }.joinToString(" · ").ifEmpty { null }
 
 /** The files of [event]'s file fields, in the order of the fields, shown at the end of its line. */
 private fun images(event: AgendaEvent, fields: List<FieldDefinition>): List<String> =

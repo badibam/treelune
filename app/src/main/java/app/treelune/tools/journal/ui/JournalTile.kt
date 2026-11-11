@@ -35,13 +35,14 @@ import app.treelune.tools.journal.utils.DateFormatUtils
 /** How many entries a FULL tile shows. */
 private const val FULL_ENTRIES = 10
 
-/** An entry as the tile shows it. */
-private data class TileEntry(val id: String, val title: String, val timestamp: Long)
+/** An entry as the tile shows it: its title, the start of its text, its user's fields. */
+private data class TileEntry(val id: String, val title: String, val timestamp: Long, val text: String, val extra: Map<String, Any?>)
 
 /**
  * A journal's tile. The summary is a button that writes an entry (created, then opened to be
- * written) and the date of the last one; the body the most recent entries, one per line, their
- * title and how long ago, ten in FULL. Touching an entry opens it.
+ * written) and the date of the last one; the body the most recent entries, ten at most, each its
+ * title and how long ago, then on the lines its tile gives it the start of its text and its
+ * user's fields (TileItem). Touching an entry opens it.
  */
 @Composable
 fun rememberJournalTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile {
@@ -52,13 +53,17 @@ fun rememberJournalTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTi
     var version by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(tool.id, version) {
-        val result = coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to tool.id, "limit" to FULL_ENTRIES, "fields" to listOf("id", "name", "timestamp")))
+        val result = coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to tool.id, "limit" to FULL_ENTRIES, "fields" to listOf("id", "name", "timestamp", "data", "extra")))
         if (!result.isSuccess) {
             LogManager.ui("Journal tile ${tool.id}: entries not read: ${result.error}", "ERROR")
             return@LaunchedEffect
         }
         entries = (result.data?.get("entries") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().map {
-            TileEntry(it["id"] as String, (it["name"] as? String).orEmpty().ifBlank { s.tool("placeholder_untitled") }, (it["timestamp"] as Number).toLong())
+            TileEntry(
+                it["id"] as String, (it["name"] as? String).orEmpty().ifBlank { s.tool("placeholder_untitled") }, (it["timestamp"] as Number).toLong(),
+                app.treelune.core.markup.Markup.plain(((it["data"] as? Map<*, *>)?.get("content") as? String).orEmpty()),
+                (it["extra"] as? Map<*, *>)?.entries?.associate { e -> e.key.toString() to e.value }.orEmpty()
+            )
         }
     }
     LaunchedEffect(tool.id) {
@@ -86,10 +91,13 @@ fun rememberJournalTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTi
             @Composable
             override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val loaded = entries ?: return
+                val config = org.json.JSONObject(tool.config_json)
                 TileGrid(room, loaded) { entry ->
-                    TileLine(
+                    app.treelune.core.ui.components.TileItem(
                         entry.title,
                         modifier = Modifier.clickable { open(EntryToOpen.Existing(entry.id)) },
+                        text = entry.text,
+                        fields = app.treelune.core.ui.components.tileItemFields(app.treelune.tools.journal.JournalToolType, config, entry.extra, context),
                         trailing = { UI.Text(FormatUtils.formatRelativeTimeShort(entry.timestamp, context), TextType.CAPTION, maxLines = 1) }
                     )
                 }
