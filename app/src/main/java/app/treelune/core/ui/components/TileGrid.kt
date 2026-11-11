@@ -43,11 +43,13 @@ fun <T> TileGrid(room: TileSize.Room, items: List<T>, item: @Composable (T) -> U
     val context = androidx.compose.ui.platform.LocalContext.current
     val s = androidx.compose.runtime.remember { app.treelune.core.strings.Strings.`for`(context = context) }
     SubcomposeLayout(modifier = Modifier.fillMaxWidth()) { constraints ->
-        // One element's height: its lines of the theme's text, measured, and air above and under
+        // One element's height: its lines of the theme's text, measured, and one small space of air
+        // shared above and under it — two lines then take half a cell, as before sizes were free;
+        // the height left over a fixed body is shared between the places, which gives the rest of the air
         val sample = subcompose("sample") {
             UI.Text(List(layout.lines) { "Ag" }.joinToString("\n"), TextType.BODY, maxLines = layout.lines)
         }.first().measure(Constraints(maxWidth = constraints.maxWidth))
-        val itemPx = sample.height + 2 * padding.roundToPx()
+        val itemPx = sample.height + padding.roundToPx()
         val bodyPx = if (room.rows != null && constraints.hasBoundedHeight) constraints.maxHeight else null
         val plan = tileGridPlan(itemPx, bodyPx, items.size, columns)
         val shown = items.take(plan.shown)
