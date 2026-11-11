@@ -4,6 +4,7 @@ import app.treelune.core.markup.ui.MarkupText
 import app.treelune.core.utils.StoredSchedule
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -68,13 +69,17 @@ data class Occurrence(
  * Two tabs, because the two populations answer different questions. "Reçus" is the inbox,
  * filtered the way an inbox is. "À venir" is what the recurrence has laid out ahead, each one
  * open to being written before it goes.
+ *
+ * [openEntryId], a message touched on the tile: "Reçus" under the filter that holds it, its card
+ * brought into view and marked, until another filter is chosen.
  */
 @Composable
 fun MessagesScreen(
     toolInstanceId: String,
     zoneName: String,
     onNavigateBack: () -> Unit,
-    onConfigureClick: () -> Unit = {}
+    onConfigureClick: () -> Unit = {},
+    openEntryId: String? = null
 ) {
     LogManager.ui("MessagesScreen called with toolInstanceId: $toolInstanceId")
 
@@ -171,6 +176,7 @@ fun MessagesScreen(
         when (selectedTab) {
             0 -> ReceivedTab(
                 toolInstanceId = toolInstanceId,
+                openEntryId = openEntryId,
                 coordinator = coordinator,
                 config = config,
                 refreshTrigger = refreshTrigger,
@@ -196,6 +202,7 @@ private enum class ReceivedFilter { UNREAD, READ, ARCHIVED, NOT_DELIVERED }
 @Composable
 private fun ReceivedTab(
     toolInstanceId: String,
+    openEntryId: String?,
     coordinator: Coordinator,
     config: JSONObject,
     refreshTrigger: Int,
@@ -207,6 +214,9 @@ private fun ReceivedTab(
     // Read means taken into account: only the user's gesture marks a message read, never opening
     // the screen or a notification, so "Unread" stays what still waits for them
     var filter by rememberSaveable { mutableStateOf(ReceivedFilter.UNREAD) }
+    // The message touched on the tile, shown under its filter and marked; let go when the user
+    // chooses another filter
+    var target by rememberSaveable { mutableStateOf(openEntryId) }
     // null while first read; a read that fails is said, never shown as an empty inbox
     var occurrences by app.treelune.core.ui.rememberShown<List<Occurrence>?>("page:${toolInstanceId}:received:$filter") { null }
     var failed by remember { mutableStateOf(false) }
@@ -220,7 +230,16 @@ private fun ReceivedTab(
             if (expired == null || cancelled == null) null
             else (expired + cancelled).sortedByDescending { it.dueAt }
         } else {
-            loadByStatus(context, coordinator, toolInstanceId, "sent", onError)
+            val sent = loadByStatus(context, coordinator, toolInstanceId, "sent", onError)
+            // The target under another filter: that filter chosen, which reads again
+            sent?.find { it.id == target }?.let { found ->
+                val holding = if (found.archived) ReceivedFilter.ARCHIVED else if (found.read) ReceivedFilter.READ else ReceivedFilter.UNREAD
+                if (holding != filter) {
+                    filter = holding
+                    return@LaunchedEffect
+                }
+            }
+            sent
                 ?.filter { occurrence ->
                     when (filter) {
                         ReceivedFilter.UNREAD -> !occurrence.read && !occurrence.archived
@@ -258,6 +277,7 @@ private fun ReceivedTab(
                 ReceivedFilter.NOT_DELIVERED -> s.tool("filter_not_delivered")
             },
             onSelect = { selected ->
+                target = null
                 filter = when (selected) {
                     s.tool("filter_read") -> ReceivedFilter.READ
                     s.tool("filter_archived") -> ReceivedFilter.ARCHIVED
@@ -277,10 +297,17 @@ private fun ReceivedTab(
             UI.LoadingIndicator()
         } else if (shown.isEmpty()) {
             UI.Text(s.tool("empty_received_messages"), TextType.CAPTION, fillMaxWidth = true)
-        } else shown.forEach { occurrence ->
-            ReceivedCard(
+        } else shown.forEach { occurrence -> androidx.compose.runtime.key(occurrence.id) {
+            val requester = remember { androidx.compose.foundation.relocation.BringIntoViewRequester() }
+            if (occurrence.id == target) LaunchedEffect(target) {
+                // Once laid out: before, the card has no place to bring into view
+                androidx.compose.runtime.withFrameNanos { }
+                requester.bringIntoView()
+            }
+            Box(modifier = Modifier.bringIntoViewRequester(requester)) { ReceivedCard(
                 occurrence = occurrence,
                 config = config,
+                marked = occurrence.id == target,
                 s = s,
                 onToggleRead = {
                     changeFlags(
@@ -296,8 +323,8 @@ private fun ReceivedTab(
                         onError = onError
                     )
                 }
-            )
-        }
+            ) }
+        } }
     }
 }
 
@@ -305,11 +332,12 @@ private fun ReceivedTab(
 private fun ReceivedCard(
     occurrence: Occurrence,
     config: JSONObject,
+    marked: Boolean,
     s: StringsContext,
     onToggleRead: () -> Unit,
     onToggleArchived: () -> Unit
 ) {
-    UI.Card(type = CardType.DEFAULT) {
+    UI.Card(type = CardType.DEFAULT, highlight = marked) {
         Column(
             modifier = Modifier.padding(UI.Space.L),
             verticalArrangement = Arrangement.spacedBy(UI.Space.S)
