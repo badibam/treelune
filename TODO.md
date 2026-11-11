@@ -21,10 +21,8 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 - Rendre seances d'hypnose réutilisables d'autres jours ? — Orga — Amélioration
 - Revoir le mode dlaffichage complet pour chaque outil certajs dvraient être + complets — UI — Amélioration
 - "préparer la séa'ce" pourrait peut etre etre une tache plutot qu'u'e routine ? — Orga — Amélioration
-- Toast par ex e marquer comme lu: s'empile. Si 10 clic : reste 10 fois le temps. ... — UI — Bug
 - Système pour garder à jour agenda, grace a discussion recurrente et aussi api qui recupere le evenelejts et propose etc — Orga — Idée
 - Reset des notifs niveau outil sur son écran : voir ce qui correspond a chaqie outil. Cf marqué comme lu etc. — Outils — Amélioration
-- Désormais, normalement, la notif d'un questionnaire par exemple ouvre l eran de l'outil, pas l occire'ce a remplir direct. Je voudrais que xe soit pareil pour le cmic sur la tuile. — Outils — Amélioration
 
 ## Bugs
 
@@ -38,7 +36,9 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 Codé, jamais vu sur l'appareil.
 
 - Une option d'un choix renommée dans la config d'un outil (sa valeur changée, « Calme » en « Serein ») : la confirmation sans valeur retirée, les entrées et l'historique sous le nouveau nom, le filtre d'un Graphique sur l'ancienne valeur qui suit ; une option retirée à côté, toujours comptée ; par l'IA, « renomme l'option … », le paramètre `renames`.
-- La notification d'un outil touchée (un questionnaire, une séance prévue, une échéance de Liste, un Objectif à valider) : la page de l'outil, pas l'entrée ; le rappel de l'Agenda et la séance en cours, toujours sur leur entrée.
+- La notification d'un outil touchée, et sa tuile (un questionnaire, une séance prévue, une échéance de Liste, un Objectif à valider) : la page de l'outil, pas l'entrée ; le rappel de l'Agenda et la séance en cours, toujours sur leur entrée.
+- Dix messages marqués comme lus d'affilée dans Messages : un seul bandeau, le dernier, son « Annuler » qui défait le dernier geste.
+- Une copie automatique de la sauvegarde sur le téléphone qui plantait (0.9.8, mémoire pleine) : écrite, sa taille notée ; puis restaurée, la lecture d'un fichier de cette taille n'étant pas encore faite par tranches.
 - Le retour sur un écran après un détour (une zone descendue jusqu'à ses graphiques, un outil ouvert puis quitté ; la page d'un outil, une entrée ouverte puis fermée) : la même position, sans « Chargement » ni saut, le contenu mis à jour sur place.
 - L'usage d'une routine : « Seule uniquement », sans bouton de conversation ; « En conversation uniquement », sans Lancer, son planning qui envoie une notification à l'heure (la page de la routine), la tuile marquée jusqu'à la conversation ouverte, l'occurrence suivante au planning d'après ; un déclencheur qui invite aussi ; la migration 114 → 115 passée.
 - L'import d'une partie avec une API « Recette sur GitHub » dans un dépôt vide : le workflow puis la recette écrits, l'API créée.
