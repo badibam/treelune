@@ -105,7 +105,13 @@ fun TaskRunScreen(place: Place.TaskRun, onTaskName: (String) -> Unit, onBack: ()
             UI.Card(type = CardType.DEFAULT, size = Size.M) {
                 Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
                     UI.Text(s.shared("task_step_line").format(index + 1, result["summary"]), TextType.STRONG)
-                    (result["values"] as? Map<*, *>)?.forEach { (name, value) -> UI.Text(s.shared("label_value").format(name, value), TextType.BODY) }
+                    (result["values"] as? Map<*, *>)?.forEach { (name, value) ->
+                        // An object made (its type said by the step's result), read through the JSON reader
+                        if ((result["types"] as? Map<*, *>)?.get(name) == app.treelune.core.apis.ApiSettings.OBJECT && value is Map<*, *>) {
+                            UI.Text(name.toString(), TextType.LABEL)
+                            app.treelune.core.ui.components.JsonReader(org.json.JSONObject(value), open = false)
+                        } else UI.Text(s.shared("label_value").format(name, value), TextType.BODY)
+                    }
                     (result["entry_id"] as? String)?.let { UI.Text(s.shared("task_run_entry_created"), TextType.CAPTION) }
                     (result["skipped"] as? String)?.let { UI.Text(it, TextType.CAPTION) }
                     (result["stopped"] as? String)?.let { UI.Text(it, TextType.CAPTION) }

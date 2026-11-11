@@ -12,6 +12,7 @@ import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.fields.FieldType
 import app.treelune.core.fields.FileField
+import app.treelune.core.fields.json
 import app.treelune.core.files.FilePreparation
 import app.treelune.core.strings.Strings
 import app.treelune.core.terms.Term
@@ -270,6 +271,10 @@ object TaskRunner {
 
     /** What [step] does, said in words: its service's verbalization of it. */
     private suspend fun summary(context: Context, step: JSONObject): String {
+        // An object made runs no operation: it says what it makes
+        if (step.optString(TaskSteps.KIND) == TaskSteps.ASSEMBLE) {
+            return Strings.`for`(context = context).shared("task_object_summary").format(step.optJSONObject(StepObject.OBJECT)?.length() ?: 0)
+        }
         val (action, params) = actionOf(step, emptyMap(), context)
         val (resource, operation) = action.split('.', limit = 2).let { it[0] to it[1] }
         return ServiceRegistry(context).getService(resource)?.verbalize(operation, JsonUtils.toJSONObject(params), context) ?: action
@@ -413,6 +418,8 @@ object TaskRunner {
                                 item: Map<String, Any?>? = null): TaskRun.StepResult {
         val s = Strings.`for`(context = context)
         val kind = step.getString(TaskSteps.KIND)
+        // An object made: nothing written, the object given to the steps after it (StepObject)
+        if (kind == TaskSteps.ASSEMBLE) return assembled(context, step, results, at, received, item)
         // The fields an entry's values go to, for a file to come down into one
         val fields = if (kind == TaskSteps.CREATE_ENTRY || kind == TaskSteps.UPDATE_ENTRY)
             TaskSteps.writableFields(step.getString(TaskSteps.TOOL_INSTANCE_ID), context, s) else emptyMap()
@@ -430,6 +437,8 @@ object TaskRunner {
                 put(key, when {
                     // A file an API gives comes down into the field, with that API's key on its server
                     field?.type == FieldType.FILE && value is String -> listOf(download(context, value, FileField.kinds(field.config), apiOf(input, step, steps)))
+                    // An object, written into a JSON field as its text
+                    field != null && field.json() && (value is Map<*, *> || value is List<*>) -> said(value)
                     // The entry a step created, designated in a field that holds a Reference; a
                     // multiple one holds it as a list of one
                     field?.type == FieldType.REFERENCE && value is String -> mapOf("kind" to "ENTRY", "id" to value)
@@ -588,6 +597,35 @@ object TaskRunner {
                 }
             }
         }.map { JsonUtils.toMap(it) }
+    }
+
+    /**
+     * The object an `assemble` [step] makes at this run (StepObject.render), given under
+     * StepObject.OUTPUT; what it reads that is gone or cannot be read fails it, said.
+     */
+    private suspend fun assembled(context: Context, step: JSONObject, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?, item: Map<String, Any?>?): TaskRun.StepResult {
+        val s = Strings.`for`(context = context)
+        val parts = try {
+            StepObject.read(step.getJSONObject(StepObject.OBJECT), { s.shared(it) })
+        } catch (e: IllegalArgumentException) {
+            throw StepFailed(e.message ?: s.shared("error_unknown"))
+        }
+        val made = try {
+            StepObject.render(parts, at, context, s,
+                resolve = { input -> resolve(context, TaskSteps.input(input, TaskSteps.VALUE) { s.shared(it) }, results, at, received, item) },
+                entryOf = { input ->
+                    val id = idOf(resolve(context, TaskSteps.input(input, TaskSteps.ENTRY) { s.shared(it) }, results, at, received, item)) as? String
+                        ?: throw StepFailed(s.shared("task_error_object_no_entry"))
+                    AppDatabase.getDatabase(context).toolDataDao().getById(id) ?: throw StepFailed(s.shared("task_error_object_no_entry"))
+                    id
+                })
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            throw StepFailed(e.message ?: s.shared("error_unknown"))
+        }
+        return TaskRun.StepResult(s.shared("task_object_summary").format(parts.size), values = mapOf(StepObject.OUTPUT to made),
+            types = mapOf(StepObject.OUTPUT to ApiSettings.OBJECT), at = System.currentTimeMillis())
     }
 
     /** [value] as a text: an object or a list in JSON, anything else as it writes. */

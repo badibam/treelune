@@ -210,6 +210,51 @@ class StepForEachTest {
         assertTrue(results.single().stopped != null)
     }
 
+    /** An API taking the object `context` by POST. */
+    private suspend fun takingAnObject(): String = ok("apis.create", mapOf("name" to "Maker ${java.util.UUID.randomUUID()}", "config" to mapOf(
+        "kind" to "web", "url" to "http://127.0.0.1:${server.address.port}/", "method" to "POST", "key_in" to "none", "response" to "immediate",
+        "inputs" to listOf(mapOf("name" to "context", "type" to "object"))
+    )))["api_id"] as String
+
+    @Test
+    fun anObjectAssembled_goesToAnApi_asItIs() = runBlocking {
+        ok("tool_data.create", mapOf("tool_instance_id" to notesId, "timestamp" to 1_000L, "data" to mapOf("content" to "older")))
+        ok("tool_data.create", mapOf("tool_instance_id" to notesId, "timestamp" to 2_000L, "data" to mapOf("content" to "newer")))
+        val latest = mapOf("selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to notesId),
+            "sort" to listOf(mapOf("field" to "timestamp", "direction" to "desc")), "limit" to 1),
+            "attach" to mapOf("config" to true, "entries" to true), "rendering" to "readable")
+        val taskId = task(listOf(
+            mapOf("kind" to TaskSteps.ASSEMBLE, "object" to mapOf(
+                "intro" to mapOf("text" to "Hello"),
+                "memory" to mapOf("object" to mapOf("words" to mapOf("pointer" to latest))),
+                "count" to mapOf("value" to mapOf("constant" to 3))
+            )),
+            mapOf("kind" to TaskSteps.CALL_API, "api_id" to takingAnObject(), "inputs" to mapOf("context" to mapOf("result" to mapOf("step" to 0, "value" to "object"))))
+        ))
+        val run = run(taskId)
+        assertEquals(run.resultsJson, TaskRun.State.DONE.key, run.state)
+        val context = org.json.JSONObject(sent).getJSONObject("context")
+        assertEquals("Hello", context.getString("intro"))
+        assertEquals(3, context.getInt("count"))
+        // The tool with its name, its newest entry alone under its labels, its id with it
+        val words = context.getJSONObject("memory").getJSONObject("words")
+        assertEquals("Words", words.getString("Tool"))
+        val entries = words.getJSONArray("Entries")
+        assertEquals(1, entries.length())
+        assertEquals("newer", entries.getJSONObject(0).getString("Content"))
+        assertTrue(entries.getJSONObject(0).has("id"))
+    }
+
+    @Test
+    fun anObject_isRefusedByAnInputThatTakesAText() = runBlocking {
+        val result = coordinator.processUserAction("tasks.create", mapOf("zone_id" to zoneId, "name" to "Store", "steps" to listOf(
+            mapOf("kind" to TaskSteps.ASSEMBLE, "object" to mapOf("intro" to mapOf("text" to "Hello"))),
+            mapOf("kind" to TaskSteps.CALL_API, "api_id" to api("pt" to "text"), "inputs" to emptyMap<String, Any>()),
+            mapOf("kind" to TaskSteps.CREATE_ENTRY, "tool_instance_id" to notesId, "values" to mapOf("data.content" to mapOf("result" to mapOf("step" to 0, "value" to "object"))))
+        )))
+        assertFalse(result.isSuccess)
+    }
+
     @Test
     fun aFailedRun_resumesAtTheStepThatFailed_withWhatTheStepsBeforeItGave() = runBlocking {
         val taskId = task(listOf(
