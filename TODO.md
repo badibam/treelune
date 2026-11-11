@@ -110,6 +110,8 @@ Codé, jamais vu sur l'appareil.
 - L'outil Schéma, le schéma écrit : `docs/design/schema.md` (config JSON au vocabulaire de Mermaid, placement par ELK, largeur, tuile, écran), ses vérifications d'abord (« Ouvert »).
 - Le fournisseur « Abonnement Claude », `docs/design/github-worker.md` (Claude Code lancé sur GitHub Actions dans le dépôt de Réglages › GitHub, le jeton de l'abonnement jamais dans l'app), ses vérifications d'abord (« Ouvert », le point 2), sur `badibam/treelune-worker`.
 
+- Les nouvelles des Flashcards, qui passent inaperçues (signalé le 2026-11-11 : « pas de nouvelle aujourd'hui », alors que 5 sont passées après 29 révisions) : une carte jamais vue marquée « Nouvelle » pendant la séance, et la fin de séance qui compte les revues et les nouvelles.
+
 ## À concevoir
 
 - Le rendu Lisible des pointeurs d'une routine (`docs/design/task-assemble.md`), pour le coût : un pointeur choisit Lisible ou Technique dans un message aussi ; le gain mesuré d'abord sur le Rituel du dimanche, qui en joint des dizaines.
