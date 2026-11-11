@@ -32,13 +32,14 @@ private val DraftSaver: Saver<SelectionDraft?, String> = Saver(
 /**
  * A selection of a tool's entries as a setting (SettingNode.Selection): the tool, the conditions
  * on its entries and the fields kept, by SelectionPicker; its period is the config's own,
- * given elsewhere, unless [offerPeriod] (the entries a Task's step sends an API). [selection]
- * is its stored form, null while none is set.
+ * given elsewhere, unless [offerPeriod] (the entries a Task's step sends an API); its order and
+ * its count unless not [ordered] (a trigger's entry written). [selection] is its stored form,
+ * null while none is set.
  *
  * @param reference The name of the instant the filters' relative dates resolve against
  */
 @Composable
-fun SelectionSetting(label: String, selection: JSONObject?, reference: String, onChange: (JSONObject?) -> Unit, offerPeriod: Boolean = false) {
+fun SelectionSetting(label: String, selection: JSONObject?, reference: String, onChange: (JSONObject?) -> Unit, offerPeriod: Boolean = false, ordered: Boolean = true) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
 
@@ -56,7 +57,7 @@ fun SelectionSetting(label: String, selection: JSONObject?, reference: String, o
         SelectionPicker(current, { next ->
             draft = next
             // Only a tool's entries make a selection here; until one is reached, none is set
-            onChange(if (next.level == ReferenceKind.TOOL_INSTANCE) (if (offerPeriod) next else next.copy(period = EntryPeriod())).selection().toJson() else null)
-        }, ENTRIES, rememberToolFields(current.tool?.id), reference, offerFields = true, offerPeriod = offerPeriod)
+            onChange(if (next.level == ReferenceKind.TOOL_INSTANCE) (if (offerPeriod) next else next.copy(period = EntryPeriod())).let { if (ordered) it else it.copy(sort = emptyList(), limit = null) }.selection().toJson() else null)
+        }, ENTRIES, rememberToolFields(current.tool?.id), reference, offerFields = true, offerPeriod = offerPeriod, offerOrder = ordered)
     }
 }

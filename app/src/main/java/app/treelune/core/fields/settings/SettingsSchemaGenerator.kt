@@ -89,7 +89,6 @@ object SettingsSchemaGenerator {
                 is SettingNode.Condition -> Triple(node.name, node.required, conditionSchema(node, text))
                 is SettingNode.Term -> Triple(node.name, node.required, termSchema(node, text))
                 is SettingNode.Selection -> Triple(node.name, node.required, selectionSchema(node, text))
-                is SettingNode.Sort -> Triple(node.name, false, sortSchema(node, text))
                 is SettingNode.Period -> Triple(node.name, node.required, periodSchema(node, text))
                 is SettingNode.Instants -> Triple(node.name, node.required, instantsSchema(node, text))
                 is SettingNode.FieldValues -> Triple(node.name, false, fieldValuesSchema(node, text))
@@ -203,7 +202,10 @@ object SettingsSchemaGenerator {
             .put("additionalProperties", false)
     }
 
-    /** Entries of one tool, without a period: its target, its filters, the fields kept. */
+    /**
+     * Entries of one tool, without a period: its target, its filters, the fields kept, and when it
+     * reads in order (`ordered`), its sort and its limit.
+     */
     private fun selectionSchema(node: SettingNode.Selection, text: (String) -> String): JSONObject = JSONObject()
         .put("type", "object")
         .put("title", node.label)
@@ -211,15 +213,21 @@ object SettingsSchemaGenerator {
         .put("properties", JSONObject()
             .put("target", JSONObject().put("type", "object"))
             .put("filters", JSONObject().put("type", "array").put("items", JSONObject().put("type", "object")))
-            .put("fields", JSONObject().put("type", "array").put("items", JSONObject().put("type", "string"))))
+            .put("fields", JSONObject().put("type", "array").put("items", JSONObject().put("type", "string")))
+            .apply { if (node.ordered) put("sort", sortSchema(text)).put("limit", limitSchema(text)) })
         .put("required", JSONArray().put("target"))
         .put("additionalProperties", false)
 
+    /** The count of a selection's entries kept, the first of its order. */
+    fun limitSchema(text: (String) -> String): JSONObject = JSONObject()
+        .put("type", "integer")
+        .put("minimum", 1)
+        .put("description", text("limit_schema_description"))
+
     /** The order of a selection's entries: its keys, each a field of its tool and a direction (EntrySort). */
-    private fun sortSchema(node: SettingNode.Sort, text: (String) -> String): JSONObject = JSONObject()
+    fun sortSchema(text: (String) -> String): JSONObject = JSONObject()
         .put("type", "array")
-        .put("title", node.label)
-        .put("description", text("sort_schema_description").format(node.selection))
+        .put("description", text("sort_schema_description"))
         .put("items", JSONObject()
             .put("type", "object")
             .put("properties", JSONObject()

@@ -111,6 +111,8 @@ class ReadoutService(private val context: Context) : ExecutableService {
     )
 
     private suspend fun create(params: JSONObject): OperationResult {
+        // A selection written without its order gets its default, stored whole (SelectionOrder)
+        app.treelune.core.selection.SelectionOrder.complete(params, context)
         val zoneId = params.optString("zone_id").ifEmpty { throw Refused(s.shared("error_param_zone_id_required")) }
         val zone = database.zoneDao().getZoneById(zoneId) ?: throw Refused(s.shared("service_error_zone_not_found"))
         // The app's own demo gives its ids; every other caller gets one made here
@@ -133,6 +135,8 @@ class ReadoutService(private val context: Context) : ExecutableService {
     }
 
     private suspend fun update(params: JSONObject): OperationResult {
+        // A selection written without its order gets its default, stored whole (SelectionOrder)
+        app.treelune.core.selection.SelectionOrder.complete(params, context)
         val readout = readout(params)
         val moved = params.optString("zone_id").ifEmpty { null }?.takeIf { it != readout.zoneId }
         val settings = given(params, ReadoutSettings.of(readout))

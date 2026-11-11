@@ -57,7 +57,7 @@ class SettingDescriptionsTest {
             }
             is SettingNode.Section -> missing(node.nodes, path)
             is SettingNode.FieldValues -> listOfNotNull("values $path.${node.name}".takeIf { node.description.isNullOrBlank() })
-            is SettingNode.Condition, is SettingNode.Term, is SettingNode.Selection, is SettingNode.Sort, is SettingNode.Period, is SettingNode.Instants -> emptyList()
+            is SettingNode.Condition, is SettingNode.Term, is SettingNode.Selection, is SettingNode.Period, is SettingNode.Instants -> emptyList()
         }
     }.distinct()
 

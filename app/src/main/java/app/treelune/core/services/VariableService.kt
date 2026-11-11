@@ -89,6 +89,8 @@ class VariableService(private val context: Context) : ExecutableService {
     private class Refused(message: String) : Exception(message)
 
     private suspend fun create(params: JSONObject): OperationResult {
+        // A selection written without its order gets its default, stored whole (SelectionOrder)
+        app.treelune.core.selection.SelectionOrder.complete(params, context)
         val zoneId = params.optString("zone_id").takeIf { it.isNotEmpty() } ?: throw Refused(s.shared("variable_error_param").format("zone_id"))
         val zone = AppDatabase.getDatabase(context).zoneDao().getZoneById(zoneId) ?: throw Refused(s.shared("service_error_zone_not_found"))
         // One of its zone's tool groups, or none
@@ -121,6 +123,8 @@ class VariableService(private val context: Context) : ExecutableService {
     }
 
     private suspend fun update(params: JSONObject): OperationResult {
+        // A selection written without its order gets its default, stored whole (SelectionOrder)
+        app.treelune.core.selection.SelectionOrder.complete(params, context)
         val existing = dao.getById(params.optString("variable_id")) ?: throw Refused(s.shared("variable_error_not_found").format(params.optString("variable_id")))
         val name = if (params.has("name")) checkName(params.optString("name"), existing.id) else existing.name
         val definition = params.optJSONObject("definition")?.let { checkDefinition(it, name, existing.id) }
@@ -535,7 +539,8 @@ class VariableService(private val context: Context) : ExecutableService {
             // An instant of the evaluation, filters that do not move with it: the entries of every
             // instant's period read once, each keeping those of its own (SharedRead)
             val index = instants.indexOf(at)
-            if (index >= 0 && instants.size > 1 && !selection.filtersMove) {
+            // A count is one of each instant's own period: never shared
+            if (index >= 0 && instants.size > 1 && !selection.filtersMove && selection.limit == null) {
                 val key = selection.toJson().toString()
                 val (shared, rows) = sharedRead[key] ?: run {
                     val shared = app.treelune.core.selection.SharedRead.of(selection.period, instants)
@@ -552,14 +557,14 @@ class VariableService(private val context: Context) : ExecutableService {
         private val fieldsRead = mutableMapOf<String, Map<String, app.treelune.core.fields.FieldDefinition>>()
         private val sharedRead = mutableMapOf<String, Pair<app.treelune.core.selection.SharedRead, List<Map<String, Any?>>>>()
 
-        /** The entries [selection] keeps, its filters resolved at [at]. */
+        /** The entries [selection] keeps, in its order and count, its filters resolved at [at]. */
         private suspend fun readEntries(toolId: String, selection: EntrySelection, fields: Map<String, app.treelune.core.fields.FieldDefinition>, at: Long): List<Map<String, Any?>> {
             val result = coordinator.processUserAction("tool_data.get", mapOf(
                 "tool_instance_id" to toolId,
                 "filters" to JsonUtils.toList(selection.storedFilters(fields, TimeResolver.at(at)) { s.shared(it) }),
                 // A filter's variable or reading read at the same instant (FilterTerms)
                 "reference" to at
-            ))
+            ) + selection.orderParams())
             if (!result.isSuccess) throw IllegalStateException(result.error ?: "tool_data.get")
             return (result.data?.get("entries") as? List<*>).orEmpty().filterIsInstance<Map<String, Any?>>()
         }

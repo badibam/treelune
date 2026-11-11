@@ -78,6 +78,7 @@ class ReadingService(private val context: Context) : ExecutableService {
             return OperationResult.error(e.message ?: s.shared("service_error_reading_param").format("selection"))
         }
         selection.problem(series = true) { s.shared(it) }?.let { return OperationResult.error(it) }
+        selection.unordered { s.shared(it) }?.let { return OperationResult.error(it) }
         if (selection.target.kind !in app.treelune.core.terms.TermFields.SOURCES) {
             return OperationResult.error(s.shared("service_error_reading_source").format(selection.target.kind.name))
         }
@@ -118,9 +119,13 @@ class ReadingService(private val context: Context) : ExecutableService {
             entry != null -> listOf(entry)
             series != null -> {
                 val (start, end) = selection.period.instants(TimeResolver.at(at))
-                app.treelune.core.variables.VariableSeries.entries(context, toolInstanceId, series.first, fields, start!!, end, at, filters, s)
+                // A series is computed, its steps put in order and counted here (EntrySort.ordered)
+                app.treelune.core.fields.EntrySort.ordered(
+                    app.treelune.core.variables.VariableSeries.entries(context, toolInstanceId, series.first, fields, start!!, end, at, filters, s),
+                    selection.sort, fields
+                ).let { steps -> selection.limit?.let { steps.take(it) } ?: steps }
             }
-            else -> readEntries(toolInstanceId, filters, at)
+            else -> readEntries(toolInstanceId, filters, at, selection)
         }
 
         val path = params.optString("field").takeIf { it.isNotEmpty() }
@@ -182,8 +187,9 @@ class ReadingService(private val context: Context) : ExecutableService {
         // date, and the entries of every period are then read at once, each instant keeping those
         // its own period takes. Otherwise each instant reads its own
         val values = try {
-            // A series moves with the instant too: its last step is computed at it
-            if (selection.filtersMove || series != null) {
+            // A series moves with the instant too: its last step is computed at it. A count is
+            // one of each instant's own period, never of the periods read together
+            if (selection.filtersMove || series != null || selection.limit != null) {
                 instants.map { at -> at to reduced(entries(toolInstanceId, selection.storedFilters(fields, TimeResolver.at(at)) { s.shared(it) }, at), at) }
             } else {
                 val shared = app.treelune.core.selection.SharedRead.of(selection.period, instants)
@@ -204,17 +210,17 @@ class ReadingService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * The entries of [toolInstanceId] the stored [filters] keep, newest first.
+     * The entries of [toolInstanceId] the stored [filters] keep, in [selection]'s order and count,
+     * a filter's variable or reading read at [at] (FilterTerms).
      *
      * @throws IllegalStateException when they cannot be read
      */
-    /** The entries of [toolInstanceId] [filters] keep, a filter's variable or reading read at [at] (FilterTerms). */
-    private suspend fun readEntries(toolInstanceId: String, filters: org.json.JSONArray, at: Long): List<Map<String, Any?>> {
+    private suspend fun readEntries(toolInstanceId: String, filters: org.json.JSONArray, at: Long, selection: EntrySelection): List<Map<String, Any?>> {
         val entries = Coordinator(context).processUserAction("tool_data.get", mapOf(
             "tool_instance_id" to toolInstanceId,
             "filters" to JsonUtils.toList(filters),
             "reference" to at
-        ))
+        ) + selection.orderParams())
         if (!entries.isSuccess) throw IllegalStateException(entries.error ?: "")
         return (entries.data?.get("entries") as? List<*> ?: emptyList<Any>()).filterIsInstance<Map<String, Any?>>()
     }

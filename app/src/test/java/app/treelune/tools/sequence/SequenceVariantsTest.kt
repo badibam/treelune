@@ -67,9 +67,9 @@ class SequenceVariantsTest {
         val config = JSONObject()
             .put("name", "Guided")
             .put(SequenceVariants.VARIANT, SequenceVariants.MEDIA)
-            .put(SequenceVariants.MEDIA_SOURCE, JSONObject().put("target", JSONObject().put("kind", "TOOL_INSTANCE").put("id", libraryId)))
+            .put(SequenceVariants.MEDIA_SOURCE, JSONObject().put("target", JSONObject().put("kind", "TOOL_INSTANCE").put("id", libraryId))
+                .put("sort", JSONArray().put(JSONObject().put("field", "created_at").put("direction", "asc"))))
             .put(SequenceVariants.MEDIA_FIELD, "extra.audio")
-            .put(SequenceVariants.MEDIA_SORT, JSONArray().put(JSONObject().put("field", "created_at").put("direction", "asc")))
         val session = coordinator.processUserAction("tools.create", mapOf("zone_id" to zone.data!!["zone_id"], "tooltype" to "sequence",
             "config" to app.treelune.core.utils.JsonUtils.toMap(config)))
         assertTrue("a medium's field of sounds, sorted by a field of its tool: ${session.error}", session.isSuccess)

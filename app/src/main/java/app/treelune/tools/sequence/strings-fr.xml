@@ -218,7 +218,6 @@
     <string name="field_media_source">Entrées où choisir</string>
     <string name="field_media_field">Fichier joué</string>
     <string name="schema_media_field">Le chemin du champ Fichier de ces entrées qui tient le son ou la vidéo (« data.audio »)</string>
-    <string name="field_media_sort">Ordre</string>
     <string name="field_media_entry">Entrée jouée</string>
     <string name="schema_complete_entry">Pour une séance d\'un son ou d\'une vidéo, obligatoire : l\'id de l\'entrée jouée, une de sa sélection</string>
     <string name="error_media_field">Le fichier joué, %1$s, n\'est pas un champ de sons ou de vidéos des entrées où choisir</string>

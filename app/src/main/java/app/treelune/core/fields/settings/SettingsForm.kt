@@ -202,7 +202,7 @@ private fun List<SettingNode>.isPage(): Boolean = any { node ->
         is SettingNode.Selection, is SettingNode.Condition -> true
         is SettingNode.Section -> node.nodes.isPage()
         is SettingNode.Variant -> node.cases.values.any { it.isPage() }
-        is SettingNode.Field, is SettingNode.Period, is SettingNode.Instants, is SettingNode.Sort,
+        is SettingNode.Field, is SettingNode.Period, is SettingNode.Instants,
         is SettingNode.FieldValues -> false
     }
 }
@@ -519,7 +519,15 @@ private suspend fun brickPhrase(brick: JSONObject, context: Context): String {
         brick.has("reading") -> {
             val reading = brick.optJSONObject("reading") ?: unreadable()
             val parts = selection(reading.optJSONObject("selection") ?: JSONObject(), reading.optString("field").takeIf { it.isNotEmpty() }).toMutableList()
-            reading.optString("reduction").takeIf { it.isNotEmpty() }?.let { parts.add(minOf(1, parts.size), s.shared("reduction_${it.lowercase()}")) }
+            reading.optString("reduction").takeIf { it.isNotEmpty() }?.let { reduction ->
+                // A date's minimum is its earliest: the label follows the type of the field read
+                val type = reading.optString("field").takeIf { it.isNotEmpty() }?.let { path ->
+                    reading.optJSONObject("selection")?.optJSONObject("target")?.optString("id")?.takeIf { it.isNotEmpty() }
+                        ?.let { app.treelune.core.fields.ToolFields.filterable(it, context, s)[path]?.type }
+                }
+                val known = app.treelune.core.reading.Reduction.entries.firstOrNull { it.name == reduction }
+                parts.add(minOf(1, parts.size), known?.let { s.shared(app.treelune.core.reading.Reduction.labelKey(it, type)) } ?: reduction)
+            }
             // Grouped: by what, the groups kept ("its value ≥ 30 min"), and how they are reduced
             reading.optJSONObject("group")?.let { group ->
                 val by = group.optString("unit").takeIf { it.isNotEmpty() }?.let { s.shared("period_type_${it.lowercase()}").lowercase() }
@@ -756,14 +764,8 @@ private fun NodeForm(
             label = node.label,
             selection = config.optJSONObject(node.name),
             reference = node.reference,
-            onChange = { set(node.name, it) }
-        )
-
-        is SettingNode.Sort -> app.treelune.core.ui.selectors.SortSetting(
-            label = node.label,
-            sort = config.optJSONArray(node.name) ?: JSONArray(),
-            selection = config.optJSONObject(node.selection),
-            onChange = { set(node.name, it.takeIf { sort -> sort.length() > 0 }) }
+            onChange = { set(node.name, it) },
+            ordered = node.ordered
         )
 
         is SettingNode.Period -> {

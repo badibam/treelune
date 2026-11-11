@@ -77,7 +77,7 @@ object Triggers {
                 ), ENTRY_WRITTEN to listOf(
                     SettingNode.Field(FieldDefinition(WRITES, text("trigger_writes"), text("trigger_schema_writes"), FieldType.CHOICE, true,
                         mapOf("options" to ChoiceSettings.storedOptions(Write.entries.map { it.key }, Write.entries.associate { it.key to text("trigger_write_${it.key}") })) + ("multiple" to true))),
-                    SettingNode.Selection(ENTRIES, text("trigger_entries"), text("trigger_reference"), required = true),
+                    SettingNode.Selection(ENTRIES, text("trigger_entries"), text("trigger_reference"), required = true, ordered = false),
                     // Absent is true: filing or making something once is what a write mostly starts
                     SettingNode.Field(FieldDefinition(ONLY_ENTERING, text("trigger_only_entering"), text("trigger_schema_only_entering"), FieldType.BOOLEAN, false, null, defaultValue = true))
                 ), CONDITION to listOf(

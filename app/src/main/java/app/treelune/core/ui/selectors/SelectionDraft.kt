@@ -19,6 +19,8 @@ import org.json.JSONObject
  *
  * @property filters Conditions put on each entry (Conditions), the period apart
  * @property fields The fields kept, all of them when null
+ * @property sort The order of a tool's or a series' entries, empty until the picker writes its default
+ * @property limit The first entries of that order kept, all of them when null
  */
 data class SelectionDraft(
     val zone: Named? = null,
@@ -27,7 +29,9 @@ data class SelectionDraft(
     val period: EntryPeriod = EntryPeriod(),
     val filters: JSONArray = JSONArray(),
     val fields: List<String>? = null,
-    val variable: Named? = null
+    val variable: Named? = null,
+    val sort: List<app.treelune.core.fields.SortKey> = emptyList(),
+    val limit: Int? = null
 ) {
     /** The kind of the deepest place reached: the app until a zone is chosen. */
     val level: ReferenceKind get() = when {
@@ -57,8 +61,8 @@ data class SelectionDraft(
     /** Into [zone]: the period stays, which a zone takes as well. */
     fun intoZone(zone: Named): SelectionDraft = SelectionDraft(zone = zone, period = period)
 
-    /** Into [tool]: the period stays; its conditions and fields, a tool's own, start empty. */
-    fun intoTool(tool: Named): SelectionDraft = copy(tool = tool, filters = JSONArray(), fields = null)
+    /** Into [tool]: the period stays; its conditions, fields and order, a tool's own, start empty. */
+    fun intoTool(tool: Named): SelectionDraft = copy(tool = tool, filters = JSONArray(), fields = null, sort = emptyList(), limit = null)
 
     /** Back up to the app, or to the zone: what the level left offered goes with it. */
     fun upTo(level: ReferenceKind): SelectionDraft = when (level) {
@@ -75,7 +79,7 @@ data class SelectionDraft(
      */
     fun selection(): EntrySelection {
         val isTool = level == ReferenceKind.TOOL_INSTANCE
-        if (level == ReferenceKind.VARIABLE) return EntrySelection(Reference(ReferenceKind.VARIABLE, variable!!.id), period, filters)
+        if (level == ReferenceKind.VARIABLE) return EntrySelection(Reference(ReferenceKind.VARIABLE, variable!!.id), period, filters, sort = sort, limit = limit)
         // One entry is that entry: no period, no condition, all its fields
         if (level == ReferenceKind.ENTRY) return EntrySelection(Reference(ReferenceKind.ENTRY, entry!!.id))
         return EntrySelection(
@@ -86,7 +90,10 @@ data class SelectionDraft(
             },
             period = period,
             filters = if (isTool) filters else JSONArray(),
-            fields = fields.takeIf { isTool }
+            fields = fields.takeIf { isTool },
+            // A zone is narrowed by its period alone
+            sort = if (isTool) sort else emptyList(),
+            limit = limit.takeIf { isTool }
         )
     }
 
@@ -98,6 +105,8 @@ data class SelectionDraft(
         put("period", period.toJson())
         put("filters", filters)
         fields?.let { put("fields", JSONArray(it)) }
+        put("sort", app.treelune.core.fields.EntrySort.toJson(sort))
+        limit?.let { put("limit", it) }
     }
 
     companion object {
@@ -109,7 +118,9 @@ data class SelectionDraft(
             period = EntryPeriod.fromJson(json.getJSONObject("period")) { it },
             filters = json.getJSONArray("filters"),
             fields = json.optJSONArray("fields")?.let { a -> (0 until a.length()).map { a.getString(it) } },
-            variable = json.optJSONObject("variable")?.let { Named.fromJson(it) }
+            variable = json.optJSONObject("variable")?.let { Named.fromJson(it) },
+            sort = json.optJSONArray("sort")?.let { app.treelune.core.fields.EntrySort.read(it) { key -> key } } ?: emptyList(),
+            limit = json.optInt("limit", 0).takeIf { it > 0 }
         )
 
         /** A stored [selection] to edit again, the places of [path] named as they are now. */
@@ -120,7 +131,9 @@ data class SelectionDraft(
             period = selection.period,
             filters = selection.filters,
             fields = selection.fields,
-            variable = path.variable
+            variable = path.variable,
+            sort = selection.sort,
+            limit = selection.limit
         )
     }
 }

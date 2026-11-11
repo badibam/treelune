@@ -475,8 +475,7 @@ object TaskRunner {
     }
 
     /**
-     * The entries of [selection] read at [at] as a list, in the order they happened (by their date,
-     * or when they were created for a tool whose entries have none, a table's): the values
+     * The entries of [selection] read at [at] as a list, in its order and its count: the values
      * of its one field kept, or an object per entry of its fields, each by the last part of its
      * path (TaskSteps.keyOf), the entry's own id as `id`; an entry designated by its id.
      */
@@ -491,8 +490,7 @@ object TaskRunner {
             throw StepFailed(s.shared("task_error_tool").format("", toolId))
         }
         val read = Coordinator(context).processTaskStep("tool_data.get", mapOf("tool_instance_id" to toolId,
-            "filters" to JsonUtils.toList(selection.storedFilters(fields, app.treelune.core.selection.TimeResolver.at(at)) { s.shared(it) }),
-            "sort" to listOf(mapOf("field" to (if ("timestamp" in fields) "timestamp" else "created_at"), "direction" to app.treelune.core.fields.EntrySort.ASC))))
+            "filters" to JsonUtils.toList(selection.storedFilters(fields, app.treelune.core.selection.TimeResolver.at(at)) { s.shared(it) })) + selection.orderParams())
         if (!read.isSuccess) throw StepFailed(read.error ?: s.shared("error_unknown"))
         val kept = selection.fields.orEmpty()
         return (read.data?.get("entries") as? List<*>).orEmpty().map { it as Map<*, *> }.map { entry ->

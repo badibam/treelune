@@ -32,6 +32,8 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- Le tri et la limite d'une sélection, la migration 115 → 116 d'abord, sur les vraies données : le Rituel du dimanche et « Préparer la séance » qui partent comme avant, une séance d'Hypnose lancée (et une commencée avant la mise à jour, reprise), bica qui reçoit ses révisions du jour dans le même ordre ; puis « Ordre » et « Seulement les premières » sous les filtres d'un pointeur, d'une lecture, d'un Graphique, de la source de « Que jouer ? » (son ordre d'avant gardé), jamais vides ; « Position · Croissant » sur une liste de Notes ; « Celle de la première entrée » et, sur une date, « La plus tôt » / « La plus tard » ; une zone ou un déclencheur sans ordre.
+- Les nouvelles d'une séance de Flashcards : « Nouvelle » sur la carte jamais vue, ratée puis revenue comprise, absent sur les autres ; la fin « 29 cartes revues et 5 nouvelles », « 5 nouvelles cartes » seules, « Revenir » après la fin qui suit ; une rotation en cours de séance qui garde la marque.
 - Une option d'un choix renommée dans la config d'un outil (sa valeur changée, « Calme » en « Serein ») : la confirmation sans valeur retirée, les entrées et l'historique sous le nouveau nom, le filtre d'un Graphique sur l'ancienne valeur qui suit ; une option retirée à côté, toujours comptée ; par l'IA, « renomme l'option … », le paramètre `renames`.
 - La notification d'un outil touchée, et sa tuile (un questionnaire, une séance prévue, une échéance de Liste, un Objectif à valider) : la page de l'outil, pas l'entrée ; le rappel de l'Agenda et la séance en cours, toujours sur leur entrée.
 - Un message touché sur la tuile de Messages : « Reçus » sous le filtre qui le contient (un lu, un non lu), sa carte amenée à l'écran et marquée, la marque partie en changeant de filtre.
@@ -105,10 +107,10 @@ Codé, jamais vu sur l'appareil.
 ## Décidé, à coder
 
 - Les tailles de tuile, `docs/design/tile-sizes.md` (une largeur 2 ou 4 et une hauteur de 1 à 10 ou selon le contenu à la place des sept modes, la largeur et les lignes d'un élément réglables par tuile, `tile_size`), ses vérifications d'abord (« Ouvert »).
-- Le tri et la limite dans la sélection d'entrées : `docs/design/entry-sort-limit.md` (« Dernière » devenue « Celle de la première entrée », `EARLIEST` et `LATEST` dans `MIN` et `MAX`, la position triable), d'abord, avant la Tâche de « Préparer la séance » qui s'en sert.
 - L'étape « Assembler » d'une Tâche : `docs/design/task-assemble.md` (un objet à clés, les pointeurs Lisible ou Technique, le champ texte « JSON » et son lecteur, l'entrée d'API « objet », « Arrêter la Tâche »), après le tri et la limite ; puis « Préparer la séance » refaite en une Tâche sans IA, et `context` d'hypnogen en objet dans `treelune-worker`.
 - L'outil Schéma, le schéma écrit : `docs/design/schema.md` (config JSON au vocabulaire de Mermaid, placement par ELK, largeur, tuile, écran), ses vérifications d'abord (« Ouvert »).
 - Le fournisseur « Abonnement Claude », `docs/design/github-worker.md` (Claude Code lancé sur GitHub Actions dans le dépôt de Réglages › GitHub, le jeton de l'abonnement jamais dans l'app), ses vérifications d'abord (« Ouvert », le point 2), sur `badibam/treelune-worker`.
+
 
 ## À concevoir
 

@@ -101,7 +101,7 @@ private fun FollowedField(reading: JSONObject, value: FieldDefinition, s: String
                 onChange(JSONObject()
                     .put("selection", JSONObject().put("target", app.treelune.core.selection.Reference(ReferenceKind.ENTRY, picked.id).toJson()))
                     .put("field", picked.field)
-                    .put("reduction", Reduction.LAST.name))
+                    .put("reduction", Reduction.FIRST.name))
             }
         )
     }

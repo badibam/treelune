@@ -123,6 +123,8 @@ class RoutineService(private val context: Context) : ExecutableService {
      * is given in blocks (RoutineMessage), empty when left out: the screen writes it afterwards.
      */
     private suspend fun createRoutine(params: JSONObject, token: CancellationToken): OperationResult {
+        // A selection written without its order gets its default, stored whole (SelectionOrder)
+        app.treelune.core.selection.SelectionOrder.complete(params, context)
         if (token.isCancelled) return OperationResult.cancelled()
 
         val zoneId = params.optString("zone_id").takeIf { it.isNotEmpty() }
@@ -257,6 +259,8 @@ class RoutineService(private val context: Context) : ExecutableService {
      * A partial update: a setting left out keeps its value, a setting given as null is removed.
      */
     private suspend fun updateRoutine(params: JSONObject, token: CancellationToken): OperationResult {
+        // A selection written without its order gets its default, stored whole (SelectionOrder)
+        app.treelune.core.selection.SelectionOrder.complete(params, context)
         if (token.isCancelled) return OperationResult.cancelled()
 
         val routineId = params.optString("routine_id").takeIf { it.isNotEmpty() }

@@ -232,7 +232,9 @@ class StepForEachTest {
         "inputs" to listOf(mapOf("name" to "known", "type" to "list"))
     )))["api_id"] as String
 
-    private fun known(vararg fields: String) = mapOf("selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to notesId), "fields" to fields.toList()))
+    /** The entries of the notes, in the order they happened: the oldest first, as the selection says. */
+    private fun known(vararg fields: String) = mapOf("selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to notesId), "fields" to fields.toList(),
+        "sort" to listOf(mapOf("field" to "timestamp", "direction" to "asc"))))
 
     @Test
     fun entries_goToAnApi_asAList_inTheOrderTheyHappened() = runBlocking {
@@ -277,7 +279,8 @@ class StepForEachTest {
             "config" to mapOf("name" to "Episodes", "table_columns" to 0, "extra_fields" to emptyList<Any>())))["tool_instance_id"] as String
         ok("tool_data.create", mapOf("tool_instance_id" to tableId, "name" to "aire-1"))
         ok("tool_data.create", mapOf("tool_instance_id" to tableId, "name" to "pastelaria-1"))
-        val rows = mapOf("selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to tableId), "fields" to listOf("name")))
+        val rows = mapOf("selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to tableId), "fields" to listOf("name"),
+            "sort" to listOf(mapOf("field" to "created_at", "direction" to "asc"))))
         val run = run(task(listOf(mapOf("kind" to TaskSteps.CALL_API, "api_id" to apiId, "inputs" to mapOf("known" to rows)))))
         assertEquals(run.resultsJson, TaskRun.State.DONE.key, run.state)
         assertEquals("""["aire-1","pastelaria-1"]""", org.json.JSONObject(sent).getJSONArray("known").toString())

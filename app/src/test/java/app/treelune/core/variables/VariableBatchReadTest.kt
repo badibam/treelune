@@ -44,7 +44,7 @@ class VariableBatchReadTest {
         fun day(offset: Int, edge: String) = mapOf("relative" to mapOf("unit" to "DAY", "offset" to offset, "edge" to edge))
         fun latestOf(period: Map<String, Any?>, ifNone: Boolean) = mapOf("reading" to mapOf(
             "selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to meals), "period" to period),
-            "field" to "timestamp", "reduction" to if (ifNone) "EARLIEST" else "LATEST"
+            "field" to "timestamp", "reduction" to if (ifNone) "MIN" else "MAX"
         ) + (if (ifNone) mapOf("if_none" to "NOW") else emptyMap()))
         val variable = ok("variables.create", mapOf("zone_id" to zone, "name" to "fast_batch", "label" to "Fast", "definition" to mapOf(
             "kind" to "FORMULA", "formula" to "first_today - last_yesterday",

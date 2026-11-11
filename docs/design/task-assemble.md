@@ -1,6 +1,6 @@
 # L'étape « Assembler » d'une Tâche
 
-Conception du 2026-11-11, à implémenter puis élaguer. Après `docs/design/entry-sort-limit.md`, dont elle se sert (les 3 dernières Escales).
+Conception du 2026-11-11, à implémenter puis élaguer. Elle se sert du tri et de la limite de la sélection (`docs/BRICKS.md`) pour les 3 dernières Escales.
 
 ## Le besoin
 

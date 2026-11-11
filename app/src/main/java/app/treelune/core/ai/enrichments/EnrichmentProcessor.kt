@@ -200,8 +200,8 @@ class EnrichmentProcessor(
     }
 
     /**
-     * The entries of [toolInstanceId] with the selection's period, filters and fields, then their
-     * schema. A zone's selection brings its period alone.
+     * The entries of [toolInstanceId] with the selection's period, filters, fields, order and
+     * count, then their schema. A zone's selection brings its period alone.
      */
     private fun entriesQueries(toolInstanceId: String, selection: EntrySelection, isRelative: Boolean): List<DataCommand> {
         val params = mutableMapOf<String, Any>("id" to toolInstanceId)
@@ -209,6 +209,8 @@ class EnrichmentProcessor(
         if (selection.filters.length() > 0) params["filters"] = JsonUtils.toList(selection.filters)
         // The id always goes, for the AI to act on an entry it is shown
         selection.fields?.let { params["fields"] = (listOf("id") + it).distinct() }
+        // Its order and its count: the first entries of that order, a page of that many
+        params.putAll(selection.orderParams())
         return listOf(
             DataCommand(id = buildQueryId("tool_data", params), type = "TOOL_DATA", params = params, isRelative = isRelative),
             entriesSchemaQuery(toolInstanceId, isRelative)

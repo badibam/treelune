@@ -46,7 +46,7 @@ class EntryReadingTest {
         assertTrue(entry.error, entry.isSuccess)
         val entryId = entry.data!!["id"] as String
         suspend fun read(field: String) = coordinator.processUserAction("readings.read", mapOf(
-            "selection" to mapOf("target" to mapOf("kind" to "ENTRY", "id" to entryId)), "field" to field, "reduction" to "LAST", "reference" to 0L
+            "selection" to mapOf("target" to mapOf("kind" to "ENTRY", "id" to entryId)), "field" to field, "reduction" to "FIRST", "reference" to 0L
         ))
 
         val cover = read("extra.cover")

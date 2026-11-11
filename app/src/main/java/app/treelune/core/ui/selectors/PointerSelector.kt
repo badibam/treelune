@@ -62,7 +62,7 @@ fun PointerSelector(
         ) {
             UI.Text(text = s.shared("pointer_enrichment_selector_title"), type = TextType.TITLE, fillMaxWidth = true)
 
-            SelectionPicker(selection.draft, { selection = selection.copy(draft = it) }, POINTED, fields, reference, offerFields = true)
+            SelectionPicker(selection.draft, { selection = selection.copy(draft = it) }, POINTED, fields, reference, offerFields = true, offerOrder = true)
 
             if (selection.complete) {
                 Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.L)) {

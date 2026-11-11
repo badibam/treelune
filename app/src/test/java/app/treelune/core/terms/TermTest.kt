@@ -35,7 +35,7 @@ class TermTest {
 
     @Test
     fun whatNoEntryIsWorth_writesAndReadsBack_andIsAbsentUnlessSet() {
-        val reading = """{"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "meals"}}, "field": "timestamp", "reduction": "EARLIEST", "if_none": "NOW"}}"""
+        val reading = """{"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "meals"}}, "field": "timestamp", "reduction": "MIN", "if_none": "NOW"}}"""
         val term = read(reading) as Term.Reading
         assertEquals(Term.IfNone.NOW, term.ifNone)
         assertEquals("NOW", term.params()[Term.IF_NONE])
@@ -45,17 +45,17 @@ class TermTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun anUnknownValueOfWhatNoEntryIsWorth_isRefused() {
-        read("""{"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "meals"}}, "field": "timestamp", "reduction": "LATEST", "if_none": "ZERO"}}""")
+        read("""{"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "meals"}}, "field": "timestamp", "reduction": "MAX", "if_none": "ZERO"}}""")
     }
 
     @Test
     fun whatNoEntryIsWorth_holdsOnlyForADateAndTimeKeptFromOneEntry_ungrouped() {
         val now = Term.IfNone.NOW
-        for (reduction in listOf(app.treelune.core.reading.Reduction.EARLIEST, app.treelune.core.reading.Reduction.LATEST, app.treelune.core.reading.Reduction.LAST)) {
+        for (reduction in listOf(app.treelune.core.reading.Reduction.MIN, app.treelune.core.reading.Reduction.MAX, app.treelune.core.reading.Reduction.FIRST)) {
             assertEquals(null, Term.ifNoneProblem(now, instant, reduction, grouped = false) { it })
         }
-        assertEquals("reading_error_if_none", Term.ifNoneProblem(now, instant, app.treelune.core.reading.Reduction.LATEST, grouped = true) { it })
-        assertEquals("reading_error_if_none", Term.ifNoneProblem(now, number, app.treelune.core.reading.Reduction.LAST, grouped = false) { it })
+        assertEquals("reading_error_if_none", Term.ifNoneProblem(now, instant, app.treelune.core.reading.Reduction.MAX, grouped = true) { it })
+        assertEquals("reading_error_if_none", Term.ifNoneProblem(now, number, app.treelune.core.reading.Reduction.FIRST, grouped = false) { it })
         assertEquals("reading_error_if_none", Term.ifNoneProblem(now, null, app.treelune.core.reading.Reduction.COUNT, grouped = false) { it })
         assertEquals(null, Term.ifNoneProblem(null, number, app.treelune.core.reading.Reduction.SUM, grouped = true) { it })
     }

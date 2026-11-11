@@ -217,9 +217,9 @@ class AccessTest {
         fun reaches(json: String) = runBlocking {
             AccessRules.refusal(mask, "Weekly", app.treelune.core.tasks.TaskSteps.reaches(step(json), { null }, lookups::isToolType), lookups, ::text)
         }
-        assertNull(reaches("""{"kind": "create_entry", "tool_instance_id": "weight", "values": {"data.kg": {"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "meals"}}, "reduction": "LAST"}}}}"""))
+        assertNull(reaches("""{"kind": "create_entry", "tool_instance_id": "weight", "values": {"data.kg": {"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "meals"}}, "reduction": "FIRST"}}}}"""))
         assertNotNull(reaches("""{"kind": "create_entry", "tool_instance_id": "seeds"}"""))
-        assertNotNull(reaches("""{"kind": "call_api", "api_id": "a", "inputs": {"q": {"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "seeds"}}, "reduction": "LAST"}}}}"""))
+        assertNotNull(reaches("""{"kind": "call_api", "api_id": "a", "inputs": {"q": {"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "seeds"}}, "reduction": "FIRST"}}}}"""))
         assertNull(reaches("""{"kind": "call_api", "api_id": "a", "inputs": {"q": {"constant": "x"}}}"""))
     }
 }

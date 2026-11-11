@@ -33,7 +33,7 @@ class ChartSpecTest {
             {"source": "grid", "step": "day", "columns": [{"name": "objectif", "term": {"variable": "v3"}}],
              "mark": {"type": "line", "interpolate": "step-after", "strokeDash": [4, 4]},
              "encoding": {"x": {"field": "timestamp"}, "y": {"field": "objectif"}}},
-            {"source": "grid", "step": "day", "columns": [{"name": "poids", "term": {"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "t1"}}, "field": "data.value", "reduction": "LAST"}}}],
+            {"source": "grid", "step": "day", "columns": [{"name": "poids", "term": {"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "t1"}}, "field": "data.value", "reduction": "FIRST"}}}],
              "mark": {"type": "line", "point": true},
              "encoding": {"x": {"field": "timestamp"}, "y": {"field": "poids", "scale": {"zero": false}, "axis": {"orient": "right"}}}}
         ]

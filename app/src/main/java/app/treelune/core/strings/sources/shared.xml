@@ -237,10 +237,11 @@
     <string name="term_schema_constant">{\"constant\": ...}, a written value, a date or a duration as everywhere (Part E)</string>
     <string name="term_schema_variable">{\"variable\": \"id\"}, a variable by its id</string>
     <string name="term_schema_reading">{\"reading\": {\"selection\", \"field\"?, \"reduction\", \"group\"?}}, a field of a tool reduced across its entries, counted without a field; its selection\'s period is relative to the instant read, and without one it reads the period the context gives. Its target may be a variable that has a series, {\"kind\": \"VARIABLE\", \"id\"}: one entry per step, `timestamp` and `data.value`, read as a tool\'s; its period then needs a start</string>
-    <string name="reading_group_schema">A reading may group its entries, \"group\": {\"field\": the field it groups by (\"timestamp\" for the entry\'s date), \"unit\"?: DAY, WEEK or MONTH (a date, required for an instant), \"keep\"?: {\"op\", \"right\"} judged on each group\'s value (the reading\'s field and reduction, per group), \"reduction\": of the groups kept, COUNT, SUM, AVERAGE, MIN, MAX, EARLIEST or LATEST}; “2 per day”, counted: {\"field\": \"timestamp\", \"unit\": \"DAY\", \"keep\": {\"op\": \">=\", \"right\": {\"constant\": 2}}, \"reduction\": \"COUNT\"}. Grouped by the entry\'s date, each unit of the period is a group, an empty one counting 0: end the period at now to leave out the days to come, and start it at a day\'s start (“7 days ago” cuts 8 days). A multiple field puts its entry in each of its groups: a sum over all of them counts it twice.</string>
-    <string name="term_schema_reading_file">{\"reading\": {\"selection\": {\"target\": {\"kind\": \"ENTRY\", \"id\"}}, \"field\", \"reduction\": \"LAST\"}}, a file field of one entry followed, holding a single file of the kinds taken, read again at each use</string>
-    <string name="selection_schema_description">Entries of one tool: {\"target\": {\"kind\": \"TOOL_INSTANCE\", \"id\"}, \"filters\"?: [conditions on each entry], \"fields\"?: [paths kept]}; its period is given elsewhere.</string>
-    <string name="sort_schema_description">The order of the entries of the selection \'%1$s\': keys applied one after the other, each a field of its tool (\"name\", \"timestamp\", \"data.number\") and \"asc\" or \"desc\"; empty or absent, the newest first. Entries without a value come last.</string>
+    <string name="reading_group_schema">A reading may group its entries, \"group\": {\"field\": the field it groups by (\"timestamp\" for the entry\'s date), \"unit\"?: DAY, WEEK or MONTH (a date, required for an instant), \"keep\"?: {\"op\", \"right\"} judged on each group\'s value (the reading\'s field and reduction, per group), \"reduction\": of the groups kept, COUNT, SUM, AVERAGE, MIN or MAX}; “2 per day”, counted: {\"field\": \"timestamp\", \"unit\": \"DAY\", \"keep\": {\"op\": \">=\", \"right\": {\"constant\": 2}}, \"reduction\": \"COUNT\"}. Grouped by the entry\'s date, each unit of the period is a group, an empty one counting 0: end the period at now to leave out the days to come, and start it at a day\'s start (“7 days ago” cuts 8 days). A multiple field puts its entry in each of its groups: a sum over all of them counts it twice.</string>
+    <string name="term_schema_reading_file">{\"reading\": {\"selection\": {\"target\": {\"kind\": \"ENTRY\", \"id\"}}, \"field\", \"reduction\": \"FIRST\"}}, a file field of one entry followed, holding a single file of the kinds taken, read again at each use</string>
+    <string name="selection_schema_description">Entries of one tool: {\"target\": {\"kind\": \"TOOL_INSTANCE\", \"id\"}, \"filters\"?: [conditions on each entry], \"fields\"?: [paths kept], \"sort\"?: [keys], \"limit\"?: a count}; its period is given elsewhere.</string>
+    <string name="sort_schema_description">The order of the entries: keys applied one after the other, each a field of its tool (\"name\", \"timestamp\", \"data.number\", \"state.position\" for the order of a list) and \"asc\" or \"desc\". Absent, the app writes the newest first, [{\"field\": \"timestamp\", \"direction\": \"desc\"}] (\"created_at\" for a tool whose entries have no date), and stores it so. Entries without a value come last.</string>
+    <string name="limit_schema_description">How many entries are kept: the first of the order, after the period and the filters, before any grouping. Absent, all of them.</string>
     <string name="period_schema_description">A period, {\"start\"?, \"end\"?}, both inclusive, a bound absent for no limit: a fixed instant, or a relative date, {\"relative\": {\"unit\": \"DAY\", \"offset\": -29, \"edge\": \"START\"}} or {\"relative\": \"NOW\"}.</string>
     <string name="instants_schema_description">Instants, each a relative date against the moment the setting says, never a fixed one: {\"relative\": {\"unit\": \"HOUR\", \"offset\": -1, \"edge\": \"SAME\"}} for an hour before, {\"relative\": {\"unit\": \"MINUTE\", \"offset\": -15, \"edge\": \"SAME\"}}, {\"relative\": {\"unit\": \"DAY\", \"offset\": -1, \"edge\": {\"at\": \"18:00\"}}} for the day before at 18:00, {\"relative\": \"NOW\"} for the moment itself.</string>
     <string name="service_error_filter_unknown_field">Filter on \'%1$s\': the entries of this tool have no such field to filter on. Fields: %2$s</string>
@@ -1604,6 +1605,11 @@
     <string name="reading_error_series_start">A variable's series is read over a period with a start: it has no first entry.</string>
     <string name="selection_problem_variable">A variable is selected only in a reading, and only when it has a series (a value per hour, day…); elsewhere it is read as a term.</string>
     <string name="selection_problem_field">A selection takes a thing, without a field: the field read is said beside it.</string>
+    <string name="selection_problem_sort_missing">A selection of a tool or a series says its order: \"sort\", a list of keys, [{\"field\": \"timestamp\", \"direction\": \"desc\"}] for the newest first.</string>
+    <string name="selection_problem_order">An order and a count put the entries of a tool instance or a series in line, not of a %1$s.</string>
+    <string name="selection_problem_order_zone">A zone is narrowed by its period alone: its tools have no field in common to put their entries in one order or count them.</string>
+    <string name="selection_problem_order_trigger">A trigger judges the entry written on its own: it takes neither an order nor a count.</string>
+    <string name="selection_problem_limit">The count kept is a whole number from 1: %1$s is not one.</string>
     <string name="import_missing_column">column "%1$s": not declared</string>
     <string name="import_missing_in_file">column "%1$s": not in the file</string>
     <string name="import_missing_key">column "%1$s": this tool does not find its entries by name</string>
@@ -1789,7 +1795,7 @@
     <string name="variable_term_kind">Kind of term</string>
     <string name="variable_term_reading">Reading of entries</string>
     <string name="variable_term_constant">Fixed value</string>
-    <string name="term_error_file_follow">%1$s: a file is followed in one entry\'s field, {\"selection\": {\"target\": {\"kind\": \"ENTRY\", \"id\"}}, \"field\", \"reduction\": \"LAST\"}.</string>
+    <string name="term_error_file_follow">%1$s: a file is followed in one entry\'s field, {\"selection\": {\"target\": {\"kind\": \"ENTRY\", \"id\"}}, \"field\", \"reduction\": \"FIRST\"}.</string>
     <string name="term_error_file_source">%1$s: the entry followed cannot be read: %2$s</string>
     <string name="sort_error_without_selection">%1$s: a sort orders the entries of a selection, which has no tool yet.</string>
     <string name="sort_error_source">%1$s: the tool of the selection cannot be read: %2$s</string>
@@ -1807,7 +1813,7 @@
     <string name="variable_type_deduced">Deduced from the formula</string>
     <string name="variable_delete_confirm">Delete the variable %1$s? A formula naming it will no longer compute.</string>
     <string name="label_value">%1$s: %2$s</string>
-    <string name="reduction_last">Last</string>
+    <string name="reduction_first">The first entry\'s</string>
     <string name="reduction_sum">Sum</string>
     <string name="reduction_average">Average</string>
     <string name="reduction_min">Minimum</string>
@@ -2329,9 +2335,11 @@
     <string name="label_yes">Yes</string>
     <string name="label_with_default">%1$s (default: %2$s)</string>
     <string name="setting_field_of_tool_first">choose the tool first</string>
-    <string name="sort_none">Newest first</string>
     <string name="sort_direction_asc">Ascending</string>
     <string name="sort_direction_desc">Descending</string>
+    <string name="selection_order">Order</string>
+    <string name="selection_limit">Only the first</string>
+    <string name="selection_limit_hint">How many entries of that order are kept; empty, all of them.</string>
     <string name="label_on">On</string>
     <string name="label_off">Off</string>
     <string name="label_no">No</string>

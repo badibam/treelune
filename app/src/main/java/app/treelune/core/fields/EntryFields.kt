@@ -39,6 +39,8 @@ data class FixedField(
  *
  * @property definition The field; its config gives the labels ("Read" / "Unread")
  * @property filterable Whether it is offered as a filter: read yes, a manual position no
+ * @property sortable Whether it is offered as a sort key (EntrySort): what is filterable, and a
+ *   manual position, which says nothing compared with a value but is the order the user chose
  * @property bookkeeping A note the app keeps so as not to do a thing twice (a reminder marked
  *   sent): out of the history of writes, which never copies it and leaves it as it is when it
  *   undoes a step (docs/DATA.md, « History of writes »)
@@ -46,7 +48,8 @@ data class FixedField(
 data class StateField(
     val definition: FieldDefinition,
     val filterable: Boolean,
-    val bookkeeping: Boolean = false
+    val bookkeeping: Boolean = false,
+    val sortable: Boolean = filterable
 )
 
 /**

@@ -59,7 +59,7 @@ class ConditionTriggersTest {
         "condition" to mapOf(
             "left" to mapOf("reading" to mapOf(
                 "selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to weightId)),
-                "reduction" to "LAST", "field" to "data.value"
+                "reduction" to "FIRST", "field" to "data.value"
             )),
             "op" to ">", "right" to mapOf("constant" to 80)
         )

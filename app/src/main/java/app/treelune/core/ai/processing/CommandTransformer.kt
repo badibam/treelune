@@ -312,6 +312,9 @@ object CommandTransformer {
         } ?: emptyList()
         if (periodFilters.isNotEmpty() || valueFilters.isNotEmpty()) params["filters"] = periodFilters + valueFilters
 
+        // The order, the newest first without one (EntrySort)
+        command.params["sort"]?.let { params["sort"] = it }
+
         // Add pagination if specified
         command.params["limit"]?.let { params["limit"] = it }
         command.params["page"]?.let { params["page"] = it }

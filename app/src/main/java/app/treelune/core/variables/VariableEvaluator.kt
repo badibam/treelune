@@ -145,9 +145,9 @@ class VariableEvaluator(private val sources: VariableSources) {
         return Outcome.Value(when (term.reduction) {
             Reduction.SUM -> numbers.sum()
             Reduction.AVERAGE -> numbers.average()
-            Reduction.MIN, Reduction.EARLIEST -> numbers.min()
-            Reduction.MAX, Reduction.LATEST -> numbers.max()
-            Reduction.LAST -> numbers.first()
+            Reduction.MIN -> numbers.min()
+            Reduction.MAX -> numbers.max()
+            Reduction.FIRST -> numbers.first()
             Reduction.COUNT -> numbers.size.toDouble()
         })
     }
