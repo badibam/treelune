@@ -168,7 +168,7 @@ class NotificationService(private val context: Context) : ExecutableService {
      * @param icon The small icon's drawable, of which the status bar keeps the silhouette
      * @param toolInstanceId The tool the app opens when it is touched, null for the app alone
      * @param place The address of the place the app opens when it is touched, instead of a tool
-     * @param entryId The entry of that tool it opens on, null for its oldest that waits
+     * @param entryId The entry of that tool it opens on, null for its page
      * @param requestCode Its own, so that two notifications keep their own tool
      * @return NotificationCompat.Builder configured notification
      */

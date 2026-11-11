@@ -4,7 +4,7 @@ import androidx.compose.runtime.saveable.Saver
 
 /**
  * What a tool's screen opens at once, as its tool type understands opening it: one of its
- * entries (touched on its tile, or the oldest waiting when the tile was touched), or a new one
+ * entries (touched on its tile, or named by a notification: an event's reminder, a Session running), or a new one
  * (a tile's button that writes one: a journal entry, a note, a record).
  */
 sealed interface EntryToOpen {

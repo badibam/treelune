@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
 
-        /** The tool a notification opens, on its oldest entry that waits. */
+        /** The tool a notification opens, on its page. */
         const val EXTRA_TOOL_INSTANCE_ID = "tool_instance_id"
 
         /** The place a notification opens, by its address (Place.address): a routine's run. */

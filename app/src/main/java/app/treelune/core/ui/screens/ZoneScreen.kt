@@ -69,8 +69,7 @@ private fun ZoneScreenBody(zone: Zone) {
     // The page's add menu open, under its « + »: what is made there chooses its group in its own form
     var adding by rememberSaveable { mutableStateOf(false) }
 
-    val waiting = app.treelune.core.ui.LocalWaiting.current
-    // A tool opened on top of the zone, on the oldest entry that waits when its tile was touched with one
+    // A tool opened on top of the zone: on its page from its tile, where what waits shows; on an entry from a tile that names one
     val openTool = { toolId: String, entry: app.treelune.core.tools.EntryToOpen? -> Navigator.push(Place.Tool(toolId, zone.id), entry) }
     val configureTool = { tool: ToolInstance -> Navigator.push(Place.ToolConfig(zone.id, tool.tooltype, tool.id)) }
     // What a routine's tile does (RoutineActions), its long touch opening its config
@@ -273,7 +272,7 @@ private fun ZoneScreenBody(zone: Zone) {
                     routines = routines.filter { groupKey(it.id, it.group) == groupName },
                     tasks = tasks.filter { groupKey(it.id, it.group) == groupName },
                     readouts = readouts.filter { groupKey(it.id, it.group) == groupName },
-                    onToolClick = { toolId -> openTool(toolId, waiting.oldest[toolId]?.let { app.treelune.core.tools.EntryToOpen.Existing(it) }) },
+                    onToolClick = { toolId -> openTool(toolId, null) },
                     onOpenEntry = { tool, entry -> openTool(tool.id, entry) },
                     editor = gridEditor,
                     onToolLongClick = configureTool,
@@ -300,7 +299,7 @@ private fun ZoneScreenBody(zone: Zone) {
                     tasks = ungroupedTasks,
                     readouts = ungroupedReadouts,
                     hasConfiguredGroups = zoneToolGroups.isNotEmpty(),
-                    onToolClick = { toolId -> openTool(toolId, waiting.oldest[toolId]?.let { app.treelune.core.tools.EntryToOpen.Existing(it) }) },
+                    onToolClick = { toolId -> openTool(toolId, null) },
                     onOpenEntry = { tool, entry -> openTool(tool.id, entry) },
                     editor = gridEditor,
                     onToolLongClick = configureTool,

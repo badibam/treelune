@@ -19,13 +19,12 @@ val LocalWaiting = androidx.compose.runtime.staticCompositionLocalOf { Waiting()
 
 /**
  * What waits for the user in the zones (docs/BRICKS.md, Attente, its first form): the entries of
- * each tool and each tool's oldest (tools.waiting), the runs of each routine (routines.waiting),
+ * each tool (tools.waiting), the runs of each routine (routines.waiting),
  * and both summed by zone.
  */
 data class Waiting(
     val tools: Map<String, Int> = emptyMap(),
     val zones: Map<String, Int> = emptyMap(),
-    val oldest: Map<String, String> = emptyMap(),
     val routines: Map<String, Int> = emptyMap()
 ) {
     fun tool(id: String): Boolean = (tools[id] ?: 0) > 0
@@ -60,10 +59,9 @@ fun rememberWaiting(zoneId: String?): Waiting {
         }
         fun counts(result: app.treelune.core.commands.CommandResult, key: String) =
             (result.data?.get(key) as? Map<*, *>)?.entries?.associate { it.key.toString() to (it.value as Number).toInt() } ?: emptyMap()
-        val oldest = (tools.data?.get("oldest") as? Map<*, *>)?.entries?.associate { it.key.toString() to it.value.toString() } ?: emptyMap()
         val zones = (counts(tools, "zones").keys + counts(runs, "zones").keys)
             .associateWith { (counts(tools, "zones")[it] ?: 0) + (counts(runs, "zones")[it] ?: 0) }
-        waiting = Waiting(counts(tools, "tools"), zones, oldest, counts(runs, "routines"))
+        waiting = Waiting(counts(tools, "tools"), zones, counts(runs, "routines"))
     }
     return waiting
 }

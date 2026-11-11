@@ -96,8 +96,8 @@ interface ToolTypeContract {
      * @param configJson Configuration JSON of the tool instance
      * @param onNavigateBack Called when user wants to navigate back
      * @param onLongClick Called when user long-clicks for configuration access
-     * @param openEntry What to open at once (EntryToOpen): an entry touched on the tile, the
-     *   oldest of those waiting for the user (getWaiting), or a new one; null for the screen alone
+     * @param openEntry What to open at once (EntryToOpen): an entry touched on the tile or
+     *   named by a notification, or a new one; null for the screen alone, where what waits shows
      */
     @Composable
     fun getUsageScreen(
