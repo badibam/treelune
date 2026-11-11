@@ -21,9 +21,10 @@ import kotlinx.coroutines.delay
 
 /**
  * What the app says after a gesture, in a band of the theme at the bottom of the screen (UI.Toast):
- * one queue, the oldest message shown first, whole, however long, for a time that grows with it,
- * and gone at a touch. A message can bear one action (undoing the gesture), a button in the band
- * that runs it and takes the message away. Android's toast is not used: it cuts a message at two lines.
+ * one message at a time, the latest, whole, however long, for a time that grows with it, and gone
+ * at a touch. A new message takes the place of the one shown: ten gestures in a row (ten messages
+ * marked as read) say the last one, not ten times the time of one. A message can bear one action
+ * (undoing the gesture), a button in the band that runs it and takes the message away. Android's toast is not used: it cuts a message at two lines.
  *
  * The page and each window open above it (a dialog, the chat) hold a [ToastLayer]; only the one of
  * the window on top shows the message, over that window, so that a dialog never hides it.
@@ -32,14 +33,14 @@ object Toasts {
 
     data class Shown(val id: Long, val message: String, val millis: Long, val action: String?, val onAction: (() -> Unit)?)
 
-    private val queue = mutableStateListOf<Shown>()
+    private val shown = androidx.compose.runtime.mutableStateOf<Shown?>(null)
     private val layers = mutableStateListOf<Long>()
     private var nextMessage = 0L
     private var nextLayer = 0L
 
-    /** [message] queued, from any thread; [action] the label of the button that runs [onAction], if any. */
+    /** [message] shown in place of the one shown, from any thread; [action] the label of the button that runs [onAction], if any. */
     fun show(message: String, duration: Duration, action: String? = null, onAction: (() -> Unit)? = null) {
-        Handler(Looper.getMainLooper()).post { queue.add(Shown(nextMessage++, message, millis(message, duration), action, onAction)) }
+        Handler(Looper.getMainLooper()).post { shown.value = Shown(nextMessage++, message, millis(message, duration), action, onAction) }
     }
 
     /**
@@ -64,10 +65,10 @@ object Toasts {
         return (base + (message.length - READ_AT_A_GLANCE).coerceAtLeast(0) * MS_PER_CHARACTER).coerceAtMost(MAX_MS)
     }
 
-    internal val current: Shown? get() = queue.firstOrNull()
+    internal val current: Shown? get() = shown.value
 
     internal fun dismiss(id: Long) {
-        queue.removeAll { it.id == id }
+        if (shown.value?.id == id) shown.value = null
     }
 
     internal fun newLayer(): Long = nextLayer++
