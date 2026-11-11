@@ -11,10 +11,11 @@ import app.treelune.core.ui.components.IconSelector
 import org.json.JSONObject
 
 /**
- * The editors of a look's icon, colour and texture in a settings form (SettingsForm), the same
- * for every owner (Looks): the icon picker, the owner's suggestions first; the colour and the
- * texture each on a page of the form, shown on the icon the owner will have. [values] holds the
- * form's settings, [onValues] replaces them.
+ * The editors of a look's icon, colour, texture and tile size in a settings form (SettingsForm),
+ * the same for every owner (Looks): the icon picker, the owner's suggestions first; the colour and
+ * the texture each on a page of the form, shown on the icon the owner will have; the size by its
+ * width and its height (TileSizeSelector), the owner's default until one is chosen. [values]
+ * holds the form's settings, [onValues] replaces them.
  *
  * An owner with a default icon shows it while it has none of its own, and an icon chosen can be
  * taken away, bringing the default back. An owner whose icon is optional loses it, its tile its
@@ -40,6 +41,13 @@ fun lookEditors(spec: LookSpec, values: JSONObject, s: StringsContext, onValues:
             }
         },
         IconColor.KEY to app.treelune.core.ui.components.iconColorPage(s.shared("label_icon_color"), shown, texture),
-        Texture.KEY to app.treelune.core.ui.components.texturePage(s.shared("label_texture"), shown, color)
+        Texture.KEY to app.treelune.core.ui.components.texturePage(s.shared("label_texture"), shown, color),
+        Looks.TILE_SIZE to object : SettingEditor {
+            @Composable
+            override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
+                val size = (value as? String)?.let { app.treelune.core.look.TileSize.ofStored(it) } ?: spec.defaultSize
+                TileSizeSelector(size, s) { onChange(it.stored) }
+            }
+        }
     )
 }

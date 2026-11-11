@@ -880,6 +880,12 @@
     <string name="tile_size_cells">%1$d × %2$d</string>
     <string name="tile_size_content">4 × aussi haute que son contenu</string>
     <string name="tile_more">+%1$d</string>
+    <string name="tile_width_label">Largeur</string>
+    <string name="tile_width_icon">Icône</string>
+    <string name="tile_width_half">Demi</string>
+    <string name="tile_width_full">Pleine</string>
+    <string name="tile_height_label">Hauteur</string>
+    <string name="tile_height_content">Selon le contenu</string>
     <string name="tools_config_label_item_width">Éléments</string>
     <string name="item_width_halves">Par moitiés</string>
     <string name="item_width_full">Pleine largeur</string>
