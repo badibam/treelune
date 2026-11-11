@@ -17,7 +17,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 (titre à laisser en place, même une fois la section vidée - section ciblée par le script d'import depuis l'appareil :)
 ## En provenance du tel
 
-- Mode d'affichage 2x1 'vertical' — UI — Idée
 - Rendre seances d'hypnose réutilisables d'autres jours ? — Orga — Amélioration
 - Revoir le mode dlaffichage complet pour chaque outil certajs dvraient être + complets — UI — Amélioration
 - Système pour garder à jour agenda, grace a discussion recurrente et aussi api qui recupere le evenelejts et propose etc — Orga — Idée
@@ -105,6 +104,7 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
+- Les tailles de tuile, `docs/design/tile-sizes.md` (une largeur 2 ou 4 et une hauteur de 1 à 10 ou selon le contenu à la place des sept modes, la largeur et les lignes d'un élément réglables par tuile, `tile_size`), ses vérifications d'abord (« Ouvert »).
 - Le tri et la limite dans la sélection d'entrées : `docs/design/entry-sort-limit.md` (« Dernière » devenue « Celle de la première entrée », `EARLIEST` et `LATEST` dans `MIN` et `MAX`, la position triable), d'abord, avant la Tâche de « Préparer la séance » qui s'en sert.
 - L'outil Schéma, le schéma écrit : `docs/design/schema.md` (config JSON au vocabulaire de Mermaid, placement par ELK, largeur, tuile, écran), ses vérifications d'abord (« Ouvert »).
 - Le fournisseur « Abonnement Claude », `docs/design/github-worker.md` (Claude Code lancé sur GitHub Actions dans le dépôt de Réglages › GitHub, le jeton de l'abonnement jamais dans l'app), ses vérifications d'abord (« Ouvert », le point 2), sur `badibam/treelune-worker`.
