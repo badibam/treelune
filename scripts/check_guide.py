@@ -69,7 +69,7 @@ LABEL_RAW = re.compile(r'\bfield\(\s*"[^"]+"\s*,\s*"([a-z0-9_]+)"')
 # the owner's spec (nameLabel = "…", in the same file), then the labels every look shares
 LOOK_NODES = re.compile(r"\bLooks\.nodes\(")
 LOOK_NAME = re.compile(r'\bnameLabel\s*=\s*"([a-z0-9_]+)"')
-LOOK_LABELS = ["label_description", "label_icon", "label_icon_color", "label_texture", "tools_config_label_display_mode"]
+LOOK_LABELS = ["label_description", "label_icon", "label_icon_color", "label_texture", "tools_config_label_tile_size"]
 
 
 def markup_problems(where, text, icons):

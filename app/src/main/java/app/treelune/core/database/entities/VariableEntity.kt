@@ -18,7 +18,7 @@ import androidx.room.PrimaryKey
  * @property iconName A Lucide icon name, stored under its current name
  * @property iconColor Its icon's colour, a name of IconColor.NAMES; null for a neutral icon
  * @property texture The motif of its tile, a name of Texture.NAMES; null for none
- * @property displayMode How its tile shows: ICON, MINIMAL, LINE or CONDENSED (ZonePositions.MODES, as a zone)
+ * @property tileSize How its tile shows: ICON, MINIMAL, LINE or CONDENSED (ZonePositions.MODES, as a zone)
  * @property gridX Its column in the grid of its group's section, among the tools (SectionPositions)
  * @property gridY Its row there
  * @property definitionJson `{"kind": "CONSTANT", "value", "field"}` or
@@ -44,7 +44,7 @@ data class VariableEntity(
     @ColumnInfo(name = "icon_name") val iconName: String,
     @ColumnInfo(name = "icon_color") val iconColor: String?,
     @ColumnInfo(name = "texture") val texture: String?,
-    @ColumnInfo(name = "display_mode") val displayMode: String,
+    @ColumnInfo(name = "tile_size") val tileSize: String,
     @ColumnInfo(name = "grid_x") val gridX: Int,
     @ColumnInfo(name = "grid_y") val gridY: Int,
     @ColumnInfo(name = "definition_json") val definitionJson: String,

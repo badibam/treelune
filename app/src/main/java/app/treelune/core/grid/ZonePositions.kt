@@ -1,17 +1,13 @@
 package app.treelune.core.grid
 
 import app.treelune.core.database.entities.Zone
-import app.treelune.core.ui.DisplayMode
 
 /**
  * Where the zones stand on the home screen: each one in the grid of the zone group section it is
- * shown in, at its grid_x and grid_y, as many cells as its display mode takes. Pure: the services
+ * shown in, at its grid_x and grid_y, as many cells as its size takes. Pure: the services
  * read the zones, ask here where they go, and write the positions that changed.
  */
 object ZonePositions {
-
-    /** The modes a zone's tile takes: it has nothing more to show than its header and description. */
-    val MODES = listOf(DisplayMode.ICON, DisplayMode.MINIMAL, DisplayMode.LINE, DisplayMode.CONDENSED)
 
     /**
      * The zone group section a zone with [group] is shown in, among the home screen's
@@ -26,7 +22,7 @@ object ZonePositions {
         return null
     }
 
-    fun size(zone: Zone): Grid.Size = Grid.size(DisplayMode.valueOf(zone.display_mode))
+    fun size(zone: Zone): Grid.Size = requireNotNull(app.treelune.core.look.TileSize.parse(zone.tile_size)) { "Zone ${zone.id}: no tile size '${zone.tile_size}'" }.cells
 
     fun tile(zone: Zone): Grid.Tile = size(zone).let { Grid.Tile(zone.id, zone.grid_x, zone.grid_y, it.width, it.height) }
 

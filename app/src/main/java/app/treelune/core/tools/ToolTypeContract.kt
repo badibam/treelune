@@ -51,8 +51,8 @@ interface ToolTypeContract {
     /** The family this type's tile stands in, in the add menu of a zone's section. */
     fun getFamily(): ToolFamily
 
-    /** The display mode a new tool of this type is shown in, in its zone. */
-    fun getDefaultDisplayMode(): String
+    /** The size a new tool of this type's tile takes in its zone. */
+    fun getDefaultTileSize(): app.treelune.core.look.TileSize
 
     /**
      * Whether the user's fields show their names beside their values, until the tool's config
@@ -111,7 +111,7 @@ interface ToolTypeContract {
 
     /**
      * The tile of [tool] (ToolTile): its summary and its body, placed by UI.ToolCard as its
-     * display mode lays them out. Every tool type fills every mode: there is no tile by default.
+     * size lays them out (TileSize). Every tool type fills every size: there is no tile by default.
      * [open] opens the tool on one of its entries, as this tool type understands opening one
      * (getUsageScreen's openEntry): a tile opens an entry it shows when touched, or a new one from
      * a button that writes one.

@@ -313,8 +313,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             // kept, as the data protection is; only a setting sent open is refused below
             if (!app.treelune.core.coordinator.Protections.byAPerson()) configJson = keepClosedToAi(existingTool, JSONObject(configJson)).toString()
             closedToAiRefusal(existingTool, JSONObject(configJson))?.let { return OperationResult.error(it) }
-            // A config sent without its display mode keeps the one the tool had
-            configJson = withDisplayMode(configJson, JSONObject(existingTool.config_json).getString("display_mode"))
+            // A config sent without its tile size keeps the one the tool had
+            configJson = withTileSize(configJson, JSONObject(existingTool.config_json).getString("tile_size"))
             ToolTypeManager.getToolType(existingTool.tooltype)?.refuseConfig(JSONObject(configJson), context)?.let { return OperationResult.error(it) }
             refuseConditions(existingTool.tooltype, configJson)?.let { return OperationResult.error(it) }
             app.treelune.core.events.EventPoints.refusal(JSONObject(configJson), existingTool.id, context, s)?.let { return OperationResult.error(it) }
@@ -719,10 +719,10 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             ?: app.treelune.core.fields.ConfigSorts.refuse(nodes, JSONObject(configJson), context, s)
     }
 
-    /** [configJson] with [mode] as its display mode when it gives none: every config holds one. */
-    private fun withDisplayMode(configJson: String, mode: String): String {
+    /** [configJson] with [size] as its tile size when it gives none: every config holds one. */
+    private fun withTileSize(configJson: String, size: String): String {
         val config = JSONObject(configJson)
-        return if (config.has("display_mode")) configJson else config.put("display_mode", mode).toString()
+        return if (config.has("tile_size")) configJson else config.put("tile_size", size).toString()
     }
 
     /** [tool] placed at the bottom of its section's grid in its zone, whose groups are [toolGroups]. */
@@ -1349,6 +1349,6 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         const val LOOK = "look"
 
         /** What a look alone may change: the tool's group, its tile's size, its icon, the icon's colour, its texture. */
-        val LOOK_KEYS = listOf("group", "display_mode", "icon_name", app.treelune.core.themes.IconColor.KEY, app.treelune.core.themes.Texture.KEY)
+        val LOOK_KEYS = listOf("group", "tile_size", "icon_name", app.treelune.core.themes.IconColor.KEY, app.treelune.core.themes.Texture.KEY)
     }
 }

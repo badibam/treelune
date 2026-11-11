@@ -39,7 +39,7 @@ class ZoneContents(private val context: Context) {
             put("name", zone.name)
             put("description", zone.description)
             put("group", zone.group)
-            put("display_mode", zone.display_mode)
+            put("tile_size", zone.tile_size)
             put("icon_name", zone.icon_name)
             put(IconColor.KEY, zone.icon_color)
             put(Texture.KEY, zone.texture)
@@ -53,7 +53,7 @@ class ZoneContents(private val context: Context) {
 
     private fun look(kind: String, id: String, name: String, mode: String, icon: String?, color: String?, texture: String?, more: Map<String, Any?> = emptyMap()) =
         linkedMapOf<String, Any?>("kind" to kind, "id" to id, "name" to name) + more +
-            mapOf("display_mode" to mode, "icon_name" to icon, IconColor.KEY to color, Texture.KEY to texture)
+            mapOf("tile_size" to mode, "icon_name" to icon, IconColor.KEY to color, Texture.KEY to texture)
 
     private suspend fun tiles(zoneId: String): List<Tile> {
         val tools = database.toolInstanceDao().getToolInstancesByZone(zoneId).map { tool ->
@@ -61,7 +61,7 @@ class ZoneContents(private val context: Context) {
             val extra = config.optJSONArray("extra_fields")?.let { fields ->
                 (0 until fields.length()).map { fields.getJSONObject(it) }.map { mapOf("name" to it.optString("name"), "display_name" to it.optString("display_name"), "type" to it.optString("type")) }
             }.orEmpty()
-            Tile(config.optString("group").takeIf { it.isNotEmpty() }, tool.grid_x, tool.grid_y, look("tool", tool.id, config.optString("name"), config.optString("display_mode"),
+            Tile(config.optString("group").takeIf { it.isNotEmpty() }, tool.grid_x, tool.grid_y, look("tool", tool.id, config.optString("name"), config.optString("tile_size"),
                 config.optString("icon_name").takeIf { it.isNotEmpty() }, config.optString(IconColor.KEY).takeIf { it.isNotEmpty() }, config.optString(Texture.KEY).takeIf { it.isNotEmpty() },
                 buildMap<String, Any?> {
                     put("tooltype", tool.tooltype)
@@ -70,16 +70,16 @@ class ZoneContents(private val context: Context) {
                 }))
         }
         val variables = database.variableDao().getByZone(zoneId).map {
-            Tile(it.group, it.gridX, it.gridY, look("variable", it.id, it.label, it.displayMode, it.iconName, it.iconColor, it.texture, mapOf("variable_name" to it.name)))
+            Tile(it.group, it.gridX, it.gridY, look("variable", it.id, it.label, it.tileSize, it.iconName, it.iconColor, it.texture, mapOf("variable_name" to it.name)))
         }
         val routines = database.aiDao().getRoutinesByZone(zoneId).map {
-            Tile(it.group, it.gridX, it.gridY, look("routine", it.id, it.name, it.displayMode, it.iconName, it.iconColor, it.texture, mapOf("is_enabled" to it.isEnabled)))
+            Tile(it.group, it.gridX, it.gridY, look("routine", it.id, it.name, it.tileSize, it.iconName, it.iconColor, it.texture, mapOf("is_enabled" to it.isEnabled)))
         }
         val tasks = database.taskDao().getByZone(zoneId).map {
-            Tile(it.group, it.gridX, it.gridY, look("task", it.id, it.name, it.displayMode, it.iconName, it.iconColor, it.texture, mapOf("is_enabled" to it.isEnabled)))
+            Tile(it.group, it.gridX, it.gridY, look("task", it.id, it.name, it.tileSize, it.iconName, it.iconColor, it.texture, mapOf("is_enabled" to it.isEnabled)))
         }
         val readouts = database.readoutDao().getByZone(zoneId).map {
-            Tile(it.group, it.gridX, it.gridY, look("readout", it.id, it.name, it.displayMode, it.iconName, it.iconColor, it.texture))
+            Tile(it.group, it.gridX, it.gridY, look("readout", it.id, it.name, it.tileSize, it.iconName, it.iconColor, it.texture))
         }
         return tools + variables + routines + tasks + readouts
     }

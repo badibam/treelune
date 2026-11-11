@@ -62,7 +62,7 @@ import app.treelune.core.ui.CardType
 import app.treelune.core.ui.FeedbackType
 import app.treelune.core.ui.Duration
 import app.treelune.core.ui.DialogType
-import app.treelune.core.ui.DisplayMode
+import app.treelune.core.look.TileSize
 import app.treelune.core.ui.confirmMessage
 import app.treelune.core.ui.defaultType
 import app.treelune.core.ui.label
@@ -114,11 +114,11 @@ object DefaultTheme : ThemeContract {
 
     /** 4 outside the card, between tiles, and the card's padding inside (ToolCardContainer). */
     @Composable
-    override fun tileFrame(displayMode: DisplayMode): Dp = 4.dp + tilePadding(displayMode)
+    override fun tileFrame(tileSize: TileSize): Dp = 4.dp + tilePadding(tileSize)
 
-    private fun tilePadding(displayMode: DisplayMode): Dp = when (displayMode) {
-        DisplayMode.ICON -> 4.dp
-        DisplayMode.MINIMAL -> 8.dp
+    private fun tilePadding(tileSize: TileSize): Dp = when {
+        tileSize.isIcon -> 4.dp
+        tileSize == TileSize.of(2, 1) -> 8.dp
         else -> 12.dp
     }
 
@@ -1178,7 +1178,7 @@ object DefaultTheme : ThemeContract {
 
     @Composable
     override fun ToolCardContainer(
-        displayMode: DisplayMode,
+        tileSize: TileSize,
         texture: app.treelune.core.themes.ItemTexture?,
         color: app.treelune.core.themes.TagColor?,
         seed: String,
@@ -1190,7 +1190,7 @@ object DefaultTheme : ThemeContract {
         // The grid gives the tile its cells; the space between tiles is taken inside them
         val cardModifier = Modifier.fillMaxSize().padding(4.dp)
 
-        val cardPadding = tilePadding(displayMode)
+        val cardPadding = tilePadding(tileSize)
         
         androidx.compose.material3.Card(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),

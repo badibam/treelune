@@ -94,6 +94,9 @@ data class TileSize private constructor(val width: Int, val height: Int?) {
         /** The size stored as [text]; null when it names none, which the services refuse. */
         fun parse(text: String?): TileSize? = text?.let { byStored[it.trim()] }
 
+        /** The size of a stored row, which the services checked: one that names none is a corrupt row, and fails. */
+        fun ofStored(text: String): TileSize = requireNotNull(parse(text)) { "No tile size '$text'" }
+
         /**
          * The stored size a former display mode's name became (migration 116 → 117, an older
          * backup's or part's tiles); null for a name that was never one.

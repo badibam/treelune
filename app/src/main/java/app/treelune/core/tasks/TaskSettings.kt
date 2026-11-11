@@ -12,7 +12,6 @@ import app.treelune.core.fields.settings.SettingsSchemaGenerator
 import app.treelune.core.look.LookSpec
 import app.treelune.core.look.Looks
 import app.treelune.core.strings.Strings
-import app.treelune.core.ui.DisplayMode
 import app.treelune.core.validation.Schema
 import app.treelune.core.validation.SchemaCategory
 import org.json.JSONObject
@@ -28,15 +27,14 @@ object TaskSettings {
 
     const val SCHEMA_ID = "task_settings"
     const val DEFAULT_ICON = "list-ordered"
-    const val DEFAULT_MODE = "EXTENDED"
+    val DEFAULT_SIZE = app.treelune.core.look.TileSize.of(4, 2)
 
-    /** A Task's look: an icon always; its state from LINE on, its buttons from EXTENDED, its last runs in SQUARE (TaskTile). */
+    /** A Task's look: an icon always; its state beside or under its name, its buttons under them, its last runs in its body (TaskTile). */
     val LOOK = LookSpec(
         nameKey = "name",
         nameLabel = "label_name",
         schemaPrefix = "task_schema_",
-        modes = listOf(DisplayMode.ICON, DisplayMode.MINIMAL, DisplayMode.LINE, DisplayMode.CONDENSED, DisplayMode.EXTENDED, DisplayMode.SQUARE),
-        defaultMode = DisplayMode.valueOf(DEFAULT_MODE),
+        defaultSize = DEFAULT_SIZE,
         defaultIcon = DEFAULT_ICON,
         suggestedIcons = listOf("list-ordered", "workflow", "webhook", "cloud-download", "calendar-clock", "moon", "repeat", "plug")
     )
@@ -105,7 +103,7 @@ object TaskSettings {
         put(Looks.ICON, task.iconName)
         task.iconColor?.let { put(app.treelune.core.themes.IconColor.KEY, it) }
         task.texture?.let { put(app.treelune.core.themes.Texture.KEY, it) }
-        put(Looks.DISPLAY_MODE, task.displayMode)
+        put(Looks.TILE_SIZE, task.tileSize)
         task.group?.let { put("group", it) }
         put("is_enabled", task.isEnabled)
         put("notify_end", task.notifyEnd)

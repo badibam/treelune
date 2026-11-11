@@ -1,7 +1,6 @@
 package app.treelune.core.versioning
 
 import app.treelune.core.grid.Grid
-import app.treelune.core.ui.DisplayMode
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -62,7 +61,7 @@ object VariablesAtV88 {
     /** The tool of [zoneId] whose config is [configJson], at row [gridY]. */
     fun toolRow(zoneId: String, configJson: String, gridY: Int): ToolRow {
         val config = JSONObject(configJson)
-        val height = Grid.size(DisplayMode.valueOf(config.getString("display_mode"))).height
+        val height = app.treelune.core.look.TileSize.ofStored(app.treelune.core.look.TileSize.FORMER_MODES.getValue(config.getString("display_mode"))).cells.height
         return ToolRow(zoneId, config.optString("group").takeIf { it.isNotEmpty() }, gridY + height)
     }
 

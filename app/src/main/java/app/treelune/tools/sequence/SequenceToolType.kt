@@ -114,7 +114,7 @@ object SequenceToolType : ToolTypeContract {
     override fun getGuideScreen(context: Context): String = s(context).tool("guide_screen")
     override fun getFamily() = app.treelune.core.tools.ToolFamily.PLAN
 
-    override fun getDefaultDisplayMode(): String = "LINE"
+    override fun getDefaultTileSize(): app.treelune.core.look.TileSize = app.treelune.core.look.TileSize.of(4, 1)
     override fun getDefaultShowFieldLabels(): Boolean = true
     override fun getDefaultIconName(): String = "timer"
     override fun getSuggestedIcons(): List<String> = listOf("timer", "dumbbell", "flower-2", "list-ordered", "hourglass", "chef-hat", "music")

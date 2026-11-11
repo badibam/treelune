@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 116
+        const val VERSION = 117
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2363,8 +2363,37 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /** A file's link to a file of the phone, none: every file kept so far is a copy (docs/design/linked-files.md). */
-        /** An API says its kind, every one so far a web service: see ApiKindAtV114. */
+        /**
+         * A tile's display mode becomes its size (docs/design/tile-sizes.md): the column renamed
+         * `tile_size` in the tables that keep it, the key in a tool's config, each mode the size it
+         * had, the history's copies with them: see TileSizesAtV117.
+         */
+        private val MIGRATION_116_117 = object : ConnectionMigration(116, 117) {
+            override fun migrate(database: MigrationDatabase) {
+                val v = app.treelune.core.versioning.TileSizesAtV117
+                val cases = app.treelune.core.look.TileSize.FORMER_MODES.entries.joinToString(" ") { (mode, size) -> "WHEN '$mode' THEN '$size'" }
+                v.TABLES.forEach { table ->
+                    database.execSQL("ALTER TABLE $table RENAME COLUMN ${v.FORMER} TO ${v.KEY}")
+                    database.execSQL("UPDATE $table SET ${v.KEY} = CASE ${v.KEY} $cases ELSE ${v.KEY} END")
+                }
+                var rewritten = 0
+                database.query("SELECT id, config_json FROM tool_instances").use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getString(0)
+                        // A row that cannot be read stays as it was and is logged: reading it then fails with the reason
+                        try {
+                            v.config(cursor.getString(1))?.let { database.execSQL("UPDATE tool_instances SET config_json = ? WHERE id = ?", arrayOf<Any?>(it, id)); rewritten++ }
+                        } catch (e: Exception) {
+                            LogManager.database("MIGRATION 116->117: tool $id left as it was: ${e.message}", "ERROR", e)
+                        }
+                    }
+                }
+                v.TABLES.forEach { table -> app.treelune.core.versioning.HistoryCopies.rewrite(database, table) { v.values(it) } }
+                app.treelune.core.versioning.HistoryCopies.rewrite(database, "tool_instances") { v.tool(it) }
+                LogManager.database("MIGRATION 116->117: display modes became tile sizes, $rewritten tool(s)", "INFO")
+            }
+        }
+
         /** Selections say their order, readings their first entry: see SelectionSortAtV116. */
         private val MIGRATION_115_116 = object : ConnectionMigration(115, 116) {
             override fun migrate(database: MigrationDatabase) {
@@ -2409,6 +2438,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** A routine's usage: alone, as a conversation, or both, every routine so far both. */
         private val MIGRATION_114_115 = object : ConnectionMigration(114, 115) {
             override fun migrate(database: MigrationDatabase) {
                 database.execSQL("ALTER TABLE routines ADD COLUMN usage TEXT NOT NULL DEFAULT 'both'")
@@ -2418,6 +2448,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** An API says its kind, every one so far a web service: see ApiKindAtV114. */
         private val MIGRATION_113_114 = object : ConnectionMigration(113, 114) {
             override fun migrate(database: MigrationDatabase) {
                 val v = app.treelune.core.versioning.ApiKindAtV114
@@ -2438,6 +2469,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** A file's link to a file of the phone, none: every file kept so far is a copy (docs/design/linked-files.md). */
         private val MIGRATION_112_113 = object : ConnectionMigration(112, 113) {
             override fun migrate(database: MigrationDatabase) {
                 database.execSQL("ALTER TABLE files ADD COLUMN uri TEXT")
@@ -3605,7 +3637,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_112_113,
                     MIGRATION_113_114,
                     MIGRATION_114_115,
-                    MIGRATION_115_116
+                    MIGRATION_115_116,
+                    MIGRATION_116_117
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

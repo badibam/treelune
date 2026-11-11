@@ -109,7 +109,7 @@ import app.treelune.core.ui.ButtonType
 import app.treelune.core.ui.CardType
 import app.treelune.core.ui.ComponentState
 import app.treelune.core.ui.DialogType
-import app.treelune.core.ui.DisplayMode
+import app.treelune.core.look.TileSize
 import app.treelune.core.ui.Duration
 import app.treelune.core.ui.Emphasis
 import app.treelune.core.ui.FeedbackType
@@ -188,7 +188,7 @@ object EinkTheme : ThemeContract {
 
     /** The content 8 dp inside the tile's frame of 2 dp. */
     @Composable
-    override fun tileFrame(displayMode: DisplayMode): Dp = einkSize().dp(FRAME + 8f)
+    override fun tileFrame(tileSize: TileSize): Dp = einkSize().dp(FRAME + 8f)
 
     @Composable
     override fun spacing(spacing: Spacing): Dp = (
@@ -783,7 +783,7 @@ object EinkTheme : ThemeContract {
     }
 
     @Composable
-    override fun ToolCardContainer(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+    override fun ToolCardContainer(tileSize: TileSize, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(texture, onClick, onLongClick, content)
 
     /**
@@ -793,7 +793,7 @@ object EinkTheme : ThemeContract {
     @Composable
     private fun Tile(texture: app.treelune.core.themes.ItemTexture?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
         val c = einkColors
-        val frame = tileFrame(DisplayMode.CONDENSED)
+        val frame = tileFrame(TileSize.of(2, 2))
         Pressable(onClick = onClick, onLongClick = onLongClick, modifier = Modifier.fillMaxSize()) { pressed ->
             val surface = if (pressed) c.ink else c.ground
             // The motif in the ink, whatever the icon's colour: a colour is a pattern, and the motif is one already

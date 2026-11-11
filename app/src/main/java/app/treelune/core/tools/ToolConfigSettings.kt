@@ -21,14 +21,13 @@ object ToolConfigSettings {
 
     /**
      * A tool's look (Looks): its icon its type's when it has none of its own, its tile in its
-     * zone from ICON to FULL.
+     * zone at its type's default size until one is chosen.
      */
     fun look(toolType: ToolTypeContract): app.treelune.core.look.LookSpec = app.treelune.core.look.LookSpec(
         nameKey = "name",
         nameLabel = "tools_config_label_name",
         schemaPrefix = "tools_base_schema_config_",
-        modes = app.treelune.core.ui.DisplayMode.entries,
-        defaultMode = app.treelune.core.ui.DisplayMode.valueOf(toolType.getDefaultDisplayMode()),
+        defaultSize = toolType.getDefaultTileSize(),
         defaultIcon = toolType.getDefaultIconName(),
         suggestedIcons = toolType.getSuggestedIcons()
     )

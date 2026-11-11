@@ -1,13 +1,12 @@
 package app.treelune.core.grid
 
-import app.treelune.core.ui.DisplayMode
 
 /**
  * The grid a group lays its tiles on: four columns of square cells, rows numbered from 0 at the
  * top, as many as its tiles need. Pure placement, no storage: each function takes the tiles of one
  * grid and returns them all, moved where the rule puts them.
  *
- * A row is a row of cells. A tile's height counts in rows, except FULL's, which grows with what it
+ * A row is a row of cells. A tile's height counts in rows, except one that follows its content's (TileSize), which grows with what it
  * shows and is drawn as tall as that: it is alone on its row whatever its height, so placing it
  * takes one row.
  */
@@ -24,17 +23,6 @@ object Grid {
         fun overlaps(other: Tile): Boolean =
             column < other.column + other.width && other.column < column + width &&
                 row < other.bottom && other.row < bottom
-    }
-
-    /** The cells a tile takes in [mode]. */
-    fun size(mode: DisplayMode): Size = when (mode) {
-        DisplayMode.ICON -> Size(1, 1)
-        DisplayMode.MINIMAL -> Size(2, 1)
-        DisplayMode.LINE -> Size(4, 1)
-        DisplayMode.CONDENSED -> Size(2, 2)
-        DisplayMode.EXTENDED -> Size(4, 2)
-        DisplayMode.SQUARE -> Size(4, 4)
-        DisplayMode.FULL -> Size(4, 1)
     }
 
     /** The rows [tiles] take, the empty ones between them included. */
@@ -234,7 +222,7 @@ object Grid {
     /**
      * [tiles] as one column shows them: in their reading order, each at its size in one column
      * ([oneColumnSize]), packed: a tile on each row, two of a quarter side by side. A tile of
-     * [grows] (FULL) keeps its single row, whose height is its content's. Returned in the order
+     * [grows] (one that follows its content) keeps its single row, whose height is its content's. Returned in the order
      * of [tiles]. Nothing of it is stored: it is read from the grid each time.
      */
     fun oneColumn(tiles: List<Tile>, grows: Set<String> = emptySet()): List<Tile> {

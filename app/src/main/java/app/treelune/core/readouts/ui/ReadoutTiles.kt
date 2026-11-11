@@ -51,7 +51,7 @@ data class ReadoutRow(
     /** The zone of the tool or the zone it opens; null for the app */
     val targetZoneId: String?
 ) {
-    val tile: Grid.Tile get() = Grid.size(look.displayMode).let { Grid.Tile(id, gridX, gridY, it.width, it.height) }
+    val tile: Grid.Tile get() = look.tileSize.cells.let { Grid.Tile(id, gridX, gridY, it.width, it.height) }
 
     /** The places it rises to besides its own tile. */
     val places: Set<ReadoutSettings.Place> get() = ReadoutSettings.places(settings)

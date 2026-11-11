@@ -13,7 +13,6 @@ import app.treelune.core.grid.Grid
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.services.OperationResult
 import app.treelune.core.strings.Strings
-import app.treelune.core.ui.DisplayMode
 import app.treelune.core.utils.DataChangeNotifier
 import app.treelune.core.utils.JsonUtils
 import app.treelune.core.utils.LogManager
@@ -243,11 +242,11 @@ class DemoService(private val context: Context) : ExecutableService {
             .filter { it["group"] == content.group && !(it["id"] as String).startsWith(DemoContent.PREFIX) }
             .sortedWith(compareBy({ (it["grid_y"] as Number).toInt() }, { (it["grid_x"] as Number).toInt() }))
         var tiles = content.zones.map { zone ->
-            val size = Grid.size(DisplayMode.valueOf(zone.getString("display_mode")))
+            val size = app.treelune.core.look.TileSize.ofStored(zone.getString("tile_size")).cells
             Grid.Tile(zone.getString("id"), zone.getInt("grid_x"), zone.getInt("grid_y"), size.width, size.height)
         }
         others.forEach { zone ->
-            tiles = Grid.arrive(tiles, zone["id"] as String, Grid.size(DisplayMode.valueOf(zone["display_mode"] as String)))
+            tiles = Grid.arrive(tiles, zone["id"] as String, app.treelune.core.look.TileSize.ofStored(zone["tile_size"] as String).cells)
         }
         val places = JSONObject()
         tiles.forEach { places.put(it.id, JSONObject().put("grid_x", it.column).put("grid_y", it.row)) }

@@ -25,13 +25,12 @@ object ZoneSettings {
         "users", "leaf", "book-open", "utensils", "plane", "music", "palette", "folder"
     )
 
-    /** A zone's look (Looks): its icon optional, its tile on the home screen from ICON to CONDENSED. */
+    /** A zone's look (Looks): its icon optional, its tile on the home screen 4×1 until a size is chosen. */
     val LOOK = app.treelune.core.look.LookSpec(
         nameKey = "name",
         nameLabel = "label_zone_name",
         schemaPrefix = "zone_schema_",
-        modes = app.treelune.core.grid.ZonePositions.MODES,
-        defaultMode = app.treelune.core.ui.DisplayMode.LINE,
+        defaultSize = app.treelune.core.look.TileSize.of(4, 1),
         defaultIcon = null,
         suggestedIcons = SUGGESTED_ICONS
     )

@@ -103,7 +103,7 @@ import app.treelune.core.ui.ButtonType
 import app.treelune.core.ui.CardType
 import app.treelune.core.ui.ComponentState
 import app.treelune.core.ui.DialogType
-import app.treelune.core.ui.DisplayMode
+import app.treelune.core.look.TileSize
 import app.treelune.core.ui.Duration
 import app.treelune.core.ui.FeedbackType
 import app.treelune.core.ui.FieldInput
@@ -193,8 +193,8 @@ object MetroTheme : ThemeContract {
 
     /** How far the content stands from the tile's top: under its line and 4 dp of air; 8 dp all round an icon's tile. */
     @Composable
-    override fun tileFrame(displayMode: DisplayMode): Dp =
-        if (displayMode == DisplayMode.ICON) metroSize().dp(8f) else metroSize().dp(TILE_LINE + 4f)
+    override fun tileFrame(tileSize: TileSize): Dp =
+        if (tileSize.isIcon) metroSize().dp(8f) else metroSize().dp(TILE_LINE + 4f)
 
     @Composable
     override fun spacing(spacing: Spacing): Dp = (
@@ -755,7 +755,7 @@ object MetroTheme : ThemeContract {
     /** A zone is a line too, on the home screen: the tool's tile. */
     @Composable
     override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
-        Tile(DisplayMode.CONDENSED, texture, color, onClick, onLongClick, content)
+        Tile(TileSize.of(2, 2), texture, color, onClick, onLongClick, content)
 
     /** A round of the red ringed with the panel, empty: something to read, not an alarm. */
     @Composable
@@ -796,8 +796,8 @@ object MetroTheme : ThemeContract {
     }
 
     @Composable
-    override fun ToolCardContainer(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
-        Tile(displayMode, texture, color, onClick, onLongClick, content)
+    override fun ToolCardContainer(tileSize: TileSize, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+        Tile(tileSize, texture, color, onClick, onLongClick, content)
 
     /**
      * A tile filling the cells the grid gives it, a line: a white panel with corners of 4 dp under
@@ -807,11 +807,11 @@ object MetroTheme : ThemeContract {
      * blue. Pressed, a tile darkens.
      */
     @Composable
-    private fun Tile(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
+    private fun Tile(tileSize: TileSize, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
         val c = metroColors
         val size = metroSize()
-        val block = displayMode == DisplayMode.ICON
-        val frame = tileFrame(displayMode)
+        val block = tileSize.isIcon
+        val frame = tileFrame(tileSize)
         val shown = color ?: TagColor.GREY
         val line = c.line(shown).srgb
         Pressable(onClick = onClick, onLongClick = onLongClick, modifier = Modifier.fillMaxSize()) { pressed ->

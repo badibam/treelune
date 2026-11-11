@@ -52,9 +52,9 @@ The folder tools/[type]/ holds:
 
 ### ToolTypeContract interface
 The main interface, with methods for:
-- **Metadata**: getDisplayName(), getUsage() (the `usage` text: what the type is for, what it already does by itself, what it is not for; read by the AI always in English, shown by the Guide), getAIDetail() (what only the AI reads besides, none by default: its rules of use and its ergonomic tips, what the descriptions cannot imply), getSuggestedIcons(), getDefaultIconName(), getFamily() (`ToolFamily`: note, plan or draw on the others, the family its tile stands in, in the add menu of a zone's section), getDefaultDisplayMode(), getDefaultShowFieldLabels()
+- **Metadata**: getDisplayName(), getUsage() (the `usage` text: what the type is for, what it already does by itself, what it is not for; read by the AI always in English, shown by the Guide), getAIDetail() (what only the AI reads besides, none by default: its rules of use and its ergonomic tips, what the descriptions cannot imply), getSuggestedIcons(), getDefaultIconName(), getFamily() (`ToolFamily`: note, plan or draw on the others, the family its tile stands in, in the add menu of a zone's section), getDefaultTileSize(), getDefaultShowFieldLabels()
 - **Declarations**: getEntryFields() (the entries' fields), getEntryMeanings() (what each part every entry has means in the type, whatever the config: the name a tracking's thing noted, a record's key; the extra fields a questionnaire's questions, a table's columns; null keeps the core's text, and `data` is left null when its fields say it; read by the AI as the first level of the entry, `EntryDescription`), getConfigSettings() (its own settings, beside the common part `ToolConfigSettings`; those the type puts in no section, the core puts in a section named after the type, so that on screen everything is in a frame); schemas, default config and reading are generated from them; configWithOptionsAdded() for a type that declares an open choice in `data`; getOperations() (default: none), the operations its service runs on its entries beside the generic writes, each a name, a sentence and its parameters declared as fields (`ToolOperation`)
-- **User interface**: getUsageScreen() @Composable; rememberTile() @Composable, the tool's tile on a zone (`ToolTile`): its 2×1 summary, its body on the rows its mode gives it, and its preview in place of the summary in the modes without a body (LINE, CONDENSED; the summary by default, the Chart's band), placed by `UI.ToolCard` beside the header; the body lays out its elements through `TileGrid`, each cell as high in FULL as in the limited modes, each written by `TileLine`: on the left a checkbox or an icon, on the right a value or buttons that keep their size, in the middle the text on two lines at most (one only when the tile stacks four per row, a List of short items), or a line and a second, quieter one below; each type fills every mode, with no default tile, and a tile opens the tool on an entry or a new entry (`EntryToOpen`); the config screen is generated from the declaration (`ToolConfigScreen`, `SettingsForm`), a schedule (`ScheduleSettings.group`) included
+- **User interface**: getUsageScreen() @Composable; rememberTile() @Composable, the tool's tile on a zone (`ToolTile`): its 2×1 summary, its body on the rows its size leaves it, and its preview in place of the summary in the sizes without a body (4×1, 2×2; the summary by default, the Chart's band), placed by `UI.ToolCard` beside the header; the body lays out its elements through `TileGrid`, each cell as high in a tile that follows its content as in a fixed one, each written by `TileLine`: on the left a checkbox or an icon, on the right a value or buttons that keep their size, in the middle the text on two lines at most (one only when the tile stacks four per row, a List of short items), or a line and a second, quieter one below; each type fills every size, with no default tile, and a tile opens the tool on an entry or a new entry (`EntryToOpen`); the config screen is generated from the declaration (`ToolConfigScreen`, `SettingsForm`), a schedule (`ScheduleSettings.group`) included
 - **Discovery pattern**: getService(), getDatabaseEntities(), getDatabaseMigrations(), getScheduler()
 - **Enrichment**: enrichData() (identity by default, automatic enrichment before persistence)
 - **Rule between entries**: settleEntries() (default: nothing to change), see below
@@ -96,7 +96,7 @@ A class implementing ExecutableService with:
 
 ### ToolType implementation
 A class implementing ToolTypeContract with:
-- getDisplayName(), getUsage(), getDefaultDisplayMode()
+- getDisplayName(), getUsage(), getDefaultTileSize()
 - getEntryFields(), getConfigSettings()
 - getUsageScreen() @Composable
 - getService(), getDatabaseEntities()
@@ -214,19 +214,19 @@ Added in ToolTypeScanner.getAllToolTypes() for automatic discovery.
 **Configuration**: common title and body, priority, recurrence, days of advance creation, validity window
 **Data**: one entry per send (`pending`, `sent`, `expired`, `cancelled`), holding the part written for that day and, once gone, the common part copied
 
-## Display modes for tool cards
+## Tile sizes
 
-The tools of a group's section are laid on a grid of four columns of square cells (`SectionTiles`), with its variables among them, whose side the theme gives according to the width available (`gridCellPx`: a quarter, the grid at most 480 dp wide, in the default theme). Each tool sits there at `grid_x`/`grid_y` (`tool_instances`), placed by `SectionGrid` and `Grid`; its size in cells comes from its `display_mode`, which its config always holds (its look, `Looks`):
+The tools of a group's section are laid on a grid of four columns of square cells (`SectionTiles`), with its variables among them, whose side the theme gives according to the width available (`gridCellPx`: a quarter, the grid at most 480 dp wide, in the default theme). Each tool sits there at `grid_x`/`grid_y` (`tool_instances`), placed by `SectionGrid` and `Grid`; its size in cells is its `tile_size`, which its config always holds (its look, `Looks`; `TileSize`, docs/design/tile-sizes.md): `icon` (1×1), a width of 2 or 4 and a height of 1 to 10 (`2x3`, `4x2`…), or `4xcontent`. What it shows follows from its size alone:
 
-- **ICON** (1×1): the icon alone
-- **MINIMAL** (2×1): the header, icon and name
-- **LINE** (4×1): the header on the left, the summary (or the preview) on the right
-- **CONDENSED** (2×2): the header at the top, the summary (or the preview) below
-- **EXTENDED** (4×2): the header and the summary at the top, one row of body at most, the tile as high as its content (the header alone when the tool is empty), all its cells in editing
-- **SQUARE** (4×4): likewise, three rows of body at most
-- **FULL** (4 × its height): the header and the summary at the top, the body as high as its content, rounded to the cell
+- the icon: the icon alone
+- 2×1: the header, icon and name
+- 4×1: the header on the left, the summary (or the preview) on the right
+- 2×2: the header at the top, the summary (or the preview) below
+- 2×h from 3 rows: the header, the summary under it, the body on the h − 2 rows left
+- 4×h from 2 rows: the header and the summary side by side, the body on the h − 1 rows left
+- `4xcontent`: the header and the summary side by side, the body as high as its content
 
-A cell is two lines, and every height in a tile is counted in lines. Only ICON, MINIMAL and CONDENSED share a row of the grid. Nothing scrolls in a tile: what does not fit is the tool type's business. A touchable element of the tile does its action, a touch elsewhere opens the tool (or the entry that waits), a long press its config; in editing, a touch selects. The AI neither sees nor changes the positions; changing a tool's mode through its config moves down what its tile covers.
+A fixed height is a fixed box: the tile fills its cells whatever its body shows. Only a tile that follows its content grows with it, alone on its rows. Two tiles 2 wide share a row of the grid, as two icons do. Nothing scrolls in a tile: what does not fit is the tool type's business. A touchable element of the tile does its action, a touch elsewhere opens the tool (or the entry that waits), a long press its config; in editing, a touch selects. The AI neither sees nor changes the positions; changing a tool's size through its config moves down what its tile covers.
 
 ## JSON Schema V3 validation
 
@@ -252,7 +252,7 @@ The service's execute() validates automatically through the ToolType, then retur
 ### Common settings (`ToolConfigSettings`)
 - **name**: the instance's name
 - **description**: description
-- **display_mode**: display mode (ICON/MINIMAL/LINE/etc.)
+- **tile_size**: the size of its tile (`TileSize`: `icon`, `2x1` … `4x10`, `4xcontent`)
 - **validate_data**: "Protect this tool's data", the AI of the conversation and of the connector asks before writing its entries (default: no); its config is kept by its zone's protection (`docs/AI.md`, « Levels »), and only a person changes either one (`Protections`)
 
 ### always_send field (Level 2 AI)

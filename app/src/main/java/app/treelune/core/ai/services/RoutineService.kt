@@ -405,7 +405,7 @@ class RoutineService(private val context: Context) : ExecutableService {
         val settings = app.treelune.core.utils.JsonNulls.withoutNullKeys(sent)
         // A look's setting left out takes its declared default, as a tool's (an icon, a mode)
         if (!settings.has(app.treelune.core.look.Looks.ICON)) settings.put(app.treelune.core.look.Looks.ICON, RoutineSettings.DEFAULT_ICON)
-        if (!settings.has(app.treelune.core.look.Looks.DISPLAY_MODE)) settings.put(app.treelune.core.look.Looks.DISPLAY_MODE, RoutineSettings.DEFAULT_MODE)
+        if (!settings.has(app.treelune.core.look.Looks.TILE_SIZE)) settings.put(app.treelune.core.look.Looks.TILE_SIZE, RoutineSettings.DEFAULT_SIZE.stored)
         (app.treelune.core.look.Looks.check(RoutineSettings.LOOK, settings, before, context) as? app.treelune.core.look.Looks.Checked.Refused)
             ?.let { return Result.failure(IllegalArgumentException(it.message)) }
         val look = app.treelune.core.look.Looks.read(RoutineSettings.LOOK, settings)
@@ -431,7 +431,7 @@ class RoutineService(private val context: Context) : ExecutableService {
             iconName = look.iconName!!,
             iconColor = look.iconColor,
             texture = look.texture,
-            displayMode = look.displayMode.name,
+            tileSize = look.tileSize.stored,
             providerId = settings.optString(RoutineSettings.PROVIDER_ID).takeIf { it.isNotEmpty() },
             identityId = settings.optString(RoutineSettings.IDENTITY_ID).takeIf { it.isNotEmpty() },
             group = settings.optString("group").takeIf { it.isNotEmpty() },

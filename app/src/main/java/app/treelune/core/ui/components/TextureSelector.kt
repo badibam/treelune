@@ -25,7 +25,6 @@ import app.treelune.core.themes.IconColor
 import app.treelune.core.themes.ItemTexture
 import app.treelune.core.themes.TagColor
 import app.treelune.core.themes.Texture
-import app.treelune.core.ui.DisplayMode
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
 
@@ -47,7 +46,7 @@ private fun ThingTile(iconName: String, color: TagColor?, texture: Texture?, sid
     val shown = iconName.ifBlank { SAMPLE_ICON }
     Box(modifier = Modifier.widthIn(min = side).fillMaxWidth().height(side)) {
         CurrentTheme.current.ToolCardContainer(
-            displayMode = DisplayMode.ICON,
+            tileSize = app.treelune.core.look.TileSize.Icon,
             texture = texture?.let { ItemTexture(it, shown, color) },
             color = color,
             seed = iconName,

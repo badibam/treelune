@@ -44,7 +44,7 @@ import java.util.UUID
  *
  * - create: `zone_id`, `name`, `definition` (a constant or a formula written with names),
  *   `group`?, and its look (VariableLook): `label`, `description`?, `icon_name` (`variable` when
- *   left out), `icon_color`?, `texture`?, `display_mode` (LINE when left out); it arrives at the
+ *   left out), `icon_color`?, `texture`?, `tile_size` (LINE when left out); it arrives at the
  *   end of its section's grid
  * - update: `variable_id`, and any of `name`, `definition`, `group`, `zone_id` and its look's
  *   settings (null empties a description, a colour or a texture); a change of section or of
@@ -109,7 +109,7 @@ class VariableService(private val context: Context) : ExecutableService {
         val variable = VariableEntity(
             id = id, zoneId = zoneId, name = name, label = tile.name, description = tile.description,
             group = group,
-            iconName = tile.iconName!!, iconColor = tile.iconColor, texture = tile.texture, displayMode = tile.displayMode.name,
+            iconName = tile.iconName!!, iconColor = tile.iconColor, texture = tile.texture, tileSize = tile.tileSize.stored,
             gridX = 0, gridY = 0,
             definitionJson = definition.toJson().toString(),
             createdAt = now, updatedAt = now
@@ -147,7 +147,7 @@ class VariableService(private val context: Context) : ExecutableService {
             description = tile.description,
             zoneId = zoneId,
             group = group,
-            iconName = tile.iconName!!, iconColor = tile.iconColor, texture = tile.texture, displayMode = tile.displayMode.name,
+            iconName = tile.iconName!!, iconColor = tile.iconColor, texture = tile.texture, tileSize = tile.tileSize.stored,
             definitionJson = definition?.toJson()?.toString()
                 // A rename alone leaves the definition, whose field carries the name
                 ?: existing.definitionJson,
@@ -195,7 +195,7 @@ class VariableService(private val context: Context) : ExecutableService {
         put(Looks.ICON, variable.iconName)
         variable.iconColor?.let { put(IconColor.KEY, it) }
         variable.texture?.let { put(Texture.KEY, it) }
-        put(Looks.DISPLAY_MODE, variable.displayMode)
+        put(Looks.TILE_SIZE, variable.tileSize)
     }
 
     /**
@@ -420,7 +420,7 @@ class VariableService(private val context: Context) : ExecutableService {
             "icon_name" to entity.iconName,
             IconColor.KEY to entity.iconColor,
             Texture.KEY to entity.texture,
-            "display_mode" to entity.displayMode,
+            "tile_size" to entity.tileSize,
             "grid_x" to entity.gridX,
             "grid_y" to entity.gridY,
             "definition" to JsonUtils.toMap(definition),

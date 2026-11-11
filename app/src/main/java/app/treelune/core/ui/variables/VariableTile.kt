@@ -34,7 +34,7 @@ data class VariableRow(
     val definition: Map<*, *>,
     val toolsRead: Set<String>
 ) {
-    val tile: Grid.Tile get() = Grid.size(look.displayMode).let { Grid.Tile(id, gridX, gridY, it.width, it.height) }
+    val tile: Grid.Tile get() = look.tileSize.cells.let { Grid.Tile(id, gridX, gridY, it.width, it.height) }
 
     companion object {
         fun of(map: Map<*, *>) = VariableRow(
