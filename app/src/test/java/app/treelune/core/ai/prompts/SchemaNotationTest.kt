@@ -162,6 +162,13 @@ class SchemaNotationTest {
         assertTrue(settings, Regex("decimals\\*: .*suggested 0").containsMatchIn(settings))
     }
 
+    @Test
+    fun aJsonTextFieldIsSaid() {
+        val schema = org.json.JSONObject("""{"type":"object","properties":{"contexte":{"type":"string","contentMediaType":"application/json","description":"the context"}}}""")
+        val notation = SchemaNotation.render(schema)
+        assertTrue(notation, notation.contains("contexte: JSON text"))
+    }
+
     /** A list's element named "Item" in two places, a group named "Pair" inside it. */
     private fun named(otherLabel: String = "label of inner"): List<SettingNode> {
         fun item(innerLabel: String) = SettingNode.Item.Of(listOf(

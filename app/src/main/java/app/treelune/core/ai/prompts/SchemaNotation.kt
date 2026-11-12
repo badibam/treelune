@@ -36,7 +36,7 @@ object SchemaNotation {
     private val WRITTEN = setOf(
         "type", "properties", "required", "title", "description", "default", "enum", "const",
         "oneOf", "items", "minimum", "maximum", "minLength", "maxLength", "minItems", "maxItems",
-        "uniqueItems", "multipleOf", "pattern", "format", "system_managed", app.treelune.core.fields.AI_READ_ONLY, SettingsSchemaGenerator.SECRET, FIELD_DEFINITIONS,
+        "uniqueItems", "multipleOf", "pattern", "format", "contentMediaType", "system_managed", app.treelune.core.fields.AI_READ_ONLY, SettingsSchemaGenerator.SECRET, FIELD_DEFINITIONS,
         DEFINITION
     )
 
@@ -310,6 +310,8 @@ object SchemaNotation {
                 return "reference {kind: $kinds, id}"
             }
         }
+        // A JSON field: an object or a list, written as a text
+        if (schema.optString("contentMediaType") == "application/json") return "JSON text (an object or a list, written as a string)"
         return when (val type = schema.opt("type")) {
             is JSONArray -> (0 until type.length()).joinToString("|") { type.getString(it) }
             null -> "any"
