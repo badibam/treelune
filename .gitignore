@@ -67,3 +67,6 @@ app/src/main/res/values*/strings_generated.xml
 
 # Python bytecode cache
 __pycache__/
+
+# Open work, kept on this machine only: it names the real data the app is tried on
+TODO.md
