@@ -11,7 +11,7 @@ import org.junit.Test
 /**
  * What the links of a part promise (docs/DATA.md, « A part of the app »): a kept element naming
  * one left out is found wherever its id stands, blocks the file unless it is a routine's or goes
- * to an identity, and nothing ticked holds no link.
+ * to an identity a zone or a routine speaks as, and nothing ticked holds no link.
  */
 class PartLinksTest {
 
@@ -118,5 +118,23 @@ class PartLinksTest {
         ).getValue(key) }
         assertEquals("Calories reads Poids", PartLinks.text(link(Kind.TOOL, "chart", Kind.TOOL, "weight"), { PartLinks.name(backup(), it) }, text))
         assertEquals("Repas entries designate Aliments entries", PartLinks.text(link(Kind.ENTRIES, "meals", Kind.ENTRIES, "foods"), { PartLinks.name(backup(), it) }, text))
+    }
+
+    /** A Task that sends an identity (an « Assemble » step) cannot go without it: it would be refused on arrival. */
+    @Test
+    fun `a Task sending an identity left out blocks, the identity ticked does not`() {
+        val steps = JSONArray().put(JSONObject().put("kind", "assemble").put("object", JSONObject()
+            .put("who", JSONObject().put("object", JSONObject()
+                .put("guide", JSONObject().put("identity", JSONObject().put("identity_id", "stan").put("pieces", JSONArray().put("portrait"))))))))
+        val document = JSONObject().put("metadata", JSONObject().put("export_version", 90)).put("data", JSONObject()
+            .put("zones", JSONArray().put(JSONObject().put("id", "z1").put("name", "Racines")))
+            .put("tasks", JSONArray().put(JSONObject().put("id", "t1").put("zone_id", "z1").put("name", "Prepare").put("steps_json", steps.toString())))
+            .put("identities", JSONArray().put(JSONObject().put("id", "stan").put("name", "Stan"))))
+
+        val without = PartLinks.of(document, PartSelection(setOf("z1"), emptyMap(), emptySet(), emptySet(), emptySet(), setOf("t1"), emptySet(), emptySet()))
+        val link = link(Kind.TASK, "t1", Kind.IDENTITY, "stan")
+        assertTrue(without.toString(), link in without)
+        assertTrue(link.blocking)
+        assertTrue(PartLinks.of(document, PartSelection(setOf("z1"), emptyMap(), emptySet(), emptySet(), setOf("stan"), setOf("t1"), emptySet(), emptySet())).isEmpty())
     }
 }
