@@ -27,7 +27,8 @@ import org.json.JSONObject
 
 /**
  * The form of an `assemble` step (StepObject): the keys of the object, each with what it holds —
- * a text, a pointer (Readable or Technical), an entry, a value of the run, or more keys —; an
+ * a text, a pointer (Readable or Technical), an entry, a value of the run, an identity and the
+ * pieces of it sent, or more keys —; an
  * object opens in place of its parent, under the line of the keys that lead to it, and « Back »
  * goes up one level. A key renamed keeps its place.
  */
@@ -98,6 +99,11 @@ internal fun AssembleEditor(step: JSONObject, earlier: Earlier, s: StringsContex
                 added(s.shared("task_object_new_entry"), JSONObject().put(StepObject.ENTRY, received))
             }) { UI.Text(s.shared("task_block_entry"), TextType.LABEL) }
             UI.Button(type = ButtonType.DEFAULT, onClick = { added(s.shared("task_object_new_value"), JSONObject().put(StepObject.VALUE, JSONObject())) }) { UI.Text(s.shared("task_block_value"), TextType.LABEL) }
+            UI.Button(type = ButtonType.DEFAULT, onClick = {
+                // Every piece sent until some are unticked; the identity chosen in the part
+                added(s.shared("task_object_new_identity"), JSONObject().put(StepObject.IDENTITY,
+                    JSONObject().put(StepObject.IDENTITY_ID, "").put(StepObject.IDENTITY_PIECES, org.json.JSONArray(StepObject.PIECES))))
+            }) { UI.Text(s.shared("label_identity"), TextType.LABEL) }
             UI.Button(type = ButtonType.DEFAULT, onClick = { added(s.shared("task_object_new_object"), JSONObject().put(StepObject.OBJECT, JSONObject())) }) { UI.Text(s.shared("task_object_kind_object"), TextType.LABEL) }
         }
         if (pointing) app.treelune.core.ui.selectors.PointerSelector(
@@ -149,8 +155,26 @@ private fun Part(key: String, part: JSONObject, earlier: Earlier, s: StringsCont
         part.has(StepObject.VALUE) -> StepInput(part.optJSONObject(StepObject.VALUE)?.takeIf { it.length() > 0 }, blockValueField(s), earlier, s, optional = false) { input ->
             onChange(JSONObject().put(StepObject.VALUE, input ?: JSONObject()))
         }
+        part.has(StepObject.IDENTITY) -> IdentityPart(part.optJSONObject(StepObject.IDENTITY) ?: JSONObject(), s) { onChange(JSONObject().put(StepObject.IDENTITY, it)) }
         part.has(StepObject.OBJECT) -> UI.Button(type = ButtonType.DEFAULT, onClick = onOpen) {
             UI.Text(s.shared("task_object_open").format(part.optJSONObject(StepObject.OBJECT)?.length() ?: 0), TextType.BODY)
         }
     }
+}
+
+/** An identity part: the identity, and which of its pieces go beside its name. */
+@Composable
+private fun IdentityPart(identity: JSONObject, s: StringsContext, onChange: (JSONObject) -> Unit) {
+    val identities = app.treelune.core.identities.ui.rememberIdentities() ?: return
+    val pieces = identity.optJSONArray(StepObject.IDENTITY_PIECES)?.let { list -> (0 until list.length()).map { list.optString(it) } }.orEmpty()
+    fun with(id: String = identity.optString(StepObject.IDENTITY_ID), chosen: List<String> = pieces) =
+        onChange(JSONObject().put(StepObject.IDENTITY_ID, id).put(StepObject.IDENTITY_PIECES, org.json.JSONArray(StepObject.PIECES.filter { it in chosen })))
+    app.treelune.core.identities.ui.IdentitySelector(identities, identity.optString(StepObject.IDENTITY_ID).ifEmpty { null },
+        { with(id = it ?: "") }, s.shared("label_identity"), s.shared("task_object_identity_none"))
+    UI.Text(s.shared("task_object_identity_pieces"), TextType.LABEL)
+    StepObject.PIECES.forEach { piece ->
+        UI.Checkbox(checked = piece in pieces, onCheckedChange = { on -> with(chosen = if (on) pieces + piece else pieces - piece) },
+            label = s.shared(if (piece == StepObject.RESOURCES) "identity_bagage" else "identity_piece_$piece"))
+    }
+    UI.Text(s.shared("task_object_identity_help"), TextType.CAPTION)
 }

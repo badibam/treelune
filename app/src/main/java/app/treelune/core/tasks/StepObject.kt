@@ -31,6 +31,9 @@ import org.json.JSONObject
  * - `{"entry": <input>}`, an entry the run gives (the one a trigger gave, the one a step created),
  *   rendered as a pointer to it;
  * - `{"value": <input>}`, a value the run reads or was given, as it is;
+ * - `{"identity": {"identity_id", "pieces"}}`, an identity of the app, in the language it speaks:
+ *   its `name` always, then the [PIECES] chosen, each under its own key, `resources` a list of
+ *   `{title, description, content}`; a piece it has not written left out;
  * - `{"object": {…}}`, more keys, the same rule at each level.
  *
  * The step gives the object under [OUTPUT], of type object (ApiSettings.OBJECT), to the steps after
@@ -53,6 +56,13 @@ object StepObject {
     const val RENDERING = "rendering"
     const val READABLE = "readable"
     const val TECHNICAL = "technical"
+    const val IDENTITY = "identity"
+    const val IDENTITY_ID = "identity_id"
+    const val IDENTITY_PIECES = "pieces"
+    const val RESOURCES = "resources"
+
+    /** What an identity part may send, beside its name; all of it by default. */
+    val PIECES = app.treelune.core.identities.IdentityLanguage.PIECES + RESOURCES
 
     /** The name the step's object goes under, for the steps after it (`{"result": {"step", "value": "object"}}`). */
     const val OUTPUT = "object"
@@ -62,6 +72,8 @@ object StepObject {
         data class Pointer(val pointer: PointerConfig, val readable: Boolean) : Part
         data class Entry(val input: JSONObject) : Part
         data class Value(val input: JSONObject) : Part
+        /** An identity, [identityId] empty until one is chosen (refused when the step is saved) */
+        data class Identity(val identityId: String, val pieces: List<String>) : Part
         data class Obj(val parts: Map<String, Part>) : Part
     }
 
@@ -83,6 +95,14 @@ object StepObject {
                 }
                 part.has(ENTRY) -> Part.Entry(part.optJSONObject(ENTRY) ?: throw IllegalArgumentException(text("task_error_object_part").format(at)))
                 part.has(VALUE) -> Part.Value(part.optJSONObject(VALUE) ?: throw IllegalArgumentException(text("task_error_object_part").format(at)))
+                part.has(IDENTITY) -> {
+                    val identity = part.optJSONObject(IDENTITY) ?: throw IllegalArgumentException(text("task_error_object_part").format(at))
+                    val pieces = identity.optJSONArray(IDENTITY_PIECES)?.let { list -> (0 until list.length()).map { list.optString(it) } }
+                    if (pieces == null || pieces.isEmpty() || pieces.any { it !in PIECES } || pieces.distinct().size != pieces.size) {
+                        throw IllegalArgumentException(text("task_error_object_identity_pieces").format(at, PIECES.joinToString(", ")))
+                    }
+                    Part.Identity(identity.optString(IDENTITY_ID), pieces)
+                }
                 part.has(OBJECT) -> Part.Obj(read(part.optJSONObject(OBJECT) ?: throw IllegalArgumentException(text("task_error_object_part").format(at)), text, at))
                 else -> throw IllegalArgumentException(text("task_error_object_part").format(at))
             }
@@ -118,6 +138,29 @@ object StepObject {
             ?.let { same -> s.shared("task_error_object_labels").format(path, same.first().displayName) }
     }
 
+    /** Why an identity part cannot be rendered; null when it can: an identity chosen, and still there. */
+    suspend fun identityRefusal(path: String, part: Part.Identity, context: Context, s: StringsContext): String? = when {
+        part.identityId.isEmpty() -> s.shared("task_error_object_identity_none").format(path)
+        app.treelune.core.database.AppDatabase.getDatabase(context).identityDao().getById(part.identityId) == null ->
+            s.shared("task_error_object_identity").format(path, part.identityId)
+        else -> null
+    }
+
+    /**
+     * The identities the steps [stepsJson] name, in their `assemble` steps' objects at every level:
+     * read from the stored form alone, as a part of the app or a deletion asks it.
+     */
+    fun identitiesOf(stepsJson: String): Set<String> {
+        fun within(holder: JSONObject?): List<String> = holder?.keys()?.asSequence()?.toList().orEmpty().flatMap { key ->
+            val part = holder!!.optJSONObject(key) ?: return@flatMap emptyList()
+            listOfNotNull(part.optJSONObject(IDENTITY)?.optString(IDENTITY_ID)?.takeIf { it.isNotEmpty() }) + within(part.optJSONObject(OBJECT))
+        }
+        val steps = org.json.JSONArray(stepsJson)
+        return (0 until steps.length()).mapNotNull { steps.optJSONObject(it) }
+            .filter { it.optString(TaskSteps.KIND) == TaskSteps.ASSEMBLE }
+            .flatMap { within(it.optJSONObject(OBJECT)) }.toSet()
+    }
+
     /**
      * The object [parts] make at this run: [resolve] reads a value's input, [entryOf] gives the id
      * of the entry an entry's input designates.
@@ -132,9 +175,35 @@ object StepObject {
                 is Part.Pointer -> pointer(part.pointer, part.readable, at, context, s)
                 is Part.Entry -> pointer(PointerConfig(EntrySelection(Reference(ReferenceKind.ENTRY, entryOf(part.input))), entries = true), readable = true, at, context, s)
                 is Part.Value -> resolve(part.input)
+                is Part.Identity -> identity(part, context, s)
                 is Part.Obj -> render(part.parts, at, context, s, resolve, entryOf)
             }
         }
+
+    /**
+     * An identity as it is now, in the language it speaks: its name, then each piece chosen it has
+     * written, under its key.
+     *
+     * @throws IllegalStateException the identity deleted since the step was saved
+     */
+    private suspend fun identity(part: Part.Identity, context: Context, s: StringsContext): Map<String, Any?> {
+        val identity = app.treelune.core.database.AppDatabase.getDatabase(context).identityDao().getById(part.identityId)?.toIdentity()
+            ?: throw IllegalStateException(s.shared("task_error_object_identity_gone").format(part.identityId))
+        val spoken = identity.spoken
+        return buildMap {
+            put("name", identity.name)
+            part.pieces.forEach { piece ->
+                when (piece) {
+                    app.treelune.core.identities.IdentityLanguage.VOICE -> spoken.voice?.let { put(piece, it.content) }
+                    app.treelune.core.identities.IdentityLanguage.MIND -> spoken.mind?.let { put(piece, it.content) }
+                    app.treelune.core.identities.IdentityLanguage.PORTRAIT -> spoken.portrait?.let { put(piece, it.content) }
+                    RESOURCES -> spoken.resources.values.takeIf { it.isNotEmpty() }?.let { resources ->
+                        put(piece, resources.map { mapOf("title" to it.title, "description" to it.description, "content" to it.content) })
+                    }
+                }
+            }
+        }
+    }
 
     /** The tool of [target]: itself, or one entry's. */
     private suspend fun toolOf(target: Reference, context: Context): String? = when (target.kind) {

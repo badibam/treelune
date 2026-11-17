@@ -34,8 +34,8 @@ import org.json.JSONObject
  * - `tool_operation`: `tool_instance_id`, `operation` (one the tool type declares), `params` (by name)
  * - `run_routine`: `routine_id`, `blocks` (what joins its run's message: StepBlocks)
  * - `emit_event`: `event_id`, `inputs` (by the value's name the event declares, every one given)
- * - `assemble`: `object`, keys the user names each holding a text, a pointer, an entry, a value or
- *   more keys (StepObject); it writes nothing and gives the object made, `object`, of type object
+ * - `assemble`: `object`, keys the user names each holding a text, a pointer, an entry, a value, an
+ *   identity or more keys (StepObject); it writes nothing and gives the object made, `object`, of type object
  *
  * Any of them may hold `when`, conditions on its inputs that all hold for it to run (StepConditions),
  * and `for_each`, an input giving a list an earlier API answered (`{"result": {"step", "value"}}`):
@@ -317,9 +317,11 @@ object TaskSteps {
                 "joined" to blocksOf(step).let { blocks -> StepBlocks.fixedPointers(blocks).map { JSONObject().put(StepBlocks.TYPE, StepBlocks.POINTER).put(StepBlocks.POINTER, it) } }
                     .map { app.treelune.core.utils.JsonUtils.toMap(it) }))
             EMIT_EVENT -> reach("events.emit", mapOf("event_id" to step.optString(EVENT_ID)))
-            // Its pointers read the entries they name
+            // Its pointers read the entries they name, its identities the identities
             ASSEMBLE -> objectParts(step).filterIsInstance<StepObject.Part.Pointer>().flatMap { part ->
                 reach("tool_data.get", mapOf("tool_instance_id" to (part.pointer.selection.target.id ?: "")))
+            } + objectParts(step).filterIsInstance<StepObject.Part.Identity>().flatMap { part ->
+                reach("identities.get", mapOf("identity_id" to part.identityId))
             }
             else -> emptyList()
         }
@@ -545,6 +547,7 @@ object TaskSteps {
                         flat.forEach { (path, part) -> ((part as? StepObject.Part.Entry)?.input ?: (part as? StepObject.Part.Value)?.input)?.let { put(path, it) } }
                     }, null)?.let { return it }
                     flat.forEach { (path, part) -> if (part is StepObject.Part.Pointer) StepObject.pointerRefusal("$number › $path", part, context, s)?.let { return it } }
+                    flat.forEach { (path, part) -> if (part is StepObject.Part.Identity) StepObject.identityRefusal("$number › $path", part, context, s)?.let { return it } }
                 }
                 else -> return s.shared("task_error_kind").format(number, step.optString(KIND), KINDS.joinToString(", "))
             }

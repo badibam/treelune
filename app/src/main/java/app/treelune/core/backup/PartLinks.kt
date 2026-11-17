@@ -15,12 +15,13 @@ data class PartElement(val kind: Kind, val id: String) {
  * An element kept that names one left out (docs/DATA.md, « A part of the app »).
  *
  * A tool, its entries, a variable, a Task or an event carried would arrive broken without its
- * target, the service refusing it: the link blocks the file. A routine arrives in a state the app
- * knows (switched off, without provider, an access or a pointer reaching nothing), and a zone or a
- * routine without its identity speaks as the app's own AI: these links only warn.
+ * target, the service refusing it: the link blocks the file, a Task's to the identity it sends
+ * included. A routine arrives in a state the app knows (switched off, without provider, an access
+ * or a pointer reaching nothing), and a zone or a routine without its identity speaks as the app's
+ * own AI: these links only warn.
  */
 data class PartLink(val from: PartElement, val to: PartElement) {
-    val blocking: Boolean get() = from.kind != PartElement.Kind.ROUTINE && to.kind != PartElement.Kind.IDENTITY
+    val blocking: Boolean get() = from.kind != PartElement.Kind.ROUTINE && (to.kind != PartElement.Kind.IDENTITY || from.kind == PartElement.Kind.TASK)
 }
 
 /**
@@ -77,7 +78,12 @@ object PartLinks {
             if (!row.isNull("provider_id")) links += PartLink(routine, PartElement(PartElement.Kind.PROVIDER, row.getString("provider_id")))
             BackupPart.identityOf(row)?.let { links += PartLink(routine, PartElement(PartElement.Kind.IDENTITY, it)) }
         }
-        rows(data, "tasks").forEach { scan(PartElement(PartElement.Kind.TASK, it.getString("id")), it) }
+        rows(data, "tasks").forEach { task ->
+            val from = PartElement(PartElement.Kind.TASK, task.getString("id"))
+            scan(from, task)
+            // The identities its steps send, which keep their ids and are no word the scan knows
+            app.treelune.core.tasks.StepObject.identitiesOf(task.getString("steps_json")).forEach { links += PartLink(from, PartElement(PartElement.Kind.IDENTITY, it)) }
+        }
         // An event: the tools its values are; its own zone does not hold it back, it arrives
         // where what names it does (PartTree.eventArrivals)
         rows(data, "events").forEach { event ->
@@ -134,6 +140,7 @@ object PartLinks {
         val toEntries = link.to.kind == PartElement.Kind.ENTRIES
         val key = when {
             link.to.kind == PartElement.Kind.PROVIDER -> return text("share_link_routine_alone").format(name(link.from))
+            link.to.kind == PartElement.Kind.IDENTITY && link.from.kind == PartElement.Kind.TASK -> "share_link_task_to_element"
             link.to.kind == PartElement.Kind.IDENTITY && link.from.kind == PartElement.Kind.ZONE -> "share_link_zone_identity"
             link.to.kind == PartElement.Kind.IDENTITY -> "share_link_routine_identity"
             !link.blocking -> "share_link_routine"

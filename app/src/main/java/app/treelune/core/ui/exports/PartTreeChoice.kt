@@ -255,7 +255,12 @@ internal object Ticks {
                 selection.copy(zones = zones, identities = if (on) selection.identities + element.id else selection.identities - element.id,
                     zoneDetails = if (zoneOwn) selection.zoneDetails + zone!!.id else selection.zoneDetails)
             }
-            PartElement.Kind.TASK -> selection.copy(zones = zones, tasks = if (on) selection.tasks + element.id else selection.tasks - element.id)
+            PartElement.Kind.TASK -> {
+                // A Task ticked takes the identities it sends, which can be unticked on their own (the link then blocks)
+                val sent = tree.links.filter { it.from == PartElement(PartElement.Kind.TASK, element.id) && it.to.kind == PartElement.Kind.IDENTITY }.map { it.to.id }
+                selection.copy(zones = zones, tasks = if (on) selection.tasks + element.id else selection.tasks - element.id,
+                    identities = if (on) selection.identities + sent else selection.identities)
+            }
             PartElement.Kind.API -> selection.copy(apis = if (on) selection.apis + element.id else selection.apis - element.id)
             else -> {
                 // A routine ticked takes the identity it speaks as, which can be unticked on its own

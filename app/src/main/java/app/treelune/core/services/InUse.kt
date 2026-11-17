@@ -16,7 +16,9 @@ object InUse {
     /** The zones and the routines naming identity [identityId], by name. */
     suspend fun identity(database: AppDatabase, identityId: String): Users = Users(
         zones = database.zoneDao().getAllZones().filter { it.identity_id == identityId }.map { it.name },
-        routines = database.aiDao().getAllRoutines().filter { it.identityId == identityId }.map { it.name }
+        routines = database.aiDao().getAllRoutines().filter { it.identityId == identityId }.map { it.name },
+        // A Task that sends it to an API (an `assemble` step's identity)
+        tasks = database.taskDao().getAll().filter { identityId in app.treelune.core.tasks.StepObject.identitiesOf(it.stepsJson) }.map { it.name }
     )
 
     /** The Tasks one of whose steps calls API [apiId], by name. */

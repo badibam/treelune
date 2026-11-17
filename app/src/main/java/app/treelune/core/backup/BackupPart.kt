@@ -122,9 +122,10 @@ object BackupPart {
         (keptTools + keptVariables + keptRoutineRows + keptTasks).firstOrNull { it.getString("zone_id") !in selection.zones }?.let {
             throw IllegalArgumentException("${it.getString("id")} is kept without its zone ${it.getString("zone_id")}")
         }
-        // An identity goes with a zone kept with its details that speaks as it, or one of whose routines does
+        // An identity goes with a zone kept with its details that speaks as it, or one of whose
+        // routines does, or with a Task kept that sends it
         val spoken = (zones.filter { it.getString("id") in selection.zoneDetails } + routines.filter { it.getString("zone_id") in selection.zones })
-            .mapNotNull { identityOf(it) }.toSet()
+            .mapNotNull { identityOf(it) }.toSet() + keptTasks.flatMap { app.treelune.core.tasks.StepObject.identitiesOf(it.getString("steps_json")) }
         selection.identities.firstOrNull { it !in spoken }?.let { throw IllegalArgumentException("The identity $it is kept without a zone that speaks as it") }
         // What a zone or a routine kept speaks as: its identity when kept, the app's own AI otherwise
         fun spokenAs(row: JSONObject): Any = identityOf(row)?.takeIf { it in selection.identities } ?: JSONObject.NULL
