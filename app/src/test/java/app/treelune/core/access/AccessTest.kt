@@ -18,7 +18,8 @@ class AccessTest {
     private fun tool(id: String, level: AccessLevel) = AccessGrant(Reference(ReferenceKind.TOOL_INSTANCE, id), level)
 
     /**
-     * Health holds weight and meals, the variable kcal and the routine weekly, whose run is r1;
+     * Health holds weight and meals, the variable kcal, the routine weekly, whose run is r1, and
+     * the Task nightly, whose run is n1;
      * garden is elsewhere, with seeds. The file scan is an entry's of weight, plot one of seeds,
      * joined a conversation's.
      */
@@ -30,7 +31,7 @@ class AccessTest {
         override suspend fun readoutZone(readoutId: String): String? = null
         override suspend fun eventZone(eventId: String) = mapOf("ready" to "health")[eventId]
         override suspend fun runRoutine(runId: String) = mapOf("r1" to "weekly")[runId]
-        override suspend fun taskRunTask(runId: String): String? = null
+        override suspend fun taskRunTask(runId: String) = mapOf("n1" to "nightly")[runId]
         override suspend fun entryTool(entryId: String) = mapOf("w1" to "weight", "s1" to "seeds")[entryId]
         override suspend fun fileHolder(fileId: String) = mapOf("scan" to FileHolder.Tool("weight"), "plot" to FileHolder.Tool("seeds"), "joined" to FileHolder.Conversation)[fileId]
         override suspend fun zoneName(zoneId: String) = zoneId
@@ -222,5 +223,26 @@ class AccessTest {
         assertNotNull(reaches("""{"kind": "create_entry", "tool_instance_id": "seeds"}"""))
         assertNotNull(reaches("""{"kind": "call_api", "api_id": "a", "inputs": {"q": {"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "seeds"}}, "reduction": "FIRST"}}}}"""))
         assertNull(reaches("""{"kind": "call_api", "api_id": "a", "inputs": {"q": {"constant": "x"}}}"""))
+    }
+
+    /** A Task's run is held by its Task's zone: read with it, resumed and cancelled by using it. */
+    @Test
+    fun aTaskRunIsHeldByItsTasksZone() {
+        val read = AccessMask(listOf(zone("health", AccessLevel.READ)))
+        assertNull(refusal(read, "tasks", "get_run", mapOf("run_id" to "n1")))
+        assertNotNull(refusal(read, "tasks", "resume", mapOf("run_id" to "n1")))
+        assertNotNull(refusal(read, "tasks", "cancel", mapOf("run_id" to "n1")))
+        val use = AccessMask(listOf(zone("health", AccessLevel.USE)))
+        assertNull(refusal(use, "tasks", "resume", mapOf("run_id" to "n1")))
+        assertNotNull(refusal(AccessMask(listOf(zone("garden", AccessLevel.FULL))), "tasks", "get_run", mapOf("run_id" to "n1")))
+    }
+
+    /** A conversation is in no zone: under a mask, it is not read, whatever the zones given. */
+    @Test
+    fun theConversationsAreReadWithTheWholeAppAlone() {
+        val full = AccessMask(listOf(zone("health", AccessLevel.FULL)))
+        assertNotNull(refusal(full, "ai_sessions", "list", emptyMap()))
+        assertNotNull(refusal(full, "ai_sessions", "conversation_history", mapOf("session_id" to "c1")))
+        assertNull(refusal(AccessMask(), "ai_sessions", "list", emptyMap()))
     }
 }
