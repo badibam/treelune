@@ -18,14 +18,23 @@ import org.json.JSONObject
  * (MigrationPolicy). A value that loses it is removed; an entry that loses the value of a
  * required field of "data" is deleted, since it would no longer be a valid entry. Nothing is
  * invented: an entry lacking a value a field now requires takes the one whoever acts gave for
- * that field, and is counted when none was given.
+ * that field, and is counted when none was given. A name longer than the length the new config
+ * gives names is cut to it; cut names that would share a unique name are named, never written.
  *
  * Pure: the caller loads the entries and writes the plan.
  */
 object EntryMigration {
 
-    /** The fields a config gives the entries of its tool. */
-    data class Fields(val data: List<FixedField>, val extra: List<FieldDefinition>)
+    /**
+     * The fields a config gives the entries of its tool, and its names: how long one may be, and
+     * whether no two entries share one (EntryFields.nameLength, nameUnique).
+     */
+    data class Fields(
+        val data: List<FixedField>,
+        val extra: List<FieldDefinition>,
+        val nameLength: app.treelune.core.fields.TextLength = app.treelune.core.fields.TextLength.SHORT,
+        val nameUnique: Boolean = false
+    )
 
     /**
      * @property updated The kept entries whose content changes, rewritten
@@ -39,6 +48,10 @@ object EntryMigration {
      * @property removals Among [deleted], what the tool type's own rules remove, one sentence per
      *   reason, its count in it (RemovedByConfig); the rest lost the value of a required field
      * @property removedByRules How many of [deleted] the [removals] count
+     * @property namesCut The names cut to the new length of names, among [updated]
+     * @property nameLimit The new length of names, in characters
+     * @property nameCollisions The unique names two kept entries would share once cut: the plan
+     *   cannot be applied while one remains
      */
     data class Plan(
         val updated: List<ToolDataEntity>,
@@ -49,13 +62,16 @@ object EntryMigration {
         val reinterpreted: Int = 0,
         val changedMeaning: List<String> = emptyList(),
         val removals: List<String> = emptyList(),
-        val removedByRules: Int = 0
+        val removedByRules: Int = 0,
+        val namesCut: Int = 0,
+        val nameLimit: Int = 0,
+        val nameCollisions: List<String> = emptyList()
     ) {
         /** The entries deleted for the value of a required field they lost. */
         val deletedWithoutValue: Int get() = deleted.size - removedByRules
 
         /** Whether applying it loses something recorded. */
-        val losesData: Boolean get() = removedValues > 0 || deleted.isNotEmpty()
+        val losesData: Boolean get() = removedValues > 0 || deleted.isNotEmpty() || namesCut > 0
 
         /** Whether it touches what is recorded, lost or read otherwise: only an explicit agreement lets it through. */
         val touchesPast: Boolean get() = losesData || reinterpreted > 0
@@ -92,6 +108,9 @@ object EntryMigration {
         val meaningChanges = extraChanges.filter { it is FieldChange.TypeChanged || it is FieldChange.ScaleRangeChanged || it is FieldChange.ChoiceShapeChanged || it is FieldChange.ReferenceShapeChanged }
         val changedMeaning = mutableSetOf<String>()
         val missing = mutableMapOf<String, Int>()
+        // A name longer than the new length is cut to it, the spaces it ends on dropped
+        val nameLimit = new.nameLength.getLimit()
+        var namesCut = 0
 
         entries.forEach { entry ->
             val state = entry.state?.takeIf { it.isNotBlank() }?.let { JSONObject(it) }
@@ -120,6 +139,9 @@ object EntryMigration {
                 extraChanges.filter { FieldDataMigrator.reinterprets(it) }.count { change -> change.fieldName.let { newExtra[it] != null } })
             meaningChanges.mapNotNull { it.fieldName }.filter { extra[it] != null }.forEach { changedMeaning += it }
 
+            val name = entry.name?.let { if (it.length > nameLimit) it.take(nameLimit).trimEnd() else it }
+            if (name != entry.name) namesCut++
+
             var filled = false
             required.filter { name -> newData[name] == null && startedAt(newState, FieldContainer.DATA, name) == null }
                 .forEach { name ->
@@ -134,8 +156,9 @@ object EntryMigration {
                 }
 
             // A value converted to the field's new form is a change too
-            if (removedData.isNotEmpty() || removedExtra.isNotEmpty() || filled || newData != stored || newExtra != storedExtra) {
+            if (removedData.isNotEmpty() || removedExtra.isNotEmpty() || filled || newData != stored || newExtra != storedExtra || name != entry.name) {
                 updated.add(entry.copy(
+                    name = name,
                     data = JsonUtils.toJSONObject(newData).toString(),
                     extra = newExtra.takeIf { it.isNotEmpty() }?.let { JsonUtils.toJSONObject(it).toString() },
                     state = newState?.takeIf { it.length() > 0 }?.toString()
@@ -143,7 +166,22 @@ object EntryMigration {
             }
         }
 
-        return Plan(updated, deleted, removedValues, filledValues, missing, reinterpreted, changedMeaning.toList())
+        return Plan(updated, deleted, removedValues, filledValues, missing, reinterpreted, changedMeaning.toList(),
+            namesCut = namesCut, nameLimit = nameLimit, nameCollisions = if (new.nameUnique) collisions(entries, deleted, updated) else emptyList())
+    }
+
+    /**
+     * The unique names the kept entries would share once [updated] is written, a cut name among
+     * them: two entries that already shared one are no doing of the cut.
+     */
+    private fun collisions(entries: List<ToolDataEntity>, deleted: List<ToolDataEntity>, updated: List<ToolDataEntity>): List<String> {
+        val gone = deleted.map { it.id }.toSet()
+        val byId = updated.associateBy { it.id }
+        val kept = entries.filter { it.id !in gone }.map { (byId[it.id] ?: it) to it }
+        return kept.filter { (after, _) -> after.name != null }
+            .groupBy { (after, _) -> app.treelune.core.fields.CoreFields.uniqueKey(after.name!!) }
+            .values.filter { group -> group.size > 1 && group.any { (after, before) -> after.name != before.name } }
+            .map { group -> group.first().first.name!! }
     }
 
     /**

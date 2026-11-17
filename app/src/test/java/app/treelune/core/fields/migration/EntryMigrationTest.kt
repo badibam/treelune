@@ -171,4 +171,51 @@ class EntryMigrationTest {
         assertTrue(plan.updated.isEmpty())
         assertFalse(plan.losesData)
     }
+
+    private fun named(id: String, name: String) = ToolDataEntity(id, "tool", "structured", 0L, name, "{}", 0L, 0L, null, null)
+
+    private fun names(length: app.treelune.core.fields.TextLength) = EntryMigration.Fields(emptyList(), emptyList(), length, nameUnique = true)
+
+    /** A name longer than the new length is cut to it, and the cut asks for agreement. */
+    @Test
+    fun aShorterNameLengthCutsTheLongerNames() {
+        val long = "a".repeat(100) + " " + "b".repeat(100)
+        val plan = EntryMigration.plan(
+            old = names(app.treelune.core.fields.TextLength.MEDIUM),
+            new = names(app.treelune.core.fields.TextLength.SHORT),
+            entries = listOf(named("x", long), named("y", "Short"))
+        )
+
+        assertEquals(1, plan.namesCut)
+        assertEquals(60, plan.nameLimit)
+        assertEquals("a".repeat(60), plan.updated.single().name)
+        assertTrue(plan.touchesPast)
+        assertTrue(plan.nameCollisions.isEmpty())
+    }
+
+    /** Two names a cut makes one, the case not counted, are named: the plan cannot be written. */
+    @Test
+    fun namesTheCutMakesTheSameAreNamed() {
+        val plan = EntryMigration.plan(
+            old = names(app.treelune.core.fields.TextLength.MEDIUM),
+            new = names(app.treelune.core.fields.TextLength.SHORT),
+            entries = listOf(named("x", "c".repeat(60) + " one"), named("y", "C".repeat(60) + " two"), named("z", "Other"))
+        )
+
+        assertEquals(listOf("c".repeat(60)), plan.nameCollisions)
+    }
+
+    /** A longer length changes no name. */
+    @Test
+    fun aLongerNameLengthTouchesNothing() {
+        val plan = EntryMigration.plan(
+            old = names(app.treelune.core.fields.TextLength.SHORT),
+            new = names(app.treelune.core.fields.TextLength.LONG),
+            entries = listOf(named("x", "A name"))
+        )
+
+        assertEquals(0, plan.namesCut)
+        assertTrue(plan.updated.isEmpty())
+        assertFalse(plan.touchesPast)
+    }
 }

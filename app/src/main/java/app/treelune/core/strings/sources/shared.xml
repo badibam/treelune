@@ -1906,6 +1906,7 @@
     <string name="migration_part_removed">%1$d value(s) removed</string>
     <string name="migration_part_deleted">%1$d entry(ies) deleted for lack of a required value</string>
     <string name="migration_part_reinterpreted">%1$d value(s) kept but read differently (new bounds, order)</string>
+    <string name="migration_part_names_cut">%1$d name(s) cut to %2$d characters</string>
     <string name="migration_filters_aimed">A filter of %1$s uses an option this change removes or renames: it will find nothing until you change it.</string>
     <string name="migration_new_field_offer">To touch nothing, create a new field instead: the former one keeps its values, renamed %1$s.</string>
     <string name="migration_new_field">Create a new field</string>
@@ -1918,6 +1919,7 @@
     <string name="service_error_migration_unconfirmed">This change touches this tool\'s entries: %1$s. Tell the user, and send it again with "confirm_migration": true once they agree.</string>
     <string name="service_error_migration_filters_aimed">A filter of %1$s compares a field with an option this change removes or renames: it would find nothing. Tell the user, and send it again with "confirm_migration": true once they agree.</string>
     <string name="service_error_migration_missing_values">Entries have no value for a field this change makes required: %1$s. Give the value they take in "fill_values": {"data": {"field": value}}.</string>
+    <string name="service_error_migration_names_collide">Cut to %1$d characters, these names would be shared by two entries, when each name is unique: %2$s. Rename these entries first.</string>
     <string name="service_error_migration_fill_unknown">"fill_values" names %1$s, which is not a required field of "data" in this config</string>
 
     <!-- CUSTOM FIELDS - Labels for form field names -->

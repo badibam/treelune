@@ -502,10 +502,14 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
     }
 
     /** The fields [config] gives the entries of a tool of [toolType]. */
-    private fun entryFields(toolType: app.treelune.core.tools.ToolTypeContract, config: JSONObject) = EntryMigration.Fields(
-        data = toolType.getEntryFields(config, context).data,
-        extra = config.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList()
-    )
+    private fun entryFields(toolType: app.treelune.core.tools.ToolTypeContract, config: JSONObject) = toolType.getEntryFields(config, context).let { declared ->
+        EntryMigration.Fields(
+            data = declared.data,
+            extra = config.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList(),
+            nameLength = declared.nameLength,
+            nameUnique = declared.nameUnique
+        )
+    }
 
     /**
      * The names of the other tools whose filters compare a field of [tool] with an option the
@@ -599,13 +603,18 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
      * The refusal of [plan], or null when it can be applied: values it removes, entries it deletes
      * and values it reads otherwise need [confirmed] (docs/DATA.md, « Config change »), and an entry
      * left without the value of a field now required is never stored: the caller gives one in
-     * "fill_values".
+     * "fill_values". Names cut to a shorter length that two entries would then share are never
+     * written either: the entries are renamed first.
      *
      * The tools whose filters aim at an option taken out ([aimedBy]) need the same agreement.
      *
      * The refusal carries the counts in "migration", for the screen to show them.
      */
     private fun refuseMigration(plan: EntryMigration.Plan, aimedBy: List<String>, confirmed: Boolean): OperationResult? {
+        if (plan.nameCollisions.isNotEmpty()) {
+            return OperationResult.error(s.shared("service_error_migration_names_collide")
+                .format(plan.nameLimit, plan.nameCollisions.joinToString(", ") { s.shared("quoted").format(it) }), report(plan, aimedBy))
+        }
         if (plan.missing.isNotEmpty()) {
             val fields = plan.missing.entries.joinToString(", ") { (field, count) -> "data.$field ($count)" }
             return OperationResult.error(s.shared("service_error_migration_missing_values").format(fields), report(plan, aimedBy))
@@ -647,7 +656,10 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         "filled_values" to plan.filledValues,
         "missing_values" to mapOf("data" to plan.missing),
         "reinterpreted_values" to plan.reinterpreted,
-        "changed_meaning" to plan.changedMeaning
+        "changed_meaning" to plan.changedMeaning,
+        "names_cut" to plan.namesCut,
+        "name_limit" to plan.nameLimit,
+        "name_collisions" to plan.nameCollisions
     ))
 
     /** Writes [plan] to the entries of [tool], inside the caller's transaction. */
