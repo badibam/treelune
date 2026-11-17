@@ -24,9 +24,10 @@ object SchemaValidator {
     /**
      * The library's messages in the phone's language, read as the ISO-8859-1 its files are
      * written in: Android reads a properties bundle as UTF-8, which turned every accent of the
-     * French messages into a replacement character ("dépasser" shown as "d?passer").
+     * French messages into a replacement character ("dépasser" shown as "d?passer"). Every schema
+     * the app compiles takes it, VariantErrors' branches included.
      */
-    private val schemaConfig = com.networknt.schema.SchemaValidatorsConfig().apply {
+    internal val schemaConfig = com.networknt.schema.SchemaValidatorsConfig().apply {
         resourceBundle = messageBundle(java.util.Locale.getDefault())
     }
 

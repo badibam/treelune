@@ -78,4 +78,22 @@ class VariantErrorsTest {
     fun aValidValueHasNothingToExplain() {
         assertEquals(emptyList<String>(), errors("""{ "name": "Weight", "type": "numeric", "unit": "kg" }"""))
     }
+
+    /**
+     * A branch's errors, in the phone's language, keep their accents and apostrophes: the
+     * branch is validated with the validator's config, not the library's own bundle, which gave
+     * the AI "nest pas d?fini dans le sch?ma".
+     */
+    @Test
+    fun aBranchSaysItsErrorsWithTheirAccents() {
+        val config = SchemaValidator.schemaConfig
+        val before = config.resourceBundle
+        config.resourceBundle = SchemaValidator.messageBundle(java.util.Locale.FRENCH)
+        try {
+            val found = errors("""{ "name": "Mood", "type": "text", "unit": "kg" }""")
+            assertTrue(found.toString(), found.any { it.contains("n'est pas défini dans le schéma") })
+        } finally {
+            config.resourceBundle = before
+        }
+    }
 }

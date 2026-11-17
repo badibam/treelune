@@ -64,9 +64,10 @@ object VariantErrors {
         }
 
         // Validated alone, the branch's own paths start at "$": they are put back under the
-        // value's path. Its own variants are explained in turn.
+        // value's path. Its own variants are explained in turn. The validator's config gives the
+        // messages their accents and apostrophes, as for the whole schema.
         val branchSchema = JSONObject(branch.toString())
-        val found = factory.getSchema(mapper.readTree(branchSchema.toString())).validate(value)
+        val found = factory.getSchema(mapper.readTree(branchSchema.toString()), SchemaValidator.schemaConfig).validate(value)
         // Nothing wrong with the branch alone (more than one branch holds): the refusal stands
         if (found.isEmpty()) return listOf(error.message)
         val (others, explained) = sort(found, branchSchema, value)
