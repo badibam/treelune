@@ -321,7 +321,7 @@ object TaskSteps {
             ASSEMBLE -> objectParts(step).filterIsInstance<StepObject.Part.Pointer>().flatMap { part ->
                 reach("tool_data.get", mapOf("tool_instance_id" to (part.pointer.selection.target.id ?: "")))
             } + objectParts(step).filterIsInstance<StepObject.Part.Identity>().flatMap { part ->
-                reach("identities.get", mapOf("identity_id" to part.identityId))
+                reach("identities.read", mapOf("identity_id" to part.identityId))
             }
             else -> emptyList()
         }
