@@ -171,7 +171,7 @@ A communication module asks the user something through a form: you declare its f
 `communication_module` has one key, `fields`: the fields to fill in, in order. Each one is a field definition, as in a tool\'s `extra_fields` (same types, same `config`), with two differences:
 
 - `name` is **yours**: the key the answer comes back under, in snake_case, unique in the module
-- `required`: `true` when the user must answer the field before sending; `false` by default
+- `required`, beside `name` and never in `config`: `true` when the user must answer the field before sending; `false` by default
 
 **No field** (`"fields": []`) asks for a confirmation: the user confirms or cancels what your `pre_text` says.
 
