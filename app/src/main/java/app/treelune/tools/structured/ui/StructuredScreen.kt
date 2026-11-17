@@ -298,13 +298,14 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
                 UI.Button(type = ButtonType.SECONDARY, onClick = { if (openId == "") close() else editing = false }) { UI.Text(s.shared("action_cancel"), TextType.LABEL) }
             }
         } } } else if (openSheet != null && position != null) { item { Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
-            SheetView(openSheet, loadedConfig, context,
-                onPrevious = if (position > 0) ({ open(shown[position - 1]) }) else null,
-                onNext = if (position < shown.size - 1) ({ open(shown[position + 1]) }) else null)
+            // Its gestures above it: a long record keeps them in reach; its neighbours at its end, where reading stops
             app.treelune.core.ui.components.ButtonRow {
                 UI.Button(type = ButtonType.PRIMARY, onClick = { open(openSheet); editing = true }) { UI.Text(s.tool("action_edit"), TextType.LABEL) }
                 UI.ActionButton(action = ButtonAction.DELETE, onClick = { confirmDelete = true })
             }
+            SheetView(openSheet, loadedConfig, context,
+                onPrevious = if (position > 0) ({ open(shown[position - 1]) }) else null,
+                onNext = if (position < shown.size - 1) ({ open(shown[position + 1]) }) else null)
         } } }
     }
 

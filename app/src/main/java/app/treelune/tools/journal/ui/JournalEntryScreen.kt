@@ -389,6 +389,45 @@ fun JournalEntryScreen(
                 )
             }
         } else {
+            // Its gestures above it, under the page's title: a long entry keeps them in reach (back to top brings them back)
+            app.treelune.core.ui.components.ButtonRow(align = Alignment.End) {
+                // The entry as text: its date, its title, its content, then the user's fields
+                UI.ActionButton(
+                    action = ButtonAction.COPY,
+                    display = ButtonDisplay.LABEL,
+                    onClick = {
+                        coroutineScope.launch {
+                            UI.copy(context, app.treelune.core.fields.EntryText.of(
+                                listOf(DateFormatUtils.formatJournalDate(timestamp, context), title, content), toolConfig, customFieldsValues, context))
+                        }
+                    }
+                )
+
+                UI.ActionButton(
+                    action = ButtonAction.EDIT,
+                    display = ButtonDisplay.LABEL,
+                    onClick = { isEditing = true }
+                )
+
+                UI.ActionButton(
+                    action = ButtonAction.DELETE,
+                    display = ButtonDisplay.LABEL,
+                    requireConfirmation = true,
+                    confirmMessage = s.tool("confirm_delete_entry"),
+                    onClick = {
+                        coroutineScope.launch {
+                            val params = mapOf("id" to entryId)
+                            val result = coordinator.processUserAction("tool_data.delete", params)
+                            if (result?.isSuccess == true) {
+                                LogManager.ui("Successfully deleted journal entry: $entryId")
+                                onNavigateBack()
+                            } else {
+                                errorMessage = s.tool("error_entry_delete")
+                            }
+                        }
+                    }
+                )
+            }
             // Consultation mode: single card with all content (like JournalCard but full content)
             UI.Card(type = CardType.DEFAULT) {
                 Column(
@@ -431,45 +470,6 @@ fun JournalEntryScreen(
                 }
             }
 
-            // Action buttons in consultation mode (aligned right)
-            app.treelune.core.ui.components.ButtonRow(align = Alignment.End) {
-                // The entry as text: its date, its title, its content, then the user's fields
-                UI.ActionButton(
-                    action = ButtonAction.COPY,
-                    display = ButtonDisplay.LABEL,
-                    onClick = {
-                        coroutineScope.launch {
-                            UI.copy(context, app.treelune.core.fields.EntryText.of(
-                                listOf(DateFormatUtils.formatJournalDate(timestamp, context), title, content), toolConfig, customFieldsValues, context))
-                        }
-                    }
-                )
-
-                UI.ActionButton(
-                    action = ButtonAction.EDIT,
-                    display = ButtonDisplay.LABEL,
-                    onClick = { isEditing = true }
-                )
-
-                UI.ActionButton(
-                    action = ButtonAction.DELETE,
-                    display = ButtonDisplay.LABEL,
-                    requireConfirmation = true,
-                    confirmMessage = s.tool("confirm_delete_entry"),
-                    onClick = {
-                        coroutineScope.launch {
-                            val params = mapOf("id" to entryId)
-                            val result = coordinator.processUserAction("tool_data.delete", params)
-                            if (result?.isSuccess == true) {
-                                LogManager.ui("Successfully deleted journal entry: $entryId")
-                                onNavigateBack()
-                            } else {
-                                errorMessage = s.tool("error_entry_delete")
-                            }
-                        }
-                    }
-                )
-            }
         }
     }
 

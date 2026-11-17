@@ -242,6 +242,11 @@ private fun AttemptCard(
                 val units = if (left < app.treelune.core.fields.DurationUnit.HOUR.millis) app.treelune.core.fields.DurationUnits.MINUTE else app.treelune.core.fields.DurationUnits.DAY_HOUR
                 if (left > 0) UI.Text(s.tool("time_left").format(app.treelune.core.fields.Durations.format(left, units.units, Strings.`for`(context = context))), TextType.CAPTION)
             }
+            // Under its verdict, above its criteria: many criteria keep it in reach
+            app.treelune.core.ui.components.ButtonRow {
+                if (!locked) UI.Button(type = ButtonType.PRIMARY, onClick = onValidate) { UI.Text(s.tool("action_validate"), TextType.LABEL) }
+                else UI.Button(type = ButtonType.SECONDARY, onClick = onReopen) { UI.Text(s.tool("action_reopen"), TextType.LABEL) }
+            }
             criteria.forEach { row ->
                 val key = row["key"] as String
                 val criterion = definition.allCriteria.find { it.key == key }
@@ -274,10 +279,6 @@ private fun AttemptCard(
                 UI.Text("$name · " + s.tool("met_${(subMet as String).lowercase()}"), TextType.CAPTION)
             }
             UserFields(attempt, config, locked, onError, onSaved = { local++ })
-            app.treelune.core.ui.components.ButtonRow {
-                if (!locked) UI.Button(type = ButtonType.PRIMARY, onClick = onValidate) { UI.Text(s.tool("action_validate"), TextType.LABEL) }
-                else UI.Button(type = ButtonType.SECONDARY, onClick = onReopen) { UI.Text(s.tool("action_reopen"), TextType.LABEL) }
-            }
         }
     }
 }

@@ -276,8 +276,9 @@ private fun EntryView(entry: QuestionnaireEntry, title: String, config: JSONObje
     UI.Text(title, TextType.SUBTITLE)
     UI.Text(s.tool("status_${entry.status}"), TextType.CAPTION)
     if (!editing) {
-        CustomFieldsDisplay(QuestionnaireToolType, config, entry.answers, FieldsLayout.EXPANDED, context)
+        // Above the answers: many answers keep it in reach
         UI.Button(type = ButtonType.PRIMARY, onClick = { draft = entry.answers; editing = true }) { UI.Text(s.tool("action_edit"), TextType.LABEL) }
+        CustomFieldsDisplay(QuestionnaireToolType, config, entry.answers, FieldsLayout.EXPANDED, context)
     } else {
         CustomFieldsInput(customFieldsMetadata = questions, values = draft, onValuesChange = { draft = it }, context = context)
         app.treelune.core.ui.components.ButtonRow {

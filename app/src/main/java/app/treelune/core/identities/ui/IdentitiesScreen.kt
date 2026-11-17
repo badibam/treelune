@@ -62,7 +62,6 @@ fun IdentitiesScreen(onBack: () -> Unit) {
     // An export read, waiting for its confirmation: its text and its preview
     var importing by remember { mutableStateOf<Pair<String, Map<*, *>>?>(null) }
 
-
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri ?: return@rememberLauncherForActivityResult
         scope.launch {
@@ -324,6 +323,28 @@ fun IdentityScreen(id: String, onName: @Composable (String) -> Unit, onBack: () 
             }
         }
 
+        // Export and delete under its name and look: its long texts keep them in reach
+        UI.FormActions {
+            UI.Button(type = ButtonType.DEFAULT, onClick = {
+                scope.launch {
+                    val result = coordinator.processUserAction("identities.export", mapOf("identity_id" to id))
+                    if (result.isSuccess) exported = result.data!!["file_name"] as String to result.data!!["uri"] as String
+                    else UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
+                }
+            }) { UI.Text(s.shared("identity_export"), TextType.BODY) }
+            UI.ActionButton(
+                action = ButtonAction.DELETE,
+                requireConfirmation = true,
+                confirmMessage = s.shared("identity_delete_confirm").format(shown["name"] as String),
+                onClick = {
+                    scope.launch {
+                        val result = coordinator.processUserAction("identities.delete", mapOf("identity_id" to id))
+                        if (result.isSuccess) onGone() else UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
+                    }
+                }
+            )
+        }
+
         // The language its texts are shown and written in
         if (languages.size > 1) UI.FormSelection(label = s.shared("identity_section"), options = languages, selected = section, onSelect = { section = it }, required = true)
 
@@ -353,26 +374,6 @@ fun IdentityScreen(id: String, onName: @Composable (String) -> Unit, onBack: () 
             UI.Button(type = ButtonType.DEFAULT, onClick = { editingResource = "" }) { UI.Text(s.shared("identity_resource_add"), TextType.BODY) }
         }
 
-        UI.FormActions {
-            UI.Button(type = ButtonType.DEFAULT, onClick = {
-                scope.launch {
-                    val result = coordinator.processUserAction("identities.export", mapOf("identity_id" to id))
-                    if (result.isSuccess) exported = result.data!!["file_name"] as String to result.data!!["uri"] as String
-                    else UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
-                }
-            }) { UI.Text(s.shared("identity_export"), TextType.BODY) }
-            UI.ActionButton(
-                action = ButtonAction.DELETE,
-                requireConfirmation = true,
-                confirmMessage = s.shared("identity_delete_confirm").format(shown["name"] as String),
-                onClick = {
-                    scope.launch {
-                        val result = coordinator.processUserAction("identities.delete", mapOf("identity_id" to id))
-                        if (result.isSuccess) onGone() else UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
-                    }
-                }
-            )
-        }
     }
 
     exported?.let { (name, uri) -> ExportedDialog(name, uri, onDismiss = { exported = null }) }
