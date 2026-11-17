@@ -266,7 +266,9 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
                 onSort = { key -> if (key == sortKey) ascending = !ascending else { sortKey = key; ascending = true } },
                 onOpen = { open(it) })
         } else if (editing) { item { Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
-            UI.FormField(label = s.shared("label_name"), value = draftName, onChange = { draftName = it }, fieldType = FieldType.TEXT, required = true)
+            // The name takes the length the config gives it
+            UI.FormField(label = s.shared("label_name"), value = draftName, onChange = { draftName = it },
+                fieldType = StructuredToolType.nameLength(loadedConfig, context).input, required = true)
             CustomFieldsInput(customFieldsMetadata = fields, values = draftExtra, onValuesChange = { draftExtra = it }, context = context, newEntry = openId == "")
             app.treelune.core.ui.components.ButtonRow {
                 UI.Button(type = ButtonType.PRIMARY, state = if (draftName.isNotBlank()) app.treelune.core.ui.ComponentState.NORMAL else app.treelune.core.ui.ComponentState.DISABLED, onClick = {
@@ -380,7 +382,8 @@ private fun LazyListScope.sheetsTable(
     item { UI.Divider() }
     items(sheets, key = { it.id }) { sheet ->
         Row(modifier = Modifier.fillMaxWidth().clickable { onOpen(sheet) }.padding(vertical = UI.Space.XS), horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-            Box(modifier = Modifier.weight(1f)) { UI.Text(sheet.name, TextType.BODY) }
+            // A long name (the config's name_length) cut at three lines: the sheet opened says it all
+            Box(modifier = Modifier.weight(1f)) { UI.Text(sheet.name, TextType.BODY, maxLines = 3) }
             columns.forEach { field ->
                 Box(modifier = Modifier.weight(1f)) {
                     sheet.extra[field.name]?.let { FieldValue(field, it, context, oneLine = true) }
@@ -390,7 +393,11 @@ private fun LazyListScope.sheetsTable(
     }
 }
 
-/** One sheet, every field in full; a swipe or the buttons lead to its neighbours. */
+/**
+ * One sheet, its name and every field in full; a swipe or the buttons lead to its neighbours. The
+ * name heads it, whatever its length: the page's title, which every theme cuts at one or two
+ * lines, may not hold it.
+ */
 @Composable
 private fun SheetView(sheet: Sheet, config: JSONObject, context: android.content.Context, onPrevious: (() -> Unit)?, onNext: (() -> Unit)?) {
     val s = remember { Strings.`for`(tool = "structured", context = context) }
@@ -410,6 +417,7 @@ private fun SheetView(sheet: Sheet, config: JSONObject, context: android.content
         },
         verticalArrangement = Arrangement.spacedBy(UI.Space.M)
     ) {
+        UI.Text(sheet.name, TextType.STRONG)
         CustomFieldsDisplay(StructuredToolType, config, sheet.extra, FieldsLayout.EXPANDED, context)
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             UI.ActionButton(action = ButtonAction.LEFT, display = ButtonDisplay.ICON, size = Size.S, enabled = onPrevious != null, onClick = { onPrevious?.invoke() })

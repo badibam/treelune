@@ -38,16 +38,8 @@ fun FieldInput(
 ) {
     when (fieldDef.type) {
         app.treelune.core.fields.FieldType.TEXT -> {
-            // Determine UI field type based on config.length
-            val lengthStr = fieldDef.config?.get("length") as? String
-            val length = TextLength.fromString(lengthStr)
-
-            val uiFieldType = when (length) {
-                TextLength.SHORT -> UIFieldType.TEXT
-                TextLength.MEDIUM -> UIFieldType.TEXT_MEDIUM
-                TextLength.LONG -> UIFieldType.TEXT_LONG
-                TextLength.UNLIMITED, TextLength.JSON -> UIFieldType.TEXT_UNLIMITED
-            }
+            // The input of the field's length (config.length)
+            val uiFieldType = TextLength.fromString(fieldDef.config?.get("length") as? String).input
 
             UI.FormField(
                 label = fieldDef.displayName,

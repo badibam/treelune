@@ -15,6 +15,8 @@
     <!-- Setting -->
     <string name="field_table_columns">Columns of the table</string>
     <string name="schema_config_table_columns">How many of the user\'s fields (extra_fields, in their order) the table shows after the name</string>
+    <string name="field_name_length">Length of the names</string>
+    <string name="schema_config_name_length">How long a record\'s name may be: SHORT (60 characters, a few words), MEDIUM (250, a sentence) or LONG (1,500, a paragraph). The name stays required and unique, and is what finds a record</string>
 
     <!-- Screen -->
     <string name="table_empty">No record yet</string>

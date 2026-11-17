@@ -61,6 +61,8 @@ data class StateField(
  * @property nameUnique Whether no two entries of a tool instance share a name, the case and the
  *   spaces around not counted: the name is what finds an entry (a record of a Records tool), and
  *   the service refuses a duplicate, naming the entry that has it
+ * @property nameLength How long a name may be: a few words by default, longer where the tool
+ *   type lets its config say so (a Records tool whose names are sentences)
  * @property nameLabel The shared key of the name's label: a name, or the title a journal entry and
  *   a note have, so that a form and a refusal call it what it is
  * @property start What an entry starts as, when the entries live by a status (EntryStart)
@@ -68,6 +70,7 @@ data class StateField(
 data class EntryFields(
     val name: CoreFieldUsage = CoreFieldUsage.REQUIRED,
     val nameUnique: Boolean = false,
+    val nameLength: TextLength = TextLength.SHORT,
     val nameLabel: String = CoreFields.NAME_LABEL,
     val timestamp: CoreFieldUsage = CoreFieldUsage.OPTIONAL,
     val data: List<FixedField> = emptyList(),
@@ -183,17 +186,18 @@ class EntryStart(
 object CoreFields {
 
     /**
-     * A short text naming the entry, under the label of the shared key [label] (EntryFields.nameLabel);
+     * A text naming the entry, under the label of the shared key [label] (EntryFields.nameLabel);
      * [unique] when no two entries of a tool share it, which a filter on it then compares the
-     * same way, the case and the spaces around not counted.
+     * same way, the case and the spaces around not counted; [length] its tool type's
+     * (EntryFields.nameLength), a few words by default.
      */
-    fun name(text: (String) -> String, unique: Boolean = false, label: String = NAME_LABEL) = FieldDefinition(
+    fun name(text: (String) -> String, unique: Boolean = false, label: String = NAME_LABEL, length: TextLength = TextLength.SHORT) = FieldDefinition(
         name = "name",
         displayName = text(label),
         description = text(if (unique) "tools_base_schema_data_name_unique" else "tools_base_schema_data_name"),
         type = FieldType.TEXT,
         alwaysVisible = false,
-        config = mapOf("length" to TextLength.SHORT.name) + (if (unique) mapOf(UNIQUE to true) else emptyMap())
+        config = mapOf("length" to length.name) + (if (unique) mapOf(UNIQUE to true) else emptyMap())
     )
 
     /** The shared key of a name's label, unless the tool type calls it otherwise. */
@@ -277,7 +281,7 @@ object EntrySchemaGenerator {
 
         // The core's fields. An ABSENT one is not declared, and additionalProperties refuses it.
         // Their meaning in the type is the first level's (EntryDescription)
-        coreField(properties, required, CoreFields.name(text, label = declared.nameLabel).copy(description = null), declared.name, text)?.put("minLength", 1)
+        coreField(properties, required, CoreFields.name(text, label = declared.nameLabel, length = declared.nameLength).copy(description = null), declared.name, text)?.put("minLength", 1)
         coreField(properties, required, CoreFields.timestamp(text).copy(description = null), declared.timestamp, text)
         properties.put("created_at", FieldValueSchema.forReader(CoreFields.createdAt(text), text).put("system_managed", true))
         properties.put("updated_at", FieldValueSchema.forReader(CoreFields.updatedAt(text), text).put("system_managed", true))

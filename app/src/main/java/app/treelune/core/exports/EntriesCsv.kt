@@ -32,7 +32,7 @@ object EntriesCsv {
      * itself in a state (a reminder sent) are not the entry's.
      */
     fun columns(declared: EntryFields, extra: List<FieldDefinition>, text: (String) -> String): List<Column> = buildList {
-        if (declared.name != CoreFieldUsage.ABSENT) add(Column("name", CoreFields.name(text, declared.nameUnique)))
+        if (declared.name != CoreFieldUsage.ABSENT) add(Column("name", CoreFields.name(text, declared.nameUnique, length = declared.nameLength)))
         if (declared.timestamp != CoreFieldUsage.ABSENT) add(Column("timestamp", CoreFields.timestamp(text)))
         declared.data.forEach { add(Column("data.${it.definition.name}", it.definition)) }
         extra.forEach { add(Column("extra.${it.name}", it)) }

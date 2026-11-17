@@ -28,6 +28,16 @@ object StructuredToolType : ToolTypeContract {
     /** How many of the user's fields the table shows as columns, after the name. */
     const val TABLE_COLUMNS = "table_columns"
 
+    /** How long a sheet's name may be: one of [NAME_LENGTHS], a few words by default. */
+    const val NAME_LENGTH = "name_length"
+
+    /** The lengths a name may take: a text field's, but those a name found by can hold. */
+    private val NAME_LENGTHS = listOf(app.treelune.core.fields.TextLength.SHORT, app.treelune.core.fields.TextLength.MEDIUM, app.treelune.core.fields.TextLength.LONG)
+
+    /** The length of a sheet's name in [config], its default when the config says none. */
+    fun nameLength(config: JSONObject, context: Context): app.treelune.core.fields.TextLength =
+        app.treelune.core.fields.TextLength.valueOf(app.treelune.core.tools.ToolConfigSettings.read(this, config, context).string(NAME_LENGTH)!!)
+
     override fun getDisplayName(context: Context): String =
         Strings.`for`(tool = "structured", context = context).tool("display_name")
 
@@ -50,13 +60,21 @@ object StructuredToolType : ToolTypeContract {
                 FieldType.NUMERIC, false, mapOf("min" to 0, "decimals" to 0)),
             required = true,
             default = 2
+        ), app.treelune.core.fields.settings.SettingNode.Field(
+            FieldDefinition(NAME_LENGTH, s.tool("field_name_length"), s.tool("schema_config_name_length"),
+                FieldType.CHOICE, false, mapOf("options" to app.treelune.core.fields.ChoiceSettings.storedOptions(
+                    NAME_LENGTHS.map { it.name },
+                    NAME_LENGTHS.associate { it.name to s.shared("text_length_${it.name.lowercase()}_display_name") }))),
+            required = true,
+            default = app.treelune.core.fields.TextLength.SHORT.name
         ))
     }
 
-    /** A sheet: its name, required and unique; no date; nothing of the tool type in data. */
+    /** A sheet: its name, required, unique, as long as the config says; no date; nothing of the tool type in data. */
     override fun getEntryFields(config: JSONObject, context: Context): EntryFields = EntryFields(
         name = CoreFieldUsage.REQUIRED,
         nameUnique = true,
+        nameLength = nameLength(config, context),
         timestamp = CoreFieldUsage.ABSENT
     )
 

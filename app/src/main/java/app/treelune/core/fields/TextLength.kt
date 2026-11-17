@@ -62,6 +62,14 @@ enum class TextLength {
      */
     val formatted: Boolean get() = this == LONG || this == UNLIMITED
 
+    /** The input that takes a text of this length: its limit and its lines. */
+    val input: app.treelune.core.ui.FieldType get() = when (this) {
+        SHORT -> app.treelune.core.ui.FieldType.TEXT
+        MEDIUM -> app.treelune.core.ui.FieldType.TEXT_MEDIUM
+        LONG -> app.treelune.core.ui.FieldType.TEXT_LONG
+        UNLIMITED, JSON -> app.treelune.core.ui.FieldType.TEXT_UNLIMITED
+    }
+
     /**
      * Get the numeric limit for this text length.
      * Maps to FieldLimits constants for consistency across the app.

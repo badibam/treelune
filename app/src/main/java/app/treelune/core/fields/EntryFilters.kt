@@ -117,7 +117,7 @@ object EntryFilters {
         extra: List<FieldDefinition>,
         text: (String) -> String
     ): Map<String, FieldDefinition> = buildMap {
-        if (declared.name != CoreFieldUsage.ABSENT) put("name", CoreFields.name(text, declared.nameUnique, declared.nameLabel))
+        if (declared.name != CoreFieldUsage.ABSENT) put("name", CoreFields.name(text, declared.nameUnique, declared.nameLabel, declared.nameLength))
         if (declared.timestamp != CoreFieldUsage.ABSENT) put("timestamp", CoreFields.timestamp(text))
         put("created_at", CoreFields.createdAt(text))
         put("updated_at", CoreFields.updatedAt(text))

@@ -165,7 +165,7 @@ internal class ReadableChanges(private val context: Context, private val databas
         return Describe { column, key ->
             val field = when {
                 declared == null -> null
-                column == "name" && key == null && declared.name != CoreFieldUsage.ABSENT -> CoreFields.name(s::shared)
+                column == "name" && key == null && declared.name != CoreFieldUsage.ABSENT -> CoreFields.name(s::shared, length = declared.nameLength)
                 column == "timestamp" && key == null && declared.timestamp != CoreFieldUsage.ABSENT -> CoreFields.timestamp(s::shared)
                 column == "data" -> declared.data.firstOrNull { it.definition.name == key && !it.systemWritten }?.definition
                 column == "state" -> declared.state.firstOrNull { it.definition.name == key && !it.bookkeeping }?.definition

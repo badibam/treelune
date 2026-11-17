@@ -15,6 +15,8 @@
     <!-- Setting -->
     <string name="field_table_columns">Colonnes du tableau</string>
     <string name="schema_config_table_columns">Combien des champs de l\'utilisateur (extra_fields, dans leur ordre) le tableau montre après le nom</string>
+    <string name="field_name_length">Longueur des noms</string>
+    <string name="schema_config_name_length">La longueur que peut prendre le nom d\'une fiche : SHORT (60 caractères, quelques mots), MEDIUM (250, une phrase) ou LONG (1 500, un paragraphe). Le nom reste obligatoire et unique, et c\'est par lui qu\'on retrouve une fiche</string>
 
     <!-- Screen -->
     <string name="table_empty">Aucune fiche pour l\'instant</string>
