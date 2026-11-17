@@ -17,7 +17,7 @@ fun ButtonAction.defaultType(): ButtonType {
         ButtonAction.DELETE, ButtonAction.STOP -> ButtonType.DANGER
 
         // DEFAULT: Actions neutres/navigation standard
-        ButtonAction.CANCEL, ButtonAction.BACK, ButtonAction.REFRESH, ButtonAction.RESET, ButtonAction.LEFT, ButtonAction.RIGHT, ButtonAction.UP, ButtonAction.DOWN, ButtonAction.ARRANGE, ButtonAction.INTERRUPT, ButtonAction.PAUSE, ButtonAction.RESUME, ButtonAction.VIEW, ButtonAction.HISTORY, ButtonAction.GUIDE, ButtonAction.COPY, ButtonAction.IDENTITY, ButtonAction.STATS, ButtonAction.BULLET_LIST, ButtonAction.NUMBERED_LIST -> ButtonType.DEFAULT
+        ButtonAction.CANCEL, ButtonAction.BACK, ButtonAction.TO_TOP, ButtonAction.REFRESH, ButtonAction.RESET, ButtonAction.LEFT, ButtonAction.RIGHT, ButtonAction.UP, ButtonAction.DOWN, ButtonAction.ARRANGE, ButtonAction.INTERRUPT, ButtonAction.PAUSE, ButtonAction.RESUME, ButtonAction.VIEW, ButtonAction.HISTORY, ButtonAction.GUIDE, ButtonAction.COPY, ButtonAction.IDENTITY, ButtonAction.STATS, ButtonAction.BULLET_LIST, ButtonAction.NUMBERED_LIST -> ButtonType.DEFAULT
     }
 }
 
@@ -45,6 +45,7 @@ fun ButtonAction.label(): String {
         ButtonAction.LEFT -> s.shared("action_left")
         ButtonAction.RIGHT -> s.shared("action_right")
         ButtonAction.AI_CHAT -> s.shared("action_ai_chat")
+        ButtonAction.TO_TOP -> s.shared("action_to_top")
         ButtonAction.INTERRUPT -> s.shared("action_interrupt")
         ButtonAction.STOP -> s.shared("action_stop")
         ButtonAction.PAUSE -> s.shared("action_pause")

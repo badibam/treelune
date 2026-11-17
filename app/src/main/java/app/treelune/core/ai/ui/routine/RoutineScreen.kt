@@ -1,6 +1,7 @@
 package app.treelune.core.ai.ui.routine
 
 import app.treelune.core.selection.PeriodType
+import app.treelune.core.ui.pageScroll
 import app.treelune.core.selection.Period
 import app.treelune.core.selection.normalizeTimestampWithConfig
 import app.treelune.core.selection.getPeriodEndTimestamp
@@ -275,8 +276,7 @@ fun RoutineScreen(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .chatButtonSpace()
+            .pageScroll()
             .padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {

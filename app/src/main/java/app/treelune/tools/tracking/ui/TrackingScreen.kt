@@ -1,6 +1,7 @@
 package app.treelune.tools.tracking.ui
 
 import androidx.compose.foundation.layout.*
+import app.treelune.core.ui.pageScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
@@ -88,7 +89,7 @@ fun TrackingScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()).chatButtonSpace()
+            .pageScroll()
             .padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {

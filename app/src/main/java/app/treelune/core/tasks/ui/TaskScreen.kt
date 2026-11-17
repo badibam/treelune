@@ -24,7 +24,7 @@ import app.treelune.core.tasks.Task
 import app.treelune.core.ui.ButtonAction
 import app.treelune.core.ui.ButtonType
 import app.treelune.core.ui.CardType
-import app.treelune.core.ui.chatButtonSpace
+import app.treelune.core.ui.pageScroll
 import app.treelune.core.ui.Duration
 import app.treelune.core.ui.Size
 import app.treelune.core.ui.TextType
@@ -79,7 +79,7 @@ fun TaskScreen(place: Place.Task, onName: (String) -> Unit, onBack: () -> Unit) 
     onName(shown.name)
 
     Column(
-        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).chatButtonSpace().padding(vertical = UI.Space.L),
+        modifier = Modifier.fillMaxWidth().pageScroll().padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(

@@ -203,6 +203,8 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
     // A lazy list: only the rows on screen are composed, whatever the size of the table
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
+        // Handed to « back to top »
+        state = app.treelune.core.ui.rememberPageListState(),
         // The chat's button floats at the bottom: room for it after the last row
         contentPadding = PaddingValues(top = UI.Space.L, bottom = UI.Space.L + app.treelune.core.ui.chatButtonEnd()),
         verticalArrangement = Arrangement.spacedBy(UI.Space.M)

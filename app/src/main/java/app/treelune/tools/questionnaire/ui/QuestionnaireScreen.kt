@@ -2,7 +2,7 @@ package app.treelune.tools.questionnaire.ui
 
 import app.treelune.core.fields.defaultValues
 import app.treelune.core.ui.components.ButtonRow
-import app.treelune.core.ui.chatButtonSpace
+import app.treelune.core.ui.pageScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -155,7 +155,7 @@ fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onCo
     val history = loaded.filter { it.status != QuestionnaireToolType.Status.TO_FILL }.sortedByDescending { it.timestamp }
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(vertical = UI.Space.L),
+        modifier = Modifier.fillMaxSize().pageScroll().padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(
@@ -250,7 +250,7 @@ private fun Passing(
         mutableStateOf(questions.filter { it.name !in given }.defaultValues() + given)
     }
     var index by rememberSaveable { mutableIntStateOf(questions.indexOfFirst { entry?.answers?.get(it.name) == null }.coerceAtLeast(0)) }
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(vertical = UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.L)) {
+    Column(modifier = Modifier.fillMaxSize().pageScroll().padding(vertical = UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.L)) {
         UI.PageHeader(title = s.tool("passing_title").format(index + 1, questions.size), leftButton = ButtonAction.BACK, onLeftClick = onCancel)
         if (questions.isEmpty()) { UI.Text(s.tool("no_question"), TextType.CAPTION); return@Column }
         val question = questions[index]

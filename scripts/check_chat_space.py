@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Check that every screen the chat's button floats over leaves room for it at its end.
+"""Check that every screen the chat's button floats over leaves room for it at its end, and hands
+its scroll to the « back to top » button facing it.
 
 The chat's button floats at the bottom right of the places one reads (Place.chatButton): the
-home screen, a zone, a tool, the Guide, a routine. A screen of such a place puts
-`.chatButtonSpace()` after its `verticalScroll`, or `chatButtonEnd()` in a lazy list's bottom
-content padding; without it, its last line hides under the button, and only a phone shows it.
+home screen, a zone, a tool, the Guide, a routine. A screen of such a place scrolls by
+`.pageScroll()`, which leaves the room and hands the scroll over, or is a lazy list holding
+`rememberPageListState()` with `chatButtonEnd()` in its bottom content padding; without it, its last
+line hides under the button, or « back to top » never shows, and only a phone shows it.
 
 The places marked in Place.kt are mapped to their screens' files below; a place marked and not
 mapped fails, so that a new place gets its screen named here. A tool place stands for every tool
@@ -39,7 +41,14 @@ SCREENS = {
     "task_run": [APP / "core" / "tasks" / "ui" / "TaskRunScreen.kt"],
 }
 
-ROOM = re.compile(r"\.chatButtonSpace\(\)|chatButtonEnd\(\)")
+PAGE_SCROLL = re.compile(r"\.pageScroll\(")
+PAGE_LIST = re.compile(r"rememberPageListState\(\)")
+LIST_ROOM = re.compile(r"chatButtonEnd\(\)")
+
+
+def has_room(body):
+    """Whether [body] scrolls as a page of a place one reads: by pageScroll, or a lazy list handed over and leaving room."""
+    return bool(PAGE_SCROLL.search(body) or (PAGE_LIST.search(body) and LIST_ROOM.search(body)))
 SCROLLS = re.compile(r"\.verticalScroll\(|\bLazyColumn\(|\bLazyVerticalGrid\(")
 TOP_FUN = re.compile(r"^(?:(?:private|internal) )?fun (?:[\w.]+\.)?([A-Z]\w*)\(", re.M)
 
@@ -97,8 +106,8 @@ def main():
         if kind == "tool":
             for path, name, body in tool_screens():
                 checked.add(path)
-                if SCROLLS.search(body) and not ROOM.search(body) and "HideChatButton" not in body:
-                    problems.append(f"{path.relative_to(ROOT)}: {name} scrolls with no room for the chat's button (chatButtonSpace / chatButtonEnd)")
+                if SCROLLS.search(body) and not has_room(body) and "HideChatButton" not in body:
+                    problems.append(f"{path.relative_to(ROOT)}: {name} scrolls with no room for the chat's button (pageScroll, or rememberPageListState with chatButtonEnd)")
             continue
         files = SCREENS.get(kind)
         if files is None:
@@ -108,8 +117,8 @@ def main():
             if path in checked:
                 continue
             checked.add(path)
-            if not ROOM.search(path.read_text(encoding="utf-8")):
-                problems.append(f"{path.relative_to(ROOT)}: no room for the chat's button (chatButtonSpace / chatButtonEnd)")
+            if not has_room(path.read_text(encoding="utf-8")):
+                problems.append(f"{path.relative_to(ROOT)}: no room for the chat's button (pageScroll, or rememberPageListState with chatButtonEnd)")
     for problem in problems:
         print(problem)
     if problems:

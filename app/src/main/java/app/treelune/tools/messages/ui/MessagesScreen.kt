@@ -1,6 +1,7 @@
 package app.treelune.tools.messages.ui
 
 import app.treelune.core.markup.ui.MarkupText
+import app.treelune.core.ui.pageScroll
 import app.treelune.core.utils.StoredSchedule
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -257,7 +258,7 @@ private fun ReceivedTab(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState()).chatButtonSpace()
+            .pageScroll()
             .padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
@@ -436,7 +437,7 @@ private fun UpcomingTab(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState()).chatButtonSpace()
+            .pageScroll()
             .padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {

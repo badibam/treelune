@@ -1,5 +1,7 @@
 package app.treelune.core.ui.screens
 
+import kotlinx.coroutines.launch
+import app.treelune.core.ui.pageScroll
 import app.treelune.core.utils.JsonUtils
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
@@ -155,6 +157,13 @@ fun MainScreen(openToolId: String? = null, openEntryId: String? = null, onToolOp
                     CompositionLocalProvider(LocalBreadcrumb provides breadcrumb) {
                         PlaceScreen(base, zones, demoInstalled)
                     }
+                }
+            }
+            // Back to the top of the page, facing the chat's button: once the top is a screen away
+            if (base.chatButton && Navigator.top != Place.Chat && !ChatButton.hidden && !app.treelune.core.ui.keyboardOpen() && app.treelune.core.ui.ScrollTop.shown) {
+                val scope = androidx.compose.runtime.rememberCoroutineScope()
+                Box(modifier = Modifier.align(Alignment.BottomStart).padding(UI.Space.L)) {
+                    UI.FloatingButton(action = ButtonAction.TO_TOP, onClick = { scope.launch { app.treelune.core.ui.ScrollTop.toTop() } })
                 }
             }
             // The chat's button, floating over the places one reads, measured for the room they leave
@@ -528,8 +537,7 @@ private fun HomeScreenBody(zones: ZonesState) {
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .chatButtonSpace()
+                .pageScroll()
                 .padding(vertical = UI.Space.L),
             verticalArrangement = Arrangement.spacedBy(UI.Space.L)
         ) {

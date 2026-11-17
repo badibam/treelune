@@ -41,7 +41,7 @@ import app.treelune.core.ui.NullablePeriodSaver
 import app.treelune.core.ui.Size
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
-import app.treelune.core.ui.chatButtonSpace
+import app.treelune.core.ui.pageScroll
 import app.treelune.core.selection.Period
 import app.treelune.core.selection.PeriodType
 import app.treelune.core.ui.components.SinglePeriodSelector
@@ -189,7 +189,7 @@ fun AgendaScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()).chatButtonSpace()
+            .pageScroll()
             .padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {

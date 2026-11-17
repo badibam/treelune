@@ -1,6 +1,6 @@
 package app.treelune.tools.goal.ui
 
-import app.treelune.core.ui.chatButtonSpace
+import app.treelune.core.ui.pageScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -124,7 +124,7 @@ fun GoalScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
     val history = loaded.filter { it.status in GoalToolType.Status.LOCKED }.sortedByDescending { it.start }
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(vertical = UI.Space.L),
+        modifier = Modifier.fillMaxSize().pageScroll().padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(

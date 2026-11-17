@@ -29,7 +29,7 @@ import app.treelune.core.ui.Duration
 import app.treelune.core.ui.Size
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
-import app.treelune.core.ui.chatButtonSpace
+import app.treelune.core.ui.pageScroll
 import app.treelune.core.utils.FormatUtils
 import kotlinx.coroutines.launch
 
@@ -72,7 +72,7 @@ fun TaskRunScreen(place: Place.TaskRun, onTaskName: (String) -> Unit, onBack: ()
     val state = TaskRun.State.of(shown["state"] as String)
 
     Column(
-        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).chatButtonSpace().padding(vertical = UI.Space.L),
+        modifier = Modifier.fillMaxWidth().pageScroll().padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(

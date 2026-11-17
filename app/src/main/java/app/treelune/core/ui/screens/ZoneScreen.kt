@@ -1,6 +1,7 @@
 package app.treelune.core.ui.screens
 
 import app.treelune.core.utils.JsonUtils
+import app.treelune.core.ui.pageScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -203,8 +204,7 @@ private fun ZoneScreenBody(zone: Zone) {
         modifier = Modifier
             .weight(1f)
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .chatButtonSpace()
+            .pageScroll()
             .padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {

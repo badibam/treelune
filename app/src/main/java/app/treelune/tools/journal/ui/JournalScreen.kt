@@ -1,6 +1,7 @@
 package app.treelune.tools.journal.ui
 
 import androidx.compose.foundation.layout.*
+import app.treelune.core.ui.pageScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
@@ -215,7 +216,7 @@ fun JournalScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()).chatButtonSpace()
+                .pageScroll()
                 .padding(vertical = UI.Space.L)
         ) {
             // Coming back, what it showed stays while it reads again (Shown)

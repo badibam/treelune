@@ -1,6 +1,6 @@
 package app.treelune.tools.flashcards.ui
 
-import app.treelune.core.ui.chatButtonSpace
+import app.treelune.core.ui.pageScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -100,7 +100,7 @@ fun FlashcardsSessionView(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(vertical = UI.Space.L).verticalScroll(rememberScrollState()).chatButtonSpace(),
+        modifier = Modifier.fillMaxSize().padding(vertical = UI.Space.L).pageScroll(),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(

@@ -1,7 +1,7 @@
 package app.treelune.tools.sequence.ui
 
 import app.treelune.core.markup.ui.MarkupText
-import app.treelune.core.ui.chatButtonSpace
+import app.treelune.core.ui.pageScroll
 import android.content.Context
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.clickable
@@ -198,7 +198,7 @@ fun SequenceScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigu
     val fields = loadedConfig.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList()
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(vertical = UI.Space.L),
+        modifier = Modifier.fillMaxSize().pageScroll().padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(

@@ -1,6 +1,6 @@
 package app.treelune.tools.list.ui
 
-import app.treelune.core.ui.chatButtonSpace
+import app.treelune.core.ui.pageScroll
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -141,7 +141,7 @@ fun ListScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()).chatButtonSpace()
+            .pageScroll()
             .padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {

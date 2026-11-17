@@ -31,7 +31,7 @@ import app.treelune.core.ui.DialogType
 import app.treelune.core.ui.Duration
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
-import app.treelune.core.ui.chatButtonSpace
+import app.treelune.core.ui.pageScroll
 import app.treelune.core.utils.DataChangeNotifier
 import app.treelune.core.utils.JsonUtils
 import app.treelune.tools.flashcards.FlashcardsToolType
@@ -108,7 +108,7 @@ fun FlashcardsScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(vertical = UI.Space.L).verticalScroll(rememberScrollState()).chatButtonSpace(),
+        modifier = Modifier.fillMaxSize().padding(vertical = UI.Space.L).pageScroll(),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(

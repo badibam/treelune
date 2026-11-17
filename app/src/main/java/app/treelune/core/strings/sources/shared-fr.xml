@@ -44,6 +44,7 @@
     <string name="action_left">Précédent</string>
     <string name="action_right">Suivant</string>
     <string name="action_ai_chat">Assistant IA</string>
+    <string name="action_to_top">Revenir en haut</string>
     <string name="action_interrupt">Interrompre</string>
     <string name="action_stop">Arrêter</string>
     <string name="action_pause">Pause</string>

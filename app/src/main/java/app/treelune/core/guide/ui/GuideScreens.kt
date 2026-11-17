@@ -1,6 +1,6 @@
 package app.treelune.core.guide.ui
 
-import app.treelune.core.ui.chatButtonSpace
+import app.treelune.core.ui.pageScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -68,7 +68,7 @@ fun GuideScreen() {
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(scroll).chatButtonSpace().padding(vertical = UI.Space.L),
+        modifier = Modifier.fillMaxSize().pageScroll(scroll).padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.M)
     ) {
         UI.PageHeader(title = s.shared("guide_title"), subtitle = s.shared("guide_description"), leftButton = ButtonAction.BACK, onLeftClick = { Navigator.pop() })
@@ -149,7 +149,7 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
     val inProgress = Guide.progress?.current == chapter.id
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(vertical = UI.Space.L),
+        modifier = Modifier.fillMaxSize().pageScroll().padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.M)
     ) {
         UI.PageHeader(title = title, icon = chapter.icon, leftButton = ButtonAction.BACK, onLeftClick = { Navigator.pop() })

@@ -1,6 +1,7 @@
 package app.treelune.tools.notes.ui
 
 import androidx.compose.runtime.saveable.rememberSaveable
+import app.treelune.core.ui.pageScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -199,7 +200,7 @@ fun NotesScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()).chatButtonSpace()
+                .pageScroll()
                 .padding(vertical = UI.Space.L)
         ) {
             // Coming back, what it showed stays while it reads again (Shown)

@@ -98,6 +98,8 @@ fun ExecutionDetailScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize(),
+            // Handed to « back to top »
+            state = app.treelune.core.ui.rememberPageListState(),
             // The chat's button floats at the bottom: room for it after the last message
             contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = app.treelune.core.ui.chatButtonEnd()),
             verticalArrangement = Arrangement.spacedBy(UI.Space.M)
