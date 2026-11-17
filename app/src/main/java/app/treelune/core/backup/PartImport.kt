@@ -47,7 +47,7 @@ import org.json.JSONObject
  * a zone going into one of the app's leaves the app's zone as it speaks.
  *
  * An API keeps its id too, and arrives without its key: one the app holds is kept, or replaced when
- * asked, its key kept; one whose name another holds arrives under « Name (2) ». A Task arrives
+ * asked, its key kept, before the Tasks that call it and put back as it was if the part is refused; one whose name another holds arrives under « Name (2) ». A Task arrives
  * switched off. An event is made before what may name it, without the values that are a tool's,
  * given back once the tools are made; its name taken in its zone, under « Name (2) ».
  *
@@ -134,6 +134,8 @@ class PartImport(private val context: Context) {
         val homeGroups = mutableListOf<String>()
         val identities = mutableListOf<String>()
         val apis = mutableListOf<String>()
+        /** The APIs the app held that the part replaced: each as it was, the params of its update back */
+        val replacedApis = mutableListOf<JSONObject>()
         val zones = mutableListOf<String>()
         /** The app's zones whose tool groups grew, with the ones they had */
         val toolGroups = mutableMapOf<String, String?>()
@@ -204,7 +206,7 @@ class PartImport(private val context: Context) {
         }
 
         // The APIs the app lacks, under a free name, without their key; one it holds kept, or
-        // replaced last
+        // replaced, below
         val otherNames = linkedMapOf<String, String>()
         val apiNames = database.apiDao().getAll().map { it.name }.toMutableList()
         rows(data, "apis").filter { it.getString("id") in newApis }.forEach { api ->
@@ -213,6 +215,19 @@ class PartImport(private val context: Context) {
             apiNames += name
             run("apis.create", JSONObject().put("id", api.getString("id")).put("name", name).put("config", JSONObject(api.getString("config_json"))))
             written.apis += api.getString("id")
+        }
+        // The APIs it held, replaced before the Tasks, whose steps are checked against the API
+        // they call (its inputs, their types); each keeps its key, which is this phone's, and its
+        // config as it was is kept for undo to put back
+        val replacingApis = rows(data, "apis").filter { it.getString("id") !in newApis && it.getString("id") in replacedApis }
+        replacingApis.forEach { api ->
+            val held = database.apiDao().get(api.getString("id"))!!
+            val secrets = app.treelune.core.secrets.SecretSettings.names(app.treelune.core.apis.ApiSettings.nodes(context))
+            val opened = app.treelune.core.secrets.SecretSettings.open(secrets, JSONObject(held.configJson), app.treelune.core.secrets.SecretBox.of()).settings
+            val replacement = JSONObject().put("api_id", held.id).put("name", held.name)
+                .put("config", JSONObject(api.getString("config_json")).apply { secrets.forEach { name -> opened.opt(name)?.let { put(name, it) } } })
+            run("apis.update", replacement)
+            written.replacedApis += JSONObject().put("api_id", held.id).put("name", held.name).put("config", opened)
         }
 
         // The events, before what may name them, without the values that are a tool's, which
@@ -380,16 +395,6 @@ class PartImport(private val context: Context) {
         // The identities the app held, replaced last
         val replacing = identities.filter { it.identity.id in held && it.identity.id in replaced }
         replacing.forEach { run("identities.import", it.params(replace = true)) }
-        // The APIs it held, replaced last too, keeping their key, which is this phone's
-        val replacingApis = rows(data, "apis").filter { it.getString("id") !in newApis && it.getString("id") in replacedApis }
-        replacingApis.forEach { api ->
-            val held = database.apiDao().get(api.getString("id"))!!
-            val secrets = app.treelune.core.secrets.SecretSettings.names(app.treelune.core.apis.ApiSettings.nodes(context))
-            val key = app.treelune.core.secrets.SecretSettings.open(secrets, JSONObject(held.configJson), app.treelune.core.secrets.SecretBox.of()).settings
-            run("apis.update", JSONObject().put("api_id", held.id).put("name", held.name)
-                .put("config", JSONObject(api.getString("config_json")).apply { secrets.forEach { name -> key.opt(name)?.let { put(name, it) } } }))
-        }
-
         return Report(newZones.size, elements.size + rows(data, "routines").size + rows(data, "tasks").size + rows(data, "readouts").size, entries.size, renamed, 0,
             written.identities.size, replacing.size, written.apis.size, replacingApis.size, otherNames)
     }
@@ -443,6 +448,8 @@ class PartImport(private val context: Context) {
             // Once nothing speaks as them, nor calls them, any more
             written.identities.forEach { run("identities.delete", JSONObject().put("identity_id", it)) }
             written.apis.forEach { run("apis.delete", JSONObject().put("api_id", it)) }
+            // The APIs replaced, as they were, once the Tasks of the part calling them are gone
+            written.replacedApis.forEach { run("apis.update", it) }
             written.toolGroups.forEach { (zone, groups) ->
                 run("zones.update", JSONObject().put("zone_id", zone).put("tool_groups", groups?.let { JSONArray(it) } ?: JSONObject.NULL))
             }
