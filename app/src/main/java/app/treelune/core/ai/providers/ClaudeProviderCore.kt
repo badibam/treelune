@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit
  * anthropic-version ignored), so both vendors share ClaudeProviderCore.
  * Checked on https://api-docs.deepseek.com/guides/anthropic_api, 2026-09-19.
  *
+ * @param vendor The vendor's name in error messages and logs (the API is shared, the vendor is not)
  * @param messagesUrl POST endpoint for queries
  * @param modelsUrl GET endpoint listing available models
  * @param stringPrefix Prefix of the vendor-specific strings (API key label, help, schema texts)
@@ -37,6 +38,7 @@ import java.util.concurrent.TimeUnit
  * @param verifiesAnsweringModel Reject a response whose "model" differs from the requested one
  */
 internal enum class MessagesApi(
+    val vendor: String,
     val messagesUrl: String,
     val modelsUrl: String,
     val stringPrefix: String,
@@ -46,6 +48,7 @@ internal enum class MessagesApi(
     val verifiesAnsweringModel: Boolean
 ) {
     ANTHROPIC(
+        vendor = "Claude",
         messagesUrl = "https://api.anthropic.com/v1/messages",
         modelsUrl = "https://api.anthropic.com/v1/models",
         stringPrefix = "ai_provider_claude",
@@ -65,6 +68,7 @@ internal enum class MessagesApi(
     // names are answered by deepseek-flash, which the response "model" field reveals. Valid IDs
     // come back unchanged, so any mismatch is rejected rather than silently billed as another model.
     DEEPSEEK(
+        vendor = "DeepSeek",
         messagesUrl = "https://api.deepseek.com/anthropic/v1/messages",
         modelsUrl = "https://api.deepseek.com/models",
         stringPrefix = "ai_provider_deepseek",
@@ -194,7 +198,7 @@ internal class ClaudeProviderCore(
 
             if (!response.isSuccessful) {
                 val errorBody = response.body?.string() ?: "Unknown error"
-                LogManager.aiService("Claude API error: ${response.code} - $errorBody", "ERROR")
+                LogManager.aiService("${api.vendor} API error: ${response.code} - $errorBody", "ERROR")
 
                 // Try to parse error message from response
                 val errorMessage = try {
@@ -216,7 +220,7 @@ internal class ClaudeProviderCore(
             val dataArray = jsonResponse.optJSONArray("data")
 
             if (dataArray == null) {
-                LogManager.aiService("Claude API response missing 'data' field", "ERROR")
+                LogManager.aiService("${api.vendor} API response missing 'data' field", "ERROR")
                 return@withContext ProviderModels(emptyList(), "Invalid API response")
             }
 
@@ -235,14 +239,14 @@ internal class ClaudeProviderCore(
                 }
             }
 
-            LogManager.aiService("Successfully fetched ${models.size} models from Claude API")
+            LogManager.aiService("Successfully fetched ${models.size} models from ${api.vendor} API")
 
             ProviderModels(models)
 
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
-            LogManager.aiService("Failed to fetch Claude models: ${e.message}", "ERROR", e)
+            LogManager.aiService("Failed to fetch ${api.vendor} models: ${e.message}", "ERROR", e)
             ProviderModels(emptyList(), e.message ?: "Unknown error")
         }
     }
@@ -334,7 +338,7 @@ internal class ClaudeProviderCore(
             val responseBody = response.body
 
             if (!response.isSuccessful) {
-                LogManager.aiService("Claude API error: ${response.code} - $responseBody", "ERROR")
+                LogManager.aiService("${api.vendor} API error: ${response.code} - $responseBody", "ERROR")
 
                 // Parse error message
                 val errorMessage = try {
@@ -360,7 +364,7 @@ internal class ClaudeProviderCore(
             }
 
             // Parse successful response via extension
-            LogManager.aiService("Claude API success: ${responseBody.length} characters")
+            LogManager.aiService("${api.vendor} API success: ${responseBody.length} characters")
             val jsonResponse = Json.parseToJsonElement(responseBody)
             val aiResponse = jsonResponse.toClaudeAIResponse()
 
@@ -383,7 +387,7 @@ internal class ClaudeProviderCore(
             }
 
             LogManager.aiService(
-                "Claude tokens - Input: ${aiResponse.inputTokens}, " +
+                "${api.vendor} tokens - Input: ${aiResponse.inputTokens}, " +
                 "Cache write: ${aiResponse.cacheWriteTokens}, " +
                 "Cache read: ${aiResponse.cacheReadTokens}, " +
                 "Output: ${aiResponse.tokensUsed}"
@@ -395,11 +399,11 @@ internal class ClaudeProviderCore(
             // Stop or Interrupt cut the call: nothing to report, the caller is gone
             throw e
         } catch (e: Exception) {
-            LogManager.aiService("Claude query failed: ${e.message}", "ERROR", e)
+            LogManager.aiService("${api.vendor} query failed: ${e.message}", "ERROR", e)
             return@withContext AIResponse(
                 success = false,
                 content = "",
-                errorMessage = "Claude API error: ${e.message}",
+                errorMessage = "${api.vendor} API error: ${e.message}",
                 failure = aiFailureOf(e),
                 tokensUsed = 0,
                 cacheWriteTokens = 0,
