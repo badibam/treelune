@@ -3109,7 +3109,8 @@
     <string name="task_input_received">Ce qu\'elle a reçu</string>
     <string name="task_input_received_entry">L\'entrée écrite</string>
     <string name="task_input_received_field">L\'entrée écrite › %1$s</string>
-    <string name="task_run_next_poll">Redemandé %1$s</string>
+    <string name="task_run_first_poll">Première demande %1$s</string>
+    <string name="task_run_last_poll">Dernière demande %1$s</string>
     <string name="task_run_cancel">Annuler l\'exécution</string>
     <string name="task_run_resume">Reprendre à l\'étape en échec</string>
     <string name="task_run_entry_created">Entrée créée</string>

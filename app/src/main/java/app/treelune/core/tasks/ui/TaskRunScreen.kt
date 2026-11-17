@@ -88,7 +88,8 @@ fun TaskRunScreen(place: Place.TaskRun, onTaskName: (String) -> Unit, onBack: ()
             onRightClick = { }
         )
         (shown["condition_said"] as? String)?.let { UI.Text(s.shared("task_run_end_condition").format(it), TextType.BODY) }
-        (shown["next_poll_at"] as? Number)?.let { UI.Text(s.shared("task_run_next_poll").format(FormatUtils.formatRelativeTime(it.toLong(), context)), TextType.CAPTION) }
+        (shown["first_poll_at"] as? Number)?.let { UI.Text(s.shared("task_run_first_poll").format(FormatUtils.formatRelativeTime(it.toLong(), context)), TextType.CAPTION) }
+        (shown["last_poll_at"] as? Number)?.let { UI.Text(s.shared("task_run_last_poll").format(FormatUtils.formatRelativeTimePast(it.toLong(), context)), TextType.CAPTION) }
         if (!state.ended) UI.Button(type = ButtonType.DANGER, onClick = {
             scope.launch { coordinator.processUserAction("tasks.cancel", mapOf("run_id" to place.runId)); load() }
         }) { UI.Text(s.shared("task_run_cancel"), TextType.BODY) }

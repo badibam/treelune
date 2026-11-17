@@ -185,7 +185,7 @@ object TaskRunner {
     private class Waits(val result: TaskRun.StepResult, val wait: TaskRun.Wait) : Exception()
 
     /**
-     * The waiting run [run] asked where its job stands, at [now]: not ready, it waits longer, up to
+     * The waiting run [run] asked where its job stands, at [now]: not ready, it is asked again at the next tick, up to
      * its deadline; failed or past it, the run fails; ready, the values join the step's result and
      * the run goes on.
      */
@@ -220,7 +220,8 @@ object TaskRunner {
                 dao.updateRun(failed)
                 end(context, task, failed, TaskRun.State.FAILED)
             }
-            else -> dao.updateRun(run.copy(waitJson = wait.again(now).toJson(), resultsJson = withLast(last.copy(raw = raw))))
+            // Not ready: asked again at the next tick
+            else -> dao.updateRun(run.copy(waitJson = wait.copy(askedAt = now).toJson(), resultsJson = withLast(last.copy(raw = raw))))
         }
     }
 
@@ -477,7 +478,7 @@ object TaskRunner {
                 if (job != null) {
                     val limit = ApiSettings.waitLimit(config, context)
                     throw Waits(TaskRun.StepResult(summary, types = types, raw = raw, at = now),
-                        TaskRun.Wait(step.getString(TaskSteps.API_ID), job, now + TaskRun.Wait.FIRST_INTERVAL, TaskRun.Wait.FIRST_INTERVAL, now + limit))
+                        TaskRun.Wait(step.getString(TaskSteps.API_ID), job, now + TaskRun.Wait.FIRST_ASK, now + limit))
                 }
                 @Suppress("UNCHECKED_CAST")
                 TaskRun.StepResult(summary, values = done.data?.get("values") as Map<String, Any?>, types = types, raw = raw, at = now)

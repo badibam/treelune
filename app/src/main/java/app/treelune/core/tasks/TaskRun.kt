@@ -128,23 +128,23 @@ object TaskRun {
     fun resultsJson(results: List<StepResult>): String = JSONArray(results.map { it.toJson() }).toString()
 
     /**
-     * A run waiting on a deferred API: the [apiId] and the [jobId] it follows, when it asks again
-     * ([nextAt]) and after how long it asks the time after ([interval], doubling up to its
-     * ceiling), and when it gives up ([deadline]).
+     * A run waiting on a deferred API: the [apiId] and the [jobId] it follows, when it first asks
+     * ([nextAt]), when it last asked ([askedAt], null before), and when it gives up ([deadline]).
+     * From then on it asks at each tick of the
+     * scheduler: every minute with the app open, at each ring of its alarm with the app closed,
+     * which wakes the phone whether a run waits or not.
      */
-    data class Wait(val apiId: String, val jobId: String, val nextAt: Long, val interval: Long, val deadline: Long) {
-        fun toJson(): String = JSONObject().put("api_id", apiId).put("job_id", jobId).put("next_at", nextAt).put("interval", interval).put("deadline", deadline).toString()
-
-        /** The wait after one more answer saying it is not ready, asked at [now]. */
-        fun again(now: Long): Wait = (interval * 2).coerceAtMost(LONGEST_INTERVAL).let { copy(nextAt = now + it, interval = it) }
+    data class Wait(val apiId: String, val jobId: String, val nextAt: Long, val deadline: Long, val askedAt: Long? = null) {
+        fun toJson(): String = JSONObject().put("api_id", apiId).put("job_id", jobId).put("next_at", nextAt).put("deadline", deadline)
+            .apply { askedAt?.let { put("asked_at", it) } }.toString()
 
         companion object {
             /** The first time a job is asked about, after it started: a minute. */
-            const val FIRST_INTERVAL = 60_000L
-            /** The longest between two asks: half an hour. */
-            const val LONGEST_INTERVAL = 30 * 60_000L
+            const val FIRST_ASK = 60_000L
 
-            fun of(json: String) = JSONObject(json).let { Wait(it.getString("api_id"), it.getString("job_id"), it.getLong("next_at"), it.getLong("interval"), it.getLong("deadline")) }
+            fun of(json: String) = JSONObject(json).let {
+                Wait(it.getString("api_id"), it.getString("job_id"), it.getLong("next_at"), it.getLong("deadline"), if (it.has("asked_at")) it.getLong("asked_at") else null)
+            }
         }
     }
 }
