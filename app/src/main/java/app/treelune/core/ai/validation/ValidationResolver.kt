@@ -161,6 +161,12 @@ class ValidationResolver(private val context: Context) {
             // A Task's run writes in its zone, as a tool's writes do
             "RUN_TASK" -> zoneReason(read("tasks.get", mapOf("task_id" to (params["task_id"] as? String ?: error(s.shared("validation_reason_no_target")))), "task")["zone_id"] as? String
                 ?: error("task without its zone"), levels)
+            // A run resumed writes in its Task's zone, as a run started; one cancelled stops what would
+            "RESUME_TASK_RUN", "CANCEL_TASK_RUN" -> {
+                val run = read("tasks.get_run", mapOf("run_id" to (params["run_id"] as? String ?: error(s.shared("validation_reason_no_target")))), "run")
+                zoneReason(read("tasks.get", mapOf("task_id" to (run["task_id"] as? String ?: error("run without its Task"))), "task")["zone_id"] as? String
+                    ?: error("task without its zone"), levels)
+            }
             // A routine's run writes in its zone, as a Task's
             "RUN_ROUTINE" -> zoneReason(routineZone(params["routine_id"] as? String ?: error(s.shared("validation_reason_no_target"))), levels)
             // What an event emitted starts belongs to its zone's wiring

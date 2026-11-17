@@ -120,21 +120,25 @@ object PromptManager {
     }
 
     /**
-     * A routine's run [sessionId] as its AI received it (ROUTINE_RUN), one message after the
+     * A routine's run [sessionId] as its AI received it (ROUTINE_RUN), or a conversation of the
+     * user's ([type] CHAT, CONVERSATION), one message after the
      * other, each under who sent it: the routine's message as the prompt writes it, the AI's
      * answers in the JSON it wrote, the app's results. The data the starting message's pointers
      * attached is not repeated: they name what they designate, which may be read again.
      *
      * @param onlyFailures Only the app's messages telling a failure, each after the answer that
      *   led to it
-     * @throws IllegalArgumentException when [sessionId] is not a routine's run
+     * @throws IllegalArgumentException when [sessionId] is not of [type]
      */
-    suspend fun runHistory(context: Context, sessionId: String, onlyFailures: Boolean): String {
+    suspend fun runHistory(context: Context, sessionId: String, onlyFailures: Boolean, type: SessionType = SessionType.ROUTINE_RUN): String {
         val s = Strings.`for`(context = context)
         val result = Coordinator(context).processUserAction("ai_sessions.get_session", mapOf("session_id" to sessionId))
         val session = result.data?.get("session") as? Map<*, *>
             ?: throw IllegalArgumentException(result.error ?: s.shared("ai_error_session_not_found").format(sessionId))
-        if (session["type"] != SessionType.ROUTINE_RUN.name) throw IllegalArgumentException(s.shared("ai_error_not_a_run").format(sessionId))
+        // A routine's run, or a conversation (CONVERSATION): the same text, the one asked for alone
+        if (session["type"] != type.name) {
+            throw IllegalArgumentException(s.shared(if (type == SessionType.CHAT) "ai_error_not_a_conversation" else "ai_error_not_a_run").format(sessionId))
+        }
         val all = parseSessionMessages(result.data?.get("messages") as? List<*> ?: emptyList<Any>())
 
         // What a user message's pointers attached: the data that comes right after it
@@ -151,7 +155,9 @@ object PromptManager {
             if (!tellsAFailure(message)) emptyList()
             else listOfNotNull(shown.getOrNull(i - 1)?.takeIf { it.sender == MessageSender.AI }, message)
         }.distinct()
-        if (kept.isEmpty()) return s.shared(if (onlyFailures) "ai_run_no_failure" else "ai_run_no_message")
+        // A conversation's own words: its user's message is no routine's
+        val of = if (type == SessionType.CHAT) "ai_conversation" else "ai_run"
+        if (kept.isEmpty()) return s.shared(if (onlyFailures) "${of}_no_failure" else "${of}_no_message")
 
         return kept.joinToString("\n\n") { message ->
             val text = when {
@@ -159,7 +165,7 @@ object PromptManager {
                 message.sender == MessageSender.AI -> message.aiMessageJson ?: message.textContent ?: ""
                 else -> message.promptParts?.filterIsInstance<PromptPart.Text>()?.joinToString("\n") { it.text } ?: message.textContent ?: ""
             }
-            s.shared("ai_run_sender_${message.sender.name.lowercase()}") + "\n" + text.trim()
+            s.shared("${of}_sender_${message.sender.name.lowercase()}") + "\n" + text.trim()
         }
     }
 

@@ -363,6 +363,7 @@
     <string name="ai_error_create_session">Échec de la création de session: %1$s</string>
     <string name="ai_error_session_not_found">Session introuvable: %1$s</string>
     <string name="ai_error_not_a_run">%1$s n\'est pas une exécution de routine</string>
+    <string name="ai_error_not_a_conversation">%1$s n\'est pas une conversation</string>
     <string name="ai_error_run_messages">messages vaut « all » ou « errors », pas « %1$s »</string>
     <string name="ai_error_load_session">Échec du chargement de session: %1$s</string>
     <string name="ai_error_check_session">Échec de la vérification de session</string>
@@ -1608,6 +1609,8 @@
     <string name="action_verbalize_routines_execute_manual">Lancement de la routine %1$s</string>
     <string name="action_verbalize_runs_list">Lecture des exécutions de la routine %1$s</string>
     <string name="action_verbalize_run_history">Lecture d\'une exécution de la routine %1$s</string>
+    <string name="action_verbalize_conversations">Lecture des conversations</string>
+    <string name="action_verbalize_conversation">Lecture de la conversation %1$s</string>
     <string name="import_error_file">Le fichier ne se lit pas : %1$s</string>
     <string name="import_file_empty">le fichier est vide</string>
     <string name="import_file_quote_open">un guillemet n\'est pas refermé</string>
@@ -2186,6 +2189,10 @@
     <string name="ai_read_user_routines_of">« %1$s » : routines lues</string>
     <string name="ai_read_user_runs_of">« %1$s » : exécutions lues</string>
     <string name="ai_read_user_run">Une exécution lue</string>
+    <string name="ai_read_user_task_runs_of">« %1$s » : exécutions lues</string>
+    <string name="ai_read_user_task_run">Une exécution de Tâche lue</string>
+    <string name="ai_read_user_conversations">Conversations lues</string>
+    <string name="ai_read_user_conversation">Une conversation lue</string>
     <string name="ai_read_user_file">Fichier lu</string>
     <string name="ai_read_user_images">%1$d image(s) montrée(s)</string>
     <string name="ai_read_user_import_plan">Fichier lu pour l\'import</string>
@@ -2981,6 +2988,7 @@
     <string name="task_verbalize_duplicate">Copie de la Tâche « %1$s »</string>
     <string name="task_verbalize_run">Exécution de la Tâche « %1$s »</string>
     <string name="task_verbalize_resume">Exécution de la Tâche « %1$s » reprise</string>
+    <string name="task_verbalize_cancel">Exécution de la Tâche « %1$s » annulée</string>
     <string name="in_use_tasks">Tâches : %1$s</string>
     <string name="task_step_api">API</string>
     <string name="task_step_tool">Outil</string>

@@ -99,6 +99,17 @@ object RoutineSchemas {
         return JSONObject().put("type", "array").put("items", JSONObject().put("oneOf", JSONArray().put(text).put(pointer)))
     }
 
+    /**
+     * The user's conversations (CONVERSATIONS), as the sessions service lists them: when each
+     * started and was last written in, marked, so that they reach the AI in ISO 8601.
+     */
+    fun conversationsContent(): JSONObject {
+        fun instant() = JSONObject().put("type", "integer").put("format", FieldValueSchema.EPOCH_MILLIS)
+        val conversation = JSONObject().put("type", "object").put("properties", JSONObject()
+            .put("created_at", instant()).put("last_activity", instant()))
+        return JSONObject().put("type", "object").put("properties", JSONObject().put("conversations", JSONObject().put("type", "array").put("items", conversation)))
+    }
+
     /** The keys of a run kept for the AI, as the sessions service names them (list_sessions_for_routine). */
     val RUN_KEYS = listOf("id", "scheduled_execution_time", "created_at", "end_reason", "total_roundtrips", "total_cost", "cost_is_lower_bound", "cost_detail")
 

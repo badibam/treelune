@@ -341,7 +341,9 @@ class TaskService(private val context: Context) : ExecutableService {
 
     override suspend fun verbalize(operation: String, params: JSONObject, context: Context): String {
         val s = Strings.`for`(context = context)
-        val name = params.optString("name").ifEmpty { null } ?: params.optString("task_id").ifEmpty { null }?.let { dao.get(it)?.name } ?: "?"
+        // A run's Task, for a run resumed or cancelled
+        val taskId = params.optString("task_id").ifEmpty { null } ?: params.optString("run_id").ifEmpty { null }?.let { dao.getRun(it)?.taskId }
+        val name = params.optString("name").ifEmpty { null } ?: taskId?.let { dao.get(it)?.name } ?: "?"
         return when (operation) {
             "create" -> s.shared("task_verbalize_create").format(name)
             "update" -> s.shared("task_verbalize_update").format(name)
@@ -349,6 +351,7 @@ class TaskService(private val context: Context) : ExecutableService {
             "duplicate" -> s.shared("task_verbalize_duplicate").format(name)
             "run" -> s.shared("task_verbalize_run").format(name)
             "resume" -> s.shared("task_verbalize_resume").format(name)
+            "cancel" -> s.shared("task_verbalize_cancel").format(name)
             else -> s.shared("action_verbalize_unknown")
         }
     }

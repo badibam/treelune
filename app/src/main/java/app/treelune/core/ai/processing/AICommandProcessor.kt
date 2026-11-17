@@ -266,6 +266,9 @@ class AICommandProcessor(private val context: Context) {
             "UNDO_STEP", "REDO_STEP" -> historyCommand(command)
             // A Task run now: its steps run as the Task's, held to its access (TaskService)
             "RUN_TASK" -> ExecutableCommand(resource = "tasks", operation = "run", params = command.params, isActionCommand = true)
+            // A failed run taken up at the step that failed, or a run going on stopped
+            "RESUME_TASK_RUN" -> ExecutableCommand(resource = "tasks", operation = "resume", params = command.params, isActionCommand = true)
+            "CANCEL_TASK_RUN" -> ExecutableCommand(resource = "tasks", operation = "cancel", params = command.params, isActionCommand = true)
             // A routine run now, as its own button does, what is given joined to its message
             "RUN_ROUTINE" -> ExecutableCommand(resource = "routines", operation = "execute_manual", params = command.params, isActionCommand = true)
             // An event emitted, with the values it declares: what listens to it starts (EventTriggers)
@@ -388,6 +391,9 @@ class AICommandProcessor(private val context: Context) {
             "UNDO_STEP", "REDO_STEP" -> historyCommand(command)
             // A Task run now: its steps run as the Task's, held to its access (TaskService)
             "RUN_TASK" -> ExecutableCommand(resource = "tasks", operation = "run", params = command.params, isActionCommand = true)
+            // A failed run taken up at the step that failed, or a run going on stopped
+            "RESUME_TASK_RUN" -> ExecutableCommand(resource = "tasks", operation = "resume", params = command.params, isActionCommand = true)
+            "CANCEL_TASK_RUN" -> ExecutableCommand(resource = "tasks", operation = "cancel", params = command.params, isActionCommand = true)
             // A routine run now, as its own button does, what is given joined to its message
             "RUN_ROUTINE" -> ExecutableCommand(resource = "routines", operation = "execute_manual", params = command.params, isActionCommand = true)
             // An event emitted, with the values it declares: what listens to it starts (EventTriggers)

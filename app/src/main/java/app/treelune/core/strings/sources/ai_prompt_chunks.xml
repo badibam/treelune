@@ -370,6 +370,23 @@ Retrieves one run as its AI received it, message after message: the routine\'s m
 
 - `id` (string, **required**): the run\'s id, from ROUTINE_RUNS
 - `messages` (string, optional): `all` (the default), or `errors`: only the app\'s messages telling a failure, each after the answer that led to it]]></string>
+    <string name="ai_command_conversations"><![CDATA[### CONVERSATIONS
+
+Lists the user\'s conversations with the app\'s AI, the most recent first: `id`, `name`, `created_at` (when it started), `last_activity` (when it was last written in), `message_count`, and `first_user_message`, the start of what the user first wrote. A routine\'s runs are not among them: ROUTINE_RUNS reads those.
+
+**Parameters**:
+
+- `search` (string, optional): only the conversations whose name or messages hold this text
+- `period` (object, optional): on when the conversations started, as in TOOL_DATA
+- `limit` (integer, optional): how many, 10 by default]]></string>
+    <string name="ai_command_conversation"><![CDATA[### CONVERSATION
+
+Retrieves one conversation as its AI received it, message after message: what the user wrote, the answers of its AI in their JSON, the app\'s results. The data the user\'s pointers attached is not repeated: read again what they name if you need it.
+
+**Parameters**:
+
+- `id` (string, **required**): the conversation\'s id, from CONVERSATIONS
+- `messages` (string, optional): `all` (the default), or `errors`: only the app\'s messages telling a failure, each after the answer that led to it]]></string>
     <string name="ai_command_tasks"><![CDATA[### TASKS
 
 Lists the Tasks: steps the app runs itself, one after another, without an AI (an API called, an entry created or changed, a tool\'s operation, a routine run, an event emitted). Each with its id, name, zone, group, whether its schedule runs it, how many triggers start it, and the kinds of its steps. The user writes them; you may run one with RUN_TASK.
@@ -384,6 +401,21 @@ Retrieves a Task whole, in the form CREATE_TASK and UPDATE_TASK write it: `zone_
 **Parameters**:
 
 - `id` (string, **required**)]]></string>
+    <string name="ai_command_task_runs"><![CDATA[### TASK_RUNS
+
+Lists the runs of a Task, the most recent first: `id`, `trigger` (what started it), `scheduled_at` (when it was due, for a run its schedule started), `started_at`, `ended_at` (none while it goes on), `state` (`running`, `waiting` on an API that answers later, `queued`, `done`, `failed`, `interrupted`, `cancelled`), `step` (the step it stands at, from 0), `results`, each step\'s result in order (`summary`, `values`, `raw`, the start of an API\'s raw answer, `error`, `skipped`, `at`), a job waited on, `first_poll_at` then `last_poll_at`, and for a run a condition started, `condition_said`.
+
+**Parameters**:
+
+- `task_id` (string, **required**)
+- `limit` (integer, optional): how many, 20 by default]]></string>
+    <string name="ai_command_task_run"><![CDATA[### TASK_RUN
+
+Retrieves one run of a Task, as TASK_RUNS lists it. Use it to see why a run failed, then RESUME_TASK_RUN or a change of the Task.
+
+**Parameters**:
+
+- `id` (string, **required**): the run\'s id, from TASK_RUNS or RUN_TASK]]></string>
     <string name="ai_command_events"><![CDATA[### EVENTS
 
 Lists the events of the zones: names a Task\'s step or you (EMIT_EVENT) emit and that Tasks and routines listen to, wiring between what makes something no write says (a session ready) and what reacts to it. Each with its id, zone, name, description (what it means, when it is emitted) and the values it carries, each a `name` and a `type` (`text`, `number`, `yes_no`, `entry` with the `tool_instance_id` of its tool).
@@ -846,6 +878,20 @@ Runs a Task now, as its own button does: its steps run one after another, in the
 **Parameters**:
 
 - `task_id` (string, **required**)]]></string>
+    <string name="ai_command_resume_task_run"><![CDATA[### RESUME_TASK_RUN
+
+Takes up a failed run at the step that failed, with what the steps before it gave and the entry it received, as they are: nothing assembled again, nothing created twice. Resuming it takes using its Task\'s zone. Refused for a run interrupted by the app stopping, for a Task changed since the run started, and while another run of the Task goes on.
+
+**Parameters**:
+
+- `run_id` (string, **required**): the run\'s id, from TASK_RUNS]]></string>
+    <string name="ai_command_cancel_task_run"><![CDATA[### CANCEL_TASK_RUN
+
+Stops a run going on, waiting on an API or queued: it ends cancelled, the steps it made staying made. Nothing happens to a run already ended.
+
+**Parameters**:
+
+- `run_id` (string, **required**): the run\'s id, from TASK_RUNS]]></string>
     <string name="ai_command_run_routine"><![CDATA[### RUN_ROUTINE
 
 Starts a routine now, as its own button does: its AI runs in the background with the routine\'s message, `joined` added to its end. Starting it takes using its zone. The answer says it started, not its outcome: read it later with ROUTINE_RUNS. Started by a routine\'s run, it counts in that run\'s chain: a chain stops past the cap of runs the AI limits set.
@@ -1765,6 +1811,12 @@ How to answer a need with the app\'s pieces. The principles come first: they say
     <string name="ai_run_pointer_data">The data the pointers of the message above attached, not repeated here: read again what they name if you need it.</string>
     <string name="ai_run_no_failure">No failure in this run.</string>
     <string name="ai_run_no_message">This run has no message.</string>
+    <!-- A conversation read back (CONVERSATION): who sent each message, and what it leaves out -->
+    <string name="ai_conversation_sender_user">[user]</string>
+    <string name="ai_conversation_sender_ai">[its AI]</string>
+    <string name="ai_conversation_sender_system">[app]</string>
+    <string name="ai_conversation_no_failure">No failure in this conversation.</string>
+    <string name="ai_conversation_no_message">This conversation has no message.</string>
     <string name="ai_mcp_app_context_description"><![CDATA[What the app is and holds now: its zones, tools and their ids, the data always shared, how fields, schemas and dates work. Call it once, at the start of a conversation, before any other tool: it hands out the context_token they require. Afterwards, read what changed with the other read tools, not with this one.]]></string>
     <string name="ai_mcp_context_token_description"><![CDATA[The token app_context handed out in this conversation.]]></string>
     <string name="ai_mcp_context_token_missing"><![CDATA[Refused: no valid context_token. Call app_context first: it describes the app, gives the ids every command needs, and hands out the token to pass to every other tool. A token is valid 24 hours.]]></string>

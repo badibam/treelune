@@ -363,6 +363,7 @@
     <string name="ai_error_create_session">Failed to create the session: %1$s</string>
     <string name="ai_error_session_not_found">Session not found: %1$s</string>
     <string name="ai_error_not_a_run">%1$s is not a routine\'s run</string>
+    <string name="ai_error_not_a_conversation">%1$s is not a conversation</string>
     <string name="ai_error_run_messages">messages is “all” or “errors”, not “%1$s”</string>
     <string name="ai_error_load_session">Failed to load the session: %1$s</string>
     <string name="ai_error_check_session">Failed to check the session</string>
@@ -1608,6 +1609,8 @@
     <string name="action_verbalize_routines_execute_manual">Running the routine %1$s</string>
     <string name="action_verbalize_runs_list">Reading the runs of the routine %1$s</string>
     <string name="action_verbalize_run_history">Reading a run of the routine %1$s</string>
+    <string name="action_verbalize_conversations">Reading the conversations</string>
+    <string name="action_verbalize_conversation">Reading the conversation %1$s</string>
     <string name="import_error_file">The file does not read: %1$s</string>
     <string name="import_file_empty">the file is empty</string>
     <string name="import_file_quote_open">a quote is left open</string>
@@ -2186,6 +2189,10 @@
     <string name="ai_read_user_routines_of">'%1$s': routines read</string>
     <string name="ai_read_user_runs_of">'%1$s': runs read</string>
     <string name="ai_read_user_run">A run read</string>
+    <string name="ai_read_user_task_runs_of">'%1$s': runs read</string>
+    <string name="ai_read_user_task_run">A Task's run read</string>
+    <string name="ai_read_user_conversations">Conversations read</string>
+    <string name="ai_read_user_conversation">A conversation read</string>
     <string name="ai_read_user_file">File read</string>
     <string name="ai_read_user_images">%1$d image(s) shown</string>
     <string name="ai_read_user_import_plan">File read for the import</string>
@@ -2981,6 +2988,7 @@
     <string name="task_verbalize_duplicate">Copy of the Task “%1$s”</string>
     <string name="task_verbalize_run">Run of the Task “%1$s”</string>
     <string name="task_verbalize_resume">Run of the Task “%1$s” resumed</string>
+    <string name="task_verbalize_cancel">Run of the Task “%1$s” cancelled</string>
     <string name="in_use_tasks">Tasks: %1$s</string>
     <string name="task_step_api">API</string>
     <string name="task_step_tool">Tool</string>

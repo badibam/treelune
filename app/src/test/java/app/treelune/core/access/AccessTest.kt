@@ -30,6 +30,7 @@ class AccessTest {
         override suspend fun readoutZone(readoutId: String): String? = null
         override suspend fun eventZone(eventId: String) = mapOf("ready" to "health")[eventId]
         override suspend fun runRoutine(runId: String) = mapOf("r1" to "weekly")[runId]
+        override suspend fun taskRunTask(runId: String): String? = null
         override suspend fun entryTool(entryId: String) = mapOf("w1" to "weight", "s1" to "seeds")[entryId]
         override suspend fun fileHolder(fileId: String) = mapOf("scan" to FileHolder.Tool("weight"), "plot" to FileHolder.Tool("seeds"), "joined" to FileHolder.Conversation)[fileId]
         override suspend fun zoneName(zoneId: String) = zoneId

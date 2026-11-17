@@ -56,6 +56,7 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "list_sessions" -> listSessions(params, token)
                 "list_sessions_for_routine" -> listSessionsForRoutine(params, token)
                 "run_history" -> runHistory(params, token)
+                "conversation_history" -> runHistory(params, token, SessionType.CHAT)
                 "update_session" -> updateSession(params, token)
                 "delete_session" -> deleteSession(params, token)
                 "set_active_session" -> setActiveSession(params, token)
@@ -295,7 +296,8 @@ class AISessionService(private val context: Context) : ExecutableService {
      * A routine's run as its AI received it (PromptManager.runHistory): "session_id", and
      * "messages", "all" or "errors" for the failures alone.
      */
-    private suspend fun runHistory(params: JSONObject, token: CancellationToken): OperationResult {
+    /** A routine's run, or a conversation ([type] CHAT), as its AI received it (PromptManager.runHistory). */
+    private suspend fun runHistory(params: JSONObject, token: CancellationToken, type: SessionType = SessionType.ROUTINE_RUN): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
         val sessionId = params.optString("session_id").takeIf { it.isNotEmpty() }
             ?: return OperationResult.error(s.shared("ai_error_param_session_id_required"))
@@ -305,7 +307,7 @@ class AISessionService(private val context: Context) : ExecutableService {
             else -> return OperationResult.error(s.shared("ai_error_run_messages").format(messages))
         }
         return try {
-            OperationResult.success(mapOf("session_id" to sessionId, "messages" to PromptManager.runHistory(context, sessionId, onlyFailures)))
+            OperationResult.success(mapOf("session_id" to sessionId, "messages" to PromptManager.runHistory(context, sessionId, onlyFailures, type)))
         } catch (e: IllegalArgumentException) {
             OperationResult.error(e.message ?: sessionId)
         }
@@ -1325,7 +1327,7 @@ class AISessionService(private val context: Context) : ExecutableService {
      * Verbalize AI session operation
      * AI session management is typically not exposed to AI actions
      */
-    /** A routine's runs and one of them read, by the routine's name; nothing else is the AI's. */
+    /** A routine's runs and one of them read, by the routine's name, and the conversations; nothing else is the AI's. */
     override suspend fun verbalize(operation: String, params: JSONObject, context: Context): String {
         val s = Strings.`for`(context = context)
         val dao = AppDatabase.getDatabase(context).aiDao()
@@ -1335,6 +1337,8 @@ class AISessionService(private val context: Context) : ExecutableService {
             "run_history" -> s.shared("action_verbalize_run_history").format(params.optString("session_id").let { id ->
                 dao.getSession(id)?.routineId?.let { dao.getRoutineById(it)?.name } ?: id
             })
+            "list" -> s.shared("action_verbalize_conversations")
+            "conversation_history" -> s.shared("action_verbalize_conversation").format(params.optString("session_id").let { id -> dao.getSession(id)?.name ?: id })
             else -> s.shared("action_verbalize_unknown")
         }
     }

@@ -24,6 +24,8 @@ sealed class Reach {
     data class Readout(val id: String, val level: AccessLevel) : Reach()
     /** A routine's run, held by the zone of its routine */
     data class Run(val id: String, val level: AccessLevel) : Reach()
+    /** A Task's run, held by the zone of its Task */
+    data class TaskRun(val id: String, val level: AccessLevel) : Reach()
     /** An entry, held as its tool */
     data class Entry(val id: String, val level: AccessLevel) : Reach()
     /** A kept file: an entry's or a tool's held as that tool, a message's free as its conversation is */
@@ -48,6 +50,8 @@ interface AccessLookups {
     suspend fun readoutZone(readoutId: String): String?
     /** The routine run [runId] belongs to. */
     suspend fun runRoutine(runId: String): String?
+    /** The Task run [runId] belongs to. */
+    suspend fun taskRunTask(runId: String): String?
     /** The tool entry [entryId] belongs to, null when there is no such entry. */
     suspend fun entryTool(entryId: String): String?
     /** Who holds the kept file [fileId], null when there is no such file. */
@@ -189,6 +193,8 @@ object AccessRules {
                     "list", "list_all", "outputs", "waiting" -> listOf(Reach.Free)
                     "get", "runs", "next_execution" -> listOf(taskAt(AccessLevel.READ))
                     "run" -> listOf(taskAt(AccessLevel.USE))
+                    "get_run" -> listOf(text("run_id")?.let { Reach.TaskRun(it, AccessLevel.READ) } ?: Reach.Unknown("$resource.$operation"))
+                    "resume", "cancel" -> listOf(text("run_id")?.let { Reach.TaskRun(it, AccessLevel.USE) } ?: Reach.Unknown("$resource.$operation"))
                     "create" -> listOf(zoneAt("zone_id", AccessLevel.FULL))
                     "update" -> listOfNotNull(taskAt(AccessLevel.FULL), text("zone_id")?.let { Reach.Zone(it, AccessLevel.FULL) })
                     "delete" -> listOf(taskAt(AccessLevel.FULL))
@@ -200,10 +206,12 @@ object AccessRules {
                 "list", "configs", "call", "status" -> listOf(Reach.Free)
                 else -> listOf(Reach.App)
             }
-            // A routine's runs, read as the routine is; every other session is the screens'
+            // A routine's runs, read as the routine is; the conversations, in no zone, as the app;
+            // every other session is the screens'
             "ai_sessions" -> when (operation) {
                 "list_sessions_for_routine" -> listOf(routineAt(AccessLevel.READ))
                 "run_history" -> listOf(text("session_id")?.let { Reach.Run(it, AccessLevel.READ) } ?: Reach.Unknown("$resource.$operation"))
+                "list", "conversation_history" -> listOf(Reach.App)
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
             // A reading of a variable by its name, or of a selection's target: a tool, a zone, one
@@ -303,6 +311,11 @@ object AccessRules {
                     if (held == null || held < reach.level) return refused(zone(zoneId, lookups, text), reach.level)
                 }
                 is Reach.Run -> routineRefusal(reach.id, lookups.runRoutine(reach.id), reach.level)?.let { return it }
+                is Reach.TaskRun -> {
+                    val zoneId = lookups.taskRunTask(reach.id)?.let { lookups.taskZone(it) } ?: return refused(reach.id, reach.level)
+                    val held = mask.zone(zoneId)
+                    if (held == null || held < reach.level) return refused(zone(zoneId, lookups, text), reach.level)
+                }
                 is Reach.File -> when (val holder = lookups.fileHolder(reach.id)) {
                     // An unknown id is the service's to refuse, naming it
                     null, FileHolder.Conversation -> Unit
@@ -364,6 +377,7 @@ class DatabaseAccessLookups(context: Context) : AccessLookups {
     override suspend fun readoutZone(readoutId: String) = database.readoutDao().get(readoutId)?.zoneId
 
     override suspend fun runRoutine(runId: String) = database.aiDao().getSession(runId)?.routineId
+    override suspend fun taskRunTask(runId: String) = database.taskDao().getRun(runId)?.taskId
 
     override suspend fun entryTool(entryId: String) = database.toolDataDao().getById(entryId)?.toolInstanceId
 

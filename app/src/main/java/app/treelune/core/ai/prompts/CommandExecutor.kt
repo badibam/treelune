@@ -572,6 +572,10 @@ class CommandExecutor(private val context: Context) {
             "routines.list" -> line("routines_of", zone ?: "")
             "routines.list_all" -> line("routines")
             "tasks.get" -> line("task", ((data["task"] as? Map<*, *>)?.get("settings") as? Map<*, *>)?.get("name") as? String ?: "")
+            "tasks.runs" -> line("task_runs_of", resolveTaskName(params["task_id"] as? String))
+            "tasks.get_run" -> line("task_run")
+            "ai_sessions.list" -> line("conversations")
+            "ai_sessions.conversation_history" -> line("conversation")
             "tasks.list" -> line("tasks_of", zone ?: "")
             "tasks.list_all" -> line("tasks")
             "readouts.list" -> line("readouts_of", zone ?: "")
@@ -713,11 +717,15 @@ class CommandExecutor(private val context: Context) {
             "apis" -> "All APIs"
             "tasks" -> when (command.operation) {
                 "get" -> "Configuration for Task '${((data["task"] as? Map<*, *>)?.get("settings") as? Map<*, *>)?.get("name")}'"
+                "runs" -> "Runs of Task '${resolveTaskName(command.params["task_id"] as? String)}', the most recent first"
+                "get_run" -> "Run ${command.params["run_id"]}, each step's result"
                 "list" -> "Tasks in zone '${resolveZoneName(command.params["zone_id"] as String)}'"
                 else -> "All Tasks"
             }
             "ai_sessions" -> when (command.operation) {
                 "list_sessions_for_routine" -> "Runs of routine '${resolveRoutineName(command.params["routine_id"] as? String)}'"
+                "list" -> "The user's conversations, the most recent first"
+                "conversation_history" -> "Conversation ${command.params["session_id"]}, its messages as its AI received them"
                 else -> "Run ${command.params["session_id"]}, its messages as its AI received them"
             }
             "files" -> when (command.operation) {
@@ -758,6 +766,15 @@ class CommandExecutor(private val context: Context) {
         check(result.isSuccess) { "Cannot read the name of tool $toolInstanceId: ${result.error}" }
         return (result.data?.get("tool_instance") as? Map<*, *>)?.get("name") as? String
             ?: throw IllegalStateException("tools.get result for $toolInstanceId without tool_instance.name")
+    }
+
+    /** The name of Task [taskId], read by tasks.get. */
+    private suspend fun resolveTaskName(taskId: String?): String {
+        taskId ?: throw IllegalStateException("A Task command succeeded without a task_id")
+        val result = coordinator.processUserAction("tasks.get", mapOf("task_id" to taskId))
+        check(result.isSuccess) { "Cannot read the name of Task $taskId: ${result.error}" }
+        return ((result.data?.get("task") as? Map<*, *>)?.get("settings") as? Map<*, *>)?.get("name") as? String
+            ?: throw IllegalStateException("tasks.get result for $taskId without its name")
     }
 
     /** The name of routine [routineId], read by routines.get. */
@@ -868,8 +885,15 @@ class CommandExecutor(private val context: Context) {
                 data["zone_id"]?.let { reordered["zone_id"] = it }
                 return JSONObject(reordered as Map<*, *>).toString(2)
             }
-            // The Tasks of a list each in a line: what they are and what their steps do, by kind
+            // The Tasks of a list each in a line: what they are and what their steps do, by kind;
+            // a Task's runs by their declared schema
             "tasks" -> {
+                if (command.operation == "runs" || command.operation == "get_run") {
+                    val schema = JSONObject(app.treelune.core.tasks.TaskSchemas.runsContent().toString())
+                    val runs = (data["runs"] as? List<*>) ?: listOf(data["run"])
+                    val converted = (ModelValues.toModel(mapOf("runs" to runs.map { (it as Map<*, *>).filterKeys { key -> key in app.treelune.core.tasks.TaskSchemas.RUN_KEYS } }), schema, timezone) as Map<*, *>)["runs"] as List<*>
+                    return JSONObject(if (command.operation == "runs") mapOf("runs" to converted) else mapOf("run" to converted.single())).toString(2)
+                }
                 // One Task's config, in the form the model writes it back (TaskSchemas)
                 if (command.operation == "get") return JSONObject(app.treelune.core.tasks.TaskSchemas.forModel(data["task"] as Map<*, *>, context) as Map<*, *>).toString(2)
                 (data["tasks"] as? List<*>)?.let { list -> reordered["tasks"] = list.map { app.treelune.core.tasks.Task.listed(it as Map<*, *>) } }
@@ -899,7 +923,14 @@ class CommandExecutor(private val context: Context) {
             }
             // A routine's runs, by their declared schema; one run, the text its AI read
             "ai_sessions" -> {
-                if (command.operation == "run_history") return data["messages"] as String
+                if (command.operation == "run_history" || command.operation == "conversation_history") return data["messages"] as String
+                // The conversations, each its name, when it started and was last written in, its count of messages and how it opens
+                if (command.operation == "list") {
+                    val schema = app.treelune.core.ai.data.RoutineSchemas.conversationsContent()
+                    reordered["conversations"] = (ModelValues.toModel(mapOf("conversations" to data["sessions"]), schema, timezone) as Map<*, *>)["conversations"]!!
+                    data["pagination"]?.let { reordered["pagination"] = it }
+                    return JSONObject(reordered as Map<*, *>).toString(2)
+                }
                 val runs = (data["sessions"] as List<*>).map { run -> (run as Map<*, *>).filterKeys { it in RoutineSchemas.RUN_KEYS } }
                 val schema = JSONObject(RoutineSchemas.runs(context).content)
                 reordered["runs"] = (ModelValues.toModel(mapOf("runs" to runs), schema, timezone) as Map<*, *>)["runs"]!!

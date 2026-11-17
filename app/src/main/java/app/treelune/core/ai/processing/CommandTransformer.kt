@@ -114,6 +114,24 @@ object CommandTransformer {
                         ExecutableCommand(resource = "routines", operation = "config", params = mapOf("routine_id" to id))
                     }
                     "ROUTINE_RUNS" -> transformRoutineRunsCommand(command, s, reference)
+                    // A Task's runs and one of them, read as the Task is
+                    "TASK_RUNS" -> (command.params["task_id"] as? String)?.let { id ->
+                        ExecutableCommand(resource = "tasks", operation = "runs", params = buildMap {
+                            put("task_id", id)
+                            (command.params["limit"] as? Number)?.let { put("limit", it.toInt()) }
+                        })
+                    }
+                    "TASK_RUN" -> (command.params["id"] as? String)?.let { id ->
+                        ExecutableCommand(resource = "tasks", operation = "get_run", params = mapOf("run_id" to id))
+                    }
+                    // The user's conversations, then one of them as its AI received it
+                    "CONVERSATIONS" -> transformConversationsCommand(command, s, reference)
+                    "CONVERSATION" -> (command.params["id"] as? String)?.let { id ->
+                        ExecutableCommand(resource = "ai_sessions", operation = "conversation_history", params = buildMap {
+                            put("session_id", id)
+                            (command.params["messages"] as? String)?.let { put("messages", it) }
+                        })
+                    }
                     "HISTORY" -> transformHistoryCommand(command, s, reference)
                     "ROUTINE_RUN" -> (command.params["id"] as? String)?.let { id ->
                         ExecutableCommand(resource = "ai_sessions", operation = "run_history", params = buildMap {
@@ -216,6 +234,19 @@ object CommandTransformer {
         return ExecutableCommand(resource = "ai_sessions", operation = "list_sessions_for_routine", params = buildMap {
             put("routine_id", routineId)
             (command.params["limit"] as? Number)?.let { put("limit", it.toInt()) }
+            period?.start?.let { put("start_time", resolver.instant(it)) }
+            period?.end?.let { put("end_time", resolver.instant(it)) }
+        })
+    }
+
+    /** The user's conversations, the most recent first: those whose name or messages hold [search], started in a period. */
+    private fun transformConversationsCommand(command: DataCommand, s: StringsContext, reference: Long): ExecutableCommand {
+        val resolver = TimeResolver.at(reference)
+        @Suppress("UNCHECKED_CAST")
+        val period = (command.params["period"] as? Map<String, Any?>)?.let { ModelPeriod.read(it, app.treelune.core.utils.AppConfigManager.getDateTimeConfig().getZoneId()) { key -> s.shared(key) } }
+        return ExecutableCommand(resource = "ai_sessions", operation = "list", params = buildMap {
+            (command.params["search"] as? String)?.takeIf { it.isNotBlank() }?.let { put("search", it) }
+            put("limit", (command.params["limit"] as? Number)?.toInt() ?: 10)
             period?.start?.let { put("start_time", resolver.instant(it)) }
             period?.end?.let { put("end_time", resolver.instant(it)) }
         })
