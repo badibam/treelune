@@ -94,7 +94,7 @@ private fun ZoneScreenBody(zone: Zone) {
             onLoading = { isLoading = it },
             onError = { error -> errorMessage = error }
         )?.let { result ->
-            toolInstances = result.mapData("tool_instances") { toolInstanceOf(it) }
+            toolInstances = result.mapData("tool_instances") { app.treelune.core.ui.components.toolInstanceOf(it) }
         }
     }
     val loadVariables: suspend () -> Unit = {
@@ -516,19 +516,6 @@ private fun Section(
     }
     }
 }
-
-/** A tool of a tools.list result asked with its config and its place. */
-@Suppress("UNCHECKED_CAST")
-private fun toolInstanceOf(map: Map<String, Any?>) = ToolInstance(
-    id = map["id"] as String,
-    zone_id = map["zone_id"] as String,
-    tooltype = map["tooltype"] as String,
-    config_json = JsonUtils.toJSONObject(map["config"] as Map<String, Any?>).toString(),
-    grid_x = (map["grid_x"] as Number).toInt(),
-    grid_y = (map["grid_y"] as Number).toInt(),
-    created_at = (map["created_at"] as Number).toLong(),
-    updated_at = (map["updated_at"] as Number).toLong()
-)
 
 /** A section's grid, its tools, variables, routines and Tasks: in edit mode while the page is. */
 @Composable

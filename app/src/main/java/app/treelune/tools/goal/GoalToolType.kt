@@ -284,6 +284,8 @@ object GoalToolType : ToolTypeContract {
         GoalScreen(toolInstanceId = toolInstanceId, onNavigateBack = onNavigateBack, onConfigureClick = onLongClick, openEntryId = (openEntry as? app.treelune.core.tools.EntryToOpen.Existing)?.id)
     }
 
+    override val tileSecond = app.treelune.core.tools.IconSecond.STATE
+
     @Composable
     override fun rememberTile(tool: ToolInstance, open: (app.treelune.core.tools.EntryToOpen) -> Unit): app.treelune.core.tools.ToolTile =
         app.treelune.tools.goal.ui.rememberGoalTile(tool)

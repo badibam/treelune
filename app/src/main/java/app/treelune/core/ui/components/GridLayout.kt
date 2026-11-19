@@ -81,7 +81,7 @@ fun <T> GridLayout(items: List<T>, stored: List<Grid.Tile>, grows: List<Boolean>
     if (stored.isEmpty()) return
     val placesById = edit?.places?.associateBy { it.id }
     // In one column (Appearance.oneColumn), the grid as that column shows it, its places read from the grid's
-    val grid = stored.map { placesById?.get(it.id) ?: it }
+    val grid = stored.map { tile -> placesById?.get(tile.id)?.copy(inOneColumn = tile.inOneColumn) ?: tile }
     val tiles = if (CurrentTheme.oneColumn) Grid.oneColumn(grid, grid.filterIndexed { i, _ -> grows[i] }.map { it.id }.toSet()) else grid
     val rowCount = Grid.rowCount(tiles)
     val cells = if (edit != null) rowCount * Grid.COLUMNS else 0

@@ -531,6 +531,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 }
                                 put("identity_id", zone.identity_id ?: JSONObject.NULL)
                                 put("readout_columns", zone.readout_columns ?: JSONObject.NULL)
+                                put(app.treelune.core.look.TilePieces.KEY, zone.tile_pieces ?: JSONObject.NULL)
                             })
                         }
                     })
@@ -1173,7 +1174,9 @@ class BackupService(private val context: Context) : ExecutableService {
                         // Absent from a backup made before version 77: no identity, as the migration does
                         identity_id = item.nullableString("identity_id"),
                         // Absent from a backup made before version 111: the home screen's, as the migration does
-                        readout_columns = item.nullableString("readout_columns")
+                        readout_columns = item.nullableString("readout_columns"),
+                        // Absent from a backup made before version 119: none, as the migration does
+                        tile_pieces = item.nullableString(app.treelune.core.look.TilePieces.KEY)
                     )
                 )
             }

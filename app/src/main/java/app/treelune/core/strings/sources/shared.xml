@@ -2262,6 +2262,19 @@
     <string name="readout_columns_two">Two columns</string>
     <string name="zone_schema_validate">The AI of the conversation and of the connector asks for your approval before creating, changing or deleting a tool of this zone, its tool groups, its routines or its variables. Changed in the app alone. A routine never asks.</string>
     <string name="zone_schema_tile_size">The size of the zone\'s tile on the main screen, the cells it takes: `icon` (one cell, its icon), `icons_1x2` to `icons_1x10` (a column of icons) or `icons_2x1` to `icons_4x1` (a row): its icon first, then the pieces of `tile_pieces`, each one cell, two with its summary, `2x1` to `2x10` (half the width, 1 to 10 rows high), `4x1` to `4x10` (the whole width), or `4xcontent` (the whole width, as tall as what it shows); its name takes the first row, the rest under it 2 wide or beside it 4 wide, then what the tile lists</string>
+    <string name="label_zone_tile_pieces">On its tile</string>
+    <string name="label_zone_tile_piece">Piece</string>
+    <string name="label_zone_tile_piece_summary">With its summary</string>
+    <string name="zone_schema_tile_pieces">The pieces of the zone its tile shows, in order, to reach them without opening the zone. In icons, after the zone\'s icon, each takes one cell (its icon, which opens it), two with its summary (its icon and its gesture or state); what does not fit is not shown. With text, they are the tile\'s body, each drawn as its own tile: with its summary 4×1 in a zone 4 wide and 2×2 in a zone 2 wide, without it 2×1; what does not fit is counted (“+2”). Empty or absent: none</string>
+    <string name="zone_schema_tile_piece">One piece of the zone\'s tile</string>
+    <string name="zone_schema_tile_piece_id">The id of a piece of this zone: a tool, a variable, a routine, a Task or a readout</string>
+    <string name="zone_schema_tile_piece_summary">Whether its summary goes with it: in icons, a second cell with its gesture (+, play…) or its state; false for its icon alone. A variable has none: its value is text, a readout on it shows it without words</string>
+    <string name="zone_error_tile_piece_twice">The piece %1$s is twice on the zone\'s tile.</string>
+    <string name="zone_error_tile_piece_not_held">%1$s is no piece of this zone: its tile lists its own tools, variables, routines, Tasks and readouts.</string>
+    <string name="zone_tile_pieces_add">Add a piece</string>
+    <string name="zone_tile_pieces_cut">Not on the tile at this size: %1$s.</string>
+    <string name="zone_tile_pieces_gone">No longer in the zone</string>
+    <string name="zone_tile_pieces_no_summary">In icons, its icon alone: what it says is text.</string>
     <string name="zone_schema_icon_color">Colour of the zone\'s icon, one of RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK; null or absent for a neutral icon. A zone\'s tools do not take it</string>
     <string name="zone_schema_group">Organisation group of the zone</string>
 

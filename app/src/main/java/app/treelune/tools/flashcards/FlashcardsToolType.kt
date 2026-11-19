@@ -262,6 +262,8 @@ object FlashcardsToolType : ToolTypeContract {
         FlashcardsScreen(toolInstanceId = toolInstanceId, onNavigateBack = onNavigateBack, onConfigureClick = onLongClick)
     }
 
+    override val tileSecond = app.treelune.core.tools.IconSecond.WAITING
+
     @Composable
     override fun rememberTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile = rememberFlashcardsTile(tool)
 }

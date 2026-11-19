@@ -16,8 +16,12 @@ object Grid {
 
     data class Size(val width: Int, val height: Int)
 
-    /** A tile at [column] and [row], [width] × [height] cells. */
-    data class Tile(val id: String, val column: Int, val row: Int, val width: Int, val height: Int) {
+    /**
+     * A tile at [column] and [row], [width] × [height] cells. [inOneColumn], the cells it takes in
+     * one column when its size alone does not say it (a zone's long row of icons, which folds by
+     * its pieces, IconStrips.oneColumn); null for [oneColumnSize]'s.
+     */
+    data class Tile(val id: String, val column: Int, val row: Int, val width: Int, val height: Int, val inOneColumn: Size? = null) {
         val bottom: Int get() = row + height
 
         fun overlaps(other: Tile): Boolean =
@@ -214,10 +218,14 @@ object Grid {
      * The size a tile of [width] × [height] takes in one column (the « Une colonne » setting): a
      * half of the grid becomes its whole width, a quarter a half; a tile of the whole width,
      * whose first row holds two halves side by side (its header and its summary), stacks them,
-     * one row taller.
+     * one row taller. A row of three icons, wider than a half, takes the whole width, on the rows
+     * its tile says (Tile.inOneColumn), one by default.
      */
-    fun oneColumnSize(width: Int, height: Int): Size =
-        if (width >= COLUMNS) Size(COLUMNS, height + 1) else Size(width * 2, height)
+    fun oneColumnSize(width: Int, height: Int): Size = when {
+        width >= COLUMNS -> Size(COLUMNS, height + 1)
+        width * 2 > COLUMNS -> Size(COLUMNS, height)
+        else -> Size(width * 2, height)
+    }
 
     /**
      * [tiles] as one column shows them: in their reading order, each at its size in one column
@@ -227,7 +235,7 @@ object Grid {
      */
     fun oneColumn(tiles: List<Tile>, grows: Set<String> = emptySet()): List<Tile> {
         val shown = pack(readingOrder(tiles).map { tile ->
-            val size = if (tile.id in grows) Size(tile.width, tile.height) else oneColumnSize(tile.width, tile.height)
+            val size = if (tile.id in grows) Size(tile.width, tile.height) else tile.inOneColumn ?: oneColumnSize(tile.width, tile.height)
             tile.copy(width = size.width, height = size.height)
         }).associateBy { it.id }
         return tiles.map { shown.getValue(it.id) }

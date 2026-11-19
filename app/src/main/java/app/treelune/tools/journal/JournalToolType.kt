@@ -118,6 +118,8 @@ object JournalToolType : ToolTypeContract {
         return listOf(ToolDataEntity::class.java)
     }
 
+    override val tileSecond = app.treelune.core.tools.IconSecond.GESTURE
+
     @Composable
     override fun rememberTile(tool: app.treelune.core.database.entities.ToolInstance, open: (app.treelune.core.tools.EntryToOpen) -> Unit): app.treelune.core.tools.ToolTile =
         app.treelune.tools.journal.ui.rememberJournalTile(tool, open)

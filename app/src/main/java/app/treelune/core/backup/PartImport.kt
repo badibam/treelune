@@ -365,6 +365,12 @@ class PartImport(private val context: Context) {
                         .put("places", JSONObject().apply { placed.forEach { put(it.id, JSONObject().put("grid_x", it.column).put("grid_y", it.row)) } }))))
             }
 
+        // A new zone's tile lists its pieces, now that they are made
+        newZones.forEach { zone ->
+            val key = app.treelune.core.look.TilePieces.KEY
+            if (zone.has(key) && !zone.isNull(key)) run("zones.update", JSONObject().put("zone_id", zone.getString("id")).put(key, JSONArray(zone.getString(key))))
+        }
+
         // The entries, each after the ones it designates, a tool's together
         val entries = ordered(rows(data, "tool_data"))
         var start = 0

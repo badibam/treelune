@@ -129,7 +129,6 @@ fun rememberTrackingTile(tool: ToolInstance): ToolTile {
             }
 
             // In icons: + opens the free entry, no shortcut
-            override val second get() = app.treelune.core.tools.IconSecond.GESTURE
 
             @Composable
             override fun Second() {

@@ -43,6 +43,7 @@ class ZoneContents(private val context: Context) {
             put("icon_name", zone.icon_name)
             put(IconColor.KEY, zone.icon_color)
             put(Texture.KEY, zone.texture)
+            put(app.treelune.core.look.TilePieces.KEY, app.treelune.core.look.TilePieces.toList(app.treelune.core.look.TilePieces.read(zone.tile_pieces)))
             put("sections", sections)
             put("events", database.eventDao().getByZone(zone.id).map { mapOf("id" to it.id, "name" to it.name, "description" to it.description) })
         }

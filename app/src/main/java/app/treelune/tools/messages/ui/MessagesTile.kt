@@ -87,7 +87,6 @@ fun rememberMessagesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolT
             }
 
             // In icons: the unread messages, counted; a touch opens the tool, on « Unread »
-            override val second get() = app.treelune.core.tools.IconSecond.WAITING
 
             @Composable
             override fun Second() {

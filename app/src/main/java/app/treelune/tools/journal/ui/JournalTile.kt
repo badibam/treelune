@@ -89,7 +89,6 @@ fun rememberJournalTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTi
             }
 
             // In icons: + writes a new entry, as the summary's button does
-            override val second get() = app.treelune.core.tools.IconSecond.GESTURE
 
             @Composable
             override fun Second() = app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.ADD) { open(EntryToOpen.New) }

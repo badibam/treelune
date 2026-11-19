@@ -2,9 +2,7 @@ package app.treelune.core.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,13 +20,28 @@ import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
 
 /**
- * One part of a strip of icons (docs/design/icon-tiles.md): [first], one cell — an icon, which
- * opens its thing —, and [second], the cell beside it in a row or under it in a column, when the
- * part is drawn with its summary. A pair is never cut: it shows whole or not at all.
+ * A tile drawn inside another (a zone's pieces, docs/design/icon-tiles.md): at this size, whatever
+ * its own, and without its frame, the outer tile's frame alone saying « tile » (UI.LookCard).
  */
-class IconPiece(val key: String, val first: @Composable () -> Unit, val second: (@Composable () -> Unit)? = null) {
-    /** The cells it takes: 1, or 2 with its second. */
-    val cells: Int get() = if (second != null) 2 else 1
+val LocalInnerTile = androidx.compose.runtime.staticCompositionLocalOf<TileSize?> { null }
+
+/**
+ * One part of a strip of icons (docs/design/icon-tiles.md): [content] drawn across its [cells], 1
+ * or 2 — an icon, which opens its thing, or a pair, the icon and what its summary says without
+ * words. A pair is never cut: it shows whole or not at all.
+ */
+class IconPiece(val key: String, val cells: Int, val content: @Composable () -> Unit)
+
+/** A pair's two cells, [first] then [second], under each other when [vertical], side by side otherwise. */
+@Composable
+fun IconPair(vertical: Boolean, first: @Composable () -> Unit, second: @Composable () -> Unit) {
+    if (vertical) Column(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { first() }
+        Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { second() }
+    } else Row(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.Center) { first() }
+        Box(modifier = Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.Center) { second() }
+    }
 }
 
 /** Where the parts of a strip of icons go: pure placement, read again at each drawing. */
@@ -84,43 +97,32 @@ object IconStrips {
 @Composable
 fun IconStrip(size: TileSize, pieces: List<IconPiece>) {
     val shown = pieces.take(IconStrips.fitting(size.length, pieces.map { it.cells }))
-    val folds = CurrentTheme.oneColumn && !size.vertical && size.length > IconStrips.ONE_COLUMN_ROW
     when {
-        folds -> Column(modifier = Modifier.fillMaxSize()) {
+        folds(size) -> Column(modifier = Modifier.fillMaxSize()) {
             IconStrips.fold(shown.map { it.cells }, IconStrips.ONE_COLUMN_ROW).forEach { row ->
                 Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                    row.forEach { i -> key(shown[i].key) { Cells(shown[i]) } }
+                    row.forEach { i -> key(shown[i].key) { Box(modifier = Modifier.weight(shown[i].cells.toFloat()).fillMaxSize()) { shown[i].content() } } }
                     val left = IconStrips.ONE_COLUMN_ROW - row.sumOf { shown[it].cells }
                     if (left > 0) Spacer(modifier = Modifier.weight(left.toFloat()))
                 }
             }
         }
         size.vertical -> Column(modifier = Modifier.fillMaxSize()) {
-            shown.forEach { piece -> key(piece.key) { Cells(piece) } }
+            shown.forEach { piece -> key(piece.key) { Box(modifier = Modifier.weight(piece.cells.toFloat()).fillMaxWidth()) { piece.content() } } }
             val left = size.length - shown.sumOf { it.cells }
             if (left > 0) Spacer(modifier = Modifier.weight(left.toFloat()))
         }
         else -> Row(modifier = Modifier.fillMaxSize()) {
-            shown.forEach { piece -> key(piece.key) { Cells(piece) } }
+            shown.forEach { piece -> key(piece.key) { Box(modifier = Modifier.weight(piece.cells.toFloat()).fillMaxSize()) { piece.content() } } }
             val left = size.length - shown.sumOf { it.cells }
             if (left > 0) Spacer(modifier = Modifier.weight(left.toFloat()))
         }
     }
 }
 
-/** A part's cells in a column. */
+/** Whether a strip of [size] folds by rows of two: a row longer than two cells, in one column. */
 @Composable
-private fun ColumnScope.Cells(piece: IconPiece) {
-    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { piece.first() }
-    piece.second?.let { second -> Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { second() } }
-}
-
-/** A part's cells in a row. */
-@Composable
-private fun RowScope.Cells(piece: IconPiece) {
-    Box(modifier = Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.Center) { piece.first() }
-    piece.second?.let { second -> Box(modifier = Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.Center) { second() } }
-}
+fun folds(size: TileSize): Boolean = CurrentTheme.oneColumn && !size.vertical && size.length > IconStrips.ONE_COLUMN_ROW
 
 /** A second cell's gesture: the action's button, its icon alone (ToolTile.Second). */
 @Composable

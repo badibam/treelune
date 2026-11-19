@@ -139,6 +139,8 @@ object BackupPart {
         // A zone keeps the tool groups its kept elements hold, in its order
         val heldGroups = keptTools.mapNotNull { tool -> Groups.held(JSONObject(tool.getString("config_json")))?.let { tool.getString("zone_id") to it } } +
             (keptVariables + keptRoutineRows + keptTasks + keptReadouts).mapNotNull { element -> Groups.held(element)?.let { element.getString("zone_id") to it } }
+        // The pieces a zone's tile may keep: those going with the part
+        val keptPieces = (keptTools + keptVariables + keptRoutineRows + keptTasks + keptReadouts).map { it.getString("id") }.toSet()
         // A zone without its details is numbered among the others, in the home screen's order
         val holders = PartTree.of(document).zones.map { it.id }.filter { it in selection.zones && it !in selection.zoneDetails }
         val keptZones = zones.filter { it.getString("id") in selection.zones }.map { zone ->
@@ -146,8 +148,13 @@ object BackupPart {
             val groups = ToolPositions.zoneGroups(zone.optString("tool_groups").takeIf { it.isNotEmpty() }).filter { (id to it) in heldGroups }
             copy(zone).apply {
                 if (groups.isEmpty()) remove("tool_groups") else put("tool_groups", JSONArray(groups).toString())
-                if (id in selection.zoneDetails) put("identity_id", spokenAs(zone))
-                else {
+                if (id in selection.zoneDetails) {
+                    put("identity_id", spokenAs(zone))
+                    // Its tile's pieces among those going with it
+                    val pieces = app.treelune.core.look.TilePieces.read(zone.optString(app.treelune.core.look.TilePieces.KEY).takeIf { !zone.isNull(app.treelune.core.look.TilePieces.KEY) })
+                        .filter { it.id in keptPieces }
+                    put(app.treelune.core.look.TilePieces.KEY, app.treelune.core.look.TilePieces.write(pieces) ?: JSONObject.NULL)
+                } else {
                     // Only what holds the elements ticked: its home group and place, its tool groups;
                     // its own name, description, appearance, identity and settings stay home
                     put("name", holderName(if (holders.size == 1) null else holders.indexOf(id) + 1))
@@ -159,6 +166,7 @@ object BackupPart {
                     put("validate", false)
                     put("identity_id", JSONObject.NULL)
                     put("readout_columns", JSONObject.NULL)
+                    put(app.treelune.core.look.TilePieces.KEY, JSONObject.NULL)
                 }
             }
         }

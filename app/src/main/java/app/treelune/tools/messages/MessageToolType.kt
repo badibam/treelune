@@ -235,6 +235,8 @@ object MessageToolType : ToolTypeContract {
     // UI
     // ========================================
 
+    override val tileSecond = app.treelune.core.tools.IconSecond.WAITING
+
     @Composable
     override fun rememberTile(tool: app.treelune.core.database.entities.ToolInstance, open: (app.treelune.core.tools.EntryToOpen) -> Unit): app.treelune.core.tools.ToolTile =
         app.treelune.tools.messages.ui.rememberMessagesTile(tool, open)

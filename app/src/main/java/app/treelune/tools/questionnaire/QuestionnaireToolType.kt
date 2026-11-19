@@ -134,6 +134,8 @@ object QuestionnaireToolType : ToolTypeContract {
             fillNow = openEntry == app.treelune.core.tools.EntryToOpen.New)
     }
 
+    override val tileSecond = app.treelune.core.tools.IconSecond.GESTURE
+
     @Composable
     override fun rememberTile(tool: ToolInstance, open: (app.treelune.core.tools.EntryToOpen) -> Unit): app.treelune.core.tools.ToolTile =
         app.treelune.tools.questionnaire.ui.rememberQuestionnaireTile(tool, open)

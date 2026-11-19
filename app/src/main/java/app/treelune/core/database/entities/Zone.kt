@@ -17,7 +17,7 @@ data class Zone(
     /** The motif of its tile and its page's header, a name of Texture.NAMES; null for none (docs/THEMES.md, « What a theme is in the app »). */
     val texture: String? = null,
     val active: Boolean = true,
-    /** How its tile shows on the home screen: ICON, MINIMAL, LINE or CONDENSED (ZonePositions.MODES). */
+    /** The size of its tile on the home screen (TileSize, ZoneSettings.LOOK). */
     val tile_size: String = "4x1",
     /** Its column and row in the grid of its zone group on the home screen, placed by ZonePositions. */
     val grid_x: Int,
@@ -53,5 +53,11 @@ data class Zone(
      * The columns of the readouts gathered at its head and at its tool groups' heads
      * (ReadoutColumns): "one" or "two"; null follows the home screen's setting.
      */
-    val readout_columns: String? = null
+    val readout_columns: String? = null,
+
+    /**
+     * The pieces its tile shows, in order, each with its summary or without (TilePieces,
+     * docs/design/icon-tiles.md): a JSON array of `{"id", "summary"}`; null for none.
+     */
+    val tile_pieces: String? = null
 )

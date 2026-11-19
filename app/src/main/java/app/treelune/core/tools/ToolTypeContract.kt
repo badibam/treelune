@@ -116,6 +116,14 @@ interface ToolTypeContract {
     )
 
     /**
+     * What the second cell of its tile in icons is (docs/design/icon-tiles.md): what its summary
+     * says without words — a gesture, a state, what waits counted —, drawn by its tile's Second;
+     * [IconSecond.NONE] by default, the icon alone. Known without the tile, for a zone's tile that
+     * lists the tool.
+     */
+    val tileSecond: IconSecond get() = IconSecond.NONE
+
+    /**
      * The tile of [tool] (ToolTile): its summary and its body, placed by UI.ToolCard as its
      * size lays them out (TileSize). Every tool type fills every size: there is no tile by default.
      * [open] opens the tool on one of its entries, as this tool type understands opening one

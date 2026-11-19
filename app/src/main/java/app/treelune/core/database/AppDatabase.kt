@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 118
+        const val VERSION = 119
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2363,6 +2363,14 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** A zone's tile lists pieces of the zone (docs/design/icon-tiles.md): its column `tile_pieces`, empty for every zone. */
+        private val MIGRATION_118_119 = object : ConnectionMigration(118, 119) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("ALTER TABLE zones ADD COLUMN tile_pieces TEXT")
+                LogManager.database("MIGRATION 118->119: zones.tile_pieces added", "INFO")
+            }
+        }
+
         /** A routine's usage `both` becomes `alone_or_conversation`, beside the new `conversation_or_alone`: see RoutineUsagesAtV118. */
         private val MIGRATION_117_118 = object : ConnectionMigration(117, 118) {
             override fun migrate(database: MigrationDatabase) {
@@ -3649,7 +3657,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_114_115,
                     MIGRATION_115_116,
                     MIGRATION_116_117,
-                    MIGRATION_117_118
+                    MIGRATION_117_118,
+                    MIGRATION_118_119
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

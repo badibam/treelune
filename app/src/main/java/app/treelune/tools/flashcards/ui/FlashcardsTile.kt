@@ -64,7 +64,6 @@ fun rememberFlashcardsTile(tool: ToolInstance): ToolTile {
             }
 
             // In icons: what is left for today, counted; a touch opens the deck, where its group is chosen
-            override val second get() = app.treelune.core.tools.IconSecond.WAITING
 
             @Composable
             override fun Second() {

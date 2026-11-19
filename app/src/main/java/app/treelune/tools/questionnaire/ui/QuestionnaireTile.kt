@@ -102,7 +102,6 @@ fun rememberQuestionnaireTile(tool: ToolInstance, open: (app.treelune.core.tools
             }
 
             // In icons: fill in — the oldest entry waiting, else a passing on demand
-            override val second get() = app.treelune.core.tools.IconSecond.GESTURE
 
             @Composable
             override fun Second() {

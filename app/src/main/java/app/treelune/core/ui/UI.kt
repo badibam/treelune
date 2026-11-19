@@ -8,6 +8,7 @@ import app.treelune.core.ui.sound.rememberUISound
 import app.treelune.core.ui.sound.signal
 import android.content.Context
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
@@ -762,26 +763,32 @@ object UI {
      * (LINE) or below (CONDENSED). Something waiting or running in one of its tools or routines
      * (LocalWaiting, LocalRunning) is marked on its icon. The readouts raised to its tile
      * ([readouts], in the order of the tree) take its description's place where a line holds, each
-     * its icon and its core, side by side; where none does (ICON, MINIMAL), a dot for each that
-     * signals, in its corner.
+     * its icon and its core, side by side; where none does (in icons, MINIMAL), a dot for each that
+     * signals, in its corner — on its own icon in icons.
+     *
+     * The pieces its tile lists ([pieces], docs/design/icon-tiles.md) follow its icon in a strip of
+     * icons, each on its cells, and are its body with text, each drawn as its own tile.
      */
     @Composable
     fun ZoneCard(
         zone: Zone,
         readouts: List<app.treelune.core.readouts.ui.ReadoutRow> = emptyList(),
+        pieces: List<app.treelune.core.ui.components.ListedPiece> = emptyList(),
         onClick: () -> Unit,
         onLongClick: () -> Unit = { }
     ) {
         val look = app.treelune.core.look.Look(zone.name, zone.description, zone.icon_name, zone.icon_color, zone.texture,
             requireNotNull(app.treelune.core.look.TileSize.parse(zone.tile_size)) { "Zone ${zone.id}: no tile size '${zone.tile_size}'" })
-        // The lines its readouts' cores or its description have: none in the icon and in 2×1
-        val linesHeld = look.tileSize.let { if (it.isIcon || it.height == 1 && !it.summaryBeside) 0 else if (it.height == 1) 1 else 2 }
+        val size = look.tileSize
+        // The lines its readouts' cores or its description have: none in icons and in 2×1
+        val linesHeld = size.let { if (it.inIcons || it.height == 1 && !it.summaryBeside) 0 else if (it.height == 1) 1 else 2 }
         @Composable
         fun Glance() {
             // Each by its icon and its core, side by side as many as the tile holds
             if (readouts.isNotEmpty() && linesHeld > 0) app.treelune.core.readouts.ui.ReadoutCores(readouts)
             else zone.description?.let { Text(it, TextType.BODY, maxLines = 2) }
         }
+        val dots: (@Composable () -> Unit)? = if (readouts.isNotEmpty() && size.inIcons) ({ app.treelune.core.readouts.ui.ReadoutDots(readouts) }) else null
         Box {
             LookCard(
                 look = look,
@@ -793,10 +800,12 @@ object UI {
                 onLongClick = onLongClick,
                 summary = { Glance() },
                 glance = { Glance() },
-                body = { },
-                frame = LookFrame.ZONE
+                body = { room -> app.treelune.core.ui.components.ZonePiecesBody(room, pieces, zone.id) },
+                frame = LookFrame.ZONE,
+                pieces = if (size.inIcons) app.treelune.core.ui.components.stripPieces(size, pieces, zone.id) else emptyList(),
+                iconMarks = dots
             )
-            if (readouts.isNotEmpty() && linesHeld == 0) Box(modifier = Modifier.align(Alignment.BottomEnd).padding(Space.S)) {
+            if (readouts.isNotEmpty() && linesHeld == 0 && !size.inIcons) Box(modifier = Modifier.align(Alignment.BottomEnd).padding(Space.S)) {
                 app.treelune.core.readouts.ui.ReadoutDots(readouts)
             }
         }
@@ -890,8 +899,8 @@ object UI {
                 androidx.compose.runtime.CompositionLocalProvider(app.treelune.core.ui.components.LocalItemLayout provides items) { tile.Body(room) }
             },
             // In icons, what its summary says without words
-            second = if (tile.second == app.treelune.core.tools.IconSecond.NONE) null else ({ tile.Second() }),
-            secondWaits = tile.second == app.treelune.core.tools.IconSecond.WAITING
+            second = if (toolType.tileSecond == app.treelune.core.tools.IconSecond.NONE) null else ({ tile.Second() }),
+            secondWaits = toolType.tileSecond == app.treelune.core.tools.IconSecond.WAITING
         )
     }
 
@@ -912,7 +921,11 @@ object UI {
      * (IconStrip); without either, its icon alone, centred in the whole tile. When [secondWaits],
      * its second cell counts what waits, and its icon loses its mark: the same thing is not read
      * twice.
+     *
+     * Inside another tile (LocalInnerTile, a zone's pieces), it takes the size given there and no
+     * frame of its own: a touch and a long touch still answer, on the whole of it.
      */
+    @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
     @Composable
     fun LookCard(
         look: app.treelune.core.look.Look,
@@ -928,9 +941,12 @@ object UI {
         frame: LookFrame = LookFrame.SECTION,
         second: (@Composable () -> Unit)? = null,
         secondWaits: Boolean = false,
-        pieces: List<app.treelune.core.ui.components.IconPiece> = emptyList()
+        pieces: List<app.treelune.core.ui.components.IconPiece> = emptyList(),
+        iconMarks: (@Composable () -> Unit)? = null
     ) {
-        val size = look.tileSize
+        // Inside another tile (a zone's pieces), at the size it is given and without a frame
+        val inner = app.treelune.core.ui.components.LocalInnerTile.current
+        val size = inner ?: look.tileSize
         val color = IconColor.of(look.iconColor)
         val texture = ItemTexture.of(look.texture, look.iconName, color)
         // A zone's description reads from its start, a section tile's preview stands centered
@@ -938,7 +954,12 @@ object UI {
         @Composable
         fun Header() = TileHeader(look.iconName, color, look.name, waiting, running, TextType.HEADING, subtitle = subtitle)
         @Composable
-        fun Frame(content: @Composable () -> Unit) = when (frame) {
+        fun Frame(content: @Composable () -> Unit) = if (inner != null) {
+            Box(modifier = Modifier.fillMaxSize().combinedClickable(onClick = onClick, onLongClick = onLongClick)) {
+                // Its own children are drawn at their own sizes again
+                androidx.compose.runtime.CompositionLocalProvider(app.treelune.core.ui.components.LocalInnerTile provides null) { content() }
+            }
+        } else when (frame) {
             LookFrame.ZONE -> CurrentTheme.current.ZoneCardContainer(texture = texture, color = color, seed = seed, onClick = onClick, onLongClick = onLongClick, content = content)
             LookFrame.SECTION -> CurrentTheme.current.ToolCardContainer(tileSize = size, texture = texture, color = color, seed = seed,
                 onClick = onClick, onLongClick = onLongClick, content = content)
@@ -978,6 +999,8 @@ object UI {
                 } else {
                     TileIcon(look.iconName, color, marked, running)
                 }
+                // What the owner marks on its icon besides (a zone's readouts that signal)
+                iconMarks?.let { Box(modifier = Modifier.align(Alignment.BottomEnd).padding(Space.XS)) { it() } }
             }
 
             when {
@@ -985,8 +1008,14 @@ object UI {
                 laid.isIcon -> OwnIcon(waiting)
                 // In icons: its icon, its second cell and a zone's pieces on its cells; its icon alone without them
                 laid.inIcons -> if (second == null && pieces.isEmpty()) OwnIcon(waiting)
-                    else app.treelune.core.ui.components.IconStrip(laid,
-                        listOf(app.treelune.core.ui.components.IconPiece(seed, { OwnIcon(waiting && !secondWaits) }, second)) + pieces)
+                    else {
+                        val vertical = laid.vertical
+                        val own = if (second == null) app.treelune.core.ui.components.IconPiece(seed, 1) { OwnIcon(waiting) }
+                            else app.treelune.core.ui.components.IconPiece(seed, 2) {
+                                app.treelune.core.ui.components.IconPair(vertical, { OwnIcon(waiting && !secondWaits) }, second)
+                            }
+                        app.treelune.core.ui.components.IconStrip(laid, listOf(own) + pieces)
+                    }
                 // Without a body: the header alone 2 wide on one row, the glance beside it 4 wide, under it 2 high
                 room == null -> when {
                     laid.height == 1 && !laid.summaryBeside -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) { Header() }

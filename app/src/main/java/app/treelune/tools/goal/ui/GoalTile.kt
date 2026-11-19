@@ -151,7 +151,6 @@ fun rememberGoalTile(tool: ToolInstance): ToolTile {
             }
 
             // In icons: the verdict of the attempt running, as its criteria show theirs; a touch opens the tool
-            override val second get() = app.treelune.core.tools.IconSecond.STATE
 
             @Composable
             override fun Second() {

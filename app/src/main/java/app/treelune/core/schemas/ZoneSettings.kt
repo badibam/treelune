@@ -55,6 +55,16 @@ object ZoneSettings {
                 SettingNode.Item.Value(FieldDefinition("tool_group", s.shared("label_tool_group"), s.shared("zone_schema_tool_groups"),
                     FieldType.TEXT, false, mapOf("length" to TextLength.SHORT.name))),
                 distinct = true, description = s.shared("zone_schema_tool_groups_list")),
+            // The pieces its tile shows, in order, each with its summary or without (TilePieces);
+            // each is checked to be a piece of the zone by the service
+            SettingNode.ListOf(app.treelune.core.look.TilePieces.KEY, s.shared("label_zone_tile_pieces"),
+                SettingNode.Item.Of(listOf(
+                    SettingNode.Field(FieldDefinition(app.treelune.core.look.TilePieces.ID, s.shared("label_zone_tile_piece"), s.shared("zone_schema_tile_piece_id"),
+                        FieldType.TEXT, false, mapOf("length" to TextLength.SHORT.name)), required = true),
+                    SettingNode.Field(FieldDefinition(app.treelune.core.look.TilePieces.SUMMARY, s.shared("label_zone_tile_piece_summary"), s.shared("zone_schema_tile_piece_summary"),
+                        FieldType.BOOLEAN, false, null), required = true, default = false)
+                ), description = s.shared("zone_schema_tile_piece")),
+                summary = listOf(app.treelune.core.look.TilePieces.ID), description = s.shared("zone_schema_tile_pieces")),
             // The columns of its gathered readouts, the home screen's unless set
             SettingNode.Field(
                 FieldDefinition(app.treelune.core.readouts.ReadoutColumns.KEY, s.shared("label_zone_readout_columns"), s.shared("zone_schema_readout_columns"), FieldType.CHOICE, false,

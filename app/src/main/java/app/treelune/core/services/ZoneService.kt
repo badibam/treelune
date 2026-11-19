@@ -1,5 +1,7 @@
 package app.treelune.core.services
 
+import app.treelune.core.look.TilePieces
+
 import app.treelune.core.readouts.ReadoutColumns
 import app.treelune.core.themes.IconColor
 import app.treelune.core.themes.Texture
@@ -105,6 +107,9 @@ class ZoneService(private val context: Context) : ExecutableService {
         val identityId = params.givenText("identity_id")
         identityRefusal(identityId)?.let { return OperationResult.error(it) }
         val readoutColumns = ReadoutColumns.stored(params.givenText(ReadoutColumns.KEY))
+        // A new zone holds nothing yet: a piece named for its tile is refused
+        val pieces = TilePieces.of(params.opt(TilePieces.KEY))
+        piecesRefusal(zoneId, pieces, emptyList())?.let { return OperationResult.error(it) }
 
         if (token.isCancelled) return OperationResult.cancelled()
 
@@ -122,7 +127,8 @@ class ZoneService(private val context: Context) : ExecutableService {
             group = group,
             validate = validate,
             identity_id = identityId,
-            readout_columns = readoutColumns
+            readout_columns = readoutColumns,
+            tile_pieces = TilePieces.write(pieces)
         )
         checkZone(placing)?.let { return OperationResult.error(it) }
 
@@ -155,6 +161,28 @@ class ZoneService(private val context: Context) : ExecutableService {
         zone.texture?.let { put(Texture.KEY, it) }
         put(Looks.TILE_SIZE, zone.tile_size)
     }
+
+    /**
+     * The refusal of [pieces] for [zoneId]'s tile: one named twice, or one that is no piece of the
+     * zone (a tool, a variable, a routine, a Task or a readout of it). Only the pieces [before]
+     * did not hold are checked: one deleted since stays in the list (TilePieces), and the zone
+     * saved again with it stays savable.
+     */
+    private suspend fun piecesRefusal(zoneId: String, pieces: List<TilePieces.Piece>, before: List<TilePieces.Piece>): String? {
+        pieces.groupBy { it.id }.entries.firstOrNull { it.value.size > 1 }?.let { return s.shared("zone_error_tile_piece_twice").format(it.key) }
+        val added = pieces.map { it.id }.filter { id -> before.none { it.id == id } }
+        if (added.isEmpty()) return null
+        val held = piecesOf(zoneId)
+        return added.firstOrNull { it !in held }?.let { s.shared("zone_error_tile_piece_not_held").format(it) }
+    }
+
+    /** The ids of [zoneId]'s pieces: its tools, variables, routines, Tasks and readouts. */
+    private suspend fun piecesOf(zoneId: String): Set<String> =
+        (database.toolInstanceDao().getToolInstancesByZone(zoneId).map { it.id } +
+            database.variableDao().getByZone(zoneId).map { it.id } +
+            database.aiDao().getRoutinesByZone(zoneId).map { it.id } +
+            database.taskDao().getByZone(zoneId).map { it.id } +
+            database.readoutDao().getByZone(zoneId).map { it.id }).toSet()
 
     /** A zone's identity is one that exists, or none. */
     private suspend fun identityRefusal(identityId: String?): String? =
@@ -189,6 +217,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             zone.tool_groups?.let { put("tool_groups", JsonUtils.toList(it)) }
             put("validate", zone.validate)
             put(ReadoutColumns.KEY, zone.readout_columns ?: ReadoutColumns.HOME)
+            TilePieces.read(zone.tile_pieces).takeIf { it.isNotEmpty() }?.let { put(TilePieces.KEY, TilePieces.toList(it)) }
         }
         val result = app.treelune.core.validation.SchemaValidator.validate(app.treelune.core.schemas.ZoneSettings.schema(context), settings, context)
         return if (result.isValid) null else result.errorMessage ?: s.shared("message_validation_error_simple")
@@ -366,6 +395,10 @@ class ZoneService(private val context: Context) : ExecutableService {
         // Only an identity that changes is checked: a zone saved again keeps the one it has
         if (identityId != existingZone.identity_id) identityRefusal(identityId)?.let { return OperationResult.error(it) }
         val readoutColumns = if (params.has(ReadoutColumns.KEY)) ReadoutColumns.stored(params.givenText(ReadoutColumns.KEY)) else existingZone.readout_columns
+        // The pieces of its tile: a list given replaces the one it has, null empties it
+        val piecesBefore = TilePieces.read(existingZone.tile_pieces)
+        val pieces = if (params.has(TilePieces.KEY)) TilePieces.of(params.opt(TilePieces.KEY)) else piecesBefore
+        piecesRefusal(zoneId, pieces, piecesBefore)?.let { return OperationResult.error(it) }
         val updatedZone = existingZone.copy(
             name = name,
             description = look.description,
@@ -378,6 +411,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             validate = validate,
             identity_id = identityId,
             readout_columns = readoutColumns,
+            tile_pieces = TilePieces.write(pieces),
             updated_at = System.currentTimeMillis()
         )
 
@@ -504,6 +538,7 @@ class ZoneService(private val context: Context) : ExecutableService {
         if (zone.tool_groups != null) {
             zoneMap["tool_groups"] = JsonUtils.toList(zone.tool_groups)
         }
+        zoneMap[TilePieces.KEY] = TilePieces.toList(TilePieces.read(zone.tile_pieces))
 
         // Add group if present
         if (zone.group != null) {
@@ -544,6 +579,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             if (zone.tool_groups != null) {
                 zoneMap["tool_groups"] = JsonUtils.toList(zone.tool_groups)
             }
+            zoneMap[TilePieces.KEY] = TilePieces.toList(TilePieces.read(zone.tile_pieces))
 
             // Add group if present
             if (zone.group != null) {

@@ -119,7 +119,6 @@ fun rememberSequenceTile(tool: ToolInstance): ToolTile {
             }
 
             // In icons: its summary's button — a session started, or the one going on opened
-            override val second get() = app.treelune.core.tools.IconSecond.GESTURE
 
             @Composable
             override fun Second() {

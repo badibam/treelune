@@ -82,7 +82,6 @@ fun rememberAgendaTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTil
             }
 
             // In icons: + opens a new event on the calendar's page
-            override val second get() = app.treelune.core.tools.IconSecond.GESTURE
 
             @Composable
             override fun Second() = app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.ADD) { open(EntryToOpen.New) }

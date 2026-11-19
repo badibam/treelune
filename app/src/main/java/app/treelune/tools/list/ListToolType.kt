@@ -225,6 +225,8 @@ object ListToolType : ToolTypeContract {
         )
     }
 
+    override val tileSecond = app.treelune.core.tools.IconSecond.GESTURE
+
     @Composable
     override fun rememberTile(tool: ToolInstance, open: (app.treelune.core.tools.EntryToOpen) -> Unit): app.treelune.core.tools.ToolTile =
         app.treelune.tools.list.ui.rememberListTile(tool)

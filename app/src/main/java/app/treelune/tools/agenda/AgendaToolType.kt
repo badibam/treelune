@@ -261,6 +261,8 @@ object AgendaToolType : ToolTypeContract {
             openEntryId = (openEntry as? app.treelune.core.tools.EntryToOpen.Existing)?.id, createNow = openEntry == app.treelune.core.tools.EntryToOpen.New)
     }
 
+    override val tileSecond = app.treelune.core.tools.IconSecond.GESTURE
+
     @Composable
     override fun rememberTile(tool: ToolInstance, open: (app.treelune.core.tools.EntryToOpen) -> Unit): app.treelune.core.tools.ToolTile =
         app.treelune.tools.agenda.ui.rememberAgendaTile(tool, open)

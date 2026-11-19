@@ -512,6 +512,23 @@ private fun HomeScreenBody(zones: ZonesState) {
         read()
         DataChangeNotifier.changes.collect { if (it is DataChangeEvent.ZonesChanged) read() }
     }
+    // The pieces of the zones whose tile lists some (docs/design/icon-tiles.md), read again when
+    // the zones' tools, routines, Tasks, variables or readouts change
+    var pieceTiles by remember { mutableStateOf<Map<String, List<app.treelune.core.ui.components.SectionTile>>>(emptyMap()) }
+    val listing = zones.list.filter { it.tile_pieces != null }.map { it.id }
+    LaunchedEffect(listing) {
+        suspend fun read() {
+            pieceTiles = listing.associateWith { id ->
+                app.treelune.core.ui.components.zonePieceTiles(coordinator, id).getOrElse { errorMessage = it.message; emptyList() }
+            }
+        }
+        read()
+        DataChangeNotifier.changes.collect {
+            if (it is DataChangeEvent.ToolsChanged || it is DataChangeEvent.ZonesChanged || it is DataChangeEvent.VariablesChanged) read()
+        }
+    }
+    val piecesOf = { zone: Zone -> app.treelune.core.ui.components.listedPieces(zone.tile_pieces, pieceTiles[zone.id].orEmpty()) }
+
     // The order of the tree: the zones as the home screen shows them, each zone's groups as its screen does
     val zoneOrder = (zoneGroups.map { it as String? } + null).flatMap { group ->
         zones.list.filter { app.treelune.core.grid.ZonePositions.section(it.group, zoneGroups) == group }.sortedWith(compareBy({ it.grid_y }, { it.grid_x })).map { it.id }
@@ -581,6 +598,7 @@ private fun HomeScreenBody(zones: ZonesState) {
                         zones = zones.list,
                         groupHead = rising(app.treelune.core.readouts.ReadoutSettings.Place.ZONE_GROUP_HEAD),
                         onTile = rising(app.treelune.core.readouts.ReadoutSettings.Place.ZONE_TILE),
+                        piecesOf = piecesOf,
                         configuredGroups = zoneGroups,
                         editor = gridEditor,
                         onZoneClick = { zone -> Navigator.push(Place.Zone(zone.id)) },
@@ -599,6 +617,7 @@ private fun HomeScreenBody(zones: ZonesState) {
                     zones = zones.list,
                     groupHead = rising(app.treelune.core.readouts.ReadoutSettings.Place.ZONE_GROUP_HEAD),
                     onTile = rising(app.treelune.core.readouts.ReadoutSettings.Place.ZONE_TILE),
+                    piecesOf = piecesOf,
                     hasConfiguredGroups = zoneGroups.isNotEmpty(),
                     configuredGroups = zoneGroups, // Pass list to filter orphaned zones
                     editor = gridEditor,
@@ -632,6 +651,8 @@ private fun ZoneGroupSection(
     zones: List<Zone>,
     groupHead: List<app.treelune.core.readouts.ui.ReadoutRow>,
     onTile: List<app.treelune.core.readouts.ui.ReadoutRow>,
+    /** The pieces a zone's tile lists, found among its own (ListedPiece). */
+    piecesOf: (Zone) -> List<app.treelune.core.ui.components.ListedPiece>,
     hasConfiguredGroups: Boolean = true,
     configuredGroups: List<String>,
     editor: app.treelune.core.ui.components.GridEditor,
@@ -697,10 +718,11 @@ private fun ZoneGroupSection(
         }
     } else {
         // The zones on their grid, in edit mode while the page is
-        app.treelune.core.ui.components.GridLayout(groupZones, groupZones.map { app.treelune.core.grid.ZonePositions.tile(it) }, groupZones.map { false }, editor.gridEdit(key)) { zone ->
+        app.treelune.core.ui.components.GridLayout(groupZones, groupZones.map { app.treelune.core.ui.components.zoneGridTile(it, piecesOf(it)) }, groupZones.map { false }, editor.gridEdit(key)) { zone ->
             UI.ZoneCard(
                 zone = zone,
                 readouts = onTile.filter { it.zoneId == zone.id },
+                pieces = piecesOf(zone),
                 onClick = { onZoneClick(zone) },
                 onLongClick = { onZoneLongClick(zone) }
             )
@@ -729,5 +751,6 @@ private fun zoneFrom(map: Map<String, Any?>): Zone = Zone(
     group = map["group"] as? String,
     validate = map["validate"] as Boolean,
     identity_id = map["identity_id"] as? String,
-    readout_columns = app.treelune.core.readouts.ReadoutColumns.stored(map[app.treelune.core.readouts.ReadoutColumns.KEY] as? String)
+    readout_columns = app.treelune.core.readouts.ReadoutColumns.stored(map[app.treelune.core.readouts.ReadoutColumns.KEY] as? String),
+    tile_pieces = (map[app.treelune.core.look.TilePieces.KEY] as? List<*>)?.let { app.treelune.core.look.TilePieces.write(app.treelune.core.look.TilePieces.of(JsonUtils.toJSONArray(it))) }
 )
