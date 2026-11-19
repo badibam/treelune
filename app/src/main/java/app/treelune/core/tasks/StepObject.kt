@@ -32,7 +32,7 @@ import org.json.JSONObject
  *   rendered as a pointer to it;
  * - `{"value": <input>}`, a value the run reads or was given, as it is;
  * - `{"identity": {"identity_id", "pieces"}}`, an identity of the app, in the language it speaks:
- *   its `name` always, then the [PIECES] chosen, each under its own key, `resources` a list of
+ *   its `name` and its `language` (a code, `fr`, `pt-BR`) always, then the [PIECES] chosen, each under its own key, `resources` a list of
  *   `{title, description, content}`; a piece it has not written left out;
  * - `{"object": {…}}`, more keys, the same rule at each level.
  *
@@ -181,8 +181,8 @@ object StepObject {
         }
 
     /**
-     * An identity as it is now, in the language it speaks: its name, then each piece chosen it has
-     * written, under its key.
+     * An identity as it is now, in the language it speaks: its name and that language's code, then
+     * each piece chosen it has written, under its key.
      *
      * @throws IllegalStateException the identity deleted since the step was saved
      */
@@ -192,6 +192,7 @@ object StepObject {
         val spoken = identity.spoken
         return buildMap {
             put("name", identity.name)
+            put("language", identity.language)
             part.pieces.forEach { piece ->
                 when (piece) {
                     app.treelune.core.identities.IdentityLanguage.VOICE -> spoken.voice?.let { put(piece, it.content) }
