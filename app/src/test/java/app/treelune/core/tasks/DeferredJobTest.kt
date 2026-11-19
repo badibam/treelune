@@ -138,6 +138,36 @@ class DeferredJobTest {
         assertEquals(TaskRun.State.FAILED.key, failed.state)
     }
 
+    @Test
+    fun aRunFailedLate_resumed_readsTheSameJob_neverCallingAgain() = runBlocking {
+        val task = task()
+        val run = started(task)
+        val wait = TaskRun.Wait.of(run.waitJson!!)
+        val late = polled(run, wait.deadline)
+        assertEquals(TaskRun.State.FAILED.key, late.state)
+        statusBody = """{"state": "ready", "text": "done"}"""
+        assertNull(TaskRunner.resume(context, task, late, awaited = true))
+        val resumed = read(run.id)
+        assertEquals(TaskRun.State.DONE.key, resumed.state)
+        assertEquals(1, calls)
+        val result = TaskRun.results(resumed.resultsJson).single()
+        assertEquals("done", result.values["text"])
+        assertNull(result.error)
+    }
+
+    @Test
+    fun aRunWhoseJobFailed_resumed_callsAnew() = runBlocking {
+        val task = task()
+        val run = started(task)
+        statusBody = """{"state": "failed"}"""
+        val failed = polled(run, TaskRun.Wait.of(run.waitJson!!).nextAt)
+        assertNull(TaskRunner.resume(context, task, failed, awaited = true))
+        val resumed = read(run.id)
+        assertEquals(TaskRun.State.WAITING.key, resumed.state)
+        assertEquals(2, calls)
+        assertEquals("job-2", TaskRun.Wait.of(resumed.waitJson!!).jobId)
+    }
+
     private companion object {
         const val MINUTE = 60_000L
         const val HOUR = 60 * MINUTE

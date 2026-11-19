@@ -47,7 +47,8 @@ object TaskRun {
      * What one step gave: [summary], what it did said in words; the API's [values] by name and
      * their [types]; the [entryId] it created; the [raw] answer's start; why it failed, [error];
      * why it did not run, [skipped] (StepConditions), said in words; how many elements a
-     * repeated step was made for, [repeated].
+     * repeated step was made for, [repeated]; the deferred API's [job] it followed, kept when it
+     * failed late — still running on the API's side, a resumed run follows it again.
      */
     data class StepResult(
         val summary: String,
@@ -60,7 +61,8 @@ object TaskRun {
         val repeated: Int? = null,
         val at: Long,
         /** Why the run stops after this step, done (« Stop the Task » of a create_entry's guard); null, it goes on. */
-        val stopped: String? = null
+        val stopped: String? = null,
+        val job: String? = null
     ) {
         /**
          * What the step gave under [name]: one of its [values]; or, for an object made (an
@@ -82,6 +84,7 @@ object TaskRun {
             skipped?.let { put("skipped", it) }
             repeated?.let { put("repeated", it) }
             stopped?.let { put("stopped", it) }
+            job?.let { put("job_id", it) }
             put("at", at)
         }
 
@@ -96,7 +99,8 @@ object TaskRun {
                 skipped = json.optString("skipped").ifEmpty { null },
                 stopped = json.optString("stopped").ifEmpty { null },
                 repeated = if (json.has("repeated")) json.getInt("repeated") else null,
-                at = json.getLong("at")
+                at = json.getLong("at"),
+                job = json.optString("job_id").ifEmpty { null }
             )
         }
     }

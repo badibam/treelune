@@ -83,7 +83,9 @@ object TaskRunner {
      * The failed run [run] of [task] going on again from the step that failed, with what the steps
      * before it gave and the entry it received, as they are: nothing assembled again, nothing
      * created twice. The step that failed wrote nothing (an API that fails writes nothing, a
-     * repeated step is undone whole), its failure taken out of the results. Refused, said why,
+     * repeated step is undone whole), its failure taken out of the results. A deferred API's step
+     * that failed late still holds its job, which may be ready since: the run waits on that same
+     * job again, asked at once, up to a new longest wait — never a second call. Refused, said why,
      * when the run did not fail (an interrupted one may have done its step), when the Task changed
      * since it started (its steps may no longer be the ones the results stand for), or while
      * another of its runs goes on.
@@ -99,12 +101,35 @@ object TaskRunner {
             return s.shared("task_error_resume_busy")
         }
         val results = TaskRun.results(run.resultsJson)
-        val kept = if (results.lastOrNull()?.error != null) results.dropLast(1) else results
+        val last = results.lastOrNull()
+        followed(context, task, run, results)?.let { wait ->
+            dao.updateRun(run.copy(state = TaskRun.State.WAITING.key, endedAt = null, resultsJson = TaskRun.resultsJson(results.dropLast(1) + last!!.copy(error = null)),
+                waitJson = wait.toJson(), seenAt = System.currentTimeMillis()))
+            LogManager.service("Task ${task.id} run ${run.id} resumed on job ${wait.jobId} of step ${run.step + 1}", "INFO")
+            app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
+            val waiting = dao.getRun(run.id)!!
+            if (awaited) poll(context, waiting, wait.nextAt) else scope.launch { poll(context, waiting, wait.nextAt) }
+            return null
+        }
+        val kept = if (last?.error != null) results.dropLast(1) else results
         dao.updateRun(run.copy(state = TaskRun.State.RUNNING.key, endedAt = null, step = kept.size, resultsJson = TaskRun.resultsJson(kept), waitJson = null, seenAt = System.currentTimeMillis()))
         LogManager.service("Task ${task.id} run ${run.id} resumed at step ${kept.size + 1}", "INFO")
         app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
         if (awaited) proceed(context, run.id) else scope.launch { proceed(context, run.id) }
         return null
+    }
+
+    /**
+     * The wait on the job the failed step of [run] still holds (StepResult.job), from now up to its
+     * API's longest wait; null when it holds none, or its API is gone.
+     */
+    private suspend fun followed(context: Context, task: TaskEntity, run: TaskRunEntity, results: List<TaskRun.StepResult>): TaskRun.Wait? {
+        val job = results.lastOrNull()?.takeIf { it.error != null }?.job ?: return null
+        val step = org.json.JSONArray(task.stepsJson).optJSONObject(run.step) ?: return null
+        val apiId = step.optString(TaskSteps.API_ID).ifEmpty { return null }
+        val api = AppDatabase.getDatabase(context).apiDao().get(apiId) ?: return null
+        val now = System.currentTimeMillis()
+        return TaskRun.Wait(apiId, job, now, now + ApiSettings.waitLimit(JSONObject(api.configJson), context))
     }
 
     /** The oldest run of [taskId] waiting its turn started, when there is one. */
@@ -206,7 +231,8 @@ object TaskRunner {
         val missed = if (!asked.isSuccess && asked.data?.get(ApiService.PASSING) == true) asked.error ?: s.shared("error_unknown") else null
         when {
             missed == null && (!asked.isSuccess || asked.data?.get("status") == "failed") -> {
-                val failed = run.copy(resultsJson = withLast(last.copy(raw = raw, error = asked.error ?: s.shared("task_error_job_failed"))), waitJson = null)
+                // Over on the API's side, or its answer unreadable: following it again would fail again, a resume calls anew
+                val failed = run.copy(resultsJson = withLast(last.copy(raw = raw, error = asked.error ?: s.shared("task_error_job_failed"), job = null)), waitJson = null)
                 dao.updateRun(failed)
                 end(context, task, failed, TaskRun.State.FAILED)
             }
@@ -482,7 +508,7 @@ object TaskRunner {
                 val job = done.data?.get("job_id") as? String
                 if (job != null) {
                     val limit = ApiSettings.waitLimit(config, context)
-                    throw Waits(TaskRun.StepResult(summary, types = types, raw = raw, at = now),
+                    throw Waits(TaskRun.StepResult(summary, types = types, raw = raw, at = now, job = job),
                         TaskRun.Wait(step.getString(TaskSteps.API_ID), job, now + TaskRun.Wait.FIRST_ASK, now + limit))
                 }
                 @Suppress("UNCHECKED_CAST")
