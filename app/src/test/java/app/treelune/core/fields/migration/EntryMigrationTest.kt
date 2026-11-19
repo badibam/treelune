@@ -218,4 +218,34 @@ class EntryMigrationTest {
         assertTrue(plan.updated.isEmpty())
         assertFalse(plan.touchesPast)
     }
+
+    private fun context(length: String) = field("context", FieldType.TEXT, mapOf("length" to length))
+
+    /** A text field turned JSON puts what it held that is no JSON in an object, counted and agreed to; what is JSON stays. */
+    @Test
+    fun aFieldTurnedJsonPutsItsTextsInAnObject() {
+        val plan = EntryMigration.plan(
+            old = fields(extra = listOf(context("UNLIMITED"))),
+            new = fields(extra = listOf(context("JSON"))),
+            entries = listOf(entry("a", extra = """{"context":"A calm evening"}"""), entry("b", extra = """{"context":"{\"mood\":\"calm\"}"}"""))
+        )
+
+        assertEquals(1, plan.jsonWrapped)
+        assertTrue(plan.touchesPast)
+        val wrapped = JSONObject(JSONObject(plan.updated.single().extra!!).getString("context"))
+        assertEquals("A calm evening", wrapped.getString(EntryMigration.JSON_WRAP_KEY))
+    }
+
+    /** A JSON field that already holds texts that are no JSON (let through before) has them put in an object at the next change, whatever changed. */
+    @Test
+    fun aJsonFieldHoldingTexts_isMendedAtTheNextChange() {
+        val plan = EntryMigration.plan(
+            old = fields(extra = listOf(context("JSON"))),
+            new = fields(extra = listOf(context("JSON"), field("done", FieldType.BOOLEAN))),
+            entries = listOf(entry("a", extra = """{"context":"A calm evening"}"""))
+        )
+
+        assertEquals(1, plan.jsonWrapped)
+        assertTrue(plan.touchesPast)
+    }
 }

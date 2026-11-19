@@ -1919,6 +1919,7 @@
     <string name="migration_part_deleted">%1$d entrée(s) supprimée(s) faute de valeur obligatoire</string>
     <string name="migration_part_reinterpreted">%1$d valeur(s) gardée(s) mais lue(s) autrement (nouvelles bornes, ordre)</string>
     <string name="migration_part_names_cut">%1$d nom(s) coupé(s) à %2$d caractères</string>
+    <string name="migration_part_json_wrapped">%1$d valeur(s) qui ne sont pas du JSON rangée(s) dans {"text": …}</string>
     <string name="migration_filters_aimed">Un filtre de %1$s utilise une option que cette modification retire ou renomme : il ne trouvera plus rien tant que tu ne le changes pas.</string>
     <string name="migration_new_field_offer">Pour ne rien toucher, crée plutôt un nouveau champ : l\'ancien garde ses valeurs, renommé %1$s.</string>
     <string name="migration_new_field">Créer un nouveau champ</string>

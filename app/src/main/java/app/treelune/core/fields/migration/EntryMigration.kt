@@ -1,5 +1,8 @@
 package app.treelune.core.fields.migration
 
+import app.treelune.core.fields.isJsonText
+import app.treelune.core.fields.json
+
 import app.treelune.core.database.entities.ToolDataEntity
 import app.treelune.core.fields.EntrySchemaGenerator
 import app.treelune.core.fields.FieldContainer
@@ -24,6 +27,9 @@ import org.json.JSONObject
  * Pure: the caller loads the entries and writes the plan.
  */
 object EntryMigration {
+
+    /** The key a value that is no JSON goes under once its field holds JSON: `{"text": <value>}`. */
+    const val JSON_WRAP_KEY = "text"
 
     /**
      * The fields a config gives the entries of its tool, and its names: how long one may be, and
@@ -52,6 +58,9 @@ object EntryMigration {
      * @property nameLimit The new length of names, in characters
      * @property nameCollisions The unique names two kept entries would share once cut: the plan
      *   cannot be applied while one remains
+     * @property jsonWrapped The values of a JSON field that read as no JSON object or list, put in
+     *   `{"text": <value>}`, among [updated]: a field turned JSON over texts it held, or one that
+     *   was let through so before this rule
      */
     data class Plan(
         val updated: List<ToolDataEntity>,
@@ -65,7 +74,8 @@ object EntryMigration {
         val removedByRules: Int = 0,
         val namesCut: Int = 0,
         val nameLimit: Int = 0,
-        val nameCollisions: List<String> = emptyList()
+        val nameCollisions: List<String> = emptyList(),
+        val jsonWrapped: Int = 0
     ) {
         /** The entries deleted for the value of a required field they lost. */
         val deletedWithoutValue: Int get() = deleted.size - removedByRules
@@ -74,7 +84,7 @@ object EntryMigration {
         val losesData: Boolean get() = removedValues > 0 || deleted.isNotEmpty() || namesCut > 0
 
         /** Whether it touches what is recorded, lost or read otherwise: only an explicit agreement lets it through. */
-        val touchesPast: Boolean get() = losesData || reinterpreted > 0
+        val touchesPast: Boolean get() = losesData || reinterpreted > 0 || jsonWrapped > 0
     }
 
     /**
@@ -111,6 +121,17 @@ object EntryMigration {
         // A name longer than the new length is cut to it, the spaces it ends on dropped
         val nameLimit = new.nameLength.getLimit()
         var namesCut = 0
+        // A JSON field holds a JSON object or list: what it holds otherwise is put in one, whatever
+        // changed — the state of the entries against the config, as for names
+        val jsonData = new.data.map { it.definition }.filter { it.json() }.map { it.name }
+        val jsonExtra = new.extra.filter { it.json() }.map { it.name }
+        var jsonWrapped = 0
+        fun wrapped(values: Map<String, Any?>, fields: List<String>): Map<String, Any?> = values.mapValues { (key, value) ->
+            if (key in fields && value != null && !isJsonText(value)) {
+                jsonWrapped++
+                JsonUtils.toJSONObject(mapOf(JSON_WRAP_KEY to value)).toString()
+            } else value
+        }
 
         entries.forEach { entry ->
             val state = entry.state?.takeIf { it.isNotBlank() }?.let { JSONObject(it) }
@@ -120,8 +141,8 @@ object EntryMigration {
             val data = renames.values(app.treelune.core.fields.FieldContainer.DATA, stored)
             val extra = renames.values(app.treelune.core.fields.FieldContainer.EXTRA, storedExtra)
 
-            val newData = FieldDataMigrator.applyMigrationStrategies(data, dataChanges, dataStrategies, entryInstance).toMutableMap()
-            val newExtra = FieldDataMigrator.applyMigrationStrategies(extra, extraChanges, extraStrategies, entryInstance)
+            val newData = wrapped(FieldDataMigrator.applyMigrationStrategies(data, dataChanges, dataStrategies, entryInstance), jsonData).toMutableMap()
+            val newExtra = wrapped(FieldDataMigrator.applyMigrationStrategies(extra, extraChanges, extraStrategies, entryInstance), jsonExtra)
 
             // A running DURATION holds its value in the state until stopped: it counts as a value,
             // and it goes with the field when the field loses its values
@@ -167,7 +188,8 @@ object EntryMigration {
         }
 
         return Plan(updated, deleted, removedValues, filledValues, missing, reinterpreted, changedMeaning.toList(),
-            namesCut = namesCut, nameLimit = nameLimit, nameCollisions = if (new.nameUnique) collisions(entries, deleted, updated) else emptyList())
+            namesCut = namesCut, nameLimit = nameLimit, nameCollisions = if (new.nameUnique) collisions(entries, deleted, updated) else emptyList(),
+            jsonWrapped = jsonWrapped)
     }
 
     /**

@@ -435,6 +435,17 @@ fun extraForUpdate(before: Map<String, Any?>, after: Map<String, Any?>): JSONObj
     return app.treelune.core.utils.JsonUtils.toJSONObject(kept + (before.keys - kept.keys).associateWith { null })
 }
 
+/** Whether [value] is what a JSON field holds: a text that reads whole as a JSON object or list. */
+fun isJsonText(value: Any?): Boolean {
+    val text = value as? String ?: return false
+    val read = try {
+        org.json.JSONTokener(text).let { tokener -> tokener.nextValue().takeIf { tokener.nextClean() == 0.toChar() } }
+    } catch (e: org.json.JSONException) {
+        null
+    }
+    return read is org.json.JSONObject || read is org.json.JSONArray
+}
+
 /** Whether this field holds JSON (TextLength.JSON), drawn by the JSON reader. */
 fun FieldDefinition.json(): Boolean =
     type == FieldType.TEXT && TextLength.fromString(config?.get("length") as? String).json

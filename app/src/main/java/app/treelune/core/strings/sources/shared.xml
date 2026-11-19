@@ -1919,6 +1919,7 @@
     <string name="migration_part_deleted">%1$d entry(ies) deleted for lack of a required value</string>
     <string name="migration_part_reinterpreted">%1$d value(s) kept but read differently (new bounds, order)</string>
     <string name="migration_part_names_cut">%1$d name(s) cut to %2$d characters</string>
+    <string name="migration_part_json_wrapped">%1$d value(s) that are not JSON put in {"text": …}</string>
     <string name="migration_filters_aimed">A filter of %1$s uses an option this change removes or renames: it will find nothing until you change it.</string>
     <string name="migration_new_field_offer">To touch nothing, create a new field instead: the former one keeps its values, renamed %1$s.</string>
     <string name="migration_new_field">Create a new field</string>

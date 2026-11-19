@@ -97,14 +97,8 @@ object FieldValueValidator {
      */
     /** A JSON field's value: a text that reads whole as a JSON object or list (TextLength.JSON). */
     private fun validateJsonValue(value: Any?, context: Context): ValidationResult {
-        val text = value as? String ?: return ValidationResult(isValid = false, errorMessage = Strings.`for`(context = context).shared("field_value_json_invalid").format(value.toString().take(80)))
-        val read = try {
-            org.json.JSONTokener(text).let { tokener -> tokener.nextValue().takeIf { tokener.nextClean() == 0.toChar() } }
-        } catch (e: org.json.JSONException) {
-            null
-        }
-        return if (read is org.json.JSONObject || read is org.json.JSONArray) ValidationResult(isValid = true)
-        else ValidationResult(isValid = false, errorMessage = Strings.`for`(context = context).shared("field_value_json_invalid").format(text.take(80)))
+        return if (isJsonText(value)) ValidationResult(isValid = true)
+        else ValidationResult(isValid = false, errorMessage = Strings.`for`(context = context).shared("field_value_json_invalid").format(value.toString().take(80)))
     }
 
     private fun validateRangeValue(value: Any?, context: Context): ValidationResult {

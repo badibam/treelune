@@ -659,7 +659,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         "changed_meaning" to plan.changedMeaning,
         "names_cut" to plan.namesCut,
         "name_limit" to plan.nameLimit,
-        "name_collisions" to plan.nameCollisions
+        "name_collisions" to plan.nameCollisions,
+        "json_wrapped" to plan.jsonWrapped
     ))
 
     /** Writes [plan] to the entries of [tool], inside the caller's transaction. */
