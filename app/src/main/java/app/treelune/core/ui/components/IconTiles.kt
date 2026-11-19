@@ -93,13 +93,16 @@ object IconStrips {
  * The parts of a tile in icons [size] laid on its cells, each cell an equal share of the tile:
  * along a column or a row, as many parts as hold in its length, what is left empty. In one column
  * (CurrentTheme.oneColumn) a row longer than two cells folds by rows of two (IconStrips.fold).
+ * The theme's divider parts two parts, never the two cells of a pair: across a column, upright
+ * along a row; folded, between its rows alone.
  */
 @Composable
 fun IconStrip(size: TileSize, pieces: List<IconPiece>) {
     val shown = pieces.take(IconStrips.fitting(size.length, pieces.map { it.cells }))
     when {
         folds(size) -> Column(modifier = Modifier.fillMaxSize()) {
-            IconStrips.fold(shown.map { it.cells }, IconStrips.ONE_COLUMN_ROW).forEach { row ->
+            IconStrips.fold(shown.map { it.cells }, IconStrips.ONE_COLUMN_ROW).forEachIndexed { index, row ->
+                if (index > 0) UI.Divider()
                 Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
                     row.forEach { i -> key(shown[i].key) { Box(modifier = Modifier.weight(shown[i].cells.toFloat()).fillMaxSize()) { shown[i].content() } } }
                     val left = IconStrips.ONE_COLUMN_ROW - row.sumOf { shown[it].cells }
@@ -108,12 +111,12 @@ fun IconStrip(size: TileSize, pieces: List<IconPiece>) {
             }
         }
         size.vertical -> Column(modifier = Modifier.fillMaxSize()) {
-            shown.forEach { piece -> key(piece.key) { Box(modifier = Modifier.weight(piece.cells.toFloat()).fillMaxWidth()) { piece.content() } } }
+            shown.forEachIndexed { index, piece -> if (index > 0) UI.Divider(); key(piece.key) { Box(modifier = Modifier.weight(piece.cells.toFloat()).fillMaxWidth()) { piece.content() } } }
             val left = size.length - shown.sumOf { it.cells }
             if (left > 0) Spacer(modifier = Modifier.weight(left.toFloat()))
         }
         else -> Row(modifier = Modifier.fillMaxSize()) {
-            shown.forEach { piece -> key(piece.key) { Box(modifier = Modifier.weight(piece.cells.toFloat()).fillMaxSize()) { piece.content() } } }
+            shown.forEachIndexed { index, piece -> if (index > 0) UI.VerticalDivider(); key(piece.key) { Box(modifier = Modifier.weight(piece.cells.toFloat()).fillMaxSize()) { piece.content() } } }
             val left = size.length - shown.sumOf { it.cells }
             if (left > 0) Spacer(modifier = Modifier.weight(left.toFloat()))
         }

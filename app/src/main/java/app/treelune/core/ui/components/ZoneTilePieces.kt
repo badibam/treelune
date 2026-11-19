@@ -82,8 +82,8 @@ fun stripPieces(size: TileSize, pieces: List<ListedPiece>, zoneId: String): List
 /**
  * The body of a zone's tile with text, in [room] (ZoneTileBody): each piece as its own tile without
  * its frame — a line, a condensed tile or a minimal one —, on the body's grid of cells, each row a
- * share of the body (or a row of the grid when the tile follows its content), a row after the first
- * under the theme's separator; « +N » at the last place when some do not fit.
+ * share of the body (or a row of the grid when the tile follows its content), each row under the
+ * theme's separator, the first parting it from the zone's header; « +N » at the last place when some do not fit.
  */
 @Composable
 fun ZonePiecesBody(room: TileSize.Room, pieces: List<ListedPiece>, zoneId: String) {
@@ -98,7 +98,8 @@ fun ZonePiecesBody(room: TileSize.Room, pieces: List<ListedPiece>, zoneId: Strin
                 val piece = pieces[place.id.toInt()]
                 key(piece.tile.id) {
                     Column(modifier = Modifier.fillMaxSize()) {
-                        if (place.row > 0) UI.Divider()
+                        // Each row under the theme's divider, the first parting it from the zone's header
+                        UI.Divider()
                         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                             CompositionLocalProvider(LocalInnerTile provides ZoneTileBody.size(room.width, piece.summary)) { PieceContent(piece.tile, zoneId) }
                         }

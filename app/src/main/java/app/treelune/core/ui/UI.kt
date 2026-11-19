@@ -271,6 +271,23 @@ object UI {
     fun Divider() = CurrentTheme.current.Divider()
 
     /**
+     * The theme's divider turned a quarter, parting two things side by side over the whole height
+     * it is given: each theme's line (its pixels, its torn paper, its brush) without a second
+     * drawing to keep, its margin across.
+     */
+    @Composable
+    fun VerticalDivider() {
+        androidx.compose.ui.layout.Layout(content = { Divider() }, modifier = Modifier.fillMaxHeight()) { measurables, constraints ->
+            val length = constraints.maxHeight
+            val line = measurables.single().measure(androidx.compose.ui.unit.Constraints(minWidth = length, maxWidth = length))
+            layout(line.height, length) {
+                // Turned around its centre, which lands on the middle of the room it takes
+                line.placeWithLayer(x = (line.height - line.width) / 2, y = (length - line.height) / 2) { rotationZ = 90f }
+            }
+        }
+    }
+
+    /**
      * A round swatch of a tag color, as the current palette draws it, for choosing one.
      *
      * @param color The color's name
