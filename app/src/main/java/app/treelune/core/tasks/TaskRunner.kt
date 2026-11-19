@@ -276,7 +276,9 @@ object TaskRunner {
             else -> false
         }
         AppDatabase.getDatabase(context).taskDao().updateRun(run.copy(state = state.key, endedAt = now, waitJson = null, seenAt = if (waits) null else now))
-        LogManager.service("Task ${task.id} run ${run.id} ended: ${state.key}", "INFO")
+        // A failure's words kept in the log: a resume takes them out of the run's results
+        val error = if (state == TaskRun.State.FAILED) TaskRun.results(run.resultsJson).lastOrNull()?.error else null
+        LogManager.service("Task ${task.id} run ${run.id} ended: ${state.key}" + (error?.let { " at step ${run.step + 1}: $it" } ?: ""), if (error != null) "WARN" else "INFO")
         app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
         // A run cancelled before its turn leaves the one going on in place
         if (TaskRun.State.of(run.state) != TaskRun.State.QUEUED) next(context, task.id)
