@@ -278,8 +278,9 @@
     <string name="routine_is_enabled">Activée</string>
     <string name="routine_notify_end">Me signaler la fin</string>
     <string name="routine_usage">Utilisée</string>
-    <string name="routine_usage_both">Seule et en conversation</string>
     <string name="routine_usage_alone">Seule uniquement</string>
+    <string name="routine_usage_alone_or_conversation">Seule, ou en conversation</string>
+    <string name="routine_usage_conversation_or_alone">En conversation, ou seule</string>
     <string name="routine_usage_conversation">En conversation uniquement</string>
     <string name="routine_invitation_notification">C\'est l\'heure de cette conversation : ouvre-la depuis la routine</string>
     <string name="routine_notify_end_always">Toujours</string>
@@ -2777,7 +2778,7 @@
     <string name="routine_schema_group">Un des groupes d\'outils de sa zone, où se tient sa tuile</string>
     <string name="routine_schema_is_enabled">Si son planning la lance</string>
     <string name="routine_schema_notify_end">Quand la fin d\'une exécution est notifiée : toujours, sur un problème seulement, ou jamais</string>
-    <string name="routine_schema_usage">Comment la routine sert. « both » (par défaut) : son planning et ses déclencheurs la lancent seule, et sa tuile ouvre aussi une conversation avec son message. « alone » : lancée seule uniquement, sans bouton de conversation. « conversation » : jamais lancée seule (un lancement demandé est refusé) ; son planning et ses déclencheurs invitent à sa conversation à la place, par une notification, sa tuile marquée jusqu\'à ce que la conversation soit ouverte</string>
+    <string name="routine_schema_usage">Comment la routine sert : ce que font son planning et ses déclencheurs, et ce qu\'elle permet en plus. « alone » : ils la lancent seule ; pas de bouton de conversation. « alone_or_conversation » (par défaut) : ils la lancent seule, et sa tuile ouvre aussi une conversation avec son message. « conversation_or_alone » : ils invitent à sa conversation, par une notification, sa tuile marquée jusqu\'à ce que la conversation soit ouverte ; elle peut encore être lancée seule (à la main, par l\'IA, par une Tâche). « conversation » : ils invitent aussi à sa conversation, et un lancement seule demandé est refusé</string>
     <string name="routine_schema_catch_up">Ce qu\'elle fait des exécutions manquées, téléphone éteint ou app arrêtée ; présent avec un planning seulement</string>
     <string name="routine_schema_catch_up_limit">Jusqu\'où les exécutions manquées sont rattrapées</string>
     <string name="routine_schema_catch_up_limited">Seulement celles dans le délai</string>

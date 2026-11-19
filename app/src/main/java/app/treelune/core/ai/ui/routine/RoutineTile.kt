@@ -49,7 +49,7 @@ class RoutineActions(
 
     fun chat(routine: Routine) = scope.launch {
         // Its invitation, if one waits, is answered by opening it
-        if (routine.usage == app.treelune.core.ai.data.RoutineSettings.USAGE_CONVERSATION)
+        if (routine.invites)
             coordinator.processUserAction("routines.invitation_opened", mapOf("routine_id" to routine.id))
         val seed = AIOrchestrator.loadSeedMessages(routine.seedSessionId)
         val prefill = seed.firstOrNull { it.sender == app.treelune.core.ai.data.MessageSender.USER }?.richContent?.segments ?: emptyList()

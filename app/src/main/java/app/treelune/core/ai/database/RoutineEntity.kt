@@ -69,8 +69,8 @@ data class RoutineEntity(
     /** Its column and row in the grid of its group's section (SectionGrid) */
     @ColumnInfo(name = "grid_x") val gridX: Int = 0,
     @ColumnInfo(name = "grid_y") val gridY: Int = 0,
-    /** How it is used (RoutineSettings.USAGE_*): run alone, opened as a conversation, or both */
-    val usage: String = RoutineSettings.USAGE_BOTH,
+    /** How it is used (RoutineSettings.USAGE_*): what its schedule and its triggers do, and what it allows besides */
+    val usage: String = RoutineSettings.USAGE_ALONE_OR_CONVERSATION,
     /**
      * For a routine used as a conversation, the scheduled occurrence its last invitation was for:
      * where the search for the next one starts, as a run's planned time does. The app's alone

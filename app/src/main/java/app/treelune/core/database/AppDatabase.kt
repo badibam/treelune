@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 117
+        const val VERSION = 118
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2363,6 +2363,16 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** A routine's usage `both` becomes `alone_or_conversation`, beside the new `conversation_or_alone`: see RoutineUsagesAtV118. */
+        private val MIGRATION_117_118 = object : ConnectionMigration(117, 118) {
+            override fun migrate(database: MigrationDatabase) {
+                val v = app.treelune.core.versioning.RoutineUsagesAtV118
+                database.execSQL("UPDATE ${v.TABLE} SET ${v.KEY} = ? WHERE ${v.KEY} = ?", arrayOf<Any?>(v.CURRENT, v.FORMER))
+                app.treelune.core.versioning.HistoryCopies.rewrite(database, v.TABLE) { v.values(it) }
+                LogManager.database("MIGRATION 117->118: routine usage both became alone_or_conversation", "INFO")
+            }
+        }
+
         /**
          * A tile's display mode becomes its size (docs/design/tile-sizes.md): the column renamed
          * `tile_size` in the tables that keep it, the key in a tool's config, each mode the size it
@@ -3638,7 +3648,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_113_114,
                     MIGRATION_114_115,
                     MIGRATION_115_116,
-                    MIGRATION_116_117
+                    MIGRATION_116_117,
+                    MIGRATION_117_118
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

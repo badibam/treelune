@@ -47,8 +47,8 @@ class RoutineScheduler(private val context: Context) {
         lastCompletedSession: AISessionEntity?,
         now: Long
     ): Long {
-        // A routine used as a conversation has no runs: its last occurrence is the one it invited to
-        val lastExecutionTime = if (routine.usage == app.treelune.core.ai.data.RoutineSettings.USAGE_CONVERSATION) routine.invitedFor ?: 0L
+        // A routine whose schedule invites has no scheduled runs: its last occurrence is the one it invited to
+        val lastExecutionTime = if (app.treelune.core.ai.data.RoutineSettings.invites(routine.usage)) routine.invitedFor ?: 0L
             else lastCompletedSession?.scheduledExecutionTime ?: 0L
         val start = CatchUpPolicy.searchStart(
             lastExecutionTime = lastExecutionTime,

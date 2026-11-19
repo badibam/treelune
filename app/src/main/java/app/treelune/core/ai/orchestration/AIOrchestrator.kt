@@ -721,9 +721,10 @@ object AIOrchestrator {
                 return
             }
 
-            // Used as a conversation, it never runs alone: what would start it invites to its
-            // conversation instead (its manual run is refused before, RoutineService.executeManual)
-            if (routine.usage == app.treelune.core.ai.data.RoutineSettings.USAGE_CONVERSATION) {
+            // Its schedule and its triggers invite to its conversation instead of running it; a
+            // manual run (by hand, the AI, a Task) runs it unless it is a conversation only, which
+            // is refused before (RoutineService.executeManual)
+            if (app.treelune.core.ai.data.RoutineSettings.invites(routine.usage) && trigger != ExecutionTrigger.MANUAL) {
                 app.treelune.core.ai.scheduling.RoutineInvitations.invite(context, routine,
                     occurrence = scheduledFor.takeIf { trigger == ExecutionTrigger.SCHEDULED })
                 return

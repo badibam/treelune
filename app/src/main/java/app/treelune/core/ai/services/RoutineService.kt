@@ -762,8 +762,8 @@ class RoutineService(private val context: Context) : ExecutableService {
             ?: return OperationResult.error(s.shared("error_routine_not_found"))
         if (AIOrchestrator.isSeedEmpty(entity.seedSessionId)) return OperationResult.error(s.shared("routine_message_empty_run"))
         if (entity.providerId == null) return OperationResult.error(s.shared("routine_provider_none"))
-        // Used as a conversation, it never runs alone: its conversation is opened from its tile
-        if (entity.usage == RoutineSettings.USAGE_CONVERSATION) return OperationResult.error(s.shared("routine_conversation_only"))
+        // A conversation only never runs alone: its conversation is opened from its tile
+        if (!RoutineSettings.runsAlone(entity.usage)) return OperationResult.error(s.shared("routine_conversation_only"))
 
         // Delegate to AIOrchestrator V2
         // V2 handles session creation, trigger, and scheduling internally

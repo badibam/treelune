@@ -278,8 +278,9 @@
     <string name="routine_is_enabled">Enabled</string>
     <string name="routine_notify_end">Tell me when it ends</string>
     <string name="routine_usage">Used</string>
-    <string name="routine_usage_both">Alone and as a conversation</string>
     <string name="routine_usage_alone">Alone only</string>
+    <string name="routine_usage_alone_or_conversation">Alone, or as a conversation</string>
+    <string name="routine_usage_conversation_or_alone">As a conversation, or alone</string>
     <string name="routine_usage_conversation">As a conversation only</string>
     <string name="routine_invitation_notification">Time for this conversation: open it from the routine</string>
     <string name="routine_notify_end_always">Always</string>
@@ -2777,7 +2778,7 @@
     <string name="routine_schema_group">One of the tool groups of its zone, where its tile stands</string>
     <string name="routine_schema_is_enabled">Whether its schedule runs it</string>
     <string name="routine_schema_notify_end">When the end of a run is notified: always, on a problem only, or never</string>
-    <string name="routine_schema_usage">How the routine is used. "both" (default): its schedule and its triggers run it alone, and its tile also opens a conversation with its message. "alone": run alone only, no conversation button. "conversation": never run alone (a run asked for is refused); its schedule and its triggers invite the user to its conversation instead, by a notification, its tile marked until the conversation is opened</string>
+    <string name="routine_schema_usage">How the routine is used: what its schedule and its triggers do, and what it allows besides. "alone": they run it alone; no conversation button. "alone_or_conversation" (default): they run it alone, and its tile also opens a conversation with its message. "conversation_or_alone": they invite the user to its conversation, by a notification, its tile marked until the conversation is opened; it can still be run alone (by hand, by the AI, by a Task). "conversation": they invite to its conversation as well, and a run alone asked for is refused</string>
     <string name="routine_schema_catch_up">What it does about the runs it missed, the phone off or the app stopped; present with a schedule only</string>
     <string name="routine_schema_catch_up_limit">How far back missed runs are caught up</string>
     <string name="routine_schema_catch_up_limited">Only those within the window</string>

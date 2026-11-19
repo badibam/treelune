@@ -124,7 +124,7 @@ class BackupService(private val context: Context) : ExecutableService {
             gridX = item.getInt("grid_x"),
             gridY = item.getInt("grid_y"),
             // Absent from a backup made before version 115: run alone and opened as a conversation
-            usage = item.optString(app.treelune.core.ai.data.RoutineSettings.USAGE).ifEmpty { app.treelune.core.ai.data.RoutineSettings.USAGE_BOTH }
+            usage = item.optString(app.treelune.core.ai.data.RoutineSettings.USAGE).ifEmpty { app.treelune.core.ai.data.RoutineSettings.USAGE_ALONE_OR_CONVERSATION }
         )
 
         /** A Task as a backup's [item] holds it, in the form of the current schema. */
@@ -1633,6 +1633,9 @@ class BackupService(private val context: Context) : ExecutableService {
             }
             if (fromVersion < 117 && toVersion >= 117) {
                 app.treelune.core.versioning.TileSizesAtV117.backup(data)
+            }
+            if (fromVersion < 118 && toVersion >= 118) {
+                app.treelune.core.versioning.RoutineUsagesAtV118.backup(data)
             }
 
             // Transform app settings

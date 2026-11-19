@@ -38,15 +38,31 @@ object RoutineSettings {
     const val NOTIFY_NEVER = "never"
 
     /**
-     * How a routine is used, stored under [USAGE]: run alone at its schedule and its triggers
-     * ([USAGE_ALONE], without a conversation button), opened as a conversation ([USAGE_CONVERSATION]:
-     * nothing runs it, its schedule and its triggers invite to the conversation instead,
-     * RoutineInvitations), or both, the schedule running it ([USAGE_BOTH], by default).
+     * How a routine is used, stored under [USAGE] (docs/design/icon-tiles.md, « L'usage d'une
+     * routine »): what its schedule and its triggers do, and what it allows besides.
+     * - [USAGE_ALONE]: they run it alone; no conversation button.
+     * - [USAGE_ALONE_OR_CONVERSATION] (by default): they run it alone; its tile opens a conversation too.
+     * - [USAGE_CONVERSATION_OR_ALONE]: they invite to its conversation (RoutineInvitations); it can
+     *   still be run alone, by hand, by the AI or by a Task.
+     * - [USAGE_CONVERSATION]: they invite to its conversation; a run alone is refused.
      */
     const val USAGE = "usage"
-    const val USAGE_BOTH = "both"
     const val USAGE_ALONE = "alone"
+    const val USAGE_ALONE_OR_CONVERSATION = "alone_or_conversation"
+    const val USAGE_CONVERSATION_OR_ALONE = "conversation_or_alone"
     const val USAGE_CONVERSATION = "conversation"
+
+    /** Every usage, in the order they are offered. */
+    val USAGES = listOf(USAGE_ALONE, USAGE_ALONE_OR_CONVERSATION, USAGE_CONVERSATION_OR_ALONE, USAGE_CONVERSATION)
+
+    /** Whether a routine of [usage] can be run alone: all but the conversation only. */
+    fun runsAlone(usage: String): Boolean = usage != USAGE_CONVERSATION
+
+    /** Whether a routine of [usage] opens as a conversation: all but alone only. */
+    fun opensAsConversation(usage: String): Boolean = usage != USAGE_ALONE
+
+    /** Whether the schedule and the triggers of a routine of [usage] invite to its conversation rather than run it. */
+    fun invites(usage: String): Boolean = usage == USAGE_CONVERSATION || usage == USAGE_CONVERSATION_OR_ALONE
 
     const val SCHEMA_ID = "routine_settings"
 
@@ -132,10 +148,7 @@ object RoutineSettings {
         return listOf(
             // Above what starts it: the same schedule runs it or invites to its conversation
             SettingNode.Field(FieldDefinition(USAGE, s.shared("routine_usage"), s.shared("routine_schema_usage"), FieldType.CHOICE, false,
-                mapOf("options" to ChoiceSettings.storedOptions(listOf(USAGE_BOTH, USAGE_ALONE, USAGE_CONVERSATION), mapOf(
-                    USAGE_BOTH to s.shared("routine_usage_both"),
-                    USAGE_ALONE to s.shared("routine_usage_alone"),
-                    USAGE_CONVERSATION to s.shared("routine_usage_conversation"))))), default = USAGE_BOTH),
+                mapOf("options" to ChoiceSettings.storedOptions(USAGES, USAGES.associateWith { s.shared("routine_usage_$it") }))), default = USAGE_ALONE_OR_CONVERSATION),
             // Absent: the routine runs on demand only
             ScheduleSettings.group(s.shared("routine_schedule"), s::shared),
             // Present with the schedule, and only with it (RoutineService)

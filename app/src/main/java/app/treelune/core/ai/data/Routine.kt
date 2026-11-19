@@ -39,8 +39,8 @@ data class Routine(
     val isEnabled: Boolean,
     /** Which of its runs wait for the user (RoutineSettings.NOTIFY_*) */
     val notifyEnd: String = RoutineSettings.NOTIFY_ALWAYS,
-    /** How it is used (RoutineSettings.USAGE_*): run alone, opened as a conversation, or both */
-    val usage: String = RoutineSettings.USAGE_BOTH,
+    /** How it is used (RoutineSettings.USAGE_*): what its schedule and its triggers do, and what it allows besides */
+    val usage: String = RoutineSettings.USAGE_ALONE_OR_CONVERSATION,
     val group: String? = null,              // Group within zone (null = ungrouped)
     val createdAt: Long,
     val updatedAt: Long,                    // Last modification timestamp (used to skip missed executions after disable)
@@ -54,11 +54,14 @@ data class Routine(
     val gridX: Int,
     val gridY: Int
 ) {
-    /** Whether it runs alone: its Run button, its schedule and its triggers running it */
-    val runsAlone: Boolean get() = usage != RoutineSettings.USAGE_CONVERSATION
+    /** Whether it can be run alone: its Run button */
+    val runsAlone: Boolean get() = RoutineSettings.runsAlone(usage)
 
     /** Whether it opens as a conversation: its conversation button */
-    val opensAsConversation: Boolean get() = usage != RoutineSettings.USAGE_ALONE
+    val opensAsConversation: Boolean get() = RoutineSettings.opensAsConversation(usage)
+
+    /** Whether its schedule and its triggers invite to its conversation rather than run it */
+    val invites: Boolean get() = RoutineSettings.invites(usage)
 
     val tile: app.treelune.core.grid.Grid.Tile
         get() = look.tileSize.cells.let { app.treelune.core.grid.Grid.Tile(id, gridX, gridY, it.width, it.height) }
