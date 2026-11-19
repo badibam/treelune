@@ -37,8 +37,9 @@ import kotlinx.coroutines.withContext
  * The input of a FILE field (docs/DATA.md, « FILE »): its files in a row, each with buttons to
  * move it left or right and to take it off, and, while the field holds fewer than its max, a
  * button per way to add what it takes — a photo taken (IMAGE), a video filmed (VIDEO), a sound
- * recorded (AUDIO), each by the phone's own app, a file chosen on the phone among the kinds it
- * takes, and the files of another entry's field copied once (« Copy from a tool »). An image is reduced, unless « Keep the original » is ticked: the images added then are
+ * recorded (AUDIO), each by the phone's own app, files chosen on the phone among the kinds it
+ * takes, several at once up to the field's max (MultiplePicks; past it with the file picker, the first
+ * taken and the rest said), and the files of another entry's field copied once (« Copy from a tool »). An image is reduced, unless « Keep the original » is ticked: the images added then are
  * kept byte for byte. A file added is set aside at once (files.prepare), until the entry is written; a file
  * taken off goes from the value, and the entry's write deletes it.
  *
@@ -80,6 +81,32 @@ fun FileInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, 
         }
     }
 
+    /**
+     * The files at [uris], chosen together, set aside one after the other and added after the
+     * others in the order they were chosen. Past the field's max, the first are taken and the
+     * rest said: the phone's file picker cannot be told how many to allow.
+     */
+    fun addAll(uris: List<android.net.Uri>) {
+        if (uris.isEmpty()) return
+        val room = max?.let { (it - current.size).coerceAtLeast(0) }
+        val taken = if (room != null) uris.take(room) else uris
+        if (taken.size < uris.size) UI.Toast(s.shared("file_added_of_chosen").format(taken.size, uris.size, max), Duration.LONG)
+        scope.launch {
+            // Each id added to what the field held when the files came back: the value is
+            // rewritten after each, before the next is set aside
+            val base = current
+            val added = mutableListOf<String>()
+            for (uri in taken) {
+                val result = Coordinator(context).processUserAction("files.prepare", mapOf("uri" to uri.toString(), "kinds" to kinds.map { it.name }, "original" to original))
+                if (result.isSuccess) {
+                    added += result.data!!["id"] as String
+                    changed(base + added)
+                    if (result.data!!["animated"] == true) UI.Toast(s.shared("image_animated_first_frame"), Duration.LONG)
+                } else UI.Toast(result.error ?: "", Duration.LONG)
+            }
+        }
+    }
+
     /** The file [path] under [folder] prepared as a link and added after the others. */
     fun addLink(folder: LinkedFiles.OpenedFolder, path: String) {
         scope.launch {
@@ -103,8 +130,12 @@ fun FileInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, 
     val recorder = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         result.data?.data?.let { add(it) }
     }
+    // Several photos or videos at once, the picker allowing what the field still takes; one
+    // alone when one place is left, a multiple picker refusing a limit of 1
+    val room = max?.let { it - ids.size }
     val visual = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> if (uri != null) add(uri) }
-    val document = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) add(uri) }
+    val visualMany = rememberLauncherForActivityResult(MultiplePicks.visual(context, room)) { uris -> addAll(uris) }
+    val documents = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris -> addAll(uris) }
 
     /** The phone's camera into a file of the cache ending with [extension], by [launch]. */
     fun capture(extension: String, launch: (android.net.Uri) -> Unit) {
@@ -155,7 +186,11 @@ fun FileInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, 
                         kinds.all { it == FileKind.IMAGE || it == FileKind.VIDEO } -> ActivityResultContracts.PickVisualMedia.ImageAndVideo
                         else -> null
                     }
-                    if (media != null) visual.launch(PickVisualMediaRequest(media)) else document.launch(FilePreparation.pickerTypes(kinds))
+                    when {
+                        media == null -> documents.launch(FilePreparation.pickerTypes(kinds))
+                        room == 1 -> visual.launch(PickVisualMediaRequest(media))
+                        else -> visualMany.launch(PickVisualMediaRequest(media))
+                    }
                 })
             }
         }

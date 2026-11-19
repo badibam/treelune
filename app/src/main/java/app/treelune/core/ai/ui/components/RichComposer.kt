@@ -225,6 +225,22 @@ fun UI.RichComposer(
         }
     }
 
+    /**
+     * The phone's files at [uris], chosen together, joined one after the other in the order they
+     * were chosen, each a block after the one before.
+     */
+    fun joinAll(uris: List<android.net.Uri>) {
+        if (uris.isEmpty()) return
+        val session = checkNotNull(sessionId) { "a file is joined within a session" }
+        scope.launch {
+            for (uri in uris) {
+                val result = Coordinator(context).processUserAction("files.join", mapOf("uri" to uri.toString(), "session_id" to session))
+                if (result.isSuccess) added((result.data?.get("files") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>())
+                else UI.Toast(result.error ?: "", Duration.LONG)
+            }
+        }
+    }
+
     /** Files joined to the session by [params] (a file of the phone, or copies of a tool's), then [afterwards]. */
     fun join(params: Map<String, Any?>, afterwards: () -> Unit = {}) {
         val session = checkNotNull(sessionId) { "a file is joined within a session" }
@@ -252,7 +268,7 @@ fun UI.RichComposer(
     val recorder = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         result.data?.data?.let { join(mapOf("uri" to it.toString())) }
     }
-    val document = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) join(mapOf("uri" to uri.toString())) }
+    val documents = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris -> joinAll(uris) }
     var joining by rememberSaveable { mutableStateOf(false) }
     var copying by rememberSaveable { mutableStateOf(false) }
 
@@ -431,7 +447,7 @@ fun UI.RichComposer(
                 UI.Toast(s.shared("file_no_recorder"), Duration.LONG)
             }
         },
-        onDevice = { joining = false; document.launch(app.treelune.core.files.FilePreparation.pickerTypes(app.treelune.core.files.FileKind.entries)) },
+        onDevice = { joining = false; documents.launch(app.treelune.core.files.FilePreparation.pickerTypes(app.treelune.core.files.FileKind.entries)) },
         onCopy = { joining = false; copying = true }
     )
     if (copying) app.treelune.core.ui.selectors.EntryFieldPicker(

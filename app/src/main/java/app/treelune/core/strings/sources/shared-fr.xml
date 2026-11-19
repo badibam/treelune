@@ -1483,6 +1483,7 @@
     <string name="action_verbalize_files_show_images">Affichage d\'images</string>
     <string name="action_verbalize_files_join">Ajout d\'un fichier joint</string>
     <string name="image_animated_first_frame">Cette image est animée : seule sa première image est gardée</string>
+    <string name="file_added_of_chosen">%1$d des %2$d fichiers choisis sont ajoutés : le champ en prend %3$d au plus.</string>
     <string name="field_image_others">+%1$d</string>
     <string name="ai_image_error_model_does_not_read">Ce modèle ne lit pas les images : retire-les du message, ou choisis un modèle qui les lit.</string>
     <string name="ai_image_error_model_unknown">Rien ne dit si ce modèle lit les images, elles ne partent donc pas : rouvre la config du fournisseur et enregistre-la, ou choisis un autre modèle.</string>
