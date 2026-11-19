@@ -62,6 +62,16 @@ object TaskRun {
         /** Why the run stops after this step, done (« Stop the Task » of a create_entry's guard); null, it goes on. */
         val stopped: String? = null
     ) {
+        /**
+         * What the step gave under [name]: one of its [values]; or, for an object made (an
+         * `assemble` step), one of its keys, which [types] names beside the object stored once
+         * under StepObject.OUTPUT and read from it.
+         */
+        fun valueOf(name: String): Any? =
+            if (values.containsKey(name)) values[name]
+            else if (types.containsKey(name)) (values[StepObject.OUTPUT] as? Map<*, *>)?.get(name)
+            else null
+
         fun toJson(): JSONObject = JSONObject().apply {
             put("summary", summary)
             if (values.isNotEmpty()) put("values", JsonUtils.toJSONObject(values))

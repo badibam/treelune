@@ -3178,6 +3178,8 @@
     <string name="task_error_object_pointer_target">Étape %1$s : un pointeur de l\'objet désigne des entrées d\'un outil, ou une entrée</string>
     <string name="task_error_object_labels">Étape %1$s : deux champs gardés s\'appellent « %2$s » ; renomme l\'un, ou n\'en garde qu\'un</string>
     <string name="task_error_object_input">Étape %1$s : l\'entrée « %2$s » prend un objet, que seul un objet fait par une étape précédente donne, et un objet va à une entrée de type objet seulement</string>
+    <string name="task_error_object_key_reserved">Étape %1$s : aucune clé de l\'objet ne peut s\'appeler « %2$s », le nom sous lequel part l\'objet entier</string>
+    <string name="task_error_list_key_input">Étape %1$s : l\'entrée « %2$s » reçoit une liste faite par une étape précédente, qui ne va qu\'à une entrée de type objet</string>
     <string name="task_error_object_field">Étape %1$s : un objet s\'écrit dans un champ JSON seulement, pas dans « %2$s »</string>
     <string name="task_error_object_empty">Étape %1$s : l\'objet n\'a aucune clé</string>
     <string name="task_error_object_no_entry">L\'entrée que l\'objet désigne n\'est plus là</string>

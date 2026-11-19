@@ -150,6 +150,59 @@ object TaskSteps {
         else -> json
     }
 
+    /**
+     * [steps] with the step at [index] replaced by [next]. When both make an object (`assemble`),
+     * what the steps after it read of its keys (`{"result": {"step", "value": "<key>"}}`) follows
+     * a key renamed in its place, and what read a key removed is emptied, as for a step removed:
+     * the editor shows it, saving refuses it.
+     */
+    fun replaced(steps: JSONArray, index: Int, next: JSONObject): JSONArray {
+        val before = steps.optJSONObject(index)
+        val out = JSONArray(steps.toString()).put(index, next)
+        if (before?.optString(KIND) != ASSEMBLE || next.optString(KIND) != ASSEMBLE) return out
+        val old = before.optJSONObject(StepObject.OBJECT)?.keys()?.asSequence()?.toList().orEmpty()
+        val now = next.optJSONObject(StepObject.OBJECT)?.keys()?.asSequence()?.toList().orEmpty()
+        val gone = old.filter { it !in now }
+        if (gone.isEmpty()) return out
+        // One key gone and another standing in its place, as many keys: it was renamed
+        val renamed = gone.singleOrNull()?.takeIf { old.size == now.size }?.let { mapOf(it to now[old.indexOf(it)]) }.orEmpty()
+        val removed = gone.toSet() - renamed.keys
+        for (later in index + 1 until out.length()) out.put(later, rekeyed(out.get(later), index, renamed, removed))
+        return out
+    }
+
+    /**
+     * [json] with each read of step [step]'s keys (at any depth) following [renamed]; a read of a
+     * key [removed] taken out, from its object or its list, but for a `for_each`, kept on step -1.
+     */
+    private fun rekeyed(json: Any?, step: Int, renamed: Map<String, String>, removed: Set<String>): Any? = when (json) {
+        is JSONObject -> JSONObject().also { copy ->
+            for (key in json.keys()) {
+                val value = json.get(key)
+                if (value is JSONObject && readsKey(value, step, removed)) {
+                    if (key == FOR_EACH) copy.put(key, JSONObject(value.toString()).apply { getJSONObject(RESULT).put(STEP, -1) })
+                    continue
+                }
+                copy.put(key, rekeyed(value, step, renamed, removed))
+            }
+            json.optJSONObject(RESULT)?.takeIf { readsKey(json, step, renamed.keys) }?.let { result ->
+                copy.put(RESULT, JSONObject(result.toString()).put(VALUE, renamed.getValue(result.getString(VALUE))))
+            }
+        }
+        is JSONArray -> JSONArray().also { copy ->
+            for (i in 0 until json.length()) {
+                val value = json.get(i)
+                if (value is JSONObject && readsKey(value, step, removed)) continue
+                copy.put(rekeyed(value, step, renamed, removed))
+            }
+        }
+        else -> json
+    }
+
+    /** Whether [json] reads one of [keys] of step [step]. */
+    private fun readsKey(json: JSONObject, step: Int, keys: Set<String>): Boolean =
+        json.optJSONObject(RESULT)?.let { it.optInt(STEP, -1) == step && it.optString(VALUE) in keys } ?: false
+
     /** Whether [json] reads a step that [placeOf] no longer holds. */
     private fun readsGone(json: JSONObject, placeOf: Map<Int, Int>): Boolean =
         json.optJSONObject(RESULT)?.takeIf { it.has(STEP) }?.let { it.getInt(STEP) !in placeOf } ?: false
@@ -217,8 +270,19 @@ object TaskSteps {
         return list.items.mapNotNull { item -> StepConditions.outputField(item, s)?.let { item.value!! to it } }.toMap()
     }
 
-    /** What step [step] gives the steps after it, read without running it. */
-    suspend fun outputs(step: JSONObject, context: Context): List<Output> = when (step.optString(KIND)) {
+    /**
+     * What each of [steps] gives the steps after it, read without running them, in their order: a
+     * repeated step nothing, read by no step after it.
+     */
+    suspend fun allOutputs(steps: List<JSONObject>, context: Context): List<List<Output>> =
+        steps.fold(emptyList()) { given, step -> given + listOf(if (repeats(step)) emptyList() else outputs(step, given, context)) }
+
+    /**
+     * What step [step] gives the steps after it, read without running it, [given] being what the
+     * steps before it give: an API's values; the entry a step creates; an object made, `object`,
+     * then each key of its first level under its own name, of the type of its part (StepObject.keyTypes).
+     */
+    suspend fun outputs(step: JSONObject, given: List<List<Output>>, context: Context): List<Output> = when (step.optString(KIND)) {
         CALL_API -> AppDatabase.getDatabase(context).apiDao().get(step.optString(API_ID))?.let { api ->
             ApiSettings.values(JSONObject(api.configJson)).let { values ->
                 values.map { value ->
@@ -229,7 +293,12 @@ object TaskSteps {
             }
         }.orEmpty()
         CREATE_ENTRY -> listOf(Output(null, ENTRY))
-        ASSEMBLE -> listOf(Output(StepObject.OUTPUT, ApiSettings.OBJECT))
+        ASSEMBLE -> listOf(Output(StepObject.OUTPUT, ApiSettings.OBJECT)) + (step.optJSONObject(StepObject.OBJECT)?.let { json ->
+            val s = app.treelune.core.strings.Strings.`for`(context = context)
+            // An object that does not read is refused when the step is saved, naming it: its whole object meanwhile
+            val parts = try { StepObject.read(json, { s.shared(it) }) } catch (e: IllegalArgumentException) { null }
+            parts?.filterKeys { it != StepObject.OUTPUT }?.let { StepObject.keyTypes(it, given, context, s) }?.map { (key, type) -> Output(key, type) }
+        }.orEmpty())
         else -> emptyList()
     }
 
@@ -465,7 +534,11 @@ object TaskSteps {
                     step.optJSONObject(INPUTS)?.let { holder ->
                         for (name in holder.keys()) {
                             val gives = givenType(holder.optJSONObject(name), given)
-                            if ((gives == ApiSettings.OBJECT) != (types[name] == ApiSettings.OBJECT)) return s.shared("task_error_object_input").format(number, name)
+                            // A list an object made holds (a pointer's entries) goes into an object alone, as JSON: a list input takes entries chosen
+                            val made = holder.optJSONObject(name)?.optJSONObject(RESULT)?.let { steps.optJSONObject(it.optInt(STEP, -1))?.optString(KIND) == ASSEMBLE } == true
+                            if (made && gives == ApiSettings.LIST) {
+                                if (types[name] != ApiSettings.OBJECT) return s.shared("task_error_list_key_input").format(number, name)
+                            } else if ((gives == ApiSettings.OBJECT) != (types[name] == ApiSettings.OBJECT)) return s.shared("task_error_object_input").format(number, name)
                         }
                     }
                     // A list is filled by entries, and entries fill a list alone
@@ -542,6 +615,8 @@ object TaskSteps {
                         return "$number › ${e.message}"
                     }
                     if (parts.isEmpty()) return s.shared("task_error_object_empty").format(number)
+                    // Each key is read by its name beside the whole object, which takes this one
+                    if (parts.containsKey(StepObject.OUTPUT)) return s.shared("task_error_object_key_reserved").format(number, StepObject.OUTPUT)
                     val flat = StepObject.flat(parts)
                     inputs(JSONObject().apply {
                         flat.forEach { (path, part) -> ((part as? StepObject.Part.Entry)?.input ?: (part as? StepObject.Part.Value)?.input)?.let { put(path, it) } }
@@ -552,7 +627,7 @@ object TaskSteps {
                 else -> return s.shared("task_error_kind").format(number, step.optString(KIND), KINDS.joinToString(", "))
             }
             StepConditions.refusal(step, number, given, received, values, items, context, s, ::inputs)?.let { return it }
-            given += if (repeats(step)) emptyList() else outputs(step, context)
+            given += if (repeats(step)) emptyList() else outputs(step, given, context)
         }
         return null
     }

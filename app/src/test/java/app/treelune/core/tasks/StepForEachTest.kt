@@ -245,6 +245,70 @@ class StepForEachTest {
         assertTrue(entries.getJSONObject(0).has("id"))
     }
 
+    /** An API taking by POST the object `context` and the text `note`, or the list `known` of entries, as [inputs] says. */
+    private suspend fun taking(vararg inputs: Pair<String, String>): String = ok("apis.create", mapOf("name" to "Maker ${java.util.UUID.randomUUID()}", "config" to mapOf(
+        "kind" to "web", "url" to "http://127.0.0.1:${server.address.port}/", "method" to "POST", "key_in" to "none", "response" to "immediate",
+        "inputs" to inputs.map { (name, type) -> mapOf("name" to name, "type" to type) }
+    )))["api_id"] as String
+
+    private fun key(name: String) = mapOf("result" to mapOf("step" to 0, "value" to name))
+
+    @Test
+    fun eachKeyOfAnObjectAssembled_isReadAlone_underItsName() = runBlocking {
+        val taskId = task(listOf(
+            mapOf("kind" to TaskSteps.ASSEMBLE, "object" to mapOf(
+                "context" to mapOf("object" to mapOf("mood" to mapOf("text" to "calm"))),
+                "note" to mapOf("text" to "Hello")
+            )),
+            mapOf("kind" to TaskSteps.CALL_API, "api_id" to taking("context" to "object", "note" to "text"),
+                "inputs" to mapOf("context" to key("context"), "note" to key("note")))
+        ))
+        val run = run(taskId)
+        assertEquals(run.resultsJson, TaskRun.State.DONE.key, run.state)
+        val body = org.json.JSONObject(sent)
+        assertEquals("calm", body.getJSONObject("context").getString("mood"))
+        assertEquals("Hello", body.getString("note"))
+        // The object stored once, its keys read from it
+        assertEquals(setOf("object"), TaskRun.results(run.resultsJson)[0].values.keys)
+    }
+
+    @Test
+    fun eachKey_isGiven_withTheTypeOfItsPart() = runBlocking {
+        val notes = mapOf("selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to notesId),
+            "sort" to listOf(mapOf("field" to "timestamp", "direction" to "desc"))), "attach" to mapOf("config" to false, "entries" to true))
+        val outputs = ok("tasks.outputs", mapOf("steps" to listOf(mapOf("kind" to TaskSteps.ASSEMBLE, "object" to mapOf(
+            "note" to mapOf("text" to "Hello"),
+            "context" to mapOf("object" to mapOf("mood" to mapOf("text" to "calm"))),
+            "words" to mapOf("pointer" to notes),
+            "count" to mapOf("value" to mapOf("constant" to 3))
+        )))))["outputs"] as List<*>
+        val types = (outputs.single() as List<*>).associate { (it as Map<*, *>)["value"] to it["type"] }
+        assertEquals(mapOf("object" to "object", "note" to "text", "context" to "object", "words" to "list", "count" to "number"), types)
+    }
+
+    @Test
+    fun aKeyNamedObject_isRefused() = runBlocking {
+        val result = coordinator.processUserAction("tasks.create", mapOf("zone_id" to zoneId, "name" to "Store", "steps" to listOf(
+            mapOf("kind" to TaskSteps.ASSEMBLE, "object" to mapOf("object" to mapOf("text" to "Hello")))
+        )))
+        assertFalse(result.isSuccess)
+    }
+
+    @Test
+    fun aListKey_goesToAnInputOfTypeObject_alone() = runBlocking {
+        val notes = mapOf("selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to notesId),
+            "sort" to listOf(mapOf("field" to "timestamp", "direction" to "desc"))), "attach" to mapOf("config" to false, "entries" to true))
+        val assemble = mapOf("kind" to TaskSteps.ASSEMBLE, "object" to mapOf("words" to mapOf("pointer" to notes)))
+        for (type in listOf("text", "list")) {
+            val refused = coordinator.processUserAction("tasks.create", mapOf("zone_id" to zoneId, "name" to "Store", "steps" to listOf(
+                assemble, mapOf("kind" to TaskSteps.CALL_API, "api_id" to taking("words" to type), "inputs" to mapOf("words" to key("words")))
+            )))
+            assertFalse(type, refused.isSuccess)
+        }
+        task(listOf(assemble, mapOf("kind" to TaskSteps.CALL_API, "api_id" to taking("words" to "object"), "inputs" to mapOf("words" to key("words")))))
+        Unit
+    }
+
     @Test
     fun anObject_isRefusedByAnInputThatTakesAText() = runBlocking {
         val result = coordinator.processUserAction("tasks.create", mapOf("zone_id" to zoneId, "name" to "Store", "steps" to listOf(

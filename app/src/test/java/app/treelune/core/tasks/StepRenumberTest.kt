@@ -54,4 +54,29 @@ class StepRenumberTest {
         val removed = TaskSteps.removed(steps, 0)
         assertEquals(-1, removed.step(0).getJSONObject("for_each").getJSONObject("result").getInt("step"))
     }
+
+    /** An object made of the keys [keys], then an API call reading its first key, and an entry its second. */
+    private fun assembling(vararg keys: String) = JSONArray()
+        .put(JSONObject().put("kind", "assemble").put("object", JSONObject().apply { keys.forEach { put(it, JSONObject().put("text", it)) } }))
+        .put(JSONObject().put("kind", "call_api").put("api_id", "maker").put("inputs", JSONObject().put("identity", result(0, keys[0]))))
+        .put(JSONObject().put("kind", "create_entry").put("values", JSONObject().put("data.t", result(0, keys[1]))))
+
+    private fun JSONArray.withObject(vararg keys: String) = JSONObject(getJSONObject(0).toString())
+        .put("object", JSONObject().apply { keys.forEach { put(it, JSONObject().put("text", it)) } })
+
+    @Test
+    fun `a key renamed in an object made takes along what reads it`() {
+        val steps = assembling("helene", "context")
+        val replaced = TaskSteps.replaced(steps, 0, steps.withObject("identity", "context"))
+        assertEquals("identity", replaced.step(1).getJSONObject("inputs").getJSONObject("identity").getJSONObject("result").getString("value"))
+        assertEquals("context", replaced.step(2).getJSONObject("values").getJSONObject("data.t").getJSONObject("result").getString("value"))
+    }
+
+    @Test
+    fun `a key removed from an object made empties what read it`() {
+        val steps = assembling("helene", "context")
+        val replaced = TaskSteps.replaced(steps, 0, steps.withObject("context"))
+        assertFalse(replaced.step(1).getJSONObject("inputs").has("identity"))
+        assertEquals("context", replaced.step(2).getJSONObject("values").getJSONObject("data.t").getJSONObject("result").getString("value"))
+    }
 }

@@ -124,7 +124,7 @@ object TaskSchemas {
                 }
             }
             out.put(step)
-            given += if (TaskSteps.repeats(step)) emptyList() else TaskSteps.outputs(step, context)
+            given += if (TaskSteps.repeats(step)) emptyList() else TaskSteps.outputs(step, given, context)
         }
         return out
     }

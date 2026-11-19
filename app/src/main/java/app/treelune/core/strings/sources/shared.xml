@@ -3178,6 +3178,8 @@
     <string name="task_error_object_pointer_target">Step %1$s: a pointer of the object names entries of a tool, or one entry</string>
     <string name="task_error_object_labels">Step %1$s: two fields kept are called “%2$s”; rename one, or keep only one</string>
     <string name="task_error_object_input">Step %1$s: the input “%2$s” takes an object, which only an object made by an earlier step gives, and an object goes to an input of type object alone</string>
+    <string name="task_error_object_key_reserved">Step %1$s: no key of the object can be named “%2$s”, the name the whole object goes under</string>
+    <string name="task_error_list_key_input">Step %1$s: the input “%2$s” is given a list an earlier step made, which goes only into an input of type object</string>
     <string name="task_error_object_field">Step %1$s: an object is written into a JSON field alone, not into “%2$s”</string>
     <string name="task_error_object_empty">Step %1$s: the object has no key</string>
     <string name="task_error_object_no_entry">The entry the object names is not there</string>

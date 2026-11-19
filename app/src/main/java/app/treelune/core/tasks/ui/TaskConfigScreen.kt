@@ -227,7 +227,7 @@ fun TaskConfigScreen(place: Place.TaskConfig, onDone: () -> Unit, onDeleted: () 
                         if (open == index) {
                             val earlier = (0 until index).map { it to outputs.getOrElse(it) { emptyList() } }
                             androidx.compose.runtime.CompositionLocalProvider(LocalReceived provides received) {
-                                StepEditor(step, earlier) { next -> edit(JSONArray(steps.toString()).put(index, next)) }
+                                StepEditor(step, earlier) { next -> edit(TaskSteps.replaced(steps, index, next)) }
                             }
                         }
                     }

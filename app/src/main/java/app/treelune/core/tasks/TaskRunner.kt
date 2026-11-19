@@ -346,7 +346,7 @@ object TaskRunner {
         val triggers = app.treelune.core.triggers.Triggers.read(task.triggersJson)
         val fields = TaskSteps.receivedFields(triggers, context, s)
         val values = TaskSteps.receivedValues(triggers, context)
-        val given = (0 until index).map { steps.getJSONObject(it).let { earlier -> if (TaskSteps.repeats(earlier)) emptyList() else TaskSteps.outputs(earlier, context) } }
+        val given = TaskSteps.allOutputs((0 until index).map { steps.getJSONObject(it) }, context)
         val items = TaskSteps.itemFields(step, given, s)
         conditions.forEachIndexed { i, condition ->
             val label = StepConditions.label(index + 1, i, s)
@@ -473,7 +473,8 @@ object TaskRunner {
             TaskSteps.CALL_API -> {
                 val api = AppDatabase.getDatabase(context).apiDao().get(step.getString(TaskSteps.API_ID))
                 val config = JSONObject(api?.configJson ?: "{}")
-                val types = TaskSteps.outputs(step, context).associate { it.value!! to it.type }
+                // An API's values read no earlier step
+                val types = TaskSteps.outputs(step, emptyList(), context).associate { it.value!! to it.type }
                 val job = done.data?.get("job_id") as? String
                 if (job != null) {
                     val limit = ApiSettings.waitLimit(config, context)
@@ -625,8 +626,18 @@ object TaskRunner {
         } catch (e: IllegalStateException) {
             throw StepFailed(e.message ?: s.shared("error_unknown"))
         }
+        // Each key read from the object, stored once: its type named beside the object's
+        val keyTypes = made.filterKeys { it != StepObject.OUTPUT }.mapValues { (_, value) ->
+            when (value) {
+                is Map<*, *> -> ApiSettings.OBJECT
+                is List<*> -> ApiSettings.LIST
+                is Boolean -> ApiSettings.BOOLEAN
+                is Number -> ApiSettings.NUMBER
+                else -> ApiSettings.TEXT
+            }
+        }
         return TaskRun.StepResult(s.shared("task_object_summary").format(parts.size), values = mapOf(StepObject.OUTPUT to made),
-            types = mapOf(StepObject.OUTPUT to ApiSettings.OBJECT), at = System.currentTimeMillis())
+            types = mapOf(StepObject.OUTPUT to ApiSettings.OBJECT) + keyTypes, at = System.currentTimeMillis())
     }
 
     /** [value] as a text: an object or a list in JSON, anything else as it writes. */
@@ -665,7 +676,7 @@ object TaskRunner {
             is TaskSteps.Input.Result -> {
                 val given = results.getOrNull(input.step) ?: throw StepFailed(s.shared("task_error_result_step").format("", input.step + 1))
                 if (input.value == null) given.entryId ?: throw StepFailed(s.shared("task_error_result_value").format("", input.step + 1, s.shared("task_output_entry")))
-                else given.values[input.value]
+                else given.valueOf(input.value)
             }
             is TaskSteps.Input.Of -> when (val term = input.term) {
                 is Term.Constant -> term.value

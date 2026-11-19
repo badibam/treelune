@@ -2,6 +2,7 @@ package app.treelune.core.tasks
 
 import android.content.Context
 import app.treelune.core.ai.enrichments.PointerConfig
+import app.treelune.core.apis.ApiSettings
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.fields.ChoiceSettings
@@ -64,7 +65,10 @@ object StepObject {
     /** What an identity part may send, beside its name; all of it by default. */
     val PIECES = app.treelune.core.identities.IdentityLanguage.PIECES + RESOURCES
 
-    /** The name the step's object goes under, for the steps after it (`{"result": {"step", "value": "object"}}`). */
+    /**
+     * The name the step's object goes under, for the steps after it (`{"result": {"step", "value": "object"}}`);
+     * each key of its first level goes under its own name beside it, which makes `object` a name no key takes.
+     */
     const val OUTPUT = "object"
 
     sealed interface Part {
@@ -107,6 +111,57 @@ object StepObject {
                 else -> throw IllegalArgumentException(text("task_error_object_part").format(at))
             }
         }
+
+    /**
+     * The type each key of [parts], the first level of an object, gives the steps after it, read
+     * without running (TaskSteps.outputs), [given] being what the steps before give: a text a
+     * text; an identity, an object, an entry (a pointer to it) an object; a pointer an object when
+     * it designates one entry or attaches its config, a list of entries otherwise; a value the type
+     * of what it reads — an earlier step's value as that step declares it, a reading or a variable
+     * as its field, a written value as it is written, a text otherwise (what a trigger gives, the
+     * element of a list).
+     */
+    suspend fun keyTypes(parts: Map<String, Part>, given: List<List<TaskSteps.Output>>, context: Context, s: StringsContext): Map<String, String> =
+        parts.mapValues { (_, part) ->
+            when (part) {
+                is Part.Text -> ApiSettings.TEXT
+                is Part.Identity, is Part.Obj, is Part.Entry -> ApiSettings.OBJECT
+                is Part.Pointer -> if (part.pointer.config || part.pointer.selection.target.kind == ReferenceKind.ENTRY) ApiSettings.OBJECT else ApiSettings.LIST
+                is Part.Value -> valueType(part.input, given, context, s)
+            }
+        }
+
+    /** The type of what a value's [input] reads, as [keyTypes] says it. */
+    private suspend fun valueType(input: JSONObject, given: List<List<TaskSteps.Output>>, context: Context, s: StringsContext): String {
+        // An input that does not read is refused when the step is saved, naming it: a text meanwhile
+        val read = try { TaskSteps.input(input, TaskSteps.VALUE) { s.shared(it) } } catch (e: IllegalArgumentException) { return ApiSettings.TEXT }
+        return when (read) {
+            is TaskSteps.Input.Result -> read.value?.let { value -> given.getOrNull(read.step)?.firstOrNull { it.value == value }?.type } ?: ApiSettings.TEXT
+            is TaskSteps.Input.Of -> when (val term = read.term) {
+                is app.treelune.core.terms.Term.Constant -> when (term.value) {
+                    is Boolean -> ApiSettings.BOOLEAN
+                    is Number -> ApiSettings.NUMBER
+                    else -> ApiSettings.TEXT
+                }
+                else -> {
+                    val sources = app.treelune.core.conditions.AppConditionSources(context, null)
+                    // A reading that does not read is refused when the step is saved, as the input above
+                    val field = try {
+                        app.treelune.core.terms.TermFields.of(term, TaskSteps.VALUE, s::shared, sources::targetFields, sources::variableField)
+                    } catch (e: IllegalArgumentException) {
+                        null
+                    }
+                    when (field?.type) {
+                        FieldType.NUMERIC, FieldType.SCALE -> ApiSettings.NUMBER
+                        FieldType.BOOLEAN -> ApiSettings.BOOLEAN
+                        FieldType.FILE -> ApiSettings.FILE
+                        else -> ApiSettings.TEXT
+                    }
+                }
+            }
+            else -> ApiSettings.TEXT
+        }
+    }
 
     /** Every part of [parts] with its path, down every object. */
     fun flat(parts: Map<String, Part>, path: String = ""): List<Pair<String, Part>> = parts.flatMap { (key, part) ->
