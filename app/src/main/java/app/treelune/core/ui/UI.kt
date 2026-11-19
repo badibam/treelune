@@ -176,13 +176,15 @@ object UI {
         SelectionMenu { androidx.compose.foundation.text.selection.SelectionContainer { content() } }
     }
 
-    /** [text] put in the clipboard, said by a toast before Android 13 and by Android after: the one way the app copies. */
+    /**
+     * [text] put in the clipboard and said by a toast: the one way the app copies. Said on every
+     * version: from Android 13 the system shows its own copy band, but some skins do not (Xiaomi's
+     * HyperOS), and an app cannot know; where it does, the two show together a moment.
+     */
     fun copy(context: Context, text: String) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
         clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Treelune", text))
-        // From Android 13, Android shows the copy itself, over the bottom of the screen: said once, by it
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU)
-            Toast(app.treelune.core.strings.Strings.`for`(context = context).shared("text_copied"), Duration.SHORT)
+        Toast(app.treelune.core.strings.Strings.`for`(context = context).shared("text_copied"), Duration.SHORT)
     }
     
     /**
