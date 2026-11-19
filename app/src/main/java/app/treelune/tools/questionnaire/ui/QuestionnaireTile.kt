@@ -33,8 +33,8 @@ import app.treelune.core.utils.StoredSchedule
 import app.treelune.tools.questionnaire.QuestionnaireToolType
 import org.json.JSONObject
 
-/** What the tile reads of the entries: those to fill, from the oldest, and the last one filled. */
-private data class Passings(val toFill: List<Long>, val lastFilled: QuestionnaireEntry?)
+/** What the tile reads of the entries: those to fill, from the oldest ([oldestToFill] the first's id), and the last one filled. */
+private data class Passings(val toFill: List<Long>, val oldestToFill: String?, val lastFilled: QuestionnaireEntry?)
 
 /**
  * A questionnaire's tile. The summary counts the entries to fill and says when the oldest was
@@ -43,7 +43,7 @@ private data class Passings(val toFill: List<Long>, val lastFilled: Questionnair
  * filled, one per line, each question and its answer in the questions' order: all of them in FULL.
  */
 @Composable
-fun rememberQuestionnaireTile(tool: ToolInstance): ToolTile {
+fun rememberQuestionnaireTile(tool: ToolInstance, open: (app.treelune.core.tools.EntryToOpen) -> Unit): ToolTile {
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "questionnaire", context = context) }
@@ -67,8 +67,10 @@ fun rememberQuestionnaireTile(tool: ToolInstance): ToolTile {
                 answers = (e["extra"] as? Map<*, *>)?.entries?.associate { it.key.toString() to it.value } ?: emptyMap()
             )
         }
+        val toFill = entries.filter { it.status == QuestionnaireToolType.Status.TO_FILL }.sortedBy { it.timestamp }
         passings = Passings(
-            toFill = entries.filter { it.status == QuestionnaireToolType.Status.TO_FILL }.map { it.timestamp }.sorted(),
+            toFill = toFill.map { it.timestamp },
+            oldestToFill = toFill.firstOrNull()?.id,
             lastFilled = entries.filter { it.status == QuestionnaireToolType.Status.FILLED }.maxByOrNull { it.timestamp }
         )
     }
@@ -96,6 +98,17 @@ fun rememberQuestionnaireTile(tool: ToolInstance): ToolTile {
                 Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceEvenly) {
                     UI.Text(first, TextType.BODY, maxLines = 1)
                     UI.Text(second, TextType.CAPTION, maxLines = 1)
+                }
+            }
+
+            // In icons: fill in — the oldest entry waiting, else a passing on demand
+            override val second get() = app.treelune.core.tools.IconSecond.GESTURE
+
+            @Composable
+            override fun Second() {
+                val loaded = passings ?: return
+                app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.FILL) {
+                    open(loaded.oldestToFill?.let { app.treelune.core.tools.EntryToOpen.Existing(it) } ?: app.treelune.core.tools.EntryToOpen.New)
                 }
             }
 

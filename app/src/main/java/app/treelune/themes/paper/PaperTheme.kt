@@ -197,7 +197,7 @@ object PaperTheme : ThemeContract {
     /** How far the content stands from the tile's top: 6 dp, 8 all round an icon's tile. */
     @Composable
     override fun tileFrame(tileSize: TileSize): Dp =
-        paperSize().dp(if (tileSize.isIcon) 8f else 6f)
+        paperSize().dp(if (tileSize.inIcons) 8f else 6f)
 
     @Composable
     override fun spacing(spacing: Spacing): Dp = (
@@ -790,7 +790,7 @@ object PaperTheme : ThemeContract {
                         .fillMaxSize()
                         .paperSheet(surface, shape, pressed)
                         .drawBehind { brush?.let { drawOutline(shape.createOutline(this.size, layoutDirection, this), it) } }
-                        .let { if (tileSize.isIcon) it.padding(frame) else it.padding(start = size.dp(10f), end = size.dp(10f), top = frame, bottom = size.dp(4f)) }
+                        .let { if (tileSize.inIcons) it.padding(frame) else it.padding(start = size.dp(10f), end = size.dp(10f), top = frame, bottom = size.dp(4f)) }
                 ) {
                     CompositionLocalProvider(
                         LocalPaperInk provides ink,

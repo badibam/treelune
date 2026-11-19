@@ -150,6 +150,18 @@ fun rememberGoalTile(tool: ToolInstance): ToolTile {
                 }
             }
 
+            // In icons: the verdict of the attempt running, as its criteria show theirs; a touch opens the tool
+            override val second get() = app.treelune.core.tools.IconSecond.STATE
+
+            @Composable
+            override fun Second() {
+                val loaded = attempts ?: return
+                if (loaded.none { it.status !in GoalToolType.Status.LOCKED }) return
+                val met = (judgement?.get("verdict") as? String)?.let { Met.valueOf(it) } ?: Met.UNKNOWN
+                UI.Icon(iconName = when (met) { Met.YES -> "check"; Met.NO -> "x"; Met.UNKNOWN -> "circle-dashed" },
+                    contentDescription = s.tool("met_${met.name.lowercase()}"))
+            }
+
             @Composable
             override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 if (attempts == null) return

@@ -59,10 +59,11 @@ data class QuestionnaireEntry(val id: String, val timestamp: Long, val status: S
  * « History », newest first, each entry with its title and state, touching one opens it, its
  * answers changed there. An entry's title is the questionnaire's name and the moment it is about,
  * relative, never stored. [openEntryId], an entry asked for elsewhere (a Chart's point): passed
- * when it is to fill, opened as from the history otherwise.
+ * when it is to fill, opened as from the history otherwise. [fillNow], a passing on demand opened at
+ * once (the tile in icons, nothing waiting).
  */
 @Composable
-fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureClick: () -> Unit, openEntryId: String? = null) {
+fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureClick: () -> Unit, openEntryId: String? = null, fillNow: Boolean = false) {
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "questionnaire", context = context) }
@@ -73,7 +74,7 @@ fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onCo
     var version by remember { mutableIntStateOf(0) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     // The passing under way: "" on demand, an entry's id when planned; null when none
-    var passing by rememberSaveable { mutableStateOf<String?>(null) }
+    var passing by rememberSaveable { mutableStateOf<String?>(if (fillNow) "" else null) }
     var openId by rememberSaveable { mutableStateOf<String?>(null) }
     // The entry asked for, opened once the entries are read and its status known
     var asked by rememberSaveable { mutableStateOf(openEntryId) }

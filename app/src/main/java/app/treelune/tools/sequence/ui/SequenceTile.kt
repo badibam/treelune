@@ -118,6 +118,21 @@ fun rememberSequenceTile(tool: ToolInstance): ToolTile {
                     onAnswer = { answer -> asking = false; start(answer) }, onCancel = { asking = false })
             }
 
+            // In icons: its summary's button — a session started, or the one going on opened
+            override val second get() = app.treelune.core.tools.IconSecond.GESTURE
+
+            @Composable
+            override fun Second() {
+                val loaded = entries ?: return
+                val going = loaded.any { it.run != null || it.status == SequenceToolType.Status.TO_FINISH }
+                if (going) app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.VIEW, onClick = open)
+                else app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.START) {
+                    if (SequenceVariants.of(config) == SequenceVariants.STEPS) start(emptyMap()) else asking = true
+                }
+                if (asking) LaunchDialog(config, loaded.filter { it.status != SequenceToolType.Status.PLANNED && it.status != SequenceToolType.Status.TO_FINISH }, s,
+                    onAnswer = { answer -> asking = false; start(answer) }, onCancel = { asking = false })
+            }
+
             @Composable
             override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val past = entries?.filter { it.status != SequenceToolType.Status.PLANNED && it.run == null }?.sortedByDescending { it.timestamp } ?: return

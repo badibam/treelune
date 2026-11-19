@@ -46,7 +46,7 @@ fun lookEditors(spec: LookSpec, values: JSONObject, s: StringsContext, onValues:
             @Composable
             override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
                 val size = (value as? String)?.let { app.treelune.core.look.TileSize.ofStored(it) } ?: spec.defaultSize
-                TileSizeSelector(size, s) { onChange(it.stored) }
+                TileSizeSelector(size, spec.sizes, s) { onChange(it.stored) }
             }
         }
     )

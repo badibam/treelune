@@ -888,7 +888,10 @@ object UI {
             glance = { tile.Glance() },
             body = { room ->
                 androidx.compose.runtime.CompositionLocalProvider(app.treelune.core.ui.components.LocalItemLayout provides items) { tile.Body(room) }
-            }
+            },
+            // In icons, what its summary says without words
+            second = if (tile.second == app.treelune.core.tools.IconSecond.NONE) null else ({ tile.Second() }),
+            secondWaits = tile.second == app.treelune.core.tools.IconSecond.WAITING
         )
     }
 
@@ -903,6 +906,12 @@ object UI {
      * it (2×2), centered in a section's tile, flush with the header in a zone's; with one, [summary]
      * beside the header (4 wide) or under it (2 wide), and [body] in the rows left. In one column
      * the tile is laid as its size there says (TileSize.inOneColumn). [frame] picks the theme's frame.
+     *
+     * In icons longer than one cell (docs/design/icon-tiles.md), its icon in the first cell, then
+     * [second] — what its summary says without words — and [pieces], a zone's, each on its cells
+     * (IconStrip); without either, its icon alone, centred in the whole tile. When [secondWaits],
+     * its second cell counts what waits, and its icon loses its mark: the same thing is not read
+     * twice.
      */
     @Composable
     fun LookCard(
@@ -916,7 +925,10 @@ object UI {
         summary: @Composable () -> Unit,
         glance: @Composable () -> Unit,
         body: @Composable (app.treelune.core.look.TileSize.Room) -> Unit,
-        frame: LookFrame = LookFrame.SECTION
+        frame: LookFrame = LookFrame.SECTION,
+        second: (@Composable () -> Unit)? = null,
+        secondWaits: Boolean = false,
+        pieces: List<app.treelune.core.ui.components.IconPiece> = emptyList()
     ) {
         val size = look.tileSize
         val color = IconColor.of(look.iconColor)
@@ -952,21 +964,29 @@ object UI {
                 Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = glanceAlign) { other() }
             }
 
+            /** Its icon, centered where it stands, marked as [marked] says. */
+            @Composable
+            fun OwnIcon(marked: Boolean) = Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                if (look.iconName.isNullOrBlank()) {
+                    // Without an icon, the name stands in its place, small enough for a word to
+                    // hold in the cell, centered between the marks in their corners
+                    Box(modifier = Modifier.padding(horizontal = Space.XS)) {
+                        Text(look.name, TextType.CAPTION, maxLines = 2, fillMaxWidth = true, textAlign = TextAlign.Center)
+                    }
+                    if (marked) Box(modifier = Modifier.align(Alignment.TopEnd)) { WaitingMark() }
+                    if (running) Box(modifier = Modifier.align(Alignment.BottomEnd)) { RunningMark() }
+                } else {
+                    TileIcon(look.iconName, color, marked, running)
+                }
+            }
+
             when {
                 // The icon alone, centered in its cell
-                laid.isIcon -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    if (look.iconName.isNullOrBlank()) {
-                        // Without an icon, the name stands in its place, small enough for a word to
-                        // hold in the cell, centered between the marks in their corners
-                        Box(modifier = Modifier.padding(horizontal = Space.XS)) {
-                            Text(look.name, TextType.CAPTION, maxLines = 2, fillMaxWidth = true, textAlign = TextAlign.Center)
-                        }
-                        if (waiting) Box(modifier = Modifier.align(Alignment.TopEnd)) { WaitingMark() }
-                        if (running) Box(modifier = Modifier.align(Alignment.BottomEnd)) { RunningMark() }
-                    } else {
-                        TileIcon(look.iconName, color, waiting, running)
-                    }
-                }
+                laid.isIcon -> OwnIcon(waiting)
+                // In icons: its icon, its second cell and a zone's pieces on its cells; its icon alone without them
+                laid.inIcons -> if (second == null && pieces.isEmpty()) OwnIcon(waiting)
+                    else app.treelune.core.ui.components.IconStrip(laid,
+                        listOf(app.treelune.core.ui.components.IconPiece(seed, { OwnIcon(waiting && !secondWaits) }, second)) + pieces)
                 // Without a body: the header alone 2 wide on one row, the glance beside it 4 wide, under it 2 high
                 room == null -> when {
                     laid.height == 1 && !laid.summaryBeside -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) { Header() }

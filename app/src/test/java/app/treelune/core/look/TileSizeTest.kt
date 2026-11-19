@@ -11,11 +11,31 @@ import org.junit.Test
 class TileSizeTest {
 
     @Test
-    fun theSizes_areTheIcon_twoWidthsOfOneToTen_andTheContentsOnFullWidthOnly() {
-        assertEquals(1 + 10 + 10 + 1, TileSize.ALL.size)
-        assertEquals(listOf("icon", "2x1", "2x10", "4x1", "4x10", "4xcontent"), listOf(0, 1, 10, 11, 20, 21).map { TileSize.ALL[it].stored })
+    fun theSizes_areTheStripsOfIcons_twoWidthsOfOneToTen_andTheContentsOnFullWidthOnly() {
+        // A zone's: the icon, columns 2 to 10, rows 2 to 4, then the sizes with text
+        assertEquals(1 + 9 + 3 + 10 + 10 + 1, TileSize.ALL.size)
+        assertEquals(listOf("icon", "icons_1x2", "icons_1x10", "icons_2x1", "icons_4x1", "2x1", "2x10", "4x1", "4x10", "4xcontent"),
+            listOf(0, 1, 9, 10, 12, 13, 22, 23, 32, 33).map { TileSize.ALL[it].stored })
         TileSize.ALL.forEach { assertEquals(it, TileSize.parse(it.stored)) }
-        listOf("2xcontent", "3x2", "4x11", "2x0", "SQUARE", "", null).forEach { assertNull("$it", TileSize.parse(it)) }
+        listOf("2xcontent", "3x2", "4x11", "2x0", "icons_1x1", "icons_5x1", "icons_2x2", "icons_1x11", "SQUARE", "", null).forEach { assertNull("$it", TileSize.parse(it)) }
+    }
+
+    @Test
+    fun aPiece_takesTheIconAndThePair_aZoneEveryStrip() {
+        assertEquals(listOf("icon", "icons_1x2", "icons_2x1"), TileSize.PIECE_ICONS.map { it.stored })
+        assertTrue(TileSize.PIECE.none { it.inIcons && it.length > 2 })
+        assertTrue(TileSize.parse("icons_1x7")!! in TileSize.ZONE)
+        assertFalse(TileSize.parse("icons_1x7")!! in TileSize.PIECE)
+    }
+
+    @Test
+    fun aStripOfIcons_saysItsDirectionAndLength_andHasNoBody() {
+        val column = TileSize.parse("icons_1x3")!!
+        assertTrue(column.vertical); assertEquals(3, column.length); assertEquals(Grid.Size(1, 3), column.cells)
+        val row = TileSize.parse("icons_3x1")!!
+        assertFalse(row.vertical); assertEquals(3, row.length); assertEquals(Grid.Size(3, 1), row.cells)
+        assertEquals(TileSize.Icon, TileSize.icons(1, vertical = true))
+        listOf(TileSize.Icon, column, row).forEach { assertNull(it.body); assertFalse(it.summaryBeside); assertEquals(it, it.inOneColumn()) }
     }
 
     @Test

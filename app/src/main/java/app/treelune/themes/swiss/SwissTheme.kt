@@ -196,7 +196,7 @@ object SwissTheme : ThemeContract {
      */
     @Composable
     override fun tileFrame(tileSize: TileSize): Dp =
-        if (tileSize.isIcon) swissSize().dp(8f) else swissSize().dp(TILE_RULE + 8f)
+        if (tileSize.inIcons) swissSize().dp(8f) else swissSize().dp(TILE_RULE + 8f)
 
     @Composable
     override fun spacing(spacing: Spacing): Dp = (
@@ -762,7 +762,7 @@ object SwissTheme : ThemeContract {
     @Composable
     private fun Tile(tileSize: TileSize, texture: app.treelune.core.themes.ItemTexture?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
         val c = swissColors
-        val block = tileSize.isIcon
+        val block = tileSize.inIcons
         val frame = tileFrame(tileSize)
         Pressable(onClick = onClick, onLongClick = onLongClick, modifier = Modifier.fillMaxSize()) { pressed ->
             // An icon's tile is ink at rest and the ground pressed; the others the reverse

@@ -130,10 +130,11 @@ object QuestionnaireToolType : ToolTypeContract {
 
     @Composable
     override fun getUsageScreen(toolInstanceId: String, configJson: String, zoneName: String, onNavigateBack: () -> Unit, onLongClick: () -> Unit, openEntry: app.treelune.core.tools.EntryToOpen?) {
-        QuestionnaireScreen(toolInstanceId = toolInstanceId, onNavigateBack = onNavigateBack, onConfigureClick = onLongClick, openEntryId = (openEntry as? app.treelune.core.tools.EntryToOpen.Existing)?.id)
+        QuestionnaireScreen(toolInstanceId = toolInstanceId, onNavigateBack = onNavigateBack, onConfigureClick = onLongClick, openEntryId = (openEntry as? app.treelune.core.tools.EntryToOpen.Existing)?.id,
+            fillNow = openEntry == app.treelune.core.tools.EntryToOpen.New)
     }
 
     @Composable
     override fun rememberTile(tool: ToolInstance, open: (app.treelune.core.tools.EntryToOpen) -> Unit): app.treelune.core.tools.ToolTile =
-        app.treelune.tools.questionnaire.ui.rememberQuestionnaireTile(tool)
+        app.treelune.tools.questionnaire.ui.rememberQuestionnaireTile(tool, open)
 }

@@ -68,13 +68,15 @@ internal enum class AgendaView { UPCOMING, DAY, WEEK, MONTH }
  * event, or a series; an event touched opens, and from an occurrence, its series.
  *
  * @param openEntryId An event to open at once: the one a reminder or the tile is about
+ * @param createNow A new event opened at once: the tile's + in icons
  */
 @Composable
 fun AgendaScreen(
     toolInstanceId: String,
     onNavigateBack: () -> Unit,
     onConfigureClick: () -> Unit,
-    openEntryId: String? = null
+    openEntryId: String? = null,
+    createNow: Boolean = false
 ) {
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
@@ -95,7 +97,7 @@ fun AgendaScreen(
     var period by rememberSaveable(stateSaver = NullablePeriodSaver) { mutableStateOf<Period?>(null) }
     var openEventId by rememberSaveable { mutableStateOf(openEntryId) }
     var openSeriesKey by rememberSaveable { mutableStateOf<String?>(null) }
-    var creating by rememberSaveable { mutableStateOf(false) }
+    var creating by rememberSaveable { mutableStateOf(createNow) }
     var showRemoved by rememberSaveable { mutableStateOf(false) }
     // A series change the service counted, waiting for its agreement: the config to send, and how many occurrences go
     var pendingConfig by rememberSaveable(stateSaver = app.treelune.core.ui.NullableJsonObjectSaver) { mutableStateOf<JSONObject?>(null) }

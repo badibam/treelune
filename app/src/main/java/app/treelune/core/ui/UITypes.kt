@@ -156,7 +156,7 @@ enum class ButtonAction(val iconName: String) {
     AI_CHAT("message-circle"), TO_TOP("arrow-up-to-line"), RESET("rotate-ccw"), INTERRUPT("pause"), STOP("square"), PAUSE("pause"),
     RESUME("play"), START("play"), VIEW("eye"), ATTACH("paperclip"), POINTER("crosshair"), TEXT("type"), PHOTO("camera"), VIDEO("video"), RECORD("mic"), DEVICE("folder-open"), REPEAT("repeat"), ARRANGE("layout-grid"), UP("chevron-up"), DOWN("chevron-down"),
     SETTINGS("sliders-horizontal"), HISTORY("rotate-ccw-clock"), GUIDE("book-open"), COPY("copy"), IDENTITY("user-round"), SEND("send"), STATS("chart-column"),
-    BULLET_LIST("list"), NUMBERED_LIST("list-ordered")
+    BULLET_LIST("list"), NUMBERED_LIST("list-ordered"), FILL("clipboard-pen")
 }
 
 /**

@@ -117,7 +117,7 @@ object DefaultTheme : ThemeContract {
     override fun tileFrame(tileSize: TileSize): Dp = 4.dp + tilePadding(tileSize)
 
     private fun tilePadding(tileSize: TileSize): Dp = when {
-        tileSize.isIcon -> 4.dp
+        tileSize.inIcons -> 4.dp
         tileSize == TileSize.of(2, 1) -> 8.dp
         else -> 12.dp
     }

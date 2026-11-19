@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 fun ButtonAction.defaultType(): ButtonType {
     return when (this) {
         // PRIMARY: Actions critiques/importantes
-        ButtonAction.SAVE, ButtonAction.CREATE, ButtonAction.ADD, ButtonAction.CONFIGURE, ButtonAction.SELECT, ButtonAction.EDIT, ButtonAction.UPDATE, ButtonAction.CONFIRM, ButtonAction.AI_CHAT, ButtonAction.START, ButtonAction.ATTACH, ButtonAction.POINTER, ButtonAction.TEXT, ButtonAction.SEND, ButtonAction.PHOTO, ButtonAction.VIDEO, ButtonAction.RECORD, ButtonAction.DEVICE, ButtonAction.REPEAT, ButtonAction.SETTINGS -> ButtonType.PRIMARY
+        ButtonAction.SAVE, ButtonAction.CREATE, ButtonAction.ADD, ButtonAction.CONFIGURE, ButtonAction.SELECT, ButtonAction.EDIT, ButtonAction.UPDATE, ButtonAction.CONFIRM, ButtonAction.AI_CHAT, ButtonAction.START, ButtonAction.ATTACH, ButtonAction.POINTER, ButtonAction.TEXT, ButtonAction.SEND, ButtonAction.PHOTO, ButtonAction.VIDEO, ButtonAction.RECORD, ButtonAction.DEVICE, ButtonAction.REPEAT, ButtonAction.SETTINGS, ButtonAction.FILL -> ButtonType.PRIMARY
 
         // DANGER: destructive actions, behind a confirmation
         ButtonAction.DELETE, ButtonAction.STOP -> ButtonType.DANGER
@@ -71,6 +71,7 @@ fun ButtonAction.label(): String {
         ButtonAction.STATS -> s.shared("action_stats")
         ButtonAction.BULLET_LIST -> s.shared("action_bullet_list")
         ButtonAction.NUMBERED_LIST -> s.shared("action_numbered_list")
+        ButtonAction.FILL -> s.shared("action_fill")
     }
 }
 

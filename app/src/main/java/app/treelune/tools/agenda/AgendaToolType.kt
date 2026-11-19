@@ -258,7 +258,7 @@ object AgendaToolType : ToolTypeContract {
     @Composable
     override fun getUsageScreen(toolInstanceId: String, configJson: String, zoneName: String, onNavigateBack: () -> Unit, onLongClick: () -> Unit, openEntry: app.treelune.core.tools.EntryToOpen?) {
         AgendaScreen(toolInstanceId = toolInstanceId, onNavigateBack = onNavigateBack, onConfigureClick = onLongClick,
-            openEntryId = (openEntry as? app.treelune.core.tools.EntryToOpen.Existing)?.id)
+            openEntryId = (openEntry as? app.treelune.core.tools.EntryToOpen.Existing)?.id, createNow = openEntry == app.treelune.core.tools.EntryToOpen.New)
     }
 
     @Composable

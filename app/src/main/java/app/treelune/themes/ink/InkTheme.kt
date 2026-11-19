@@ -192,7 +192,7 @@ object InkTheme : ThemeContract {
     /** Eight above and below, fourteen at the sides, as the mockup's tile; eight round an icon alone. */
     @Composable
     override fun tileFrame(tileSize: TileSize): Dp =
-        if (tileSize.isIcon) inkSize().dp(8f) else inkSize().dp(TILE_PAD)
+        if (tileSize.inIcons) inkSize().dp(8f) else inkSize().dp(TILE_PAD)
 
     @Composable
     override fun spacing(spacing: Spacing): Dp = (
@@ -726,7 +726,7 @@ object InkTheme : ThemeContract {
     @Composable
     private fun Tile(tileSize: TileSize, texture: app.treelune.core.themes.ItemTexture?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
         val c = inkColors
-        val bare = tileSize.isIcon
+        val bare = tileSize.inIcons
         val frame = tileFrame(tileSize)
         val lifted = LocalInkLifted.current
         // The motif in the ink, whatever the icon's colour: the user's colours are marks, never a fill

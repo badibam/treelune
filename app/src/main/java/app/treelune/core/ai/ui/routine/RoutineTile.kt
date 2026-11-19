@@ -204,6 +204,11 @@ fun RoutineTile(routine: Routine, actions: RoutineActions) {
                 RoutineButtons(routine, state, actions)
                 if (room.rows == null || room.rows > 1) LastRuns(routine)
             }
+        },
+        // In icons: what its schedule does by hand — play when it runs it, the bubble when it invites
+        second = {
+            if (routine.invites) app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.AI_CHAT) { actions.chat(routine) }
+            else app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.START) { actions.run(routine) }
         }
     )
 }

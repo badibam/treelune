@@ -34,4 +34,26 @@ interface ToolTile {
      */
     @Composable
     fun Glance() = Summary()
+
+    /**
+     * What the second cell of the tile in icons holds (docs/design/icon-tiles.md, « La tuile d'un
+     * outil »): what the summary says without words. [NONE] by default, the icon alone.
+     */
+    val second: IconSecond get() = IconSecond.NONE
+
+    /**
+     * The second cell's content, one cell, without a word: the gesture's button ([IconSecond.GESTURE],
+     * IconGesture), or the state ([IconSecond.STATE], [IconSecond.WAITING], IconCount), which a
+     * touch passes to the tile, opening the tool. Composed only when [second] is not [IconSecond.NONE].
+     */
+    @Composable
+    fun Second() {}
 }
+
+/**
+ * What a tile's second cell in icons is (docs/design/icon-tiles.md): nothing, the icon alone
+ * centred; a gesture, the canonical one of the summary, which does something else than opening;
+ * a state, which opens the tool as the icon does; or what waits, counted, which takes the place of
+ * the icon's waiting mark — the same thing is not read twice.
+ */
+enum class IconSecond { NONE, GESTURE, STATE, WAITING }

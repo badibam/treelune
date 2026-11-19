@@ -23,6 +23,7 @@
     <string name="action_confirm">Confirmer</string>
     <string name="action_send">Envoyer</string>
     <string name="action_stats">Statistiques</string>
+    <string name="action_fill">Remplir</string>
     <string name="action_bullet_list">Liste</string>
     <string name="action_numbered_list">Liste numérotée</string>
     <string name="action_select_icon">Choisir une icône</string>
@@ -880,15 +881,20 @@
     
     <!-- Tools CONFIG - Options de taille de tuile -->
     <string name="tile_size_icon">Icône</string>
+    <string name="tile_size_icons">Icônes, %1$d × %2$d</string>
     <string name="tile_size_cells">%1$d × %2$d</string>
     <string name="tile_size_content">4 × aussi haute que son contenu</string>
     <string name="tile_more">+%1$d</string>
     <string name="tile_width_label">Largeur</string>
-    <string name="tile_width_icon">Icône</string>
+    <string name="tile_width_icon">Icônes</string>
     <string name="tile_width_half">Demi</string>
     <string name="tile_width_full">Pleine</string>
     <string name="tile_height_label">Hauteur</string>
     <string name="tile_height_content">Selon le contenu</string>
+    <string name="tile_length_label">Longueur</string>
+    <string name="tile_direction_label">Sens</string>
+    <string name="tile_direction_column">Colonne</string>
+    <string name="tile_direction_row">Ligne</string>
     <string name="tools_config_label_item_width">Éléments</string>
     <string name="item_width_halves">Par moitiés</string>
     <string name="item_width_full">Pleine largeur</string>
@@ -915,7 +921,7 @@
     <!-- Tools BASE SCHEMA CONFIG - Descriptions communes pour validation des configurations -->
     <string name="tools_base_schema_config_name">Nom de l\'outil, affiché dans sa zone</string>
     <string name="tools_base_schema_config_description">Description facultative de l\'usage de l\'outil</string>
-    <string name="tools_base_schema_config_tile_size">La taille de la tuile de l\'outil dans sa zone : `icon` (une case), `2x1` à `2x10` (une demi-largeur, de 1 à 10 lignes de haut), `4x1` à `4x10` (toute la largeur), ou `4xcontent` (toute la largeur, aussi haute que ce qu\'elle montre) ; son nom prend la première ligne, le reste dessous en largeur 2 ou à côté en largeur 4, puis ce que la tuile liste</string>
+    <string name="tools_base_schema_config_tile_size">La taille de la tuile de l\'outil dans sa zone : `icon` (une case, son icône), `icons_1x2` ou `icons_2x1` (son icône et, dessous ou à côté, une seconde case avec ce que son résumé dit sans mots : son geste, comme + ou lecture, ou un état, comme un nombre), `2x1` à `2x10` (une demi-largeur, de 1 à 10 lignes de haut), `4x1` à `4x10` (toute la largeur), ou `4xcontent` (toute la largeur, aussi haute que ce qu\'elle montre) ; son nom prend la première ligne, le reste dessous en largeur 2 ou à côté en largeur 4, puis ce que la tuile liste</string>
     <string name="tools_base_schema_config_icon_name">Nom de l\'icône de l\'outil (un nom d\'icône Lucide)</string>
     <string name="tools_base_schema_config_icon_color">Couleur de l\'icône de l\'outil, parmi RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK ; null ou absente pour une icône neutre. Chaque thème la dessine à sa façon</string>
     <string name="tools_base_schema_config_always_send">Toujours envoyer les données à l\'IA (Level 2)</string>
@@ -1555,7 +1561,7 @@
     <string name="variable_schema_icon_name">Nom de l\'icône de la variable (un nom d\'icône Lucide) ; variable si absent</string>
     <string name="variable_schema_icon_color">Couleur de l\'icône de la variable, parmi RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK ; null ou absent pour une icône neutre. Chaque thème la dessine à sa façon</string>
     <string name="variable_schema_texture">Motif posé sur la tuile de la variable, parmi LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON (ICON répète l\'icône de la variable) ; null ou absent pour aucun. Une affaire de goût : à poser quand la personne le demande</string>
-    <string name="variable_schema_tile_size">La taille de la tuile de la variable parmi les outils de sa section : `icon` (une case), `2x1` à `2x10` (une demi-largeur, de 1 à 10 lignes de haut), `4x1` à `4x10` (toute la largeur), ou `4xcontent` (toute la largeur, aussi haute que ce qu\'elle montre) ; son nom prend la première ligne, le reste dessous en largeur 2 ou à côté en largeur 4, puis ce que la tuile liste ; `4x1` (sa valeur à côté de son nom) si absente</string>
+    <string name="variable_schema_tile_size">La taille de la tuile de la variable parmi les outils de sa section : `icon` (une case, son icône), `icons_1x2` ou `icons_2x1` (son icône et, dessous ou à côté, une seconde case avec ce que son résumé dit sans mots : son geste, comme + ou lecture, ou un état, comme un nombre), `2x1` à `2x10` (une demi-largeur, de 1 à 10 lignes de haut), `4x1` à `4x10` (toute la largeur), ou `4xcontent` (toute la largeur, aussi haute que ce qu\'elle montre) ; son nom prend la première ligne, le reste dessous en largeur 2 ou à côté en largeur 4, puis ce que la tuile liste ; `4x1` (sa valeur à côté de son nom) si absente</string>
     <string name="variable_error_not_found">Aucune variable n\'a l\'id %1$s.</string>
     <string name="variable_error_name">« %1$s » ne peut pas être un nom dans une formule : une lettre ou _, puis lettres, chiffres ou _.</string>
     <string name="variable_error_name_taken">Une variable s\'appelle déjà %1$s : les noms sont uniques dans l\'app.</string>
@@ -1940,7 +1946,7 @@
     <string name="routine_schema_icon_name">Nom de l\'icône de la routine (un nom d\'icône Lucide) ; bot si absent</string>
     <string name="routine_schema_icon_color">Couleur de l\'icône de la routine, parmi RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK ; null ou absent pour une icône neutre. Chaque thème la dessine à sa façon</string>
     <string name="routine_schema_texture">Motif posé sur la tuile de la routine, parmi LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON (ICON répète l\'icône de la routine) ; null ou absent pour aucun. Une affaire de goût : à poser quand la personne le demande</string>
-    <string name="routine_schema_tile_size">La taille de la tuile de la routine parmi les outils de sa section : `icon` (une case), `2x1` à `2x10` (une demi-largeur, de 1 à 10 lignes de haut), `4x1` à `4x10` (toute la largeur), ou `4xcontent` (toute la largeur, aussi haute que ce qu\'elle montre) ; son nom prend la première ligne, le reste dessous en largeur 2 ou à côté en largeur 4, puis ce que la tuile liste : ses dernières exécutions ; `4x2` (son état, son interrupteur et ses boutons) si absente</string>
+    <string name="routine_schema_tile_size">La taille de la tuile de la routine parmi les outils de sa section : `icon` (une case, son icône), `icons_1x2` ou `icons_2x1` (son icône et, dessous ou à côté, une seconde case avec ce que son résumé dit sans mots : son geste, comme + ou lecture, ou un état, comme un nombre), `2x1` à `2x10` (une demi-largeur, de 1 à 10 lignes de haut), `4x1` à `4x10` (toute la largeur), ou `4xcontent` (toute la largeur, aussi haute que ce qu\'elle montre) ; son nom prend la première ligne, le reste dessous en largeur 2 ou à côté en largeur 4, puis ce que la tuile liste : ses dernières exécutions ; `4x2` (son état, son interrupteur et ses boutons) si absente</string>
     <string name="routine_display_name">Routine</string>
     <string name="routine_runs_display_name">Exécutions d\'une routine</string>
     <string name="routine_message_placeholder">Message de démarrage de la routine...</string>
@@ -2255,7 +2261,7 @@
     <string name="readout_columns_one">Une colonne</string>
     <string name="readout_columns_two">Deux colonnes</string>
     <string name="zone_schema_validate">L\'IA de la conversation et du connecteur demande ton accord avant de créer, modifier ou supprimer un outil de cette zone, ses groupes d\'outils, ses routines ou ses variables. Réglable seulement dans l\'app. Une routine ne demande jamais.</string>
-    <string name="zone_schema_tile_size">La taille de la tuile de la zone sur l\'accueil, les cases qu\'elle occupe : `icon` (une case), `2x1` à `2x10` (une demi-largeur, de 1 à 10 lignes de haut), `4x1` à `4x10` (toute la largeur), ou `4xcontent` (toute la largeur, aussi haute que ce qu\'elle montre) ; son nom prend la première ligne, le reste dessous en largeur 2 ou à côté en largeur 4, puis ce que la tuile liste</string>
+    <string name="zone_schema_tile_size">La taille de la tuile de la zone sur l\'accueil, les cases qu\'elle occupe : `icon` (une case, son icône), `icons_1x2` à `icons_1x10` (une colonne d\'icônes) ou `icons_2x1` à `icons_4x1` (une ligne) : son icône d\'abord, puis les pièces de `tile_pieces`, une case chacune, deux avec son résumé, `2x1` à `2x10` (une demi-largeur, de 1 à 10 lignes de haut), `4x1` à `4x10` (toute la largeur), ou `4xcontent` (toute la largeur, aussi haute que ce qu\'elle montre) ; son nom prend la première ligne, le reste dessous en largeur 2 ou à côté en largeur 4, puis ce que la tuile liste</string>
     <string name="zone_schema_icon_color">Couleur de l\'icône de la zone, parmi RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK ; null ou absente pour une icône neutre. Les outils de la zone ne la prennent pas</string>
     <string name="zone_schema_group">Groupe d\'organisation de la zone</string>
 
@@ -2940,7 +2946,7 @@
     <string name="task_schema_icon_name">Nom de l\'icône de la Tâche (un nom d\'icône Lucide) ; list-ordered si absent</string>
     <string name="task_schema_icon_color">Couleur de l\'icône de la Tâche, parmi RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK ; null ou absente pour une icône neutre</string>
     <string name="task_schema_texture">Motif posé sur la tuile de la Tâche, parmi LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON ; null ou absent pour aucun</string>
-    <string name="task_schema_tile_size">La taille de la tuile de la Tâche parmi les outils de sa section : `icon` (une case), `2x1` à `2x10` (une demi-largeur, de 1 à 10 lignes de haut), `4x1` à `4x10` (toute la largeur), ou `4xcontent` (toute la largeur, aussi haute que ce qu\'elle montre) ; son nom prend la première ligne, le reste dessous en largeur 2 ou à côté en largeur 4, puis ce que la tuile liste : ses dernières exécutions ; `4x2` (son état, son interrupteur et ses boutons) si absente</string>
+    <string name="task_schema_tile_size">La taille de la tuile de la Tâche parmi les outils de sa section : `icon` (une case, son icône), `icons_1x2` ou `icons_2x1` (son icône et, dessous ou à côté, une seconde case avec ce que son résumé dit sans mots : son geste, comme + ou lecture, ou un état, comme un nombre), `2x1` à `2x10` (une demi-largeur, de 1 à 10 lignes de haut), `4x1` à `4x10` (toute la largeur), ou `4xcontent` (toute la largeur, aussi haute que ce qu\'elle montre) ; son nom prend la première ligne, le reste dessous en largeur 2 ou à côté en largeur 4, puis ce que la tuile liste : ses dernières exécutions ; `4x2` (son état, son interrupteur et ses boutons) si absente</string>
     <string name="task_schema_group">Un des groupes d\'outils de sa zone, où se tient sa tuile</string>
     <string name="task_schema_is_enabled">Si son planning la lance</string>
     <string name="task_schema_notify_end">Quand la fin d\'une exécution est notifiée : toujours, sur un problème seulement, ou jamais</string>
@@ -3270,7 +3276,7 @@
     <string name="readout_schema_icon_name">Nom de l\'icône du Repère (un nom d\'icône Lucide) ; gauge si absent</string>
     <string name="readout_schema_icon_color">Couleur de l\'icône du Repère, parmi RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK ; null ou absent pour une icône neutre</string>
     <string name="readout_schema_texture">Motif posé sur la tuile propre du Repère, parmi LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON ; null ou absent pour aucun</string>
-    <string name="readout_schema_tile_size">La taille de la tuile propre du Repère parmi les outils de sa section : `icon` (une case), `2x1` à `2x10` (une demi-largeur, de 1 à 10 lignes de haut), `4x1` à `4x10` (toute la largeur), ou `4xcontent` (toute la largeur, aussi haute que ce qu\'elle montre) ; son nom prend la première ligne, le reste dessous en largeur 2 ou à côté en largeur 4, puis ce que la tuile liste ; `4x1` (sa phrase à côté de son nom) si absente</string>
+    <string name="readout_schema_tile_size">La taille de la tuile propre du Repère parmi les outils de sa section : `icon` (une case, son icône), `icons_1x2` ou `icons_2x1` (son icône et, dessous ou à côté, une seconde case avec ce que son résumé dit sans mots : son geste, comme + ou lecture, ou un état, comme un nombre), `2x1` à `2x10` (une demi-largeur, de 1 à 10 lignes de haut), `4x1` à `4x10` (toute la largeur), ou `4xcontent` (toute la largeur, aussi haute que ce qu\'elle montre) ; son nom prend la première ligne, le reste dessous en largeur 2 ou à côté en largeur 4, puis ce que la tuile liste ; `4x1` (sa phrase à côté de son nom) si absente</string>
     <string name="readout_schema_group">Un des groupes d\'outils de sa zone, où se tient sa tuile propre</string>
     <string name="readout_text">Phrase</string>
     <string name="readout_schema_text">Facultative : la forme longue, montrée là où il y a la place (la tête d\'un groupe, d\'une zone, de l\'accueil), qui place son cœur avec {} : « Eau : {} », « Encore {} verres aujourd\'hui » ; sans elle, son cœur se montre partout</string>

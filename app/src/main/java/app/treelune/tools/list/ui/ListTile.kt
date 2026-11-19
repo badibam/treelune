@@ -127,6 +127,12 @@ fun rememberListTile(tool: ToolInstance): ToolTile {
                 }
             }
 
+            // In icons: + adds an item, as the summary's button does
+            override val second get() = app.treelune.core.tools.IconSecond.GESTURE
+
+            @Composable
+            override fun Second() = app.treelune.core.ui.components.IconGesture(ButtonAction.ADD) { adding = true }
+
             @Composable
             override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val loaded = items ?: return

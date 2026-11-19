@@ -194,7 +194,7 @@ object MetroTheme : ThemeContract {
     /** How far the content stands from the tile's top: under its line and 4 dp of air; 8 dp all round an icon's tile. */
     @Composable
     override fun tileFrame(tileSize: TileSize): Dp =
-        if (tileSize.isIcon) metroSize().dp(8f) else metroSize().dp(TILE_LINE + 4f)
+        if (tileSize.inIcons) metroSize().dp(8f) else metroSize().dp(TILE_LINE + 4f)
 
     @Composable
     override fun spacing(spacing: Spacing): Dp = (
@@ -810,7 +810,7 @@ object MetroTheme : ThemeContract {
     private fun Tile(tileSize: TileSize, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
         val c = metroColors
         val size = metroSize()
-        val block = tileSize.isIcon
+        val block = tileSize.inIcons
         val frame = tileFrame(tileSize)
         val shown = color ?: TagColor.GREY
         val line = c.line(shown).srgb

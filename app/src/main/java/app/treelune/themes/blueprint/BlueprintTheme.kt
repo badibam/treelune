@@ -200,7 +200,7 @@ object BlueprintTheme : ThemeContract {
     /** How far the content stands from the tile's top: 6 dp under its line; 8 dp all round an icon's tile. */
     @Composable
     override fun tileFrame(tileSize: TileSize): Dp =
-        if (tileSize.isIcon) blueprintSize().dp(8f) else blueprintSize().dp(6f)
+        if (tileSize.inIcons) blueprintSize().dp(8f) else blueprintSize().dp(6f)
 
     @Composable
     override fun spacing(spacing: Spacing): Dp = (
@@ -786,7 +786,7 @@ object BlueprintTheme : ThemeContract {
     private fun Tile(tileSize: TileSize, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
         val c = blueprintColors
         val size = blueprintSize()
-        val icon = tileSize.isIcon
+        val icon = tileSize.inIcons
         val frame = tileFrame(tileSize)
         val paper = c.paper.srgb
         val ink = c.ink.srgb

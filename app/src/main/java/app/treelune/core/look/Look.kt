@@ -36,7 +36,9 @@ data class Look(
  * @property schemaPrefix The shared strings that tell the AI each setting: `<prefix>name`,
  *   `<prefix>description`, `<prefix>icon_name`, `<prefix>icon_color`, `<prefix>texture`,
  *   `<prefix>tile_size`
- * @property defaultSize The size a new one's tile takes; every size is open to every owner
+ * @property defaultSize The size a new one's tile takes
+ * @property sizes The sizes its tile takes ([TileSize.PIECE] for a piece of a zone, [TileSize.ZONE]
+ *   for a zone, which alone takes the strips of icons longer than a pair)
  * @property defaultIcon The icon a new one takes, and the one it shows without its own; null when
  *   an icon is optional, the tile its name alone without one
  * @property suggestedIcons Where the icon picker starts
@@ -47,7 +49,8 @@ data class LookSpec(
     val schemaPrefix: String,
     val defaultSize: TileSize,
     val defaultIcon: String?,
-    val suggestedIcons: List<String>
+    val suggestedIcons: List<String>,
+    val sizes: List<TileSize> = TileSize.PIECE
 )
 
 /** The look's settings, read and checked the same way for every owner. */
@@ -60,9 +63,10 @@ object Looks {
     /** The keys a look of [spec] is kept under, beside the owner's other settings. */
     fun keys(spec: LookSpec): List<String> = listOf(spec.nameKey, DESCRIPTION, ICON, IconColor.KEY, Texture.KEY, TILE_SIZE)
 
-    /** [size] in words, as the size's choice shows it: « Icon », « 2 × 3 », « 4 × as tall as its content ». */
+    /** [size] in words, as the size's choice shows it: « Icon », « Icons, 1 × 3 », « 2 × 3 », « 4 × as tall as its content ». */
     fun sizeLabel(size: TileSize, text: (String) -> String): String = when {
         size.isIcon -> text("tile_size_icon")
+        size.inIcons -> text("tile_size_icons").format(size.width, size.height)
         size.followsContent -> text("tile_size_content")
         else -> text("tile_size_cells").format(size.width, size.height)
     }
@@ -75,7 +79,7 @@ object Looks {
     fun nodes(spec: LookSpec, text: (String) -> String): List<SettingNode> {
         fun field(name: String, label: String, type: FieldType, config: Map<String, Any>, required: Boolean = false, default: Any? = null) =
             SettingNode.Field(FieldDefinition(name, label, text("${spec.schemaPrefix}$name"), type, false, config), required = required, default = default)
-        val sizes = TileSize.ALL.map { it.stored }
+        val sizes = spec.sizes.map { it.stored }
         return listOf(
             field(spec.nameKey, text(spec.nameLabel), FieldType.TEXT, mapOf("length" to TextLength.SHORT.name), required = true),
             field(DESCRIPTION, text("label_description"), FieldType.TEXT, mapOf("length" to TextLength.MEDIUM.name)),
@@ -83,7 +87,7 @@ object Looks {
             field(IconColor.KEY, text("label_icon_color"), FieldType.CHOICE, mapOf("options" to IconColor.options(text))),
             field(Texture.KEY, text("label_texture"), FieldType.CHOICE, mapOf("options" to Texture.options(text))),
             field(TILE_SIZE, text("tools_config_label_tile_size"), FieldType.CHOICE,
-                mapOf("options" to ChoiceSettings.storedOptions(sizes, TileSize.ALL.associate { it.stored to sizeLabel(it, text) })),
+                mapOf("options" to ChoiceSettings.storedOptions(sizes, spec.sizes.associate { it.stored to sizeLabel(it, text) })),
                 default = spec.defaultSize.stored)
         )
     }
@@ -113,7 +117,7 @@ object Looks {
      * icon, a colour or a texture given as null or blank is taken out (how a write empties it); an
      * icon is a Lucide name, a former one stored under the name it became, one that names no
      * icon refused; a colour and a texture are of their names; a texture ICON needs an icon to
-     * repeat, the owner's or its default; the size is one of TileSize's.
+     * repeat, the owner's or its default; the size is one of the owner's ([LookSpec.sizes]).
      *
      * Only an icon that changes from [before]'s is checked: a thing saved again with the icon it
      * already had stays savable.
@@ -133,8 +137,8 @@ object Looks {
         if (!IconColor.accepts(color)) return Checked.Refused(s.shared("service_error_icon_color_unknown").format(color, IconColor.NAMES.joinToString(", ")))
         Texture.refusal(values.text(Texture.KEY), values.text(ICON) ?: spec.defaultIcon.orEmpty(), s::shared)?.let { return Checked.Refused(it) }
         values.text(TILE_SIZE)?.let { size ->
-            if (TileSize.parse(size) == null) {
-                return Checked.Refused(s.shared("look_error_tile_size").format(size, TileSize.ALL.joinToString(", ") { it.stored }))
+            if (TileSize.parse(size) !in spec.sizes) {
+                return Checked.Refused(s.shared("look_error_tile_size").format(size, spec.sizes.joinToString(", ") { it.stored }))
             }
         }
         return kept

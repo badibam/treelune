@@ -179,6 +179,8 @@ fun TaskTile(task: Task) {
                 }
                 if (room.rows == null || room.rows > 1) runs.forEach { RunRow(it, task) }
             }
-        }
+        },
+        // In icons: play runs it
+        second = { app.treelune.core.ui.components.IconGesture(ButtonAction.START) { actions.run(task) } }
     )
 }

@@ -141,7 +141,8 @@ fun ReadoutSentence(shown: ReadoutShown?, maxLines: Int = 2, short: Boolean = fa
 
 /**
  * A readout's own tile among its section's tools (UI.LookCard): its look, its sentence beside its
- * header (LINE) or under it (CONDENSED). Touching it opens its target, a long touch its config.
+ * header (LINE) or under it (CONDENSED), its core beside or under its icon in icons. Touching it
+ * opens its target, a long touch its config.
  */
 @Composable
 fun ReadoutCard(readout: ReadoutRow) {
@@ -160,7 +161,9 @@ fun ReadoutCard(readout: ReadoutRow) {
         // Its name in its header: its core says the rest
         summary = { ReadoutSentence(shown, short = true) },
         glance = { ReadoutSentence(shown, short = true) },
-        body = { }
+        body = { },
+        // In icons: its core in the colour of its state; a touch opens its target
+        second = { ReadoutSentence(shown, maxLines = 1, short = true) }
     )
 }
 

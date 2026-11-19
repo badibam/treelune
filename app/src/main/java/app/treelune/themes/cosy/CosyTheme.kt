@@ -195,7 +195,7 @@ object CosyTheme : ThemeContract {
     @Composable
     override fun tileFrame(tileSize: TileSize): Dp = cosySize().dp(
         when {
-            tileSize.isIcon -> 6f
+            tileSize.inIcons -> 6f
             tileSize == TileSize.of(2, 1) -> 10f
             else -> 14f
         }
