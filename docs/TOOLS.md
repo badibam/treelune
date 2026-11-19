@@ -216,9 +216,10 @@ Added in ToolTypeScanner.getAllToolTypes() for automatic discovery.
 
 ## Tile sizes
 
-The tools of a group's section are laid on a grid of four columns of square cells (`SectionTiles`), with its variables among them, whose side the theme gives according to the width available (`gridCellPx`: a quarter, the grid at most 480 dp wide, in the default theme). Each tool sits there at `grid_x`/`grid_y` (`tool_instances`), placed by `SectionGrid` and `Grid`; its size in cells is its `tile_size`, which its config always holds (its look, `Looks`; `TileSize`, docs/design/tile-sizes.md): `icon` (1×1), a width of 2 or 4 and a height of 1 to 10 (`2x3`, `4x2`…), or `4xcontent`. What it shows follows from its size alone:
+The tools of a group's section are laid on a grid of four columns of square cells (`SectionTiles`), with its variables among them, whose side the theme gives according to the width available (`gridCellPx`: a quarter, the grid at most 480 dp wide, in the default theme). Each tool sits there at `grid_x`/`grid_y` (`tool_instances`), placed by `SectionGrid` and `Grid`; its size in cells is its `tile_size`, which its config always holds (its look, `Looks`; `TileSize`, docs/design/tile-sizes.md and icon-tiles.md): in icons, `icon` (1×1) or a pair in a column or a row (`icons_1x2`, `icons_2x1`); with text, a width of 2 or 4 and a height of 1 to 10 (`2x3`, `4x2`…), or `4xcontent`. What it shows follows from its size alone:
 
 - the icon: the icon alone
+- the pair: the icon and its second cell, what the summary says without a word (`ToolTypeContract.tileSecond`, `ToolTile.Second`, drawn in `IconStrip`): its gesture — + for a new entry (Journal, List, Notes, Agenda, Records) or the free entry (Tracking), fill in (Questionnaire, the oldest entry waiting, else a passing on demand), play (Session) —, or a state, which opens the tool as the icon does — a Goal's verdict —, or what waits counted, a check without (Flashcards, Messages), the icon then losing its mark; a type without one (Chart) keeps its icon alone, centred
 - 2×1: the header, icon and name
 - 4×1: the header on the left, the summary (or the preview) on the right
 - 2×2: the header at the top, the summary (or the preview) below
@@ -252,7 +253,7 @@ The service's execute() validates automatically through the ToolType, then retur
 ### Common settings (`ToolConfigSettings`)
 - **name**: the instance's name
 - **description**: description
-- **tile_size**: the size of its tile (`TileSize`: `icon`, `2x1` … `4x10`, `4xcontent`)
+- **tile_size**: the size of its tile (`TileSize`: `icon`, `icons_1x2`, `icons_2x1`, `2x1` … `4x10`, `4xcontent`)
 - **validate_data**: "Protect this tool's data", the AI of the conversation and of the connector asks before writing its entries (default: no); its config is kept by its zone's protection (`docs/AI.md`, « Levels »), and only a person changes either one (`Protections`)
 
 ### always_send field (Level 2 AI)
