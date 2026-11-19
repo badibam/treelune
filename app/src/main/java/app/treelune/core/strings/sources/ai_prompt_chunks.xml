@@ -403,7 +403,7 @@ Retrieves a Task whole, in the form CREATE_TASK and UPDATE_TASK write it: `zone_
 - `id` (string, **required**)]]></string>
     <string name="ai_command_task_runs"><![CDATA[### TASK_RUNS
 
-Lists the runs of a Task, the most recent first: `id`, `trigger` (what started it), `scheduled_at` (when it was due, for a run its schedule started), `started_at`, `ended_at` (none while it goes on), `state` (`running`, `waiting` on an API that answers later, `queued`, `done`, `failed`, `interrupted`, `cancelled`), `step` (the step it stands at, from 0), `results`, each step\'s result in order (`summary`, `values`, `raw`, the start of an API\'s raw answer, `error`, `skipped`, `at`), a job waited on, `first_poll_at` then `last_poll_at`, and for a run a condition started, `condition_said`.
+Lists the runs of a Task, the most recent first: `id`, `trigger` (what started it), `scheduled_at` (when it was due, for a run its schedule started), `started_at`, `ended_at` (none while it goes on), `state` (`running`, `waiting` on an API that answers later, `queued`, `done`, `failed`, `interrupted`, `cancelled`), `step` (the step it stands at, from 0), `results`, each step\'s result in order (`summary`, `values`, `raw`, the start of an API\'s raw answer, `error`, `skipped`, `at`), a job waited on, `first_poll_at` then `last_poll_at`, and `last_poll_error` when that asking got no answer for now (asked again until the API\'s longest wait), and for a run a condition started, `condition_said`.
 
 **Parameters**:
 

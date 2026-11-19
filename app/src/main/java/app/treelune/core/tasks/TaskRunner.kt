@@ -187,7 +187,9 @@ object TaskRunner {
     /**
      * The waiting run [run] asked where its job stands, at [now]: not ready, it is asked again at the next tick, up to
      * its deadline; failed or past it, the run fails; ready, the values join the step's result and
-     * the run goes on.
+     * the run goes on. An asking that got no answer for now (no network, the server busy: the
+     * failure says `passing`) counts as not ready, its words kept in the wait and said by the
+     * failure if the deadline comes first.
      */
     suspend fun poll(context: Context, run: TaskRunEntity, now: Long) {
         if (run.id in active) return
@@ -201,8 +203,9 @@ object TaskRunner {
         val asked = Coordinator(context).processScheduledTask("apis.status", mapOf("api_id" to wait.apiId, "job_id" to wait.jobId))
         val last = results.last()
         val raw = (asked.data?.get("raw") as? String) ?: last.raw
+        val missed = if (!asked.isSuccess && asked.data?.get(ApiService.PASSING) == true) asked.error ?: s.shared("error_unknown") else null
         when {
-            !asked.isSuccess || asked.data?.get("status") == "failed" -> {
+            missed == null && (!asked.isSuccess || asked.data?.get("status") == "failed") -> {
                 val failed = run.copy(resultsJson = withLast(last.copy(raw = raw, error = asked.error ?: s.shared("task_error_job_failed"))), waitJson = null)
                 dao.updateRun(failed)
                 end(context, task, failed, TaskRun.State.FAILED)
@@ -216,12 +219,13 @@ object TaskRunner {
                 proceed(context, run.id)
             }
             now >= wait.deadline -> {
-                val failed = run.copy(resultsJson = withLast(last.copy(raw = raw, error = s.shared("task_error_job_late"))), waitJson = null)
+                val late = (missed ?: wait.missed)?.let { s.shared("task_error_job_late_missed").format(it) } ?: s.shared("task_error_job_late")
+                val failed = run.copy(resultsJson = withLast(last.copy(raw = raw, error = late)), waitJson = null)
                 dao.updateRun(failed)
                 end(context, task, failed, TaskRun.State.FAILED)
             }
-            // Not ready: asked again at the next tick
-            else -> dao.updateRun(run.copy(waitJson = wait.copy(askedAt = now).toJson(), resultsJson = withLast(last.copy(raw = raw))))
+            // Not ready, or no answer for now: asked again at the next tick
+            else -> dao.updateRun(run.copy(waitJson = wait.copy(askedAt = now, missed = missed).toJson(), resultsJson = withLast(last.copy(raw = raw))))
         }
     }
 

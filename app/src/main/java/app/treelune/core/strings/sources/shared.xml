@@ -2993,6 +2993,7 @@
     <string name="task_error_kind">Step %1$s: no kind of step “%2$s”; the kinds: %3$s</string>
     <string name="task_error_job_failed">The API says the work failed</string>
     <string name="task_error_job_late">The API\'s work was not ready within its longest wait</string>
+    <string name="task_error_job_late_missed">The API\'s work was not ready within its longest wait; the last time it was asked, no answer came: %1$s</string>
     <string name="task_error_download">The file %1$s did not come down: %2$s</string>
     <string name="task_run_end_done">Run done</string>
     <string name="task_run_end_failed">Run failed: open it to see why</string>
@@ -3142,6 +3143,7 @@
     <string name="task_input_received_field">The entry written › %1$s</string>
     <string name="task_run_first_poll">First asked %1$s</string>
     <string name="task_run_last_poll">Last asked %1$s</string>
+    <string name="task_run_last_poll_error">No answer that time, asked again soon: %1$s</string>
     <string name="task_run_cancel">Cancel the run</string>
     <string name="task_run_resume">Resume at the step that failed</string>
     <string name="task_run_entry_created">Entry created</string>

@@ -137,6 +137,8 @@ class TaskService(private val context: Context) : ExecutableService {
         // A job waited on: when it is first asked about, then when it was last
         "first_poll_at" to run.waitJson?.let { TaskRun.Wait.of(it) }?.takeIf { it.askedAt == null }?.nextAt,
         "last_poll_at" to run.waitJson?.let { TaskRun.Wait.of(it).askedAt },
+        // Why the last asking got no answer, asked again at the next tick
+        "last_poll_error" to run.waitJson?.let { TaskRun.Wait.of(it).missed },
         "waits" to (run.endedAt != null && run.seenAt == null),
         // Started by a condition: what it read, in words
         "condition_said" to (run.receivedJson?.let { TaskRun.Received.of(it) } as? TaskRun.Received.Condition)?.said

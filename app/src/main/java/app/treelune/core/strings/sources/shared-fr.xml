@@ -2993,6 +2993,7 @@
     <string name="task_error_kind">Étape %1$s : aucun genre d\'étape « %2$s » ; les genres : %3$s</string>
     <string name="task_error_job_failed">L\'API dit que le travail a échoué</string>
     <string name="task_error_job_late">Le travail de l\'API n\'était pas prêt dans son attente la plus longue</string>
+    <string name="task_error_job_late_missed">Le travail de l\'API n\'était pas prêt dans son attente la plus longue ; la dernière fois qu\'on lui a demandé, aucune réponse n\'est venue : %1$s</string>
     <string name="task_error_download">Le fichier %1$s n\'a pas pu être téléchargé : %2$s</string>
     <string name="task_run_end_done">Exécution terminée</string>
     <string name="task_run_end_failed">Exécution en échec : ouvre-la pour voir pourquoi</string>
@@ -3142,6 +3143,7 @@
     <string name="task_input_received_field">L\'entrée écrite › %1$s</string>
     <string name="task_run_first_poll">Première demande %1$s</string>
     <string name="task_run_last_poll">Dernière demande %1$s</string>
+    <string name="task_run_last_poll_error">Pas de réponse cette fois, redemandé bientôt : %1$s</string>
     <string name="task_run_cancel">Annuler l\'exécution</string>
     <string name="task_run_resume">Reprendre à l\'étape en échec</string>
     <string name="task_run_entry_created">Entrée créée</string>

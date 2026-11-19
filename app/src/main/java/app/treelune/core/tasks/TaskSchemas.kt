@@ -27,7 +27,7 @@ object TaskSchemas {
     const val CONFIG_ID = "task_config"
 
     /** The keys of a run kept for the AI, as the Tasks service names them (TaskService.runOf). */
-    val RUN_KEYS = listOf("id", "trigger", "scheduled_at", "started_at", "ended_at", "state", "step", "results", "first_poll_at", "last_poll_at", "condition_said")
+    val RUN_KEYS = listOf("id", "trigger", "scheduled_at", "started_at", "ended_at", "state", "step", "results", "first_poll_at", "last_poll_at", "last_poll_error", "condition_said")
 
     /**
      * A Task's runs (TASK_RUNS, TASK_RUN): what started each, when it was due, began and ended, its

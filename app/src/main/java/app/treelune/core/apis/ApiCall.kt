@@ -25,8 +25,17 @@ class ApiCall(private val config: JSONObject, private val values: SettingValues)
         val isSuccessful: Boolean get() = code in 200..299
     }
 
-    /** Why a call did not give what it should, in a key of the strings and its arguments. */
-    class Failure(val key: String, vararg val args: Any) : Exception(key)
+    /**
+     * Why a call did not give what it should, in a key of the strings and its arguments; [passing]
+     * when asking again later may give the answer: no answer came, or the server said it is busy
+     * or broken for now (429, 5xx).
+     */
+    class Failure(val key: String, vararg val args: Any, val passing: Boolean = false) : Exception(key) {
+        companion object {
+            /** Whether the HTTP status [code] says the server cannot answer for now. */
+            fun passing(code: Int): Boolean = code == 429 || code in 500..599
+        }
+    }
 
     /**
      * The first call, with [inputs] by name: in the address for GET, a flat JSON object for POST.
@@ -166,7 +175,7 @@ class ApiCall(private val config: JSONObject, private val values: SettingValues)
         val reply = try {
             CLIENT.awaitReply(request)
         } catch (e: java.io.IOException) {
-            throw Failure("api_error_network", e.message ?: e.javaClass.simpleName)
+            throw Failure("api_error_network", e.message ?: e.javaClass.simpleName, passing = true)
         }
         return Reply(reply.code, reply.body)
     }
@@ -186,7 +195,7 @@ class ApiCall(private val config: JSONObject, private val values: SettingValues)
 
         /** [reply]'s body as JSON, or a failure saying the status when it is not a success. */
         fun parse(reply: Reply): Any {
-            if (!reply.isSuccessful) throw Failure("api_error_status", reply.code)
+            if (!reply.isSuccessful) throw Failure("api_error_status", reply.code, passing = Failure.passing(reply.code))
             return try {
                 JSONTokener(reply.body).nextValue().takeIf { it is JSONObject || it is JSONArray } ?: throw Failure("api_error_not_json")
             } catch (e: org.json.JSONException) {

@@ -28,7 +28,9 @@ import org.json.JSONObject
  * - .call (api_id, inputs): the call made. An immediate API answers `values` by name; a deferred
  *   one, the `job_id` to follow with .status. Both with `raw`, the answer's start. A failure
  *   says why, with `raw` when an answer came.
- * - .status (api_id, job_id): `status` (pending, ready, failed), and when ready its `values`
+ * - .status (api_id, job_id): `status` (pending, ready, failed), and when ready its `values`. A
+ *   failure that asking again later may mend (no answer, the server busy or broken for now) says
+ *   `passing`.
  * - .try (config, inputs): a call with a config not saved, for « Try »: the `code`, the `raw`
  *   answer whole, what each value's path gives (`values`: `name`, `value` or `error`), and for a
  *   deferred API the `job_id` its path gives. Writes nothing.
@@ -55,7 +57,7 @@ class ApiService(private val context: Context) : ExecutableService {
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
             }
         } catch (e: ApiCall.Failure) {
-            OperationResult.error(failure(e))
+            OperationResult.error(failure(e), passing(e))
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -225,9 +227,12 @@ class ApiService(private val context: Context) : ExecutableService {
                 ApiCall.Status.READY -> OperationResult.success(mapOf("status" to "ready", "values" to call.read(reply), "raw" to raw(reply)))
             }
         } catch (e: ApiCall.Failure) {
-            OperationResult.error(failure(e), mapOf("raw" to raw(reply)))
+            OperationResult.error(failure(e), mapOf("raw" to raw(reply)) + passing(e))
         }
     }
+
+    /** `passing` when [e] may be mended by asking again later (ApiCall.Failure.passing). */
+    private fun passing(e: ApiCall.Failure): Map<String, Any> = if (e.passing) mapOf(PASSING to true) else emptyMap()
 
     /**
      * Where a recipe's job stands: pending until its result is on its branch, then its values; a
@@ -358,5 +363,8 @@ class ApiService(private val context: Context) : ExecutableService {
     companion object {
         /** The param of `update` that keeps the stored key, the config given without it (UPDATE_API, keptKey). */
         const val KEEP_KEY = "keep_key"
+
+        /** In a failure's data: asking again later may mend it (ApiCall.Failure.passing). */
+        const val PASSING = "passing"
     }
 }

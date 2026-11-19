@@ -142,18 +142,22 @@ object TaskRun {
      * ([nextAt]), when it last asked ([askedAt], null before), and when it gives up ([deadline]).
      * From then on it asks at each tick of the
      * scheduler: every minute with the app open, at each ring of its alarm with the app closed,
-     * which wakes the phone whether a run waits or not.
+     * which wakes the phone whether a run waits or not. [missed]: why the last asking got no
+     * answer, a failure that may pass (ApiCall.Failure.passing), asked again at the next tick;
+     * null once an answer came.
      */
-    data class Wait(val apiId: String, val jobId: String, val nextAt: Long, val deadline: Long, val askedAt: Long? = null) {
+    data class Wait(val apiId: String, val jobId: String, val nextAt: Long, val deadline: Long, val askedAt: Long? = null, val missed: String? = null) {
         fun toJson(): String = JSONObject().put("api_id", apiId).put("job_id", jobId).put("next_at", nextAt).put("deadline", deadline)
-            .apply { askedAt?.let { put("asked_at", it) } }.toString()
+            .apply { askedAt?.let { put("asked_at", it) } }
+            .apply { missed?.let { put("missed", it) } }.toString()
 
         companion object {
             /** The first time a job is asked about, after it started: a minute. */
             const val FIRST_ASK = 60_000L
 
             fun of(json: String) = JSONObject(json).let {
-                Wait(it.getString("api_id"), it.getString("job_id"), it.getLong("next_at"), it.getLong("deadline"), if (it.has("asked_at")) it.getLong("asked_at") else null)
+                Wait(it.getString("api_id"), it.getString("job_id"), it.getLong("next_at"), it.getLong("deadline"), if (it.has("asked_at")) it.getLong("asked_at") else null,
+                    it.optString("missed").ifEmpty { null })
             }
         }
     }

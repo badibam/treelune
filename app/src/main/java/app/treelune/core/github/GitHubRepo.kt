@@ -182,12 +182,12 @@ class GitHubRepo(val repository: String, private val token: String) {
         val reply = try {
             CLIENT.awaitReply(request)
         } catch (e: java.io.IOException) {
-            throw ApiCall.Failure("github_error_network", e.message ?: e.javaClass.simpleName)
+            throw ApiCall.Failure("github_error_network", e.message ?: e.javaClass.simpleName, passing = true)
         }
         if (allowed != null && reply.code == allowed) return null
         if (reply.code !in 200..299) {
             val message = runCatching { JSONObject(reply.body).optString("message") }.getOrNull().orEmpty().ifEmpty { "-" }
-            throw ApiCall.Failure("github_error_status", reply.code, message)
+            throw ApiCall.Failure("github_error_status", reply.code, message, passing = ApiCall.Failure.passing(reply.code))
         }
         return Reply(reply.code, reply.body)
     }
