@@ -66,15 +66,30 @@ L'IA dans l'app y a accès comme le connecteur, hors d'un masque d'accès : les 
 
 - Le zip ne prend pas les octets d'un fichier lié. La ligne y est, avec son `uri`.
 - La vérification des fichiers manquants de la sauvegarde (`BackupService`, ceux d'une ligne sans fichier) ignore les lignes liées.
-- La restauration garde les liens tels quels et dit combien sont introuvables sur ce téléphone. Relier un fichier introuvable à son nouvel emplacement est hors de cette version.
+- La restauration garde les liens tels quels et dit combien sont introuvables sur ce téléphone, puis propose de les relier (« Relier un lien introuvable »).
 
 ## La partie exportée
 
-Une partie exportée garde ses liens comme une sauvegarde : la ligne part, le fichier non. Importée, chaque lien attend comme un lien préparé (`LinkedFiles.pendAs`) que son entrée le prenne ; sur un autre téléphone, il est introuvable.
+Une partie exportée garde ses liens comme une sauvegarde : la ligne part, le fichier non. Importée, chaque lien attend comme un lien préparé (`LinkedFiles.pendAs`) que son entrée le prenne ; sur un autre téléphone, il est introuvable jusqu'à ce qu'on le relie.
+
+## Relier un lien introuvable
+
+Décidé le 2026-11-21, à coder. Le besoin : partager un montage (une bibliothèque jouée, sa Séance, ses Tâches) avec quelqu'un qui a les mêmes fichiers. On donne séparément le dossier des fichiers et la partie exportée ; l'autre copie le dossier sur son téléphone, l'ouvre à l'app, importe. Le même besoin vient d'une sauvegarde restaurée sur un autre téléphone et de ses propres fichiers déplacés.
+
+- **Un lien garde son chemin** : le chemin du fichier sous son dossier ouvert (`Smoov/A/03.mp4`), connu au moment du lien (`files.link` reçoit `path`), avec sa taille, déjà dans sa description.
+- **La partie exportée dit d'où partent ses chemins** : le dossier le plus profond qui contient tous ses fichiers liés (`Smoov/`), chaque lien écrit sous lui.
+- **La recherche** : ce dossier, cherché par son nom parmi les dossiers ouverts et un niveau sous chacun ; dedans, chaque fichier par son chemin. Un fichier se relie s'il a le même chemin **et** la même taille. Même nom et autre taille : dit, pas pris. Deux candidats : dits, l'app ne choisit pas.
+- **À l'import, rien ne bloque** : ce qui se trouve est relié et dit ; ce qui manque est listé (les chemins attendus), avec « Chercher à nouveau » (les fichiers copiés entre-temps) et « Ouvrir un dossier », qui l'ajoute aux dossiers ouverts et relance la recherche. « Importer » garde les liens manquants, introuvables et réparables ; aucune option ne les supprime.
+- **Après, à tout moment** : Réglages › Données, « N fichiers introuvables — Chercher », la même recherche. Elle sert la restauration d'une sauvegarde et un dossier déplacé.
+
+Ouvert :
+
+- Les liens faits avant cette version n'ont pas de chemin : le déduire de l'URI (son id de document, qui le porte chez le fournisseur de stockage du téléphone sans que ce soit garanti), ou les laisser hors de la recherche.
+- Compter les liens introuvables pour Réglages › Données ouvre chaque lien : à mesurer sur une bibliothèque réelle avant de l'afficher sans qu'on le demande.
+- Une partie dont les liens viennent de plusieurs dossiers ouverts : un dossier de départ par dossier ouvert.
 
 ## Hors de cette version
 
-- Relier un lien introuvable (un renommage, une restauration ailleurs).
 - Lier un dossier entier à un outil (une entrée par fichier) : les fiches se créent une à une, par le connecteur.
 
 ## Ouvert
