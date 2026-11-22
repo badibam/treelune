@@ -29,4 +29,3 @@ Les retours du téléphone et les items décidés, classés le 2026-11-22. « À
 ## 8. Les API
 
 - Le retour d'une API, `docs/design/api-return.md` : `retour`, la réponse entière, d'office sur toute API ; une valeur lue par un chemin ; un texte écrit dans un champ Fichier téléchargé, le nom d'un fichier de recette résolu sur sa branche. Décidé. Les parcours d'hypnose (`docs/design/hypnosis-paths.md`) l'attendent.
-- Les API non différées, trop lentes selon un utilisateur, qui voudrait l'intervalle entre deux demandes de résultat en réglage : mesurer d'abord à quelle fréquence le résultat est demandé.
