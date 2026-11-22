@@ -2,10 +2,6 @@
 
 Les retours du téléphone et les items décidés, classés le 2026-11-22. « À discuter » marque une question ouverte, pas une décision. Un item fait sort du fichier ; le fichier entier sort quand il est vide.
 
-## 1. Plantages et bugs
-
-- Le plantage `NoSuchMethodError: getPickImagesMaxLimit`, 0.9.11 (43), Android 10, le 2026-11-22 : la saisie d'une Fiche qui a un champ Fichier d'images ou de vidéos plante en s'ouvrant (`MultiplePicks.visual`). Le sélecteur de photos y est présent par la mise à jour de Google Play (`isPhotoPickerAvailable` vrai), mais `MediaStore.getPickImagesMaxLimit` n'existe qu'à partir d'Android 13, ou d'Android 11 avec l'extension R 2 : tester ces deux-là, comme androidx le fait pour son propre plafond.
-
 ## 2. Tuile de zone, en mode icônes et en mode compact
 
 - Distinguer l'icône de la zone de celles de ses outils : une taille différente, ou autre chose. À discuter.
