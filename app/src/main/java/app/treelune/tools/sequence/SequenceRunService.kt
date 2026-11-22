@@ -37,7 +37,7 @@ import org.json.JSONObject
 /**
  * The session running (docs/TOOLS.md, « Session (Sequence) »): a foreground service
  * from start to end, screen on or off, which alone sounds the signals and passes a timed step at
- * its end, and plays a step's sound (SequenceAudio). Its notification, which Android requires,
+ * its end, and plays a step's sound (SequenceAudio) and the background (SequenceBackground). Its notification, which Android requires,
  * shows the step and its time, with « Done » and « Pause ».
  *
  * A wake lock keeps the processor on while the session runs, the screen staying off: without it,
@@ -57,6 +57,7 @@ class SequenceRunService : Service() {
     private var wakeLock: PowerManager.WakeLock? = null
     private var signals: SequenceSounds? = null
     private var audio: SequenceAudio? = null
+    private var background: SequenceBackground? = null
     private var settings = Settings(JSONObject())
 
     /** What the tool's config says of its signals and its notification. */
@@ -108,6 +109,10 @@ class SequenceRunService : Service() {
                 toolInstanceId = entry.toolInstanceId
                 settings = Settings(configOf(entry.toolInstanceId))
                 signals = signals ?: SequenceSounds(applicationContext)
+                // Started or resumed after the app stopped: from the top of its list
+                background?.release()
+                SequenceLive.setBackgroundVolume(null)
+                background = BackgroundChoice.of(JSONObject(entry.data))?.let { SequenceBackground.open(applicationContext, it) }
                 follow(id)
                 // The end's sound plays out before the service, and its sounds, go
                 delay(END_LINGER)
@@ -145,6 +150,9 @@ class SequenceRunService : Service() {
         val gestures = scope.launch {
             SequenceLive.changes.collect { change -> if (change.id == id) { onGesture(change); wake.trySend(Unit) } }
         }
+        val volumes = scope.launch {
+            SequenceLive.backgroundVolume.collect { volume -> if (volume != null) background?.setVolume(volume) }
+        }
         try {
             var cursor = System.currentTimeMillis()
             var rung: Any? = null
@@ -180,6 +188,7 @@ class SequenceRunService : Service() {
                 cursor = now
                 // The step's sound, from where its clock stands, paused with the session
                 (audio ?: SequenceAudio(applicationContext).also { audio = it }).follow(run, now)
+                background?.follow(run.isPaused)
                 if (run.isPaused) releaseWakeLock() else acquireWakeLock()
                 getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification(run))
                 val next = (SequenceSignals.beeps(run, now) + listOfNotNull(end, run.stepBegins(now))).filter { it > now }.minOrNull()
@@ -188,7 +197,10 @@ class SequenceRunService : Service() {
             }
         } finally {
             gestures.cancel()
+            volumes.cancel()
             audio?.stop()
+            // Out by its fade, which the time the service lingers for the end's sound leaves it
+            background?.finish()
         }
     }
 
@@ -237,6 +249,8 @@ class SequenceRunService : Service() {
         releaseWakeLock()
         signals?.release()
         audio?.stop()
+        background?.release()
+        SequenceLive.setBackgroundVolume(null)
         SequenceLive.setRunning(null)
         super.onDestroy()
     }
