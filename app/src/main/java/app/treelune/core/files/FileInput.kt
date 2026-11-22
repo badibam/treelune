@@ -134,7 +134,7 @@ fun FileInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, 
     // alone when one place is left, a multiple picker refusing a limit of 1
     val room = max?.let { it - ids.size }
     val visual = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> if (uri != null) add(uri) }
-    val visualMany = rememberLauncherForActivityResult(MultiplePicks.visual(context, room)) { uris -> addAll(uris) }
+    val visualMany = rememberLauncherForActivityResult(MultiplePicks.visual(room)) { uris -> addAll(uris) }
     val documents = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris -> addAll(uris) }
 
     /** The phone's camera into a file of the cache ending with [extension], by [launch]. */
