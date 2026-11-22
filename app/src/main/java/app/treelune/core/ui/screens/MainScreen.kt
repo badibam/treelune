@@ -150,6 +150,9 @@ fun MainScreen(openToolId: String? = null, openEntryId: String? = null, onToolOp
         app.treelune.core.guide.ui.WelcomeScreen(demoInstalled)
         return
     }
+    // The way back to the top runs here, not under its button: the button leaves once the top is
+    // less than a screen away, and the scroll would stop with it
+    val toTopScope = androidx.compose.runtime.rememberCoroutineScope()
     Column(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             key(base.address) {
@@ -161,9 +164,8 @@ fun MainScreen(openToolId: String? = null, openEntryId: String? = null, onToolOp
             }
             // Back to the top of the page, facing the chat's button: once the top is a screen away
             if (base.chatButton && Navigator.top != Place.Chat && !ChatButton.hidden && !app.treelune.core.ui.keyboardOpen() && app.treelune.core.ui.ScrollTop.shown) {
-                val scope = androidx.compose.runtime.rememberCoroutineScope()
                 Box(modifier = Modifier.align(Alignment.BottomStart).padding(UI.Space.L)) {
-                    UI.FloatingButton(action = ButtonAction.TO_TOP, onClick = { scope.launch { app.treelune.core.ui.ScrollTop.toTop() } })
+                    UI.FloatingButton(action = ButtonAction.TO_TOP, onClick = { toTopScope.launch { app.treelune.core.ui.ScrollTop.toTop() } })
                 }
             }
             // The chat's button, floating over the places one reads, measured for the room they leave
