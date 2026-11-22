@@ -73,14 +73,18 @@ fun tileItemFieldPaths(config: JSONObject): List<String> =
 /**
  * An entry's user's fields as its tile shows them, one line each: those that hold a value or show
  * always (shownCustomFields), in the config's order, with their names when the tool shows them
- * (show_field_labels); a file left out, a tile showing it apart.
+ * (show_field_labels); a file left out, a tile showing it apart; a reference by the names it
+ * designates, read once shown.
  */
+@Composable
 fun tileItemFields(toolType: app.treelune.core.tools.ToolTypeContract, config: JSONObject, extra: Map<String, Any?>, context: Context): List<String> {
     val showLabels = app.treelune.core.tools.ToolConfigSettings.read(toolType, config, context)
         .boolean(app.treelune.core.tools.ToolConfigSettings.SHOW_FIELD_LABELS)
     val s = Strings.`for`(context = context)
     return shownCustomFields(config, extra).filter { it.type != FieldType.FILE }.map { field ->
-        val value = field.formatValue(extra[field.name], context)
+        val raw = extra[field.name]
+        val value = if (field.type == FieldType.REFERENCE && raw != null) app.treelune.core.fields.rememberReferenceText(raw, context)
+            else field.formatValue(raw, context)
         if (showLabels) s.shared("field_label_inline").format(field.displayName) + " " + value else value
     }
 }
