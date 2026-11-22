@@ -200,11 +200,15 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
         }
     }
 
+    // Handed to « back to top »
+    val listState = app.treelune.core.ui.rememberPageListState()
+    // A sheet opened, its neighbour's included, read from its top
+    LaunchedEffect(openId) { if (openId != null) listState.scrollToItem(0) }
+
     // A lazy list: only the rows on screen are composed, whatever the size of the table
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        // Handed to « back to top »
-        state = app.treelune.core.ui.rememberPageListState(),
+        state = listState,
         // The chat's button floats at the bottom: room for it after the last row
         contentPadding = PaddingValues(top = UI.Space.L, bottom = UI.Space.L + app.treelune.core.ui.chatButtonEnd()),
         verticalArrangement = Arrangement.spacedBy(UI.Space.M)
