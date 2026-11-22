@@ -5,8 +5,9 @@ Les retours du téléphone et les items décidés, classés le 2026-11-22. « À
 ## 2. Tuile de zone, en mode icônes et en mode compact
 
 - Distinguer l'icône de la zone de celles de ses outils : une taille différente, ou autre chose. À discuter.
-- Les repères, placés automatiquement aujourd'hui : dans la liste des pièces de la tuile, et affichés aussi sur une tuile en mode icônes. À discuter.
-- En mode compact, la tuile a 2 cases de large : les raccourcis d'outil y trouveraient place, dessinés comme en mode icônes.
+- Les repères sur la tuile de leur zone par la liste des pièces seulement, décidé le 2026-11-22 : la case « la tuile de sa zone » retirée de la config d'un repère ; une migration ajoute aux pièces de la tuile, avec leur résumé et en tête, les repères qui l'avaient cochée ; la rangée du résumé (repères, description) et les points de couleur des tuiles en icônes retirés, sous l'en-tête rien que les pièces. Ouvert : ce qui occupe, en largeur Pleine, la place du résumé à côté de l'en-tête.
+- Un réglage de la zone, « Pièces : en texte / en icônes », en texte par défaut, pour les deux largeurs, décidé le 2026-11-22 : en icônes, les pièces dessinées comme sur une tuile en mode icônes, sous l'en-tête, partout où il y a la place.
+- La description d'une zone, plus jamais sur sa tuile, décidé le 2026-11-22.
 
 ## 3. Navigation et lisibilité des pages longues
 
