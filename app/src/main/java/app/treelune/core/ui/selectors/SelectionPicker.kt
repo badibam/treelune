@@ -90,8 +90,12 @@ fun SelectionPicker(
         // One entry is that entry: nothing narrows it
         if (!chosen || draft.level == ReferenceKind.ENTRY) return@Column
 
-        if (offerPeriod) {
+        // A period is read on the entries' date: a tool whose entries have none (a Records tool, a
+        // chart) offers none, a period already set shown to be taken away rather than dropped in silence
+        val undated = draft.tool != null && draft.variable == null && fields.isNotEmpty() && "timestamp" !in fields
+        if (offerPeriod && (!undated || !draft.period.isEmpty)) {
             UI.Text(text = s.shared("pointer_period"), type = TextType.SUBTITLE)
+            if (undated) UI.Text(text = s.shared("selection_period_undated"), type = TextType.ERROR)
             if (draft.period.isEmpty && emptyPeriod != null) UI.Text(text = emptyPeriod, type = TextType.CAPTION)
             PeriodPicker(draft.period, { onChange(draft.copy(period = it)) }, FieldType.DATETIME, reference)
         }

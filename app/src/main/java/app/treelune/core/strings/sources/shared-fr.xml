@@ -67,6 +67,7 @@
     <string name="pointer_attach_config">Config</string>
     <string name="pointer_attach_entries">Entrées</string>
     <string name="pointer_period">Période</string>
+    <string name="selection_period_undated">Les entrées de cet outil n\'ont pas de date : une période y est refusée. Retire-la.</string>
     <string name="pointer_filters_and_fields">Filtres et champs…</string>
     <string name="pointer_filters_title">Filtres et champs</string>
     <string name="selection_change">Changer</string>
