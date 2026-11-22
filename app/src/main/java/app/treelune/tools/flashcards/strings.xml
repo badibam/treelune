@@ -84,6 +84,9 @@
     <string name="error_group_by_gone">The grouping is on a field that no longer exists in %1$s.</string>
     <string name="error_front_gone">The front of %1$s shows a field that no longer exists in %2$s.</string>
     <string name="error_back_gone">The back of %1$s shows a field that no longer exists in %2$s.</string>
+    <string name="error_group_by_reference">The grouping is on a Reference field of %1$s, which a deck cannot group by: choose another field.</string>
+    <string name="error_front_reference">The front of %1$s shows a Reference field of %2$s, which a card cannot show: choose another field.</string>
+    <string name="error_back_reference">The back of %1$s shows a Reference field of %2$s, which a card cannot show: choose another field.</string>
     <string name="error_field_gone_session">A field of this card no longer exists in the source.</string>
     <string name="error_direction_names">Two directions have the same name.</string>
     <string name="error_direction_unknown">The deck has no direction %1$s.</string>

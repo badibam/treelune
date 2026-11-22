@@ -1,5 +1,6 @@
 package app.treelune.tools.flashcards
 
+import app.treelune.core.fields.FieldType
 import app.treelune.core.selection.EntrySelection
 import org.json.JSONArray
 import org.json.JSONObject
@@ -42,16 +43,22 @@ data class FlashcardsDeck(
     val namedFields: List<String> get() = (listOfNotNull(groupBy) + directions.flatMap { it.fields }).distinct()
 
     /**
-     * Where the deck names a field the source no longer has ([exists] false), as the error says it:
-     * the grouping, or a direction's front or back, the place to correct in the deck's config. The
-     * field itself is not named: gone from the source, its label is gone with it. Null when every
-     * field it names exists.
+     * Where the deck names a field it cannot use, as the error says it: the grouping, or a
+     * direction's front or back, the place to correct in the deck's config. A field the source no
+     * longer has ([typeOf] null) is not named: gone from the source, its label is gone with it. A
+     * reference field is refused, its text being the name of what it designates, which no card
+     * reads. Null when every field it names can be used.
      */
-    fun goneField(exists: (String) -> Boolean, sourceName: String, text: (String) -> String): String? {
-        if (groupBy != null && !exists(groupBy)) return text("error_group_by_gone").format(sourceName)
+    fun refusedField(typeOf: (String) -> FieldType?, sourceName: String, text: (String) -> String): String? {
+        fun refused(path: String, place: String): String? = when (typeOf(path)) {
+            null -> text("error_${place}_gone")
+            FieldType.REFERENCE -> text("error_${place}_reference")
+            else -> null
+        }
+        groupBy?.let { path -> refused(path, "group_by")?.let { return it.format(sourceName) } }
         directions.forEach { direction ->
-            if (direction.front.any { !exists(it) }) return text("error_front_gone").format(direction.name, sourceName)
-            if (direction.back.any { !exists(it) }) return text("error_back_gone").format(direction.name, sourceName)
+            direction.front.firstNotNullOfOrNull { refused(it, "front") }?.let { return it.format(direction.name, sourceName) }
+            direction.back.firstNotNullOfOrNull { refused(it, "back") }?.let { return it.format(direction.name, sourceName) }
         }
         return null
     }

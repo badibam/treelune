@@ -125,7 +125,7 @@ object FlashcardsToolType : ToolTypeContract {
 
     /**
      * What only reading the app tells: the source is one tool that keeps entries, not a deck; its
-     * filters read; every field the deck names is one of its fields.
+     * filters read; every field the deck names is one of its fields, and none a reference.
      */
     override suspend fun refuseConfig(config: JSONObject, context: Context): String? {
         val s = s(context)
@@ -139,7 +139,7 @@ object FlashcardsToolType : ToolTypeContract {
         val type = app.treelune.core.tools.ToolTypeManager.getToolType(tool["tooltype"] as? String ?: "")
         if (type == null || type === this || !type.keepsEntries()) return s.tool("error_source_kind").format(tool["name"])
         val fields = try { ToolFields.filterable(deck.sourceId, context, s) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { return e.message }
-        deck.goneField({ it in fields }, tool["name"] as? String ?: "", s::tool)?.let { return it }
+        deck.refusedField({ fields[it]?.type }, tool["name"] as? String ?: "", s::tool)?.let { return it }
         val names = deck.directions.map { it.name.trim().lowercase() }
         if (names.size != names.toSet().size) return s.tool("error_direction_names")
         // Its filters, read as the deck will read them
