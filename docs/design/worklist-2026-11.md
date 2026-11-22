@@ -5,7 +5,6 @@ Les retours du téléphone et les items décidés, classés le 2026-11-22. « À
 ## 1. Plantages et bugs
 
 - Un défaut d'affichage sur une tuile de zone de longueur « selon le contenu ».
-- La fiche : le défilement n'est pas remis en haut au changement de fiche.
 
 ## 2. Tuile de zone, en mode icônes et en mode compact
 
@@ -16,7 +15,6 @@ Les retours du téléphone et les items décidés, classés le 2026-11-22. « À
 ## 3. Navigation et lisibilité des pages longues
 
 - La page d'une identité : une hauteur maximale pour ses blocs, un geste pour en voir un en entier, et les boutons d'une page longue (en haut, et le retour en haut).
-- La fiche : les boutons fiche suivante et précédente en haut seulement.
 - Un écran « À propos » qui donne la version de l'app. À discuter.
 
 ## 4. Nouvelles fonctions dans des outils existants
