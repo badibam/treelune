@@ -20,7 +20,6 @@ Les retours du téléphone et les items décidés, classés le 2026-11-22. « À
   3. « Que jouer ? » de la Séance « Son ou vidéo » (`LaunchDialog`) : une entrée dont le média est introuvable ou attendu reste à sa place dans la liste, grisée, avec sous son nom « Pas sur ce téléphone » ; touchable, sa fenêtre montre son nom et ses champs « Montrés avant de lancer », « Lancer » y étant déjà grisé (codé). Les cacher est écarté : dans une bibliothèque ordonnée, voir la suite non copiée fait partie de la vue d'ensemble. Le gris demande de tester chaque lien à l'ouverture de la liste, ce que la conception excluait (« pas de vérification à l'avance de tous les liens ») ; un lien attendu n'a rien à tester. Pour une liste d'environ 80 entrées, le coût de ces requêtes à Android (sans lire les fichiers) est à mesurer sur le téléphone avant de lever l'exclusion.
   Ouvert, à ne pas coder maintenant : un filtre « seulement ce qui est sur le téléphone », pour une bibliothèque sans ordre de progression où les présents sont épars.
 
-- L'export d'une partie, ses liens une toile inextricable : un bouton « Résoudre tous les liens » (cocher ce que les éléments cochés désignent). À discuter : forcer l'export malgré des liens cassés, des configs qui ne valident plus corrigées à l'arrivée.
 
 ## 6. L'IA
 
