@@ -95,12 +95,12 @@ class InUseTest {
     }
 
     @Test
-    fun `an identity a zone or a routine names refuses its deletion, naming them`() = runBlocking {
+    fun `an identity a routine names refuses its deletion, naming it`() = runBlocking {
         val created = coordinator.processUserAction("identities.create", mapOf("name" to "Stan Prokopenko", "language" to "en"))
         assertTrue(created.error, created.isSuccess)
         val identityId = created.data!!["identity_id"] as String
 
-        val zoned = coordinator.processUserAction("zones.create", mapOf("name" to "Art", "identity_id" to identityId))
+        val zoned = coordinator.processUserAction("zones.create", mapOf("name" to "Art"))
         assertTrue(zoned.error, zoned.isSuccess)
         val zoneId = zoned.data!!["zone_id"] as String
         val routine = coordinator.processUserAction("routines.create", mapOf(
@@ -114,11 +114,10 @@ class InUseTest {
         assertTrue(routine.error, routine.isSuccess)
 
         val users = InUse.identity(database, identityId)
-        assertEquals(listOf("Art"), users.zones)
         assertEquals(listOf("Studio"), users.routines)
 
         val refused = coordinator.processUserAction("identities.delete", mapOf("identity_id" to identityId))
         assertFalse(refused.isSuccess)
-        assertTrue(refused.error, refused.error!!.contains("Art"))
+        assertTrue(refused.error, refused.error!!.contains("Studio"))
     }
 }

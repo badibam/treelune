@@ -9,7 +9,7 @@ import java.sql.DriverManager
 
 /**
  * A reinstall of the demo removes all of it — its own rows, and what the user put in a demo zone
- * or tool — and touches nothing else, the demo's identity staying while a zone or a routine of the
+ * or tool — and touches nothing else, the demo's identity staying while a routine of the
  * user's names it, its API while a Task of the user's calls it: the selections of DemoRemoval, run on SQLite in their order over the columns
  * they read, each id they give deleted before the next one is read.
  */
@@ -21,7 +21,7 @@ class DemoRemovalTest {
     fun setUp() {
         db = DriverManager.getConnection("jdbc:sqlite::memory:")
         listOf(
-            "CREATE TABLE zones (id TEXT, identity_id TEXT)",
+            "CREATE TABLE zones (id TEXT)",
             "CREATE TABLE tool_instances (id TEXT, zone_id TEXT)",
             "CREATE TABLE tool_data (id TEXT, tool_instance_id TEXT)",
             "CREATE TABLE variables (id TEXT, zone_id TEXT)",
@@ -59,10 +59,8 @@ class DemoRemovalTest {
         insert("routines", "added-routine", "demo-zone")
         insert("ai_sessions", "added-session", "added-routine")
 
-        // The demo's identities: one its zone alone names, one a zone of the user's names, one a routine of the user's names
-        listOf("identity", "demo-identity", "demo-identity-zone", "demo-identity-routine").forEach { insert("identities", it) }
-        db.createStatement().execute("UPDATE zones SET identity_id = 'demo-identity' WHERE id = 'demo-zone'")
-        db.createStatement().execute("UPDATE zones SET identity_id = 'demo-identity-zone' WHERE id = 'zone'")
+        // The demo's identities: one nothing of the user's names, one a routine of the user's names
+        listOf("identity", "demo-identity", "demo-identity-routine").forEach { insert("identities", it) }
         db.createStatement().execute("UPDATE routines SET identity_id = 'demo-identity-routine' WHERE id = 'routine'")
 
         // The Tasks and the APIs: the user's, the demo's, one put in the demo; the demo's second API called by a Task of the user's
@@ -112,7 +110,7 @@ class DemoRemovalTest {
         assertEquals(setOf("variable"), ids("variables"))
         assertEquals(setOf("routine"), ids("routines"))
         assertEquals(setOf("session", "chat"), ids("ai_sessions"))
-        assertEquals(setOf("identity", "demo-identity-zone", "demo-identity-routine"), ids("identities"))
+        assertEquals(setOf("identity", "demo-identity-routine"), ids("identities"))
         assertEquals(setOf("task"), ids("tasks"))
         assertEquals(setOf("api", "demo-api-kept"), ids("apis"))
         assertEquals(setOf("task", "routine"), db.createStatement().executeQuery("SELECT owner_id FROM condition_judgements").use { rows ->

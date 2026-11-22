@@ -220,7 +220,7 @@ class PartImportTest {
             assertFalse(variable.definitionJson, IdWords.words(variable.definitionJson).any { it in demoIds })
         }
 
-        // A routine arrives off, without provider, speaking as its identity; a zone as its own
+        // A routine arrives off, without provider, speaking as its identity
         val demoRoutines = database.aiDao().getAllRoutines().filter { it.id.startsWith(DemoContent.PREFIX) }
         val routines = database.aiDao().getAllRoutines().filter { !it.id.startsWith(DemoContent.PREFIX) }
         assertEquals(selection.routines.size, routines.size)
@@ -228,10 +228,6 @@ class PartImportTest {
             assertFalse(routine.isEnabled)
             assertNull(routine.providerId)
             assertEquals(routine.name, demoRoutines.first { it.name == routine.name }.identityId, routine.identityId)
-        }
-        val allZones = database.zoneDao().getAllZones()
-        allZones.filter { !it.id.startsWith(DemoContent.PREFIX) }.forEach { zone ->
-            assertEquals(zone.name, allZones.first { it.id.startsWith(DemoContent.PREFIX) && it.name == zone.name }.identity_id, zone.identity_id)
         }
 
         // One step of the history, which undoes it all

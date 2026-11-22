@@ -187,11 +187,11 @@ class DemoContentTest {
         assertTrue(goals.any { it.optBoolean("ai_no_validation") } && goals.any { it.has("sub_goals") })
         // A chart of each mark the demo stands for: a pie among them
         assertTrue(content.tools.toString().contains("\"arc\""))
-        // An identity, named by a zone and by a routine
+        // An identity, a conversation routine speaking as it, and another routine
         val identities = content.identities.map { it.getString("id") }.toSet()
         assertTrue(identities.isNotEmpty())
-        assertTrue(content.zones.any { it.optString("identity_id") in identities })
-        assertTrue(content.routines.any { it.optString("identity_id") in identities })
+        assertTrue(content.routines.any { it.optString("identity_id") in identities && it.optString("usage") == "conversation" })
+        assertTrue(content.routines.any { it.optString("identity_id") in identities && it.optString("usage") != "conversation" })
         // Routines held to an access, each end told as its routine says
         assertTrue(content.routines.all { it.has("access") })
         assertTrue(content.routines.map { it.optString("notify_end") }.toSet().containsAll(setOf("always", "on_problem")))
