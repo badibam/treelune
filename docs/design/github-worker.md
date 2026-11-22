@@ -2,16 +2,16 @@
 
 Conception du 2026-11-08. Un dépôt GitHub privé de l'utilisateur, où Treelune fait tourner des jobs GitHub Actions, pour deux usages qui partagent le dépôt, sa mise en place et son canal :
 
-- le fournisseur d'IA « Abonnement Claude » : les sessions de Treelune sur l'abonnement Claude de l'utilisateur (Pro, Max), sans clé d'API, par le programme `claude` (Claude Code) ; routines d'abord, conversations aussi ;
+- le fournisseur d'IA « Recette sur GitHub » : un fournisseur générique, qui dépose chaque tour sur une branche et lit la réponse d'une recette de session du dépôt ; l'app ne sait rien du programme qui répond. Pour l'usage personnel visé, cette recette, dans le dépôt de l'utilisateur et jamais fournie par l'app, lance `claude` sur son propre abonnement ; routines d'abord, conversations aussi ;
 - l'API « Recette sur GitHub » : un travail long fait sur la machine de GitHub (une séance d'hypnose fabriquée par hypnogen), appelé par une Tâche comme une API, sans hébergement à soi.
 
 ## Ouvert : à vérifier avant de coder
 
-Rien de ce qui suit n'est mesuré. Un dépôt d'essai, des workflows lancés à la main, avant toute ligne de Kotlin.
+Un dépôt d'essai, des workflows lancés à la main, avant toute ligne de Kotlin. Ce qui n'est pas marqué mesuré ou réglé ne l'est pas.
 
-1. Le démarrage d'un job, de l'appel qui le lance au fichier « prêt ». Mesuré une fois le 2026-11-08 (essai de la recette) : la machine tourne 9 s après l'appel, Claude Code s'installe en 20 s ; reste à mesurer le premier tour du fournisseur, et la file d'attente de GitHub à d'autres heures.
-2. `claude -p --input-format stream-json --output-format stream-json --tools "" --system-prompt …` : plusieurs tours dans un seul processus, une image dans un tour, aucun outil de Claude Code utilisable.
-3. Le cache : les jetons lus en cache d'un tour à l'autre, dans la réponse JSON de `claude`.
+1. Le démarrage d'un job, de l'appel qui le lance au fichier « prêt ». Mesuré une fois le 2026-11-08 (essai de la recette) : la machine tourne 9 s après l'appel, Claude Code s'installe en 20 s ; mesuré le 2026-11-22 (run 45072763822) : 4 s de l'appel au job, 15 s d'installation, 1,7 s pour le premier tour. Reste la file d'attente de GitHub à d'autres heures.
+2. `claude -p --input-format stream-json --output-format stream-json --verbose --tools "" --system-prompt …` : mesuré le 2026-11-22, sur le PC puis sur GitHub avec le jeton `setup-token`, trois tours dans un seul processus resté vivant, 20 s puis 90 s d'attente, aucun outil. Reste : une image dans un tour, une attente plus longue.
+3. Le cache : mesuré le 2026-11-22 sur GitHub (Haiku 5.5, prompt système d'environ 37 500 jetons) : tour 1, 37 526 écrits, 0 lu ; tour 2 après 20 s, 37 160 lus, 406 écrits ; tour 3 après 90 s, 37 541 lus, 65 écrits. Non mesuré : au-delà de 90 s d'attente, donc la durée de vie du cache.
 4. Une requête conditionnelle (`If-None-Match`) qui répond 304 ne compte pas dans les limites de l'API GitHub, ni pour le jeton de l'utilisateur ni pour le `GITHUB_TOKEN` du job (environ 1 000 appels par heure et par dépôt).
 5. Les minutes d'un dépôt privé sur un compte gratuit (2 000 par mois, arrondies à la minute par job), la durée maximale d'un job (6 h). Mesuré le 2026-11-08 : une séance d'hypnose de 21 min 36 s, un job de 10 min 48 s, 11 minutes décomptées. Les limites de l'abonnement Claude, elles, ne sont pas mesurées.
 6. Réglé le 2026-11-08 : l'appel qui lance un workflow (`POST …/dispatches`) avec `return_run_details: true` répond 200 avec `workflow_run_id`.
@@ -32,6 +32,8 @@ Lu le 2026-11-08 sur `code.claude.com/docs/en/legal-and-compliance` et `code.cla
 
 D'où la règle de fondation : **le jeton Claude ne passe jamais par Treelune.** L'utilisateur le crée lui-même (`claude setup-token`) et le range lui-même en secret de son dépôt ; Treelune ne tient qu'un jeton GitHub. Le programme `claude` tourne tel qu'Anthropic le publie, jamais patché.
 
+Relu le 2026-11-22, mêmes textes. D'où une seconde règle : **l'app publiée ne propose ni « Abonnement Claude » ni workflow qui lance `claude`.** Le texte interdit à un développeur de *« route requests through Free, Pro, Max, or Ultra plan credentials on behalf of their users »*. L'usage visé est celui de l'utilisateur sur son propre compte, comme ses recettes : sa recette de session reste dans son dépôt, Treelune ne la distribue pas. Une recette partagée qui lance `claude -p` sur l'abonnement d'un autre se regarde à la lumière de ce même texte.
+
 ## Le dépôt et son canal
 
 - **Le lieu : GitHub Actions.** Toujours disponible, le même pour tous. Termux est écarté : depuis la 2.1.113, Claude Code ne tourne sur Android que patché, ce qui le sort de *« unmodified »*, ou figé à la 2.1.112, qui vieillit. Un ordinateur de l'utilisateur n'est pas toujours allumé.
@@ -41,27 +43,40 @@ D'où la règle de fondation : **le jeton Claude ne passe jamais par Treelune.**
   2. `claude setup-token` sur un ordinateur (une fois par an : le jeton dure un an), le jeton rangé en secret du dépôt, `CLAUDE_CODE_OAUTH_TOKEN`. Piste pour qui n'a qu'un téléphone : un Codespace, si la connexion y passe.
   3. Un jeton GitHub limité à ce dépôt (Actions, Contents, Workflows, Secrets en lecture), saisi dans Réglages › GitHub.
   4. Les secrets que demande une recette (la clé Inworld pour hypnogen), rangés par l'utilisateur dans le même dépôt.
-- **L'app écrit les workflows.** Elle pose dans le dépôt, par l'API, `.github/workflows/treelune-session.yml` (le fournisseur) et `.github/workflows/treelune-recipe.yml` (les recettes), et les réécrit quand sa version en porte d'autres. Leur texte vit dans le code de Treelune : le protocole entre eux est toujours celui de l'app installée.
-- **Le job installe la dernière version de Claude Code.** Une version trop vieille qui ne s'authentifierait plus bloquerait l'utilisateur jusqu'à la version suivante de Treelune ; une option qui change se voit et se dit.
+- **L'app écrit les workflows.** Elle pose dans le dépôt, par l'API, `.github/workflows/treelune-session.yml` (le fournisseur, qui lance la recette de session sans rien savoir de ce qu'elle exécute) et `.github/workflows/treelune-recipe.yml` (les recettes), et les réécrit quand sa version en porte d'autres. Leur texte vit dans le code de Treelune : le protocole entre eux est toujours celui de l'app installée.
+- **Une recette qui demande Claude Code en installe la dernière version.** Une version trop vieille qui ne s'authentifierait plus bloquerait l'utilisateur jusqu'à la version suivante de Treelune ; une option qui change se voit et se dit.
 - **Une seule route, des fichiers sur une branche.** Une branche par session du fournisseur, une par appel d'une recette. L'app et le job y déposent leurs fichiers et les interrogent en requêtes conditionnelles. La branche est supprimée à la fin de la session ; celle d'un appel de recette un jour après son départ, à l'appel suivant, ses fichiers étant lus par les étapes qui suivent dans la Tâche (l'heure de départ est dans son nom, `treelune/call-<millisecondes>-<16 hex>`).
-- **Les échecs communs** : le jeton Claude expiré ou révoqué (« relance `claude setup-token` sur ton ordinateur et remplace le secret du dépôt ») ; la limite de l'abonnement atteinte, avec l'heure de reprise si `claude` la donne ; la machine qui ne démarre pas en 5 minutes (fixes, à revoir sur les temps mesurés) ; Claude Code qui a changé (« mets Treelune à jour »).
+- **Les échecs** : la machine qui ne démarre pas en 5 minutes (fixes, à revoir sur les temps mesurés) est de l'app ; le reste (jeton expiré, limite d'abonnement, programme qui a changé) est dit par la recette, dans le champ `failure` de sa réponse, avec son message.
 - **Les données chez GitHub.** Pas de chiffrement : le job déchiffrerait sur la machine de GitHub, et celui qui choisit ce dépôt confie déjà ses données à Anthropic. Le job n'écrit aucun contenu dans ses journaux, seulement des états, et l'app règle leur conservation au minimum du dépôt (1 jour).
 
-## Le fournisseur « Abonnement Claude »
+## Le fournisseur « Recette sur GitHub »
 
-- **Un job éveillé par session.** Le démarrage (environ une minute, non mesuré) se paie une fois : le job tient un seul processus `claude` en flux (`stream-json`), le nourrit tour après tour, et s'arrête après 10 minutes sans message ou à la fin de la session.
-  - Une routine lance son job à son lancement.
-  - Une conversation lance le sien dès qu'elle s'ouvre, pour que la minute passe pendant qu'on tape.
-- **Un fournisseur comme les autres.** `claude` ne fait que répondre du texte (`--tools ""`) : toute la mécanique de l'app (commandes, budget, masque, accords, historique) reste dans l'app. Le connecteur MCP n'est pas utilisé.
-- **Claude Code tient l'historique et le cache.** L1 et L2 partent au démarrage, en `--system-prompt` ; l'app n'envoie ensuite que le nouveau tour (les messages depuis la dernière réponse, le message daté). L3 ne bouge pas pendant une session (photographié au premier message, `PromptManager`). L1 est reconstruit à chaque appel mais ne dépend que du type de session et de l'identité. L2 est relu à chaque appel : quand il diffère de celui déjà envoyé, il part dans le tour suivant, précédé de la phrase qui dit qu'il remplace le précédent, comme une lecture renvoyée (`SessionReads`, `ai_read_replaces`). À surveiller : une IA qui suivrait le L2 du prompt système plutôt que le plus récent.
-- **Les fichiers de sa branche** : un fichier par tour (`0003-app.json`, `0004-claude.json`), les images à côté ; un fichier « prêt » déposé par le job au démarrage. L'interrogation toutes les 2 s ; l'app seulement quand elle attend une réponse.
-- **La config.** Le modèle, la date de création du jeton Claude (aujourd'hui par défaut) : l'app prévient deux semaines avant ses un an.
-- **Le modèle : les alias** `opus`, `sonnet`, `haiku`, en liste fixe. L'app ne peut pas lister les modèles (elle n'a pas le jeton), et un alias suit de lui-même le dernier modèle de sa famille. Le modèle servi se lit dans la réponse de `claude`.
-- **Les échecs, dans les catégories qui existent** (`AIFailure`) : le jeton expiré ou révoqué et Claude Code qui a changé en `CONFIG` ; la limite atteinte et la machine qui ne démarre pas en `REFUSED`.
-- **Rien dans le code commun.**
-  - Le coût compté est 0 $ : le budget du jour ne bloque jamais ce fournisseur, et l'équivalent API rendu par `claude` (`total_cost_usd`) n'est pas affiché.
-  - La tuile d'une routine dit « en cours », comme avec les autres fournisseurs.
-- **Le nom du type : « Abonnement Claude ».** Sa description : « Fait tourner Claude Code sur un dépôt GitHub à toi, avec ton abonnement. Tes conversations passent par ce dépôt privé. »
+Récrit le 2026-11-22, pas encore codé. L'app ne connaît ni Claude Code, ni son jeton, ni ses modèles.
+
+- **Un job éveillé par session.** Le démarrage se paie une fois : le job tient le processus de la recette et le nourrit tour après tour, jusqu'à la fin de la session ou à un délai sans message. Une routine lance son job à son lancement, une conversation dès qu'elle s'ouvre.
+- **Chaque minute d'éveil est décomptée** des 2 000 minutes gratuites par mois : avec 10 minutes d'attente, une conversation en coûte une dizaine au moins. Le délai est à choisir.
+- **La langue du contrat : le format de message de l'API Messages, tour par tour**, que l'app sait déjà produire (texte et images). Le prompt système part une seule fois, dans le premier fichier.
+
+```json
+// 0003-app.json
+{"message": {"role": "user", "content": [{"type": "text", "text": "…"}]}}
+
+// 0004-reply.json
+{"text": "…", "model": "…", "usage": {"input": 0, "output": 0, "cache_read": 0, "cache_write": 0}}
+```
+
+- **Une erreur** : `{"failure": "CONFIG", "message": "…"}`, dans les catégories d'`AIFailure`.
+- **Le programme de la recette tient l'historique et le cache** : l'app n'envoie que le nouveau tour et suit ce qu'elle a déjà envoyé. Un job mort en cours de session : un nouveau job, à qui elle renvoie tout l'historique d'un coup.
+- **L2 relu à chaque appel** : quand il diffère de celui déjà envoyé, il part dans le tour suivant, précédé de la phrase qui dit qu'il remplace le précédent (`SessionReads`, `ai_read_replaces`). L3 ne bouge pas pendant une session. À surveiller : une IA qui suivrait le L2 du prompt système plutôt que le plus récent.
+- **Un fichier par tour sur la branche de la session**, un fichier « prêt » au démarrage. L'interrogation toutes les 2 s, l'app seulement quand elle attend une réponse.
+- **Un fournisseur comme les autres** : toute la mécanique (commandes, budget, masque, accords, historique) reste dans l'app. Le coût compté est 0 $, le budget du jour ne le bloque pas.
+- **Dans la recette de session de l'utilisateur, pas dans l'app** : le modèle, le jeton et sa date d'expiration, la traduction vers `claude --input-format stream-json`, les erreurs propres à Claude.
+
+### À décider à la reprise
+
+1. Comment le workflow parle à la commande de la recette (un message par ligne sur son entrée, une réponse par ligne sur sa sortie ?), et comment `recipe.json` déclare une recette de session.
+2. Le délai d'attente du job, à choisir entre le coût en minutes et la reprise sans redémarrage.
+3. Comment le job surveille la branche sans dépasser les limites de l'API GitHub (`git fetch` plutôt que l'API, point 4 de « Ouvert »).
 
 ## L'API « Recette sur GitHub »
 
@@ -82,7 +97,8 @@ D'où la règle de fondation : **le jeton Claude ne passe jamais par Treelune.**
 
 - Termux, et la machine virtuelle d'Android tant qu'une autre app ne peut pas y lancer une commande.
 - Un job par échange avec le fournisseur : une minute de démarrage à chaque aller-retour.
-- Un agent dehors, `claude` qui tient toute la routine et agit par le connecteur MCP.
+- Un agent dehors, `claude` qui tient toute la routine et agit par le connecteur MCP : l'app garde sa mécanique. Il reste possible à l'utilisateur, hors de ce fournisseur.
+- Un type de fournisseur « Abonnement Claude » dans l'app publiée (« Ce qui est permis »).
 - Des commentaires d'issue comme boîte aux lettres : trop petits pour le premier tour, sans images ; une seconde route pour la même chose.
 - Un dépôt modèle copié par l'utilisateur, même public pour les recettes : sa copie ne suit pas l'app.
 - Une version de Claude Code figée dans le workflow.
