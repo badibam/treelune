@@ -8,7 +8,6 @@ Les retours du téléphone et les items décidés, classés le 2026-11-22. « À
 
 ## 4. Nouvelles fonctions dans des outils existants
 
-- Fiche : les champs système (date de création…) affichables, ou clés de tri, avec un tri par défaut dans la config parmi tous les champs système. À discuter : l'ordre des champs affichés est aujourd'hui celui de la liste des champs supplémentaires.
 - Graphique : se déplacer dans le temps et zoomer quand la période est variable. À discuter.
 
 ## 5. Modèle de données, import et export
