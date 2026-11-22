@@ -6,9 +6,10 @@ Les retours du téléphone et les items décidés, classés le 2026-11-22. « À
 
 - Distinguer l'icône de la zone de celles de ses outils : une taille différente, ou autre chose. À discuter.
 
-## 5. Modèle de données, import et export
+## 5. Fichiers liés
 
-- Le lien entre une identité et une zone, retiré : une routine de discussion qui a une identité fait la même chose. L'export inclut les identités des routines ; leur place dans la liste d'export, au premier niveau comme les API, est à discuter.
+Les deux items vont ensemble ; c'est le prochain morceau, décidé, sa spec à relire avant de coder.
+
 - Relier un lien introuvable, `docs/design/linked-files.md` : une partie importée (un montage partagé avec son dossier de fichiers à part) ou une sauvegarde restaurée ailleurs retrouve ses fichiers liés par leur nom et leur taille dans les dossiers ouverts ; l'import ne bloque jamais, et la même recherche reste dans Réglages › Données. Décidé.
 - Le lien attendu, et les liens absents grisés dans « Que jouer ? », à faire avec « Relier un lien introuvable » qu'il complète. Le besoin : monter dans l'app une bibliothèque complète depuis les fichiers du PC (une série de volumes numérotés, dans une Fiche), alors que le téléphone n'en porte qu'une partie à la fois, les volumes y entrant et en sortant selon la place. Décidé.
   1. Le lien attendu : `LINK_FILE` (connecteur et IA) accepte, au lieu de `folder_id` + `path`, la seule description d'un fichier (nom, taille à l'octet, format, durée), lue sur le PC par un script ; il prépare un lien sans adresse sur le téléphone, que l'entrée fait sien comme un autre. Aujourd'hui `uri` nulle veut dire « fichier copié » : le lien attendu a besoin d'une autre marque, et chaque lecteur de `files` qui teste `uri == null` est à relire. Un lien attendu se comporte en tout comme un lien introuvable : dit sur la fiche, refusé au lancement, gardé par la sauvegarde et l'export.
