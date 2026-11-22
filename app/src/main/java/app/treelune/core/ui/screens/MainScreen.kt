@@ -720,7 +720,7 @@ private fun ZoneGroupSection(
         }
     } else {
         // The zones on their grid, in edit mode while the page is
-        app.treelune.core.ui.components.GridLayout(groupZones, groupZones.map { app.treelune.core.ui.components.zoneGridTile(it, piecesOf(it)) }, groupZones.map { false }, editor.gridEdit(key)) { zone ->
+        app.treelune.core.ui.components.GridLayout(groupZones, groupZones.map { app.treelune.core.ui.components.zoneGridTile(it, piecesOf(it)) }, groupZones.map { app.treelune.core.look.TileSize.ofStored(it.tile_size).followsContent }, editor.gridEdit(key)) { zone ->
             UI.ZoneCard(
                 zone = zone,
                 readouts = onTile.filter { it.zoneId == zone.id },

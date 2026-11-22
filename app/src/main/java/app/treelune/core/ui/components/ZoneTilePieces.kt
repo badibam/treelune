@@ -82,7 +82,8 @@ fun stripPieces(size: TileSize, pieces: List<ListedPiece>, zoneId: String): List
 /**
  * The body of a zone's tile with text, in [room] (ZoneTileBody): each piece as its own tile without
  * its frame — a line, a condensed tile or a minimal one —, on the body's grid of cells, each row a
- * share of the body (or a row of the grid when the tile follows its content), each row under the
+ * share of the body (or a row of the grid and the gap after it when the tile follows its content, as a
+ * fixed body's share holds the gaps it spans), each row under the
  * theme's separator, the first parting it from the zone's header; « +N » at the last place when some do not fit.
  */
 @Composable
@@ -91,7 +92,7 @@ fun ZonePiecesBody(room: TileSize.Room, pieces: List<ListedPiece>, zoneId: Strin
     val plan = remember(room, pieces.map { it.summary }) { ZoneTileBody.plan(room, pieces.map { it.summary }) }
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
-    val gridRow = with(LocalDensity.current) { LocalGridRow.current.roundToPx() }
+    val gridRow = with(LocalDensity.current) { LocalGridRow.current.roundToPx() } + app.treelune.core.themes.CurrentTheme.current.gridRowGapPx()
     Layout(
         content = {
             plan.placed.forEach { place ->
