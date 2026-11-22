@@ -27,12 +27,12 @@ object TaskSchemas {
     const val CONFIG_ID = "task_config"
 
     /** The keys of a run kept for the AI, as the Tasks service names them (TaskService.runOf). */
-    val RUN_KEYS = listOf("id", "trigger", "scheduled_at", "started_at", "ended_at", "state", "step", "results", "first_poll_at", "last_poll_at", "last_poll_error", "condition_said")
+    val RUN_KEYS = listOf("id", "trigger", "scheduled_at", "started_at", "ended_at", "state", "step", "results", "next_poll_at", "last_poll_at", "last_poll_error", "condition_said")
 
     /**
      * A Task's runs (TASK_RUNS, TASK_RUN): what started each, when it was due, began and ended, its
      * state, the step it stands at, each step's result (its values, the raw answer, its error, when
-     * it ran), and a job waited on, when first and last asked about. Its instants marked, they reach
+     * it ran), and a job waited on, when asked next and when last. Its instants marked, they reach
      * the AI in ISO 8601 (ModelValues).
      */
     fun runsContent(): JSONObject {
@@ -40,7 +40,7 @@ object TaskSchemas {
         val result = JSONObject().put("type", "object").put("properties", JSONObject().put("at", instant()))
         val run = JSONObject().put("type", "object").put("properties", JSONObject()
             .put("scheduled_at", instant()).put("started_at", instant()).put("ended_at", instant())
-            .put("first_poll_at", instant()).put("last_poll_at", instant())
+            .put("next_poll_at", instant()).put("last_poll_at", instant())
             .put("results", JSONObject().put("type", "array").put("items", result)))
         return JSONObject().put("type", "object").put("properties", JSONObject().put("runs", JSONObject().put("type", "array").put("items", run)))
     }

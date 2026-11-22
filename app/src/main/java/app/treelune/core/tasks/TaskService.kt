@@ -135,7 +135,7 @@ class TaskService(private val context: Context) : ExecutableService {
         "step" to run.step,
         "results" to JsonUtils.toList(JSONArray(run.resultsJson)),
         // A job waited on: when it is first asked about, then when it was last
-        "first_poll_at" to run.waitJson?.let { TaskRun.Wait.of(it) }?.takeIf { it.askedAt == null }?.nextAt,
+        "next_poll_at" to run.waitJson?.let { TaskRun.Wait.of(it).nextAt },
         "last_poll_at" to run.waitJson?.let { TaskRun.Wait.of(it).askedAt },
         // Why the last asking got no answer, asked again at the next tick
         "last_poll_error" to run.waitJson?.let { TaskRun.Wait.of(it).missed },

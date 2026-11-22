@@ -190,8 +190,14 @@ object TaskRunner {
                 is Outcome.Failed -> run.copy(resultsJson = TaskRun.resultsJson(results + TaskRun.StepResult(summary(context, step), raw = outcome.raw, error = outcome.message, at = System.currentTimeMillis())))
             }
             dao.updateRun(run)
+            app.treelune.core.utils.DataChangeNotifier.notifyTaskRunChanged(runId)
             when (outcome) {
-                is Outcome.Waiting -> { LogManager.service("Task ${task.id} run $runId waits on step ${run.step + 1}", "INFO"); return }
+                // Waiting is a state the Task's tile says, as going on
+                is Outcome.Waiting -> {
+                    LogManager.service("Task ${task.id} run $runId waits on step ${run.step + 1}", "INFO")
+                    app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
+                    return
+                }
                 is Outcome.Failed -> { end(context, task, run, TaskRun.State.FAILED); return }
                 // « Stop the Task »: done, the steps after it not run
                 is Outcome.Done -> if (outcome.result.stopped != null) { end(context, task, run, TaskRun.State.DONE); return }
@@ -251,7 +257,10 @@ object TaskRunner {
                 end(context, task, failed, TaskRun.State.FAILED)
             }
             // Not ready, or no answer for now: asked again at the next tick
-            else -> dao.updateRun(run.copy(waitJson = wait.copy(askedAt = now, missed = missed).toJson(), resultsJson = withLast(last.copy(raw = raw))))
+            else -> {
+                dao.updateRun(run.copy(waitJson = wait.copy(askedAt = now, missed = missed).toJson(), resultsJson = withLast(last.copy(raw = raw))))
+                app.treelune.core.utils.DataChangeNotifier.notifyTaskRunChanged(run.id)
+            }
         }
     }
 

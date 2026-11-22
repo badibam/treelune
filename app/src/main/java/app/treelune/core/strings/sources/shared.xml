@@ -3141,7 +3141,7 @@
     <string name="task_input_received">What it received</string>
     <string name="task_input_received_entry">The entry written</string>
     <string name="task_input_received_field">The entry written › %1$s</string>
-    <string name="task_run_first_poll">First asked %1$s</string>
+    <string name="task_run_next_poll">Next asked %1$s</string>
     <string name="task_run_last_poll">Last asked %1$s</string>
     <string name="task_run_last_poll_error">No answer that time, asked again soon: %1$s</string>
     <string name="task_run_cancel">Cancel the run</string>

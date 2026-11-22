@@ -8,6 +8,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,7 +65,21 @@ fun TaskRunScreen(place: Place.TaskRun, onTaskName: (String) -> Unit, onBack: ()
         (coordinator.processUserAction("tasks.get", mapOf("task_id" to place.taskId)).data?.get("task") as? Map<*, *>)
             ?.let { onTaskName(app.treelune.core.tasks.Task.fromResult(it).name) }
         load()
-        app.treelune.core.utils.DataChangeNotifier.changes.collect { if (it is app.treelune.core.utils.DataChangeEvent.ZonesChanged) load() }
+        // Its start and end say ZonesChanged, each step and each asking of its job TaskRunChanged
+        app.treelune.core.utils.DataChangeNotifier.changes.collect {
+            if (it is app.treelune.core.utils.DataChangeEvent.ZonesChanged
+                || (it is app.treelune.core.utils.DataChangeEvent.TaskRunChanged && it.runId == place.runId)) load()
+        }
+    }
+    // The clock the relative times are read on, each second while the run goes on: the next
+    // asking of its job counts down
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    val ended = (run?.get("state") as? String)?.let { TaskRun.State.of(it).ended } ?: false
+    LaunchedEffect(ended) {
+        while (!ended) {
+            kotlinx.coroutines.delay(1_000)
+            now = System.currentTimeMillis()
+        }
     }
     val shown = run ?: run {
         UI.Text(s.shared("message_loading"), TextType.BODY, fillMaxWidth = true, textAlign = TextAlign.Center)
@@ -88,8 +104,10 @@ fun TaskRunScreen(place: Place.TaskRun, onTaskName: (String) -> Unit, onBack: ()
             onRightClick = { }
         )
         (shown["condition_said"] as? String)?.let { UI.Text(s.shared("task_run_end_condition").format(it), TextType.BODY) }
-        (shown["first_poll_at"] as? Number)?.let { UI.Text(s.shared("task_run_first_poll").format(FormatUtils.formatRelativeTime(it.toLong(), context)), TextType.CAPTION) }
-        (shown["last_poll_at"] as? Number)?.let { UI.Text(s.shared("task_run_last_poll").format(FormatUtils.formatRelativeTimePast(it.toLong(), context)), TextType.CAPTION) }
+        key(now) {
+            (shown["next_poll_at"] as? Number)?.let { UI.Text(s.shared("task_run_next_poll").format(FormatUtils.formatRelativeTime(it.toLong(), context)), TextType.CAPTION) }
+            (shown["last_poll_at"] as? Number)?.let { UI.Text(s.shared("task_run_last_poll").format(FormatUtils.formatRelativeTimePast(it.toLong(), context)), TextType.CAPTION) }
+        }
         (shown["last_poll_error"] as? String)?.let { UI.Text(s.shared("task_run_last_poll_error").format(it), TextType.CAPTION) }
         if (!state.ended) UI.Button(type = ButtonType.DANGER, onClick = {
             scope.launch { coordinator.processUserAction("tasks.cancel", mapOf("run_id" to place.runId)); load() }

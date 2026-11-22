@@ -95,6 +95,12 @@ object DataChangeNotifier {
         _changes.tryEmit(DataChangeEvent.AppConfigChanged)
     }
 
+    /** Notify that a Task's run moved on (a step done, a job asked about): its screen reads it again. */
+    fun notifyTaskRunChanged(runId: String) {
+        LogManager.coordination("DataChangeNotifier: task run $runId changed", "DEBUG")
+        _changes.tryEmit(DataChangeEvent.TaskRunChanged(runId))
+    }
+
     /**
      * Notify that AI sessions have changed (created, updated, completed)
      * Triggers RoutineScreen reload for the specific routine or all routines
@@ -140,6 +146,9 @@ sealed class DataChangeEvent {
 
     /** The identities have changed */
     object IdentitiesChanged : DataChangeEvent()
+
+    /** A Task's run moved on, between its start and its end, which say ZonesChanged */
+    data class TaskRunChanged(val runId: String) : DataChangeEvent()
 
     /**
      * AI sessions have changed (created, updated, completed)
