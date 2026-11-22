@@ -98,7 +98,7 @@ private class AppChartText(private val context: Context, private val measurer: T
 
     // A reference's text is the name of what it designates, which a read gives, not a format
     override fun value(field: FieldDefinition, value: Any): String =
-        if (field.type == FieldType.REFERENCE) ((value as? Map<*, *>)?.get("name") ?: (value as? Map<*, *>)?.get("id") ?: value).toString()
+        if (field.type == FieldType.REFERENCE) app.treelune.tools.chart.ChartSources.referenceText(value)
         else field.formatValue(value, context)
 
     override fun instant(instant: Long, step: ChartTicks.CalendarStep): String = DateUtils.format(instant, when (step.unit) {

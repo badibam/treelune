@@ -8,11 +8,9 @@ import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.fields.ChoiceSettings
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
-import app.treelune.core.fields.ReferenceName
 import app.treelune.core.fields.ReferenceTarget
 import app.treelune.core.fields.ToolFields
 import app.treelune.core.fields.formatValue
-import app.treelune.core.fields.loadReferenceNames
 import app.treelune.core.reading.FieldReading
 import app.treelune.core.selection.EntrySelection
 import app.treelune.core.selection.Reference
@@ -293,7 +291,7 @@ object StepObject {
         if (!read.isSuccess) throw IllegalStateException(read.error ?: s.shared("error_unknown"))
         @Suppress("UNCHECKED_CAST")
         val rows = (read.data?.get("entries") as? List<Map<String, Any?>>).orEmpty()
-        val names = if (readable) referenceNames(rows, fields, context, s) else emptyMap()
+        val names = if (readable) referenceNames(rows, fields, context) else emptyMap()
         val entries = rows.map { row -> if (readable) readableEntry(row, fields, names, context, s) else technicalEntry(row, fields) }
         val body: Any? = if (one) entries.firstOrNull() else entries
         if (!pointer.config) return body
@@ -323,11 +321,9 @@ object StepObject {
     }
 
     /** The names of what the references of [rows] designate, read once. */
-    private suspend fun referenceNames(rows: List<Map<String, Any?>>, fields: Map<String, FieldDefinition>, context: Context, s: StringsContext): Map<Reference, String> {
+    private suspend fun referenceNames(rows: List<Map<String, Any?>>, fields: Map<String, FieldDefinition>, context: Context): Map<Reference, String> {
         val paths = fields.filterValues { it.type == FieldType.REFERENCE }.keys
-        val references = rows.flatMap { row -> paths.flatMap { ReferenceTarget.referencesOf(FieldReading.valueAt(row, it)) } }.toSet()
-        if (references.isEmpty()) return emptyMap()
-        return loadReferenceNames(references, context).mapValues { (_, name) -> (name as? ReferenceName.Named)?.name ?: s.shared("pointer_target_deleted") }
+        return app.treelune.core.fields.referenceValueTexts(rows.flatMap { row -> paths.map { FieldReading.valueAt(row, it) } }, context)
     }
 
     /** One entry, Readable: its id, then each field it fills under its label, as the app says it. */

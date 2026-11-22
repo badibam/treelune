@@ -6,9 +6,7 @@ import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.fields.ChoiceSettings
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
-import app.treelune.core.fields.ReferenceName
 import app.treelune.core.fields.ReferenceTarget
-import app.treelune.core.fields.loadReferenceNames
 import app.treelune.core.fields.ToolFields
 import app.treelune.core.reading.FieldReading
 import app.treelune.core.reading.Reduction
@@ -130,10 +128,7 @@ class ChartSources(private val context: Context) {
         // A reference shows the name of what it designates: the names read once for the whole
         // table, a failed read failing the chart rather than taken for a deletion
         val referencePaths = columns.filterValues { it.type == FieldType.REFERENCE }.keys
-        val references = read.flatMap { entry -> referencePaths.flatMap { ReferenceTarget.referencesOf(FieldReading.valueAt(entry, it)) } }.toSet()
-        val names = loadReferenceNames(references, context).mapValues { (_, name) ->
-            (name as? ReferenceName.Named)?.name ?: s.shared("pointer_target_deleted")
-        }
+        val names = app.treelune.core.fields.referenceValueTexts(read.flatMap { entry -> referencePaths.map { FieldReading.valueAt(entry, it) } }, context)
         val rows = read.map { entry ->
             Row(columns.keys.associateWith { path ->
                 val value = FieldReading.valueAt(entry, path)
@@ -229,6 +224,16 @@ class ChartSources(private val context: Context) {
          * "name", which the chart's texts show: the reference alone, or each of a list (a
          * multiple reference, which a flatten spreads a row each). Anything else is left as is.
          */
+        /**
+         * The text of a reference's cell, a reference or a list of them: the names [named] gave
+         * them, joined by commas; its id for one that has none.
+         */
+        fun referenceText(value: Any): String = when (value) {
+            is List<*> -> value.filterNotNull().joinToString(", ") { referenceText(it) }
+            is Map<*, *> -> (value["name"] ?: value["id"] ?: value).toString()
+            else -> value.toString()
+        }
+
         internal fun named(value: Any?, names: Map<Reference, String>): Any? = when (value) {
             is List<*> -> value.map { named(it, names) }
             is Map<*, *> -> ReferenceTarget.referenceOf(value)?.let { names[it] }?.let { value + ("name" to it) } ?: value

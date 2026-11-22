@@ -40,10 +40,7 @@ internal fun rememberReferenceName(reference: Reference?, context: Context): Str
     LaunchedEffect(reference) {
         if (reference == null) return@LaunchedEffect
         shown = try {
-            when (val name = loadReferenceNames(listOf(reference), context)[reference]) {
-                is ReferenceName.Named -> name.name
-                ReferenceName.Deleted, null -> s.shared("pointer_target_deleted")
-            }
+            referenceTexts(listOf(reference), context).getValue(reference)
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -52,34 +49,6 @@ internal fun rememberReferenceName(reference: Reference?, context: Context): Str
         }
     }
     return shown
-}
-
-/**
- * A REFERENCE value on one line, for a tile: the names of what it designates as they are now,
- * read together once shown, joined by commas; the loading text until they are read.
- */
-@Composable
-fun rememberReferenceText(value: Any?, context: Context): String {
-    val s = remember { Strings.`for`(context = context) }
-    val references = remember(value) { ReferenceTarget.referencesOf(value) }
-    var shown by remember(value) { mutableStateOf<String?>(null) }
-    LaunchedEffect(value) {
-        if (references.isEmpty()) return@LaunchedEffect
-        shown = try {
-            val names = loadReferenceNames(references, context)
-            references.joinToString(", ") { reference ->
-                (names[reference] as? ReferenceName.Named)?.name ?: s.shared("pointer_target_deleted")
-            }
-        } catch (e: kotlinx.coroutines.CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            LogManager.ui("References $references: names not read: ${e.message}", "ERROR", e)
-            s.shared("field_reference_unreadable")
-        }
-    }
-    // A value holding no reference shows as it is, as ReferenceValue does
-    if (references.isEmpty()) return value?.toString() ?: s.shared("label_no_value")
-    return shown ?: s.shared("tools_loading")
 }
 
 /** A REFERENCE value: the name of what it designates, as it is now; each name of a list, one under the other. */

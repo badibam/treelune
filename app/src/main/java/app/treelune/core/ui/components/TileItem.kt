@@ -71,20 +71,42 @@ fun tileItemFieldPaths(config: JSONObject): List<String> =
         .filter { it.type != FieldType.FILE }.map { "extra.${it.name}" }
 
 /**
+ * A tile's entries as it loaded them ([entries]), with the names of what their user's reference
+ * fields designate ([names], tileReferenceNames), read in the same load: never shown one without
+ * the other.
+ */
+data class NamedEntries<T>(val entries: T, val names: Map<app.treelune.core.selection.Reference, String>)
+
+/**
+ * The names of what the user's reference fields of the entries' [extras] designate, read together
+ * once, in the load of the tile that shows them; null when they cannot be read, which is logged,
+ * the tile keeping what it showed as when its entries cannot be read.
+ */
+suspend fun tileReferenceNames(config: JSONObject, extras: List<Map<String, Any?>>, context: Context, tile: String): Map<app.treelune.core.selection.Reference, String>? {
+    val references = (config.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList())
+        .filter { it.type == FieldType.REFERENCE }.map { it.name }
+    return try {
+        app.treelune.core.fields.referenceValueTexts(extras.flatMap { extra -> references.map { extra[it] } }, context)
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        app.treelune.core.utils.LogManager.ui("$tile: reference names not read: ${e.message}", "ERROR", e)
+        null
+    }
+}
+
+/**
  * An entry's user's fields as its tile shows them, one line each: those that hold a value or show
  * always (shownCustomFields), in the config's order, with their names when the tool shows them
- * (show_field_labels); a file left out, a tile showing it apart; a reference by the names it
- * designates, read once shown.
+ * (show_field_labels); a file left out, a tile showing it apart; a reference by the [names] read
+ * with the entries (tileReferenceNames).
  */
-@Composable
-fun tileItemFields(toolType: app.treelune.core.tools.ToolTypeContract, config: JSONObject, extra: Map<String, Any?>, context: Context): List<String> {
+fun tileItemFields(toolType: app.treelune.core.tools.ToolTypeContract, config: JSONObject, extra: Map<String, Any?>, names: Map<app.treelune.core.selection.Reference, String>, context: Context): List<String> {
     val showLabels = app.treelune.core.tools.ToolConfigSettings.read(toolType, config, context)
         .boolean(app.treelune.core.tools.ToolConfigSettings.SHOW_FIELD_LABELS)
     val s = Strings.`for`(context = context)
     return shownCustomFields(config, extra).filter { it.type != FieldType.FILE }.map { field ->
-        val raw = extra[field.name]
-        val value = if (field.type == FieldType.REFERENCE && raw != null) app.treelune.core.fields.rememberReferenceText(raw, context)
-            else field.formatValue(raw, context)
+        val value = field.formatValue(extra[field.name], context, names)
         if (showLabels) s.shared("field_label_inline").format(field.displayName) + " " + value else value
     }
 }

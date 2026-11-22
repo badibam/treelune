@@ -133,9 +133,11 @@ fun List<FieldDefinition>.toJsonArray(): JSONArray {
  *
  * @param value The raw value to format (can be null)
  * @param context Android context for accessing string resources
+ * @param names For a REFERENCE field, the names of what it designates, read with the value
+ *   (referenceValueTexts): a reference shown without them, or not among them, fails
  * @return Formatted string ready for display in UI
  */
-fun FieldDefinition.formatValue(value: Any?, context: Context): String {
+fun FieldDefinition.formatValue(value: Any?, context: Context, names: Map<app.treelune.core.selection.Reference, String>? = null): String {
     val s = Strings.`for`(context = context)
 
     // Return "no value" for null/empty values
@@ -157,8 +159,14 @@ fun FieldDefinition.formatValue(value: Any?, context: Context): String {
         FieldType.TIME -> formatTimeValue(value, config, s)
         FieldType.DATETIME -> formatDateTimeValue(value, config, s)
         FieldType.DURATION -> (value as? Number)?.let { Durations.format(it.toLong(), config, s) } ?: s.shared("label_no_value")
-        // Its text is the name of what it designates, which only a read gives (ReferenceValue)
-        FieldType.REFERENCE -> throw IllegalStateException("a reference is shown by ReferenceValue, which reads its name")
+        // Its text is the name of what it designates, which only a read gives: the caller's, done
+        // with the value (referenceValueTexts); each name of a list, joined by commas
+        FieldType.REFERENCE -> {
+            val read = names ?: throw IllegalStateException("field $name: a reference is shown by the names read with it, none given")
+            val references = ReferenceTarget.referencesOf(value)
+            if (references.isEmpty()) s.shared("label_no_value")
+            else references.joinToString(", ") { read[it] ?: throw IllegalStateException("field $name: no name read for $it") }
+        }
         // How many files, named by their kind when the field takes one; the files themselves shown by FieldValue
         FieldType.FILE -> FileField.ids(value).size.let { count ->
             val noun = FileField.kinds(config).singleOrNull()?.name?.lowercase() ?: "file"

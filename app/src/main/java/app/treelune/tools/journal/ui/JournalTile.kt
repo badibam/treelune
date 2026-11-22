@@ -49,7 +49,7 @@ fun rememberJournalTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTi
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "journal", context = context) }
-    var entries by app.treelune.core.ui.rememberShown<List<TileEntry>?>("tile:${tool.id}:entries") { null }
+    var entries by app.treelune.core.ui.rememberShown<app.treelune.core.ui.components.NamedEntries<List<TileEntry>>?>("tile:${tool.id}:entries") { null }
     var version by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(tool.id, version) {
@@ -58,13 +58,14 @@ fun rememberJournalTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTi
             LogManager.ui("Journal tile ${tool.id}: entries not read: ${result.error}", "ERROR")
             return@LaunchedEffect
         }
-        entries = (result.data?.get("entries") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().map {
+        val read = (result.data?.get("entries") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().map {
             TileEntry(
                 it["id"] as String, (it["name"] as? String).orEmpty().ifBlank { s.tool("placeholder_untitled") }, (it["timestamp"] as Number).toLong(),
                 app.treelune.core.markup.Markup.plain(((it["data"] as? Map<*, *>)?.get("content") as? String).orEmpty()),
                 (it["extra"] as? Map<*, *>)?.entries?.associate { e -> e.key.toString() to e.value }.orEmpty()
             )
         }
+        app.treelune.core.ui.components.tileReferenceNames(org.json.JSONObject(tool.config_json), read.map { it.extra }, context, "Journal tile ${tool.id}")?.let { entries = app.treelune.core.ui.components.NamedEntries(read, it) }
     }
     LaunchedEffect(tool.id) {
         DataChangeNotifier.changes.collect { event ->
@@ -76,7 +77,7 @@ fun rememberJournalTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTi
         object : ToolTile {
             @Composable
             override fun Summary() {
-                val loaded = entries ?: return
+                val loaded = entries?.entries ?: return
                 Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally) {
                     UI.Button(type = ButtonType.PRIMARY, size = Size.S, onClick = { open(EntryToOpen.New) }) {
                         UI.Text(s.tool("tile_write"), TextType.LABEL, maxLines = 1)
@@ -95,14 +96,15 @@ fun rememberJournalTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTi
 
             @Composable
             override fun Body(room: app.treelune.core.look.TileSize.Room) {
-                val loaded = entries ?: return
+                val read = entries ?: return
+                val loaded = read.entries
                 val config = org.json.JSONObject(tool.config_json)
                 TileGrid(room, loaded) { entry ->
                     app.treelune.core.ui.components.TileItem(
                         entry.title,
                         modifier = Modifier.clickable { open(EntryToOpen.Existing(entry.id)) },
                         text = entry.text,
-                        fields = app.treelune.core.ui.components.tileItemFields(app.treelune.tools.journal.JournalToolType, config, entry.extra, context),
+                        fields = app.treelune.core.ui.components.tileItemFields(app.treelune.tools.journal.JournalToolType, config, entry.extra, read.names, context),
                         trailing = { UI.Text(FormatUtils.formatRelativeTimeShort(entry.timestamp, context), TextType.CAPTION, maxLines = 1) }
                     )
                 }

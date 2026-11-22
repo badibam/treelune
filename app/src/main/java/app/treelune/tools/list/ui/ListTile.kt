@@ -61,12 +61,14 @@ fun rememberListTile(tool: ToolInstance): ToolTile {
 
     val fields = remember(tool.config_json) { JSONObject(tool.config_json).optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList() }
 
-    var items by app.treelune.core.ui.rememberShown<List<ListItem>?>("tile:${tool.id}:items") { null }
+    var items by app.treelune.core.ui.rememberShown<app.treelune.core.ui.components.NamedEntries<List<ListItem>>?>("tile:${tool.id}:items") { null }
     var adding by androidx.compose.runtime.saveable.rememberSaveable(tool.id) { mutableStateOf(false) }
     var version by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(tool.id, version) {
-        ListItems.load(coordinator, tool.id)?.let { items = it }
+        ListItems.load(coordinator, tool.id)?.let { loaded ->
+            app.treelune.core.ui.components.tileReferenceNames(JSONObject(tool.config_json), loaded.map { it.extra }, context, "List tile ${tool.id}")?.let { items = app.treelune.core.ui.components.NamedEntries(loaded, it) }
+        }
     }
     LaunchedEffect(tool.id) {
         DataChangeNotifier.changes.collect { event ->
@@ -102,7 +104,7 @@ fun rememberListTile(tool: ToolInstance): ToolTile {
             @Composable
             override fun Summary() {
                 // Nothing to show until loaded: the tile keeps its header alone meanwhile
-                val loaded = items ?: return
+                val loaded = items?.entries ?: return
                 val left = loaded.count { !it.isChecked }
                 val now = System.currentTimeMillis()
                 val late = if (dueDates) loaded.count { DueNotice.isLate(it, now) } else 0
@@ -134,14 +136,15 @@ fun rememberListTile(tool: ToolInstance): ToolTile {
 
             @Composable
             override fun Body(room: app.treelune.core.look.TileSize.Room) {
-                val loaded = items ?: return
+                val read = items ?: return
+                val loaded = read.entries
                 val now = System.currentTimeMillis()
                 // The late ones first, each part keeping the list's order: a stable sort
                 val left = ListItems.shown(loaded).filterNot { it.isChecked }.sortedBy { if (DueNotice.isLate(it, now)) 0 else 1 }
                 TileGrid(room, left) { item ->
                     app.treelune.core.ui.components.TileItem(
                         item.name,
-                        fields = app.treelune.core.ui.components.tileItemFields(ListToolType, org.json.JSONObject(tool.config_json), item.extra, context),
+                        fields = app.treelune.core.ui.components.tileItemFields(ListToolType, org.json.JSONObject(tool.config_json), item.extra, read.names, context),
                         leading = { UI.Checkbox(checked = item.isChecked, onCheckedChange = { checked -> check(item, checked) }) }
                     )
                 }

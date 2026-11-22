@@ -132,7 +132,10 @@ private fun lastValue(read: ChartReading.Drawn, s: StringsContext, context: Cont
         } ?: table.rows
         val last = rows.filter { it.value(name) != null }
             .maxByOrNull { (it.value(ChartSources.TIMESTAMP) as? Number)?.toLong() ?: Long.MIN_VALUE } ?: return@forEachIndexed
-        val value = field.formatValue(last.value(name), context)
+        // A reference's cell holds the name read with the table (ChartSources.named)
+        val value = last.value(name)!!.let { v ->
+            if (field.type == app.treelune.core.fields.FieldType.REFERENCE) app.treelune.tools.chart.ChartSources.referenceText(v) else field.formatValue(v, context)
+        }
         val at = (last.value(ChartSources.TIMESTAMP) as? Number)?.toLong() ?: return value
         return s.tool("tile_value_at").format(value, whenText(layer, at, s, context))
     }

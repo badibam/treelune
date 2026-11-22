@@ -54,11 +54,13 @@ fun rememberAgendaTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTil
     val config = remember(tool.config_json) { JSONObject(tool.config_json) }
     val fields = remember(tool.config_json) { config.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList() }
 
-    var events by app.treelune.core.ui.rememberShown<List<AgendaEvent>?>("tile:${tool.id}:events") { null }
+    var events by app.treelune.core.ui.rememberShown<app.treelune.core.ui.components.NamedEntries<List<AgendaEvent>>?>("tile:${tool.id}:events") { null }
     var version by remember { mutableIntStateOf(0) }
     LaunchedEffect(tool.id, version) {
         val result = coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to tool.id))
-        if (result.isSuccess) events = (result.data?.get("entries") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().map { AgendaEvent.of(it) }
+        if (!result.isSuccess) return@LaunchedEffect
+        val read = (result.data?.get("entries") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().map { AgendaEvent.of(it) }
+        app.treelune.core.ui.components.tileReferenceNames(config, read.map { it.extra }, context, "Agenda tile ${tool.id}")?.let { events = app.treelune.core.ui.components.NamedEntries(read, it) }
     }
     LaunchedEffect(tool.id) {
         DataChangeNotifier.changes.collect { event ->
@@ -70,7 +72,7 @@ fun rememberAgendaTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTil
         object : ToolTile {
             @Composable
             override fun Summary() {
-                val loaded = events ?: return
+                val loaded = events?.entries ?: return
                 val now = System.currentTimeMillis()
                 val next = coming(loaded, now).firstOrNull()
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -88,13 +90,14 @@ fun rememberAgendaTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTil
 
             @Composable
             override fun Body(room: app.treelune.core.look.TileSize.Room) {
-                val loaded = events ?: return
+                val read = events ?: return
+                val loaded = read.entries
                 val now = System.currentTimeMillis()
                 TileGrid(room, coming(loaded, now)) { event ->
                     app.treelune.core.ui.components.TileItem(
                         if (event.isPlanned) event.name else s.tool("cancelled_name").format(event.name),
                         modifier = Modifier.clickable { open(EntryToOpen.Existing(event.id)) },
-                        fields = app.treelune.core.ui.components.tileItemFields(app.treelune.tools.agenda.AgendaToolType, config, event.extra, context),
+                        fields = app.treelune.core.ui.components.tileItemFields(app.treelune.tools.agenda.AgendaToolType, config, event.extra, read.names, context),
                         leading = { UI.Text(shortWhen(event, now, s), TextType.LABEL) },
                         trailing = images(event, fields).takeIf { it.isNotEmpty() }?.let { ids -> { app.treelune.core.files.FileAbbreviation(ids) } }
                     )

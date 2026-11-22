@@ -46,7 +46,7 @@ fun rememberStructuredTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): Too
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "structured", context = context) }
-    var sheets by app.treelune.core.ui.rememberShown<List<TileSheet>?>("tile:${tool.id}:sheets") { null }
+    var sheets by app.treelune.core.ui.rememberShown<app.treelune.core.ui.components.NamedEntries<List<TileSheet>>?>("tile:${tool.id}:sheets") { null }
     var version by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(tool.id, version) {
@@ -55,10 +55,11 @@ fun rememberStructuredTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): Too
             LogManager.ui("Structured tile ${tool.id}: sheets not read: ${result.error}", "ERROR")
             return@LaunchedEffect
         }
-        sheets = (result.data?.get("entries") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
+        val read = (result.data?.get("entries") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
             .map { TileSheet(it["id"] as String, it["name"] as? String ?: "", (it["updated_at"] as Number).toLong(),
                 (it["extra"] as? Map<*, *>)?.entries?.associate { e -> e.key.toString() to e.value }.orEmpty()) }
             .sortedByDescending { it.updatedAt }
+        app.treelune.core.ui.components.tileReferenceNames(org.json.JSONObject(tool.config_json), read.map { it.extra }, context, "Structured tile ${tool.id}")?.let { sheets = app.treelune.core.ui.components.NamedEntries(read, it) }
     }
     LaunchedEffect(tool.id) {
         DataChangeNotifier.changes.collect { event ->
@@ -70,7 +71,7 @@ fun rememberStructuredTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): Too
         object : ToolTile {
             @Composable
             override fun Summary() {
-                val loaded = sheets ?: return
+                val loaded = sheets?.entries ?: return
                 Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally) {
                     UI.Text(
                         if (loaded.size == 1) s.tool("tile_count_one") else s.tool("tile_count_many").format(loaded.size.toString()),
@@ -89,10 +90,11 @@ fun rememberStructuredTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): Too
 
             @Composable
             override fun Body(room: app.treelune.core.look.TileSize.Room) {
-                val loaded = sheets ?: return
+                val read = sheets ?: return
+                val loaded = read.entries
                 TileGrid(room, if (room.rows == null) loaded.take(FULL_SHEETS) else loaded) { sheet ->
                     app.treelune.core.ui.components.TileItem(sheet.name, modifier = Modifier.clickable { open(EntryToOpen.Existing(sheet.id)) },
-                        fields = app.treelune.core.ui.components.tileItemFields(app.treelune.tools.structured.StructuredToolType, org.json.JSONObject(tool.config_json), sheet.extra, context))
+                        fields = app.treelune.core.ui.components.tileItemFields(app.treelune.tools.structured.StructuredToolType, org.json.JSONObject(tool.config_json), sheet.extra, read.names, context))
                 }
             }
         }

@@ -46,7 +46,7 @@ fun rememberMessagesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolT
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "messages", context = context) }
-    var inbox by app.treelune.core.ui.rememberShown<Inbox?>("tile:${tool.id}:inbox") { null }
+    var inbox by app.treelune.core.ui.rememberShown<app.treelune.core.ui.components.NamedEntries<Inbox>?>("tile:${tool.id}:inbox") { null }
     var version by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(tool.id, version) {
@@ -54,11 +54,12 @@ fun rememberMessagesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolT
         val sent = loadByStatus(context, coordinator, tool.id, "sent", onError) ?: return@LaunchedEffect
         val pending = loadByStatus(context, coordinator, tool.id, "pending", onError) ?: return@LaunchedEffect
         val received = sent.filterNot { it.archived }
-        inbox = Inbox(
+        val read = Inbox(
             unread = received.filterNot { it.read }.sortedBy { it.dueAt },
             read = received.filter { it.read }.sortedByDescending { it.dueAt },
             nextSend = pending.minOfOrNull { it.dueAt }
         )
+        app.treelune.core.ui.components.tileReferenceNames(org.json.JSONObject(tool.config_json), received.map { it.extra }, context, "Messages tile ${tool.id}")?.let { inbox = app.treelune.core.ui.components.NamedEntries(read, it) }
     }
     LaunchedEffect(tool.id) {
         DataChangeNotifier.changes.collect { event ->
@@ -70,7 +71,7 @@ fun rememberMessagesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolT
         object : ToolTile {
             @Composable
             override fun Summary() {
-                val loaded = inbox ?: return
+                val loaded = inbox?.entries ?: return
                 val oldest = loaded.unread.firstOrNull()
                 Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceEvenly) {
                     if (oldest != null) {
@@ -90,13 +91,14 @@ fun rememberMessagesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolT
 
             @Composable
             override fun Second() {
-                val loaded = inbox ?: return
+                val loaded = inbox?.entries ?: return
                 app.treelune.core.ui.components.IconCount(loaded.unread.size)
             }
 
             @Composable
             override fun Body(room: app.treelune.core.look.TileSize.Room) {
-                val loaded = inbox ?: return
+                val read = inbox ?: return
+                val loaded = read.entries
                 val shown = (loaded.unread + loaded.read).let { if (room.rows == null) it.take(FULL_MESSAGES) else it }
                 val config = org.json.JSONObject(tool.config_json)
                 TileGrid(room, shown) { message ->
@@ -104,7 +106,7 @@ fun rememberMessagesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolT
                         message.displayTitle,
                         modifier = Modifier.clickable { open(EntryToOpen.Existing(message.id)) },
                         text = message.displayContent?.let { app.treelune.core.markup.Markup.plain(it) },
-                        fields = app.treelune.core.ui.components.tileItemFields(app.treelune.tools.messages.MessageToolType, config, message.extra, context),
+                        fields = app.treelune.core.ui.components.tileItemFields(app.treelune.tools.messages.MessageToolType, config, message.extra, read.names, context),
                         mainType = if (message.read) TextType.CAPTION else TextType.STRONG,
                         trailing = { UI.Text(FormatUtils.formatRelativeTimeShort(message.dueAt, context), TextType.CAPTION, maxLines = 1) }
                     )
