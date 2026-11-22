@@ -6,10 +6,6 @@ Les retours du téléphone et les items décidés, classés le 2026-11-22. « À
 
 - Distinguer l'icône de la zone de celles de ses outils : une taille différente, ou autre chose. À discuter.
 
-## 3. Navigation et lisibilité des pages longues
-
-- Un écran « À propos » qui donne la version de l'app. À discuter.
-
 ## 4. Nouvelles fonctions dans des outils existants
 
 - Fiche : les champs système (date de création…) affichables, ou clés de tri, avec un tri par défaut dans la config parmi tous les champs système. À discuter : l'ordre des champs affichés est aujourd'hui celui de la liste des champs supplémentaires.
