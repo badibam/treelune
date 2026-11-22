@@ -81,15 +81,19 @@ fun stripPieces(size: TileSize, pieces: List<ListedPiece>, zoneId: String): List
 
 /**
  * The body of a zone's tile with text, in [room] (ZoneTileBody): each piece as its own tile without
- * its frame — a line, a condensed tile or a minimal one —, on the body's grid of cells, each row a
+ * its frame — in text a line, a condensed tile or a minimal one; in [icons] its icon, or its icon
+ * and its second cell side by side, around the header's place when [besideHeader] —, on the body's grid of cells, each row a
  * share of the body (or a row of the grid and the gap after it when the tile follows its content, as a
  * fixed body's share holds the gaps it spans), each row under the
  * theme's separator, the first parting it from the zone's header; « +N » at the last place when some do not fit.
  */
 @Composable
-fun ZonePiecesBody(room: TileSize.Room, pieces: List<ListedPiece>, zoneId: String) {
+fun ZonePiecesBody(room: TileSize.Room, pieces: List<ListedPiece>, zoneId: String, icons: Boolean, besideHeader: Boolean) {
     if (pieces.isEmpty()) return
-    val plan = remember(room, pieces.map { it.summary }) { ZoneTileBody.plan(room, pieces.map { it.summary }) }
+    val pairs = pieces.map { it.summary && hasSecond(it.tile) }
+    val plan = remember(room, pieces.map { it.summary }, icons, besideHeader) {
+        if (icons) ZoneTileBody.icons(room, pairs, besideHeader) else ZoneTileBody.plan(room, pieces.map { it.summary })
+    }
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     val gridRow = with(LocalDensity.current) { LocalGridRow.current.roundToPx() } + app.treelune.core.themes.CurrentTheme.current.gridRowGapPx()
@@ -99,10 +103,16 @@ fun ZonePiecesBody(room: TileSize.Room, pieces: List<ListedPiece>, zoneId: Strin
                 val piece = pieces[place.id.toInt()]
                 key(piece.tile.id) {
                     Column(modifier = Modifier.fillMaxSize()) {
-                        // Each row under the theme's divider, the first parting it from the zone's header
-                        UI.Divider()
+                        // Each row under the theme's divider, the first parting it from the zone's
+                        // header; none on the header's own row
+                        if (place.row > 0 || plan.reserved == null) UI.Divider()
                         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                            CompositionLocalProvider(LocalInnerTile provides ZoneTileBody.size(room.width, piece.summary)) { PieceContent(piece.tile, zoneId) }
+                            val inner = when {
+                                !icons -> ZoneTileBody.size(room.width, piece.summary)
+                                pairs[place.id.toInt()] -> TileSize.icons(2, vertical = false)
+                                else -> TileSize.Icon
+                            }
+                            CompositionLocalProvider(LocalInnerTile provides inner) { PieceContent(piece.tile, zoneId) }
                         }
                     }
                 }

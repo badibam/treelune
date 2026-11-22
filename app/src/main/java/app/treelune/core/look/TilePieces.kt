@@ -19,6 +19,9 @@ object TilePieces {
     const val ID = "id"
     const val SUMMARY = "summary"
 
+    /** Whether the pieces are drawn in icons rather than in text: the zone's column `tile_pieces_icons` (ZoneTileBody). */
+    const val ICONS = "tile_pieces_icons"
+
     /** One piece of the list: the id of a piece of the zone, and whether its summary goes with it. */
     data class Piece(val id: String, val summary: Boolean)
 

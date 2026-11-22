@@ -167,6 +167,7 @@ object BackupPart {
                     put("identity_id", JSONObject.NULL)
                     put("readout_columns", JSONObject.NULL)
                     put(app.treelune.core.look.TilePieces.KEY, JSONObject.NULL)
+                    put(app.treelune.core.look.TilePieces.ICONS, false)
                 }
             }
         }

@@ -64,6 +64,7 @@
           "summary": true
         }
       ],
+      "tile_pieces_icons": true,
       "group": "@zone_group",
       "tool_groups": [
         "@kitchen_group_meals",

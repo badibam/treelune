@@ -33,11 +33,15 @@ import org.json.JSONArray
 /**
  * How many of [pieces] a zone's tile of [size] shows (docs/design/icon-tiles.md): in icons, as
  * many as hold after the zone's own icon (IconStrips.fitting, stripCells); with text, as many as
- * the rows under its header hold (TileSize.zoneBody, ZoneTileBody), none on one row (4×1, 2×1), all when it follows its content.
+ * the cells under its header hold, in text or in [icons] (ZoneTileBody.room), none on one row in text (4×1, 2×1),
+ * all when it follows its content.
  */
-fun shownPieces(size: TileSize, pieces: List<ListedPiece>): Int = when {
+fun shownPieces(size: TileSize, pieces: List<ListedPiece>, icons: Boolean): Int = when {
     size.inIcons -> (IconStrips.fitting(size.length, listOf(1) + stripCells(pieces)) - 1).coerceAtLeast(0)
-    else -> size.zoneBody?.let { room -> ZoneTileBody.plan(room, pieces.map { it.summary }).placed.size } ?: 0
+    icons -> ZoneTileBody.room(size, true)?.let { room ->
+        ZoneTileBody.icons(room, pieces.map { it.summary && hasSecond(it.tile) }, ZoneTileBody.besideHeader(size, true)).placed.size
+    } ?: 0
+    else -> ZoneTileBody.room(size, false)?.let { room -> ZoneTileBody.plan(room, pieces.map { it.summary }).placed.size } ?: 0
 }
 
 /**
@@ -45,10 +49,10 @@ fun shownPieces(size: TileSize, pieces: List<ListedPiece>): Int = when {
  * moved by their grip, each with « With its summary » — which a piece without a second cell (a
  * variable, a Chart) shows with text alone, said under it — and its removal; a piece no longer in
  * the zone says so. Under them, the pieces of the zone not
- * listed yet, one to add; then those the tile does not show at [size], named. A zone being created
+ * listed yet, one to add; then those the tile does not show at [size], in text or in [icons], named. A zone being created
  * holds nothing yet: nothing is shown.
  */
-fun tilePiecesEditor(zoneId: String?, size: TileSize, s: StringsContext): SettingEditor = object : SettingEditor {
+fun tilePiecesEditor(zoneId: String?, size: TileSize, icons: Boolean, s: StringsContext): SettingEditor = object : SettingEditor {
     @Composable
     override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
         if (zoneId == null) return
@@ -102,7 +106,7 @@ fun tilePiecesEditor(zoneId: String?, size: TileSize, s: StringsContext): Settin
                 }
                 // What the tile does not show at its size, named
                 val listed = pieces.mapNotNull { piece -> byId[piece.id]?.let { ListedPiece(it, piece.summary) } }
-                val cut = listed.drop(shownPieces(size, listed)).map { it.tile.look.name }
+                val cut = listed.drop(shownPieces(size, listed, icons)).map { it.tile.look.name }
                 if (cut.isNotEmpty()) Box { UI.Text(s.shared("zone_tile_pieces_cut").format(cut.joinToString(", ")), TextType.CAPTION) }
             }
         }

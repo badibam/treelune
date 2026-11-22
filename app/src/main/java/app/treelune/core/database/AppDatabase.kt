@@ -2366,10 +2366,12 @@ abstract class AppDatabase : RoomDatabase() {
         /**
          * A readout reaches its zone's tile only as a piece of the tile: each readout that ticked
          * the place `zone_tile` joins its zone's `tile_pieces`, the place leaving its settings, the
-         * history's copies with them: see ReadoutTilePiecesAtV120.
+         * history's copies with them: see ReadoutTilePiecesAtV120. A zone's tile draws its pieces in
+         * text or in icons: its column `tile_pieces_icons`, in text for every zone.
          */
         private val MIGRATION_119_120 = object : ConnectionMigration(119, 120) {
             override fun migrate(database: MigrationDatabase) {
+                database.execSQL("ALTER TABLE zones ADD COLUMN tile_pieces_icons INTEGER NOT NULL DEFAULT 0")
                 val v = app.treelune.core.versioning.ReadoutTilePiecesAtV120
                 val moved = mutableListOf<app.treelune.core.versioning.ReadoutTilePiecesAtV120.Readout>()
                 database.query("SELECT id, zone_id, \"group\", grid_x, grid_y, settings_json FROM readouts").use { cursor ->

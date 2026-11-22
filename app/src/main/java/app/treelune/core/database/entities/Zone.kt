@@ -59,5 +59,7 @@ data class Zone(
      * The pieces its tile shows, in order, each with its summary or without (TilePieces,
      * docs/design/icon-tiles.md): a JSON array of `{"id", "summary"}`; null for none.
      */
-    val tile_pieces: String? = null
+    val tile_pieces: String? = null,
+    /** Whether its tile draws its pieces in icons rather than in text (TilePieces.ICONS, ZoneTileBody). */
+    val tile_pieces_icons: Boolean = false
 )

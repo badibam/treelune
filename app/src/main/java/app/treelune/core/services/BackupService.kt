@@ -532,6 +532,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("identity_id", zone.identity_id ?: JSONObject.NULL)
                                 put("readout_columns", zone.readout_columns ?: JSONObject.NULL)
                                 put(app.treelune.core.look.TilePieces.KEY, zone.tile_pieces ?: JSONObject.NULL)
+                                put(app.treelune.core.look.TilePieces.ICONS, zone.tile_pieces_icons)
                             })
                         }
                     })
@@ -1176,7 +1177,8 @@ class BackupService(private val context: Context) : ExecutableService {
                         // Absent from a backup made before version 111: the home screen's, as the migration does
                         readout_columns = item.nullableString("readout_columns"),
                         // Absent from a backup made before version 119: none, as the migration does
-                        tile_pieces = item.nullableString(app.treelune.core.look.TilePieces.KEY)
+                        tile_pieces = item.nullableString(app.treelune.core.look.TilePieces.KEY),
+                        tile_pieces_icons = item.getBoolean(app.treelune.core.look.TilePieces.ICONS)
                     )
                 )
             }
@@ -1642,6 +1644,8 @@ class BackupService(private val context: Context) : ExecutableService {
             }
             if (fromVersion < 120 && toVersion >= 120) {
                 app.treelune.core.versioning.ReadoutTilePiecesAtV120.backup(data)
+                // Every zone's tile drew its pieces in text
+                data.optJSONArray("zones")?.let { zones -> for (i in 0 until zones.length()) zones.getJSONObject(i).put(app.treelune.core.look.TilePieces.ICONS, false) }
             }
 
             // Transform app settings

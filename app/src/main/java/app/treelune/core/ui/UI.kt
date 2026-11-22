@@ -810,7 +810,9 @@ object UI {
                 // No summary: its header alone on its first row, its pieces under it
                 summary = { },
                 glance = { },
-                body = { room -> app.treelune.core.ui.components.ZonePiecesBody(room, pieces, zone.id) },
+                body = { room -> app.treelune.core.ui.components.ZonePiecesBody(room, pieces, zone.id, zone.tile_pieces_icons,
+                    app.treelune.core.look.ZoneTileBody.besideHeader(if (CurrentTheme.oneColumn) size.inOneColumn() else size, zone.tile_pieces_icons)) },
+                zonePiecesInIcons = zone.tile_pieces_icons,
                 frame = LookFrame.ZONE,
                 pieces = if (size.inIcons) app.treelune.core.ui.components.stripPieces(size, pieces, zone.id) else emptyList()
             )
@@ -947,7 +949,9 @@ object UI {
         frame: LookFrame = LookFrame.SECTION,
         second: (@Composable () -> Unit)? = null,
         secondWaits: Boolean = false,
-        pieces: List<app.treelune.core.ui.components.IconPiece> = emptyList()
+        pieces: List<app.treelune.core.ui.components.IconPiece> = emptyList(),
+        /** A zone's tile: its pieces drawn in icons, 4 wide from beside its header (ZoneTileBody). */
+        zonePiecesInIcons: Boolean = false
     ) {
         // Inside another tile (a zone's pieces), at the size it is given and without a frame
         val inner = app.treelune.core.ui.components.LocalInnerTile.current
@@ -974,7 +978,9 @@ object UI {
             val laid = if (CurrentTheme.oneColumn) size.inOneColumn() else size
             // A zone's tile has no summary: its pieces start under its header (TileSize.zoneBody)
             val zone = frame == LookFrame.ZONE && inner == null
-            val room = if (zone) laid.zoneBody else laid.body
+            val room = if (zone) app.treelune.core.look.ZoneTileBody.room(laid, zonePiecesInIcons) else laid.body
+            // In icons 4 wide, the pieces fill the whole tile around the header's place
+            val beside = zone && app.treelune.core.look.ZoneTileBody.besideHeader(laid, zonePiecesInIcons)
 
             /** [first] and [other] on half the width each. */
             @Composable
@@ -1022,6 +1028,18 @@ object UI {
                         app.treelune.core.ui.components.IconStrip(laid, listOf(own) + pieces)
                     }
                 // Without a body: the header alone 2 wide on one row, the glance beside it 4 wide, under it 2 high
+                beside -> {
+                    val rows = room!!.rows
+                    val density = androidx.compose.ui.platform.LocalDensity.current
+                    val gridRow = app.treelune.core.ui.components.LocalGridRow.current
+                    // The header on the first row's two first cells, the row the body gives it
+                    val headerRow = if (rows != null) Modifier.fillMaxHeight(1f / rows)
+                        else Modifier.height(gridRow + with(density) { CurrentTheme.current.gridRowGapPx().toDp() })
+                    Box(modifier = if (rows == null) Modifier.fillMaxWidth() else Modifier.fillMaxSize()) {
+                        body(room)
+                        Box(modifier = Modifier.fillMaxWidth(0.5f).then(headerRow), contentAlignment = Alignment.CenterStart) { Header() }
+                    }
+                }
                 room == null -> when {
                     zone || laid.height == 1 && !laid.summaryBeside -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) { Header() }
                     laid.summaryBeside -> SideBySide(Modifier.fillMaxSize(), { Header() }, glance)

@@ -91,7 +91,8 @@ fun CreateZoneScreen(
         },
         // The pieces its tile shows, among the zone's, named when its size leaves some out
         app.treelune.core.look.TilePieces.KEY to app.treelune.core.ui.components.tilePiecesEditor(existingZone?.id,
-            app.treelune.core.look.TileSize.parse(settings.optString("tile_size")) ?: ZoneSettings.LOOK.defaultSize, s),
+            app.treelune.core.look.TileSize.parse(settings.optString("tile_size")) ?: ZoneSettings.LOOK.defaultSize,
+            settings.optBoolean(app.treelune.core.look.TilePieces.ICONS, false), s),
         "group" to object : SettingEditor {
             @Composable
             override fun Edit(value: Any?, onChange: (Any?) -> Unit) {

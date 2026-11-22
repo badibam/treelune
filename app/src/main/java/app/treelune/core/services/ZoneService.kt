@@ -110,6 +110,7 @@ class ZoneService(private val context: Context) : ExecutableService {
         // A new zone holds nothing yet: a piece named for its tile is refused
         val pieces = TilePieces.of(params.opt(TilePieces.KEY))
         piecesRefusal(zoneId, pieces, emptyList())?.let { return OperationResult.error(it) }
+        val piecesInIcons = params.optBoolean(TilePieces.ICONS, false)
 
         if (token.isCancelled) return OperationResult.cancelled()
 
@@ -128,7 +129,8 @@ class ZoneService(private val context: Context) : ExecutableService {
             validate = validate,
             identity_id = identityId,
             readout_columns = readoutColumns,
-            tile_pieces = TilePieces.write(pieces)
+            tile_pieces = TilePieces.write(pieces),
+            tile_pieces_icons = piecesInIcons
         )
         checkZone(placing)?.let { return OperationResult.error(it) }
 
@@ -218,6 +220,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             put("validate", zone.validate)
             put(ReadoutColumns.KEY, zone.readout_columns ?: ReadoutColumns.HOME)
             TilePieces.read(zone.tile_pieces).takeIf { it.isNotEmpty() }?.let { put(TilePieces.KEY, TilePieces.toList(it)) }
+            put(TilePieces.ICONS, zone.tile_pieces_icons)
         }
         val result = app.treelune.core.validation.SchemaValidator.validate(app.treelune.core.schemas.ZoneSettings.schema(context), settings, context)
         return if (result.isValid) null else result.errorMessage ?: s.shared("message_validation_error_simple")
@@ -399,6 +402,7 @@ class ZoneService(private val context: Context) : ExecutableService {
         val piecesBefore = TilePieces.read(existingZone.tile_pieces)
         val pieces = if (params.has(TilePieces.KEY)) TilePieces.of(params.opt(TilePieces.KEY)) else piecesBefore
         piecesRefusal(zoneId, pieces, piecesBefore)?.let { return OperationResult.error(it) }
+        val piecesInIcons = if (params.has(TilePieces.ICONS)) params.optBoolean(TilePieces.ICONS) else existingZone.tile_pieces_icons
         val updatedZone = existingZone.copy(
             name = name,
             description = look.description,
@@ -412,6 +416,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             identity_id = identityId,
             readout_columns = readoutColumns,
             tile_pieces = TilePieces.write(pieces),
+            tile_pieces_icons = piecesInIcons,
             updated_at = System.currentTimeMillis()
         )
 
@@ -539,6 +544,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             zoneMap["tool_groups"] = JsonUtils.toList(zone.tool_groups)
         }
         zoneMap[TilePieces.KEY] = TilePieces.toList(TilePieces.read(zone.tile_pieces))
+        zoneMap[TilePieces.ICONS] = zone.tile_pieces_icons
 
         // Add group if present
         if (zone.group != null) {
@@ -580,6 +586,7 @@ class ZoneService(private val context: Context) : ExecutableService {
                 zoneMap["tool_groups"] = JsonUtils.toList(zone.tool_groups)
             }
             zoneMap[TilePieces.KEY] = TilePieces.toList(TilePieces.read(zone.tile_pieces))
+            zoneMap[TilePieces.ICONS] = zone.tile_pieces_icons
 
             // Add group if present
             if (zone.group != null) {

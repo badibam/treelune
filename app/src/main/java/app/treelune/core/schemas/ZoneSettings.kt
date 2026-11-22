@@ -65,6 +65,11 @@ object ZoneSettings {
                         FieldType.BOOLEAN, false, null), required = true, default = false)
                 ), description = s.shared("zone_schema_tile_piece")),
                 summary = listOf(app.treelune.core.look.TilePieces.ID), description = s.shared("zone_schema_tile_pieces")),
+            // Its pieces drawn in icons rather than in text
+            SettingNode.Field(
+                FieldDefinition(app.treelune.core.look.TilePieces.ICONS, s.shared("label_zone_tile_pieces_icons"), s.shared("zone_schema_tile_pieces_icons"), FieldType.BOOLEAN, false, null),
+                required = true, default = false
+            ),
             // The columns of its gathered readouts, the home screen's unless set
             SettingNode.Field(
                 FieldDefinition(app.treelune.core.readouts.ReadoutColumns.KEY, s.shared("label_zone_readout_columns"), s.shared("zone_schema_readout_columns"), FieldType.CHOICE, false,
