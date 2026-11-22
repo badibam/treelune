@@ -255,7 +255,7 @@ class PartImport(private val context: Context) {
         val fileRows = rows(data, "files").filter { !it.has("session_id") && it.getString("id") in former }
         fileRows.forEach { image ->
             // A link waits as a link prepared: the phone's file is not in the part (docs/design/linked-files.md)
-            if (image.has("uri")) app.treelune.core.files.LinkedFiles.pendAs(context, image.getString("id"), image)
+            if (app.treelune.core.files.LinkedFiles.isLinkRow(image)) app.treelune.core.files.LinkedFiles.pendAs(context, image.getString("id"), image)
             else {
                 val format = FileFormat.valueOf(image.getString("format"))
                 Files.copy(File(staging, format.fileName(former.getValue(image.getString("id")))), pending(image))

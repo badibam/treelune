@@ -67,10 +67,13 @@ data class FileEntity(
     /** A text's lines; null for any other kind */
     @ColumnInfo(name = "line_count") val lineCount: Int?,
     @ColumnInfo(name = "created_at") val createdAt: Long,
-    /** The address of the phone's file it links to, read where it is; null for a file the app keeps */
-    val uri: String? = null
+    /** The address of the phone's file it links to, read where it is; null for a file the app keeps and for an expected link */
+    val uri: String? = null,
+    /** Whether it links to a file of the phone; without an address, an expected link, described before its file is on the phone */
+    @ColumnInfo(defaultValue = "0") val linked: Boolean = uri != null
 ) {
     init {
+        require(uri == null || linked) { "File $id: an address is a link's" }
         require(listOfNotNull(sessionId, entryId, toolInstanceId).size == 1) { "File $id: one owner, a session, an entry or a tool" }
         require(FileFormat.valueOf(format).kind.name == kind) { "File $id: format $format is not of kind $kind" }
     }
@@ -83,7 +86,7 @@ data class FileEntity(
 }
 
 /** Whether it links to a file of the phone rather than keeping one. */
-val FileEntity.isLinked: Boolean get() = uri != null
+val FileEntity.isLinked: Boolean get() = linked
 
 /** The format its file is written as. */
 val FileEntity.fileFormat: FileFormat get() = FileFormat.valueOf(format)
@@ -135,7 +138,7 @@ interface FileDao {
     suspend fun countLinkedIn(tree: String): Int
 
     /** Every link, to tell those the phone no longer has. */
-    @Query("SELECT * FROM files WHERE uri IS NOT NULL")
+    @Query("SELECT * FROM files WHERE linked = 1")
     suspend fun getLinked(): List<FileEntity>
 
     /** A link given the address its file was found at. */

@@ -56,8 +56,9 @@ object Files {
 
     /** The source of [row]: its file, kept or linked; null when it cannot be read (a link whose file is gone). */
     fun source(context: Context, row: FileEntity): Source? {
-        val linked = row.uri ?: return file(context, row).takeIf { it.exists() }?.let { Source(it, android.net.Uri.fromFile(it)) }
-        val uri = android.net.Uri.parse(linked)
+        if (!row.isLinked) return file(context, row).takeIf { it.exists() }?.let { Source(it, android.net.Uri.fromFile(it)) }
+        // An expected link has no address yet: nothing to read
+        val uri = row.uri?.let(android.net.Uri::parse) ?: return null
         return Source(null, uri).takeIf { LinkedFiles.readable(context, uri) }
     }
 
@@ -81,7 +82,7 @@ object Files {
      */
     suspend fun locate(context: Context, id: String): Source? {
         AppDatabase.getDatabase(context).fileDao().getById(id)?.let { return source(context, it) }
-        LinkedFiles.pending(context, id)?.let { (uri, _) -> return Source(null, uri).takeIf { LinkedFiles.readable(context, uri) } }
+        LinkedFiles.pending(context, id)?.let { (uri, _) -> return uri?.let { Source(null, it) }?.takeIf { LinkedFiles.readable(context, it.uri) } }
         return pendingFile(context, id)?.let { Source(it, android.net.Uri.fromFile(it)) }
     }
 
@@ -106,7 +107,7 @@ object Files {
             return source(context, row)?.let { Found(it, FileDescription.of(row)) }
         }
         LinkedFiles.pending(context, id)?.let { (uri, description) ->
-            return Found(Source(null, uri), description).takeIf { LinkedFiles.readable(context, uri) }
+            return uri?.let { Found(Source(null, it), description) }?.takeIf { LinkedFiles.readable(context, it.source.uri) }
         }
         val pending = pendingFile(context, id) ?: return null
         val format = FileFormat.ofExtension(pending.extension) ?: return null

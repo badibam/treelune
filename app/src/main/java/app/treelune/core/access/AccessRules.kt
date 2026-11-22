@@ -241,7 +241,7 @@ object AccessRules {
             "files" -> when (operation) {
                 "read" -> listOf(text("id")?.let { Reach.File(it, AccessLevel.READ) } ?: Reach.Unknown("$resource.$operation"))
                 // The phone's folders opened to the app, outside any zone: as the app
-                "folders", "link", "relink" -> listOf(Reach.App)
+                "folders", "link", "relink", "expect" -> listOf(Reach.App)
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
             // The history of one tool or zone is read as it is; the whole of it, and an undo, whose rows may be anywhere, as the app

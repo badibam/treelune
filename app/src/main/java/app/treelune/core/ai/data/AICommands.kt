@@ -124,6 +124,7 @@ object AICommands {
         query("IMAGES", p("ids", "array", true)),
         query("FOLDERS", p("folder_id", "string"), p("path", "string")),
         query("LINK_FILE", p("folder_id", "string", true), p("path", "string", true)),
+        query("EXPECT_FILES", p("files", "array", true)),
         query("IMPORT_PLAN", p("file", "string", true), p("tool_instance_id", "string", true)),
         query("CURRENT_DATETIME"),
         query("DESIGN_GUIDE"),

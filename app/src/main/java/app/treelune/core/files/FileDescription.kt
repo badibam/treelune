@@ -22,11 +22,11 @@ data class FileDescription(
 ) {
     val kind: FileKind get() = format.kind
 
-    /** Its row, owned by one of [sessionId], [entryId], [toolInstanceId]; a link to the phone's file at [uri], when given. */
-    fun row(id: String, sessionId: String?, entryId: String?, toolInstanceId: String?, createdAt: Long, uri: String? = null) = FileEntity(
+    /** Its row, owned by one of [sessionId], [entryId], [toolInstanceId]; a link when [linked], to the phone's file at [uri] once it is known. */
+    fun row(id: String, sessionId: String?, entryId: String?, toolInstanceId: String?, createdAt: Long, uri: String? = null, linked: Boolean = uri != null) = FileEntity(
         id = id, sessionId = sessionId, entryId = entryId, toolInstanceId = toolInstanceId,
         kind = kind.name, format = format.name, name = name, sizeBytes = sizeBytes,
-        width = width, height = height, durationMs = durationMs, lineCount = lineCount, createdAt = createdAt, uri = uri
+        width = width, height = height, durationMs = durationMs, lineCount = lineCount, createdAt = createdAt, uri = uri, linked = linked
     )
 
     companion object {

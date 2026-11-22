@@ -468,6 +468,19 @@ Prepares a sound or a video of an authorized folder as a link, for a FILE field 
 - `path` (string, **required**): the file under it, its names joined by `/`
 
 Returns `file_id`, `kind`, `format`, `size_bytes`, `name` and `duration`. Refused for a file that is neither a sound nor a video Android plays. A field that copies its files refuses a link, and a linked field refuses a copy.]]></string>
+    <string name="ai_command_expect_files"><![CDATA[### EXPECT_FILES
+
+Prepares sounds or videos that are not on the phone yet as links, from their description (a library read on a computer), for a FILE field in linked mode. Write each `file_id` in its field with CREATE_DATA or UPDATE_DATA, as with LINK_FILE; a link that no entry takes is erased when the app starts again. The link stays “not found” until the user copies the file into an authorized folder and runs the search in Settings › Data, which recognises it by its exact name and size.
+
+**Parameters**:
+
+- `files` (array, **required**): one object per file:
+  - `name` (string, **required**): its exact name, with its extension, without its folder
+  - `size_bytes` (integer, **required**): its exact size
+  - `format` (string, **required**): `MP3`, `M4A`, `AAC`, `OGG`, `WAV`, `FLAC` or `MP4`
+  - `duration` (string, optional): its length in ISO 8601 (`PT1H25M`)
+
+Returns `files`, in the same order, each with its `file_id`, `kind`, `format`, `size_bytes`, `name` and `duration`. One file that does not read refuses the whole list.]]></string>
     <string name="ai_command_import_plan"><![CDATA[### IMPORT_PLAN
 
 Proposes how to import a joined file (a CSV), or one sent through `upload_address` (kind `TEXT`), into a tool: what IMPORT_DATA will need, column by column.

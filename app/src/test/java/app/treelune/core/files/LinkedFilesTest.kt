@@ -30,6 +30,28 @@ class LinkedFilesTest {
     }
 
     @Test
+    fun `an expected file is read from its description, and one that does not read refuses all`() {
+        val good = org.json.JSONObject().put("name", "vol 01.flac").put("size_bytes", 1000).put("format", "FLAC").put("duration_ms", 5000)
+        val read = LinkedFiles.readExpected(org.json.JSONArray().put(good)) { it } as LinkedFiles.Expected.Read
+        assertEquals(FileDescription(FileFormat.FLAC, "vol 01.flac", 1000, durationMs = 5000), read.files.single())
+        listOf(
+            org.json.JSONObject(good.toString()).put("name", "Music/vol 01.flac"),
+            org.json.JSONObject(good.toString()).put("size_bytes", 0),
+            org.json.JSONObject(good.toString()).put("format", "PNG"),
+            org.json.JSONObject(good.toString()).put("duration", "soon")
+        ).forEach { bad ->
+            assertTrue(LinkedFiles.readExpected(org.json.JSONArray().put(good).put(bad)) { it } is LinkedFiles.Expected.Refused)
+        }
+    }
+
+    @Test
+    fun `a backup's row is a link by its mark, or by its address before the mark`() {
+        assertTrue(LinkedFiles.isLinkRow(org.json.JSONObject().put("linked", true)))
+        assertTrue(LinkedFiles.isLinkRow(org.json.JSONObject().put("uri", "content://x")))
+        assertFalse(LinkedFiles.isLinkRow(org.json.JSONObject().put("name", "photo.jpg")))
+    }
+
+    @Test
     fun `an audio has no limit of size, a video keeps its own`() {
         assertEquals(null, FileKind.AUDIO.maxBytes)
         assertEquals(200L * 1024 * 1024, FileKind.VIDEO.maxBytes)

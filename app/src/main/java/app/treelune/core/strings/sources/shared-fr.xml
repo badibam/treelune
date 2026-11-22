@@ -3408,6 +3408,7 @@
     <string name="settings_data_schema_opened_folder_name">Son nom sur le téléphone</string>
     <string name="ai_read_user_folders">Dossiers du téléphone lus</string>
     <string name="ai_read_user_link">Fichier du téléphone lié</string>
+    <string name="ai_read_user_expect">Fichiers attendus sur le téléphone : %1$d</string>
     <string name="action_verbalize_files_folders">Lecture des dossiers autorisés</string>
     <string name="action_verbalize_files_link">Lien vers un fichier du téléphone</string>
     <string name="file_browse_title">Un fichier du téléphone</string>
@@ -3434,6 +3435,11 @@
     <string name="link_search_several">Plusieurs fichiers correspondent, aucun n\'a été choisi :</string>
     <string name="link_search_folders_refused">Dossiers que l\'app ne peut plus lire : %1$s</string>
     <string name="link_search_again">Chercher à nouveau</string>
+    <string name="action_verbalize_files_expect">Préparation de fichiers pas encore sur le téléphone</string>
+    <string name="file_expect_name">Fichier %1$d de la liste : `name` est requis, le nom du fichier sans son dossier.</string>
+    <string name="file_expect_size">%1$s : `size_bytes` est requis, sa taille exacte, au-dessus de zéro.</string>
+    <string name="file_expect_format">%1$s : `format` est l\'un de %2$s.</string>
+    <string name="file_expect_duration">%1$s : `duration` est une durée ISO 8601 au-dessus de zéro (PT1H25M).</string>
     <string name="action_verbalize_files_relink">Recherche des fichiers introuvables</string>
     <string name="backup_import_links_unreachable">%1$d fichiers liés pas trouvés. Autorise leur dossier, puis lance la recherche dans Réglages › Données.</string>
 </resources>

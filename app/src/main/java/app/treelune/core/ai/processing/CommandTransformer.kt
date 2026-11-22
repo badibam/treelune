@@ -149,6 +149,10 @@ object CommandTransformer {
                         params = command.params.filterKeys { it == "folder_id" || it == "path" }.filterValues { it is String }.mapValues { it.value!! })
                     "LINK_FILE" -> ExecutableCommand(resource = "files", operation = "link",
                         params = command.params.filterKeys { it == "folder_id" || it == "path" }.filterValues { it is String }.mapValues { it.value!! })
+                    // Files described before they are on the phone; a duration faces the AI in ISO 8601
+                    "EXPECT_FILES" -> (command.params["files"] as? List<*>)?.let { files ->
+                        ExecutableCommand(resource = "files", operation = "expect", params = mapOf("files" to files.map(::expectedFile)))
+                    }
                     "IMPORT_PLAN" -> transformImportPlanCommand(command)
                     // The identities (docs/AI.md, « Identities »): a null, an id missing, is said by the loop as invalid params
                     "IDENTITIES" -> ExecutableCommand(resource = "identities", operation = "list", params = emptyMap())
@@ -267,6 +271,14 @@ object CommandTransformer {
     }
 
     /** What an import of a joined file would do, column by column: the file read by the service itself. */
+    /** A file of EXPECT_FILES with its `duration` in milliseconds; one that does not read stays, for the service to refuse. */
+    private fun expectedFile(file: Any?): Any? {
+        val given = file as? Map<*, *> ?: return file
+        val iso = given["duration"] as? String ?: return given
+        val millis = runCatching { java.time.Duration.parse(iso).toMillis() }.getOrNull() ?: return given
+        return given.entries.filter { it.key != "duration" }.associate { it.key.toString() to it.value } + ("duration_ms" to millis)
+    }
+
     private fun transformImportPlanCommand(command: DataCommand): ExecutableCommand? {
         val file = command.params["file"] as? String ?: return null
         val toolInstanceId = command.params["tool_instance_id"] as? String ?: return null

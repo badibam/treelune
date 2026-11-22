@@ -8,7 +8,7 @@ La 0.9.11 publiée et le téléphone sont en base 119. Les migrations 120 et 121
 
 - Déjà codé en 120 : `tile_pieces_icons`, les repères cochés « la tuile de sa zone » passés dans les pièces.
 - Déjà codé en 121 : `zones.identity_id` retiré.
-- À ajouter : `files.linked` (le lien attendu, `docs/design/linked-files.md`).
+- À ajouter, le modèle étant déjà codé : `files.linked` (`INTEGER NOT NULL DEFAULT 0`, à 1 pour toute ligne qui a une `uri`), et le même champ dans les copies de `files` gardées par l'historique (`HistoryCopies`).
 
 ## 2. Tuile de zone, en mode icônes et en mode compact
 
@@ -16,10 +16,9 @@ La 0.9.11 publiée et le téléphone sont en base 119. Les migrations 120 et 121
 
 ## 5. Fichiers liés
 
-Décidé, spec relue et complétée le 2026-11-22 : `docs/design/linked-files.md`. Dans cet ordre :
+Décidé, spec relue et complétée le 2026-11-22 : `docs/design/linked-files.md`. Reste :
 
-1. Le lien attendu et `EXPECT_FILES`.
-2. Les entrées absentes grisées dans « Que jouer ? ».
+- Les entrées absentes grisées dans « Que jouer ? ».
 
 Ouvert, à ne pas coder maintenant : un filtre « seulement ce qui est sur le téléphone », pour une bibliothèque sans ordre de progression où les présents sont épars.
 

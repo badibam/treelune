@@ -62,6 +62,9 @@ import java.util.UUID
  * - link: `folder_id`, `path`: the sound or the video there prepared as a link, as `prepare` sets a
  *   file aside, until an entry's field in linked mode takes its id. Answer: its `file_id`, `kind`,
  *   `format`, `size_bytes`, `name` and `duration` (ISO 8601).
+ * - expect: `files`, each with `name`, `size_bytes`, `format` and optionally `duration_ms`: files
+ *   not on the phone prepared as links without an address, refused whole if one does not read.
+ *   Answer: `files`, in the same order, each as `link` answers.
  * - relink: `ids`?, the links to check (all of them by default): those that no longer read and
  *   whose file is found by its name and size get its address (LinkSearch). Answer: the report's
  *   `checked`, `relinked`, `not_found`, `other_size`, `several`, `folders_refused`.
@@ -95,6 +98,7 @@ class FileService(private val context: Context) : ExecutableService {
             "folders" -> folders(params)
             "link" -> link(params)
             "relink" -> relink(params, token)
+            "expect" -> expect(params)
             else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
         }
     }
@@ -313,6 +317,17 @@ class FileService(private val context: Context) : ExecutableService {
         }
     }
 
+    private fun expect(params: JSONObject): OperationResult {
+        val files = params.optJSONArray("files")?.takeIf { it.length() > 0 }
+            ?: return OperationResult.error(s.shared("service_error_missing_required_params").format("files"))
+        return when (val read = LinkedFiles.readExpected(files, s::shared)) {
+            is LinkedFiles.Expected.Refused -> OperationResult.error(read.message)
+            is LinkedFiles.Expected.Read -> OperationResult.success(mapOf(
+                "files" to LinkedFiles.expect(context, read.files).map { (id, description) -> LinkedFiles.answer(id, description) }
+            ))
+        }
+    }
+
     private suspend fun relink(params: JSONObject, token: CancellationToken): OperationResult {
         val only = params.optJSONArray("ids")?.let { ids -> (0 until ids.length()).map { ids.getString(it) }.toSet() }
         val report = app.treelune.core.files.LinkSearch.run(context, only) { token.isCancelled } ?: return OperationResult.cancelled()
@@ -350,6 +365,7 @@ class FileService(private val context: Context) : ExecutableService {
             "folders" -> s.shared("action_verbalize_files_folders")
             "link" -> s.shared("action_verbalize_files_link")
             "relink" -> s.shared("action_verbalize_files_relink")
+            "expect" -> s.shared("action_verbalize_files_expect")
             else -> s.shared("action_verbalize_unknown")
         }
     }

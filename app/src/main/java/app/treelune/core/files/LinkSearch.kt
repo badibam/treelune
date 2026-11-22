@@ -107,7 +107,7 @@ object LinkSearch {
         val broken = mutableListOf<FileEntity>()
         for (link in links) {
             if (cancelled()) return@withContext null
-            if (!LinkedFiles.readable(context, Uri.parse(link.uri))) broken += link
+            if (!LinkedFiles.reads(context, link)) broken += link
         }
         if (broken.isEmpty()) return@withContext Report(links.size, 0, emptyList(), emptyList(), emptyList(), emptyList())
 

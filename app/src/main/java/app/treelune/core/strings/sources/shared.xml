@@ -3408,6 +3408,7 @@
     <string name="settings_data_schema_opened_folder_name">Its name on the phone</string>
     <string name="ai_read_user_folders">Folders of the phone read</string>
     <string name="ai_read_user_link">File of the phone linked</string>
+    <string name="ai_read_user_expect">Files expected on the phone: %1$d</string>
     <string name="action_verbalize_files_folders">Reading the authorized folders</string>
     <string name="action_verbalize_files_link">Linking a file of the phone</string>
     <string name="file_browse_title">A file of the phone</string>
@@ -3434,6 +3435,11 @@
     <string name="link_search_several">Several files match, none was chosen:</string>
     <string name="link_search_folders_refused">Folders the app can no longer read: %1$s</string>
     <string name="link_search_again">Search again</string>
+    <string name="action_verbalize_files_expect">Preparing files not on the phone yet</string>
+    <string name="file_expect_name">File %1$d of the list: `name` is required, the file\'s name without its folder.</string>
+    <string name="file_expect_size">%1$s: `size_bytes` is required, its exact size, above zero.</string>
+    <string name="file_expect_format">%1$s: `format` is one of %2$s.</string>
+    <string name="file_expect_duration">%1$s: `duration` is an ISO 8601 length above zero (PT1H25M).</string>
     <string name="action_verbalize_files_relink">Searching for the missing files</string>
     <string name="backup_import_links_unreachable">%1$d linked files not found. Authorize their folder, then run the search in Settings › Data.</string>
 </resources>

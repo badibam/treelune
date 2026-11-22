@@ -44,7 +44,7 @@ class OwnedFiles private constructor(
     /** Whether a copy's new id was written in place of what was sent, in the values planned */
     val rewritten: Boolean,
     private val moves: List<Pair<String, File>>,
-    private val links: List<Pair<String, Pair<android.net.Uri, FileDescription>>>,
+    private val links: List<Pair<String, Pair<android.net.Uri?, FileDescription>>>,
     private val copies: List<Pair<FileEntity, String>>,
     private val removed: List<FileEntity>
 ) {
@@ -82,8 +82,8 @@ class OwnedFiles private constructor(
             val name = Files.pendingName(context, id).takeIf { it.exists() }?.readText(Charsets.UTF_8)
             rows.add(FileDescription.read(target, format, name).row(id, null, entryId, toolInstanceId, now))
         }
-        // A link's row holds its address: there is no file to place
-        links.forEach { (id, link) -> rows.add(link.second.row(id, null, entryId, toolInstanceId, now, link.first.toString())) }
+        // A link's row holds its address, none yet for an expected one: there is no file to place
+        links.forEach { (id, link) -> rows.add(link.second.row(id, null, entryId, toolInstanceId, now, link.first?.toString(), linked = true)) }
         copies.forEach { (source, newId) ->
             val copy = owned(source).copy(id = newId, createdAt = now)
             if (!source.isLinked) {
@@ -180,7 +180,7 @@ class OwnedFiles private constructor(
             }.associateBy { it.id }
 
             val moves = mutableListOf<Pair<String, File>>()
-            val links = mutableListOf<Pair<String, Pair<android.net.Uri, FileDescription>>>()
+            val links = mutableListOf<Pair<String, Pair<android.net.Uri?, FileDescription>>>()
             val copies = mutableListOf<Pair<FileEntity, String>>()
             val held = mutableSetOf<String>()
             var rewritten = false

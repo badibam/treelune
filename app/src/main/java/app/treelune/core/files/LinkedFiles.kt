@@ -8,6 +8,7 @@ import app.treelune.core.config.AppSettings
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.database.entities.AppSettingCategories
 import app.treelune.core.utils.LogManager
+import org.json.JSONArray
 import org.json.JSONObject
 import java.util.UUID
 
@@ -26,6 +27,9 @@ import java.util.UUID
  *   and the startup sweep removes one never written, as a prepared file.
  * - A link whose file can no longer be read (deleted, renamed, moved, its folder closed) is
  *   « not found »: the phone's state, said where the file is shown or played, never repaired.
+ * - An expected link is described without its file ([readExpected], [expect]), from a library
+ *   read on a computer: it has no address and behaves as a link not found, until a search finds
+ *   its file by its name and size (LinkSearch).
  */
 object LinkedFiles {
 
@@ -107,7 +111,7 @@ object LinkedFiles {
 
     /** How many links the phone no longer has, read each: said after a backup is restored. */
     suspend fun unreachable(context: Context): Int =
-        AppDatabase.getDatabase(context).fileDao().getLinked().count { !readable(context, Uri.parse(it.uri)) }
+        AppDatabase.getDatabase(context).fileDao().getLinked().count { !reads(context, it) }
 
     /** The name Android gives the folder [tree], its last part when it says none. */
     fun folderName(context: Context, tree: Uri): String {
@@ -125,6 +129,12 @@ object LinkedFiles {
         LogManager.service("Linked file $uri: not readable: ${e.message}", "WARN")
         false
     }
+
+    /** Whether the link [row] reads now: an expected link, without an address, never does. */
+    fun reads(context: Context, row: FileEntity): Boolean = row.uri?.let { readable(context, Uri.parse(it)) } == true
+
+    /** Whether a file's row in a backup is a link: one written before `linked` is by its address. */
+    fun isLinkRow(row: JSONObject): Boolean = row.optBoolean("linked") || (row.has("uri") && !row.isNull("uri"))
 
     /** Why a path cannot be followed in a folder. */
     class NotFound(message: String) : Exception(message)
@@ -219,34 +229,74 @@ object LinkedFiles {
             return Result.Refused(text("file_error_not_readable").format(name, e.message ?: ""))
         }
         val id = UUID.randomUUID().toString()
-        Files.write(Files.pendingLink(context, id).apply { parentFile?.mkdirs() }, JSONObject()
-            .put("uri", uri.toString())
-            .put("format", description.format.name)
-            .put("name", name)
-            .put("size_bytes", description.sizeBytes)
-            .put("duration_ms", description.durationMs)
-            .toString().toByteArray(Charsets.UTF_8))
+        writePending(context, id, uri.toString(), description)
         return Result.Done(id, description)
     }
 
-    /** The link prepared as [id]: its address and the description of its file; null when there is none. */
-    fun pending(context: Context, id: String): Pair<Uri, FileDescription>? {
+    /** The link [id] waiting as `<id>.link`, with its [uri] when it has one. */
+    private fun writePending(context: Context, id: String, uri: String?, description: FileDescription) {
+        val json = JSONObject()
+            .put("format", description.format.name)
+            .put("name", description.name)
+            .put("size_bytes", description.sizeBytes)
+            .put("duration_ms", description.durationMs ?: JSONObject.NULL)
+        uri?.let { json.put("uri", it) }
+        Files.write(Files.pendingLink(context, id).apply { parentFile?.mkdirs() }, json.toString().toByteArray(Charsets.UTF_8))
+    }
+
+    /** A list of expected files read, or why it is refused whole. */
+    sealed interface Expected {
+        class Read(val files: List<FileDescription>) : Expected
+        class Refused(val message: String) : Expected
+    }
+
+    /**
+     * The descriptions of [files], each with `name` (without its folder), `size_bytes`, `format`
+     * (a sound's or a video's) and optionally `duration_ms`. One that does not read refuses all.
+     *
+     * @param text The shared strings, for a refusal
+     */
+    fun readExpected(files: JSONArray, text: (String) -> String): Expected {
+        val formats = FileFormat.entries.filter { it.kind in KINDS }
+        val read = (0 until files.length()).map { index ->
+            val item = files.optJSONObject(index)
+            val name = item?.takeIf { !it.isNull("name") }?.optString("name")?.trim()?.takeIf { it.isNotEmpty() && '/' !in it && '\\' !in it }
+                ?: return Expected.Refused(text("file_expect_name").format(index + 1))
+            val size = (item.opt("size_bytes") as? Number)?.takeIf { it.toDouble() > 0 && it.toLong().toDouble() == it.toDouble() }?.toLong()
+                ?: return Expected.Refused(text("file_expect_size").format(name))
+            val format = formats.firstOrNull { it.name == item.optString("format") }
+                ?: return Expected.Refused(text("file_expect_format").format(name, formats.joinToString(", ") { it.name }))
+            // A duration the transformation could not read stays under `duration`
+            if (item.has("duration")) return Expected.Refused(text("file_expect_duration").format(name))
+            val duration = if (item.isNull("duration_ms")) null
+                else (item.opt("duration_ms") as? Number)?.toLong()?.takeIf { it > 0 } ?: return Expected.Refused(text("file_expect_duration").format(name))
+            FileDescription(format, name, size, durationMs = duration)
+        }
+        return Expected.Read(read)
+    }
+
+    /** Each of [files] prepared as an expected link, in the same order, with its id. */
+    fun expect(context: Context, files: List<FileDescription>): List<Pair<String, FileDescription>> =
+        files.map { description ->
+            val id = UUID.randomUUID().toString()
+            writePending(context, id, null, description)
+            id to description
+        }
+
+    /** The link prepared as [id]: its address, none for an expected link, and the description of its file; null when there is none. */
+    fun pending(context: Context, id: String): Pair<Uri?, FileDescription>? {
         val file = Files.pendingLink(context, id).takeIf { it.exists() } ?: return null
         val json = JSONObject(file.readText(Charsets.UTF_8))
-        return Uri.parse(json.getString("uri")) to FileDescription(
+        return json.optString("uri").takeIf { json.has("uri") && it.isNotEmpty() }?.let(Uri::parse) to FileDescription(
             FileFormat.valueOf(json.getString("format")), json.getString("name"), json.getLong("size_bytes"),
             durationMs = if (json.isNull("duration_ms")) null else json.getLong("duration_ms"))
     }
 
     /** A link [row] waiting as a prepared one under [id], for the owner a part's import makes (PartImport). */
     fun pendAs(context: Context, id: String, row: JSONObject) {
-        Files.write(Files.pendingLink(context, id).apply { parentFile?.mkdirs() }, JSONObject()
-            .put("uri", row.getString("uri"))
-            .put("format", row.getString("format"))
-            .put("name", row.optString("name"))
-            .put("size_bytes", row.getLong("size_bytes"))
-            .put("duration_ms", if (row.has("duration_ms") && !row.isNull("duration_ms")) row.getLong("duration_ms") else JSONObject.NULL)
-            .toString().toByteArray(Charsets.UTF_8))
+        writePending(context, id, if (row.isNull("uri")) null else row.getString("uri"), FileDescription(
+            FileFormat.valueOf(row.getString("format")), row.optString("name"), row.getLong("size_bytes"),
+            durationMs = if (row.isNull("duration_ms")) null else row.getLong("duration_ms")))
     }
 
     /** The answer of a link prepared, as an upload's: its id and what goes with its kind. */

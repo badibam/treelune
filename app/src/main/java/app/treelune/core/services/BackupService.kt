@@ -817,6 +817,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 file.lineCount?.let { put("line_count", it) }
                                 put("created_at", file.createdAt)
                                 file.uri?.let { put("uri", it) }
+                                if (file.linked) put("linked", true)
                             })
                         }
                     })
@@ -1028,7 +1029,7 @@ class BackupService(private val context: Context) : ExecutableService {
                     Files.write(target, (file.remove(app.treelune.core.versioning.FilesAtV92.CONTENT) as String).toByteArray(Charsets.UTF_8))
                 }
                 // A linked file has none in the zip: its row is its link
-                if (id !in missingAtExport && !file.has("uri") && !target.exists()) {
+                if (id !in missingAtExport && !app.treelune.core.files.LinkedFiles.isLinkRow(file) && !target.exists()) {
                     return Opened.Refused(s.shared("backup_import_file_missing").format(id))
                 }
             }
@@ -1427,7 +1428,9 @@ class BackupService(private val context: Context) : ExecutableService {
                         durationMs = if (item.has("duration_ms") && !item.isNull("duration_ms")) item.getLong("duration_ms") else null,
                         lineCount = if (item.has("line_count") && !item.isNull("line_count")) item.getInt("line_count") else null,
                         createdAt = item.getLong("created_at"),
-                        uri = item.optString("uri").takeIf { it.isNotEmpty() }
+                        uri = item.optString("uri").takeIf { it.isNotEmpty() },
+                        // Absent from a backup made before it: a link is what has an address
+                        linked = app.treelune.core.files.LinkedFiles.isLinkRow(item)
                     )
                 )
             }
