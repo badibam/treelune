@@ -61,7 +61,7 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
 Par l'app, sans vue web, chaque thème à sa manière (`core/drawing`, comme le Graphique).
 
 - Une dizaine de boîtes se lisent d'un coup d'œil en portrait, sans toucher ; au-delà, on défile verticalement.
-- Les enfants sans suite d'une même boîte, qu'elle atteint par des flèches identiques (même texte, même trait), forment un bloc rangé en lignes à la largeur de l'écran, à cadre discret, qu'une seule flèche atteint ; un groupe dont les boîtes n'ont aucune flèche entre elles, ni avec l'extérieur, se range de même (`rectpacking` d'ELK, qui refuse un groupe traversé par des flèches). Mesuré : l'arbre à 8 enfants passe de 721 à 534 dp, la carte de 30 choses de 1195 à 1179 dp ; un schéma fait de beaucoup de chaînes indépendantes reste large, quelle que soit la règle.
+- Les enfants sans suite d'une même boîte, qu'elle atteint par des flèches identiques (même texte, même trait), forment un bloc rangé en lignes à la largeur de l'écran, à cadre discret, qu'une seule flèche atteint ; un groupe dont les boîtes n'ont aucune flèche entre elles, ni avec l'extérieur, se range de même, comme les parties d'un schéma qu'aucune flèche ne relie.
 - Encore trop large, dans l'ordre : l'app replie des blocs et des groupes, le plus large d'abord, chacun devenant une boîte (« + 6 autres », le titre du groupe) qu'on touche pour la déplier, et le dit sous le schéma (« 2 groupes repliés pour tenir dans l'écran ») ; puis le dessin rétrécit, jusqu'à un seuil où le texte reste lisible (75 %, à juger sur le téléphone) ; en dernier recours, il défile horizontalement.
 - Pas de zoom par pincement.
 
@@ -71,21 +71,38 @@ Une page de lecture : le schéma sur toute la page, comme en FULL. Une boîte li
 
 Qu'un formulaire de config tiré de la déclaration accepte une section de boutons d'action est à vérifier (« Essayer » d'une API).
 
-## Le placement : ELK
+## Le placement
 
-Le placement des boîtes et le tracé des flèches viennent d'ELK (Eclipse Layout Kernel, `org.eclipse.elk.alg.layered`, EPL-2.0), algorithme en couches, `HierarchyHandling.INCLUDE_CHILDREN` pour les groupes, traits à angles droits ; l'app mesure les boîtes et leurs textes, ELK rend des positions, le thème dessine. Mesuré le 2026-11-01 :
+`tools/schema/layout/SchemaLayout.kt`, en Kotlin sans type Android : l'app mesure les boîtes et leurs textes, le placement rend des positions et des traits à angles droits, le thème dessine. Méthode en couches, groupe par groupe : un groupe est une boîte opaque pour son parent, une flèche qui y entre est coupée à son bord.
 
-- l'APK : +2,76 Mo (37,40 → 40,16) ;
-- sous R8, sur le téléphone, sans règle de conservation : il tourne, 30 boîtes à deux groupes imbriqués et une boucle placées en 65 ms la première fois, 20 à 30 ms ensuite, 7 ms d'initialisation ;
-- sur l'ordinateur, cinq schémas types (une boucle, une chaîne Repas → Coach, un arbre à 8 enfants, des groupes imbriqués, la carte d'une zone de 30 choses) : les trois sans largeur sont nets et tiennent en 340 dp ; l'arbre (721 dp) et la carte (1195 dp) débordent, avec ou sans borne du nombre de boîtes par couche (Coffman-Graham), qui les étale en escalier.
+ELK n'entre pas dans l'app. Relevé le 2026-11-22 dans les sources de Maven Central : les 500 fichiers d'ELK 0.12.1 autorisent la GPL-3.0, ceux d'EMF (`common`, `ecore`, `xmi`) et de `xtext.xbase.lib`, dont il dépend, non, en version tirée comme en dernière version. L'autre sortie, une exception ajoutée à la licence de Treelune, n'a pas été retenue.
 
-Son intégration demande : les fichiers propres à Eclipse en double laissés à un seul (`pickFirsts` : `plugin.xml`, `about.*`…) et `META-INF/services/org.eclipse.elk.core.data.ILayoutMetaDataProvider` fusionné (`merges`) ; `org.eclipse.xtext.xbase.lib`, qu'ELK utilise sans le déclarer ; `-dontwarn org.eclipse.**`, qui cacherait aussi un autre manque, sur un chemin non essayé : chaque option employée se vérifie dans la release sur le téléphone.
+Le banc compare le placement à ELK sur 11 schémas : `tmp/schema-bench` du worktree `schema`, ignoré par git (`../../gradlew run` depuis ce dossier, page `report.html`). Mesuré au commit du placement, nous face à ELK :
+
+- croisements : jamais plus (Groupes traversés 2 / 3, Losange dense 18 / 18, zéro ailleurs) ;
+- flèche sur une boîte, un groupe étranger ou un texte : 0 / 0 ; sur un titre de groupe : 0 / 12 ;
+- largeur : arbre à 8 enfants 313 / 678 dp, carte de 30 choses 353 / 671 dp, seule à dépasser 340 dp ;
+- coudes : plus qu'ELK sur 6 schémas, dont les trois à groupes (Groupes imbriqués 16 / 6, Groupes traversés 46 / 28, Boucles entre groupes 38 / 16) : la règle « pas plus de coudes qu'ELK sur les schémas à groupes » n'est pas tenue ;
+- hauteur : plus haut sur 9 schémas (carte de 30 choses 1138 / 655 dp) ;
+- temps : 40 ms au plus sur l'ordinateur, moins de 10 ms pour ELK ; non mesuré sur le téléphone.
+
+Jugé visuellement acceptable par l'utilisateur à ce stade.
 
 ## La tuile
 
 - **Résumé** : le nombre de boîtes et de flèches (« 7 boîtes · 9 flèches ») ; le même en LINE, CONDENSED et EXTENDED.
 - **SQUARE** : le schéma réduit à la tuile ; un toucher ouvre l'outil.
 - **FULL** : le schéma entier à la taille de lecture ; une boîte liée ouvre sa chose, un toucher ailleurs ouvre l'outil.
+
+## Reprise
+
+Le chantier vit dans le worktree `.claude/worktrees/schema`, branche `schema` (`local.properties` y est copié ; `TODO.md` n'y existe pas). Fait : le placement et son banc. Reste, à décider d'abord avec l'utilisateur : arrêter là sur le placement et passer à l'outil (config, vérification, dessin, écran, tuile), ou pousser encore les coudes des schémas à groupes.
+
+Les contraintes du chantier :
+
+- Ne pas toucher à la base : ni `AppDatabase.VERSION`, ni migration, ni `FileEntity`. Un besoin de Schéma s'ajoute à `docs/design/worklist-2026-11.md` et se soumet à l'utilisateur. Le Graphique montre la forme sans table ni service propres.
+- Ne pas installer de build sur un appareil qui a déjà des données : la base passerait de 119 à 121, puis planterait à l'ouverture, `files.linked` n'ayant pas de migration. Une installation debug neuve devrait s'ouvrir, non essayé ; sinon, `./run compile` seul.
+- Fusionner dans `develop` sans lancer la suite de tests : elle tourne une seule fois, les deux branches réunies. Conflits possibles : `ToolTypeScanner.kt`, `shared.xml`, `shared-fr.xml`, `ai_prompt_chunks.xml`, les blocs générés des README.
 
 ## Ouvert
 
@@ -94,9 +111,7 @@ Le schéma écrit est conçu ; ce qui suit reste à trancher ou à vérifier.
 À vérifier avant ou pendant le code :
 
 - Les noms de forme de la syntaxe `@{ shape: … }` de Mermaid 11, repris pour `shape`.
-- Qu'un formulaire de config tiré de la déclaration accepte une section de boutons d'action (« Importer du Mermaid », « Copier en Mermaid ») ; « Essayer » d'une API en est peut-être le précédent.
-- Les fichiers d'Eclipse qu'ELK et EMF embarquent (`model/*.ecore`, `*.xsd`, signatures, icônes) : ceux qui ne servent pas à l'exécution, retirés de l'APK.
-- Chaque option d'ELK employée, dans la release sur le téléphone (`-dontwarn org.eclipse.**` cache un manque jusqu'à l'appel).
+- La section de boutons d'action (« Importer du Mermaid », « Copier en Mermaid ») : `SettingNode` n'a aucun nœud d'action, et « Essayer » d'une API est écrit à la main dans `ApisScreen`, donc pas un précédent. Il faut un ajout au formulaire du core, à concevoir.
 
 À juger sur le téléphone :
 
