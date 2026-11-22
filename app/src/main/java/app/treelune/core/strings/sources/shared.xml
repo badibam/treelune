@@ -1065,7 +1065,7 @@
     <string name="ai_prompt_level3_title">Snapshot of the state of the application</string>
     <string name="ai_prompt_level3_snapshot_time">Snapshot taken at the start of the session: **%1$s**</string>
     <string name="ai_prompt_level3_snapshot_note">Note: this is a snapshot, which may have moved on since the start of the session.</string>
-    <string name="ai_prompt_level3_look_note">The look of zones and tiles (size, icon, colour, texture, tile pieces) is not in it: ZONE_CONTENTS gives it.</string>
+    <string name="ai_prompt_level3_look_note">The look of tiles (size, icon, colour, texture) is not in it: ZONE_CONTENTS with a `zone_id` gives it.</string>
     <string name="ai_prompt_level3_zone_groups_title">Zone groups of the home screen</string>
     <string name="ai_prompt_level3_zones_title">Zones</string>
     <string name="ai_prompt_level3_tools_title">Tool instances</string>

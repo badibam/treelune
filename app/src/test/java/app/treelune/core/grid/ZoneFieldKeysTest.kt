@@ -24,14 +24,14 @@ class ZoneFieldKeysTest {
     }
 
     @Test
-    fun `the snapshot keeps what a zone holds, without its look or its tiles'`() {
+    fun `the snapshot keeps a zone's look as set, and its tiles without theirs`() {
         val tile = mapOf("kind" to "tool", "id" to "t", "name" to "Weight", "fields" to mapOf("data" to listOf("value")),
             "tile_size" to "2x1", "icon_name" to "scale", "icon_color" to "BLUE", "texture" to "DOTS")
         val zone = mapOf("id" to "z", "name" to "Health", "tile_size" to "2x2", "icon_name" to "heart", "icon_color" to null, "texture" to null,
             "tile_pieces" to emptyList<String>(), "sections" to listOf(mapOf("group" to null, "tiles" to listOf(tile))))
-        assertEquals(mapOf("id" to "z", "name" to "Health", "sections" to listOf(mapOf("group" to null, "tiles" to listOf(
+        assertEquals(mapOf("id" to "z", "name" to "Health", "tile_size" to "2x2", "icon_name" to "heart", "sections" to listOf(mapOf("group" to null, "tiles" to listOf(
             mapOf("kind" to "tool", "id" to "t", "name" to "Weight", "fields" to mapOf("data" to listOf("value"))))))),
-            ZoneContents.withoutLook(zone))
+            ZoneContents.withoutTileLook(zone))
     }
 
     @Test

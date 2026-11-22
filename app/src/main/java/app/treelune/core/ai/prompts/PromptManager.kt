@@ -537,7 +537,7 @@ object PromptManager {
         val zonesArray = org.json.JSONArray()
         (contents.data?.get("zones") as? List<*> ?: emptyList<Any>()).forEach { zone ->
             @Suppress("UNCHECKED_CAST")
-            zonesArray.put(app.treelune.core.utils.JsonUtils.toJSONObject(app.treelune.core.grid.ZoneContents.withoutLook(zone as Map<String, Any?>)))
+            zonesArray.put(app.treelune.core.utils.JsonUtils.toJSONObject(app.treelune.core.grid.ZoneContents.withoutTileLook(zone as Map<String, Any?>)))
         }
 
         // The routines, each in a line (RoutineSchemas.listed)

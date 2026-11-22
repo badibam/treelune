@@ -94,10 +94,13 @@ class ZoneContents(private val context: Context) {
         private val LOOK = setOf("tile_size", "icon_name", IconColor.KEY, Texture.KEY, app.treelune.core.look.TilePieces.KEY)
 
         /**
-         * A zone as [read] gives it, without the look of the zone and of its tiles: the snapshot
-         * the AI gets at the start says what exists and where, ZONE_CONTENTS how it looks.
+         * A zone as [read] gives it for the snapshot the AI gets at the start: its own look, what
+         * is set of it, for a new zone to match the others; its tiles without theirs, which
+         * ZONE_CONTENTS gives for the zone being changed.
          */
-        fun withoutLook(zone: Map<String, Any?>): Map<String, Any?> = (zone - LOOK).mapValues { (key, value) ->
+        fun withoutTileLook(zone: Map<String, Any?>): Map<String, Any?> = zone.filterNot { (key, value) ->
+            key in LOOK && (value == null || value == emptyList<Any>())
+        }.mapValues { (key, value) ->
             if (key != "sections") value else (value as List<*>).map { section ->
                 val held = section as Map<*, *>
                 held.entries.associate { (k, v) ->

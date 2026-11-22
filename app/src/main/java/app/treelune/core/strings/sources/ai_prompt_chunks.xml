@@ -50,7 +50,9 @@ An icon, for a zone or a tool, is named by its **Lucide** name. Every Lucide ico
 
 Zones on the home screen, and tools, variables, routines and Tasks in their zone, show as tiles in a grid 4 cells wide, one per section (group). Their `tile_size` gives the cells a tile takes, width × height: `icon` 1×1; `2x1` to `2x10`, half the width, 1 to 10 rows high; `4x1` to `4x10`, the whole width; `4xcontent`, the whole width, as tall as what it shows. A tile shows its name on its first row, then its summary (beside the name 4 wide, under it 2 wide), then what it lists in the rows left; a fixed height never shrinks. Two tiles 2 wide stand side by side, a tile 4 wide takes its rows alone; the other tiles make room when one grows.
 
-You choose a tile's mode and its section, never its place in the grid: a new tile or one moved to another section comes at the first free place, and only the user moves a tile, by dragging it on the screen. Asked to put a tile somewhere (at the top, beside another), say so, and do what is in your hands only if it serves the request.]]></string>
+You choose a tile's mode and its section, never its place in the grid: a new tile or one moved to another section comes at the first free place, and only the user moves a tile, by dragging it on the screen. Asked to put a tile somewhere (at the top, beside another), say so, and do what is in your hands only if it serves the request.
+
+Before adding a tile to a zone or moving one into it, read ZONE_CONTENTS with that `zone_id`, and follow the sizes, icons and colours of the tiles already there.]]></string>
 
     <!-- A.3 Routine Completion [DEGREE 1, ROUTINE_RUN only] -->
     <string name="ai_chunk_routine_completion"><![CDATA[## ROUTINE_RUN: signalling that the work is done
