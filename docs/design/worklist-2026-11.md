@@ -8,7 +8,6 @@ Les retours du téléphone et les items décidés, classés le 2026-11-22. « À
 
 ## 3. Navigation et lisibilité des pages longues
 
-- La page d'une identité : une hauteur maximale pour ses blocs, un geste pour en voir un en entier, et les boutons d'une page longue (en haut, et le retour en haut).
 - Un écran « À propos » qui donne la version de l'app. À discuter.
 
 ## 4. Nouvelles fonctions dans des outils existants
