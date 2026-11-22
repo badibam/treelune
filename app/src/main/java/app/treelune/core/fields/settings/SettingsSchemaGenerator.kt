@@ -89,6 +89,7 @@ object SettingsSchemaGenerator {
                 is SettingNode.Condition -> Triple(node.name, node.required, conditionSchema(node, text))
                 is SettingNode.Term -> Triple(node.name, node.required, termSchema(node, text))
                 is SettingNode.Selection -> Triple(node.name, node.required, selectionSchema(node, text))
+                is SettingNode.Sort -> Triple(node.name, false, sortSchema(text).put("title", node.label).put("description", node.description))
                 is SettingNode.Period -> Triple(node.name, node.required, periodSchema(node, text))
                 is SettingNode.Instants -> Triple(node.name, node.required, instantsSchema(node, text))
                 is SettingNode.FieldValues -> Triple(node.name, false, fieldValuesSchema(node, text))

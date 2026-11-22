@@ -30,7 +30,8 @@ object ConfigSorts {
                     node.cases[chosen]?.let { refuse(it, config, context, s) }
                 }
                 is SettingNode.Section -> refuse(node.nodes, config, context, s)
-                is SettingNode.Field, is SettingNode.Condition, is SettingNode.Term,
+                // The tool's own sort, checked by its tool type, which knows its fields (refuseConfig)
+                is SettingNode.Field, is SettingNode.Condition, is SettingNode.Term, is SettingNode.Sort,
                 is SettingNode.Period, is SettingNode.Instants, is SettingNode.FieldValues -> null
             }
             if (refusal != null) return refusal

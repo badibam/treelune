@@ -16,6 +16,8 @@
     <string name="field_table_columns">Colonnes du tableau</string>
     <string name="schema_config_table_columns">Combien des champs de l\'utilisateur (extra_fields, dans leur ordre) le tableau montre après le nom</string>
     <string name="field_name_length">Longueur des noms</string>
+    <string name="field_default_sort">Tri par défaut</string>
+    <string name="schema_config_default_sort">L\'ordre dans lequel le tableau s\'ouvre : des clés l\'une après l\'autre, chacune un champ des fiches qui a un ordre (name, created_at, updated_at, extra.&lt;champ&gt;) et son sens ; par le nom, de A à Z, quand il est vide. Toucher l\'en-tête d\'une colonne trie encore par elle le temps de la visite</string>
     <string name="schema_config_name_length">La longueur que peut prendre le nom d\'une fiche : SHORT (60 caractères, quelques mots), MEDIUM (250, une phrase) ou LONG (1 500, un paragraphe). Le nom reste obligatoire et unique, et c\'est par lui qu\'on retrouve une fiche</string>
 
     <!-- Screen -->

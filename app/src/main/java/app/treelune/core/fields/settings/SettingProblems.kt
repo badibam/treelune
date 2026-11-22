@@ -28,6 +28,8 @@ object SettingProblems {
             } ?: node.required
             is SettingNode.Term -> config.optJSONObject(node.name)?.let { !termWritten(it) } ?: node.required
             is SettingNode.Selection -> node.required && config.optJSONObject(node.name) == null
+            // Empty is the tool's default order
+            is SettingNode.Sort -> false
             // An empty sort is the newest first
             is SettingNode.FieldValues -> false
             is SettingNode.Period -> node.required && config.optJSONObject(node.name) == null

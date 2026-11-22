@@ -32,6 +32,7 @@ import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.fields.CustomFieldsDisplay
 import app.treelune.core.fields.CustomFieldsInput
 import app.treelune.core.fields.FieldDefinition
+import app.treelune.core.fields.formatValue
 import app.treelune.core.fields.FieldValue
 import app.treelune.core.fields.FieldsLayout
 import app.treelune.core.fields.ToolFields
@@ -58,19 +59,27 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** One sheet: its id, its name, the user's fields it holds. */
-data class Sheet(val id: String, val name: String, val extra: Map<String, Any?>) {
+/** One sheet: its id, its name, the user's fields it holds, when it was created and last changed. */
+data class Sheet(val id: String, val name: String, val extra: Map<String, Any?>, val createdAt: Long, val updatedAt: Long) {
+    /** As the entry sort reads it, by path (EntrySort.ordered): name, created_at, updated_at, extra.<field>. */
+    val row: Map<String, Any?> get() = mapOf("id" to id, "name" to name, "created_at" to createdAt, "updated_at" to updatedAt, "extra" to extra)
+
     companion object {
         fun of(map: Map<*, *>) = Sheet(
             id = map["id"] as String,
             name = map["name"] as? String ?: "",
-            extra = (map["extra"] as? Map<*, *>)?.entries?.associate { it.key.toString() to it.value } ?: emptyMap()
+            extra = (map["extra"] as? Map<*, *>)?.entries?.associate { it.key.toString() to it.value } ?: emptyMap(),
+            createdAt = (map["created_at"] as Number).toLong(),
+            updatedAt = (map["updated_at"] as Number).toLong()
         )
     }
 }
 
-/** The key the table is sorted by: the name, or one of the user's fields. */
-private const val BY_NAME = "name"
+/** The path of a sheet's name, the table's first column. */
+private const val NAME = "name"
+
+/** The system dates a sort may name, shown under a sheet's name while the table is sorted by one. */
+private val DATES = setOf("created_at", "updated_at")
 
 /**
  * The screen of a Records tool (docs/TOOLS.md, « Records »): a table
@@ -100,8 +109,8 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
     // The filter header, kept for the visit
     var search by rememberSaveable { mutableStateOf("") }
     var filters by rememberSaveable { mutableStateOf("[]") }
-    var sortKey by rememberSaveable { mutableStateOf(BY_NAME) }
-    var ascending by rememberSaveable { mutableStateOf(true) }
+    // The sort chosen for the visit (EntrySort's stored form), the config's default sort until then
+    var chosenSort by rememberSaveable { mutableStateOf<String?>(null) }
     var headerOpen by rememberSaveable { mutableStateOf(false) }
     var editingFilters by rememberSaveable { mutableStateOf(false) }
 
@@ -172,11 +181,22 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
     val fields: List<FieldDefinition> = loadedConfig.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList()
     val columns = fields.take((settings.number(StructuredToolType.TABLE_COLUMNS)?.toInt() ?: 2).coerceAtLeast(0))
 
+    // The order asked (the Sort brick): the one chosen for the visit, the config's default otherwise
+    val sortable = remember(filterable) { app.treelune.core.fields.EntrySort.sortableFields(filterable) }
+    val sort = remember(chosenSort, loadedConfig) {
+        chosenSort?.let { app.treelune.core.fields.EntrySort.read(JSONArray(it)) { k -> s.shared(k) } }
+            ?: StructuredToolType.defaultSort(loadedConfig) { k -> s.shared(k) }
+    }
+    fun choose(next: List<app.treelune.core.fields.SortKey>) { chosenSort = app.treelune.core.fields.EntrySort.toJson(next).toString() }
+
     // What is shown: the filtered sheets, and those kept while open, in the order asked
     // Sorted once per change, not at every recomposition: a table can hold tens of thousands
-    val shown = remember(loadedSheets, kept, sortKey, ascending) {
+    val shown = remember(loadedSheets, kept, sort, sortable) {
         (loadedSheets + kept.values.filter { k -> loadedSheets.none { it.id == k.id } })
-            .let { list -> sorted(list, sortKey, ascending) }
+            .let { list ->
+                val byId = list.associateBy { it.id }
+                app.treelune.core.fields.EntrySort.ordered(list.map { it.row }, sort, sortable).map { byId.getValue(it["id"] as String) }
+            }
             .map { sheet -> kept[sheet.id]?.takeIf { loadedSheets.none { it.id == sheet.id } } ?: sheet }
     }
     val openSheet = openId?.takeIf { it.isNotEmpty() }?.let { id -> shown.find { it.id == id } }
@@ -229,7 +249,7 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
             val summary = listOfNotNull(
                 search.takeIf { it.isNotBlank() }?.let { s.shared("quoted").format(it) },
                 *JSONArray(filters).let { a -> (0 until a.length()).map { PointerDescription.filter(a.getJSONObject(it), filterable, s) } }.toTypedArray(),
-                "${if (sortKey == BY_NAME) s.shared("label_name") else fields.find { it.name == sortKey }?.displayName ?: sortKey} ${if (ascending) "↑" else "↓"}",
+                sort.joinToString(", ") { key -> "${sortable[key.field]?.displayName ?: key.field} ${if (key.ascending) "↑" else "↓"}" },
                 if (position != null) s.tool("position").format(position + 1, shown.size) else s.tool("count").format(shown.size)
             ).joinToString(" · ")
             UI.Card(type = CardType.SECTION_HEADER) {
@@ -240,19 +260,7 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
                     if (headerOpen) {
                         UI.FormField(label = s.tool("search"), value = search, onChange = { search = it }, fieldType = FieldType.SEARCH, required = false)
                         UI.Button(type = ButtonType.DEFAULT, onClick = { editingFilters = true }) { UI.Text(s.tool("filters"), TextType.LABEL) }
-                        app.treelune.core.ui.selectors.FieldPicker(
-                            label = s.tool("sort_by").format(""),
-                            fields = fields.associateBy { it.name },
-                            selected = if (sortKey == BY_NAME) app.treelune.core.ui.selectors.FieldPick.Other(BY_NAME) else app.treelune.core.ui.selectors.FieldPick.Path(sortKey),
-                            onSelect = { pick ->
-                                sortKey = when (pick) {
-                                    is app.treelune.core.ui.selectors.FieldPick.Other -> pick.key
-                                    is app.treelune.core.ui.selectors.FieldPick.Path -> pick.path
-                                }
-                            },
-                            others = mapOf(BY_NAME to s.shared("label_name")),
-                            required = false
-                        )
+                        app.treelune.core.ui.selectors.SortSetting(s.tool("sort_by").format(""), sort, filterable) { choose(it) }
                     }
                 }
             }
@@ -268,8 +276,9 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
                     UI.Text(s.shared("import_action"), TextType.LABEL)
                 }
             } }
-            sheetsTable(shown, columns, sortKey, ascending, empty, s, context,
-                onSort = { key -> if (key == sortKey) ascending = !ascending else { sortKey = key; ascending = true } },
+            sheetsTable(shown, columns, sort, sortable, empty, s, context,
+                // A column's header sorts by it alone, its second touch the other way
+                onSort = { path -> choose(listOf(app.treelune.core.fields.SortKey(path, ascending = !(sort.singleOrNull()?.let { it.field == path && it.ascending } ?: false)))) },
                 onOpen = { open(it) })
         } else if (editing) { item { Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
             // The name takes the length the config gives it
@@ -284,7 +293,8 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
                         if (extra.isNotEmpty()) params["extra"] = extra
                         write({ coordinator.processUserAction("tool_data.create", params) }) { result ->
                             val id = result.data?.get("id") as String
-                            kept = kept + (id to Sheet(id, draftName.trim(), extra))
+                            val now = System.currentTimeMillis()
+                            kept = kept + (id to Sheet(id, draftName.trim(), extra, now, now))
                             openId = id
                             editing = false
                         }
@@ -293,8 +303,9 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
                         // A field emptied is sent as null, which removes it
                         params["id"] = id
                         params["extra"] = fields.associate { it.name to draftExtra[it.name] }
+                        val createdAt = shown.firstOrNull { it.id == id }?.createdAt ?: System.currentTimeMillis()
                         write({ coordinator.processUserAction("tool_data.update", params) }) {
-                            kept = kept + (id to Sheet(id, draftName.trim(), extra))
+                            kept = kept + (id to Sheet(id, draftName.trim(), extra, createdAt, System.currentTimeMillis()))
                             editing = false
                         }
                     }
@@ -347,25 +358,12 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
     }
 }
 
-/** [sheets] ordered by [key], a missing value last whichever the direction. */
-private fun sorted(sheets: List<Sheet>, key: String, ascending: Boolean): List<Sheet> {
-    fun valueOf(sheet: Sheet): Any? = if (key == BY_NAME) sheet.name else sheet.extra[key]
-    val present = sheets.filter { valueOf(it) != null }
-    val comparator = Comparator<Sheet> { a, b ->
-        val x = valueOf(a); val y = valueOf(b)
-        if (x is Number && y is Number) x.toDouble().compareTo(y.toDouble())
-        else x.toString().lowercase().compareTo(y.toString().lowercase())
-    }
-    val ordered = present.sortedWith(if (ascending) comparator else comparator.reversed())
-    return ordered + sheets.filter { valueOf(it) == null }
-}
-
 /** The table: the names of its columns once, in the header, then one line of values per sheet, each an item of the list. */
 private fun LazyListScope.sheetsTable(
     sheets: List<Sheet>,
     columns: List<FieldDefinition>,
-    sortKey: String,
-    ascending: Boolean,
+    sort: List<app.treelune.core.fields.SortKey>,
+    sortable: Map<String, FieldDefinition>,
     empty: Boolean,
     s: app.treelune.core.strings.StringsContext,
     context: android.content.Context,
@@ -376,12 +374,16 @@ private fun LazyListScope.sheetsTable(
         item { UI.Text(s.tool(if (empty) "table_empty" else "no_match"), TextType.CAPTION) }
         return
     }
-    val keys = listOf(BY_NAME to s.shared("label_name")) + columns.map { it.name to it.displayName }
+    val keys = listOf(NAME to s.shared("label_name")) + columns.map { "extra.${it.name}" to it.displayName }
+    // The first key's direction beside its column, when it is one of them
+    val first = sort.firstOrNull()
+    // Sorted by a system date, each sheet says it under its name: no column of its own, which a phone held upright has no room for
+    val date = first?.field?.takeIf { it in DATES }?.let { path -> sortable[path]?.let { path to it } }
     item {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
             keys.forEach { (key, label) ->
                 Box(modifier = Modifier.weight(1f).clickable { onSort(key) }) {
-                    UI.Text(label + if (key == sortKey) (if (ascending) " ↑" else " ↓") else "", TextType.LABEL)
+                    UI.Text(label + if (key == first?.field) (if (first.ascending) " ↑" else " ↓") else "", TextType.LABEL)
                 }
             }
         }
@@ -390,7 +392,10 @@ private fun LazyListScope.sheetsTable(
     items(sheets, key = { it.id }) { sheet ->
         Row(modifier = Modifier.fillMaxWidth().clickable { onOpen(sheet) }.padding(vertical = UI.Space.XS), horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
             // A long name (the config's name_length) cut at three lines: the sheet opened says it all
-            Box(modifier = Modifier.weight(1f)) { UI.Text(sheet.name, TextType.BODY, maxLines = 3) }
+            Column(modifier = Modifier.weight(1f)) {
+                UI.Text(sheet.name, TextType.BODY, maxLines = if (date != null) 2 else 3)
+                date?.let { (path, field) -> UI.Text(field.formatValue(sheet.row[path], context), TextType.CAPTION, maxLines = 1) }
+            }
             columns.forEach { field ->
                 Box(modifier = Modifier.weight(1f)) {
                     sheet.extra[field.name]?.let { FieldValue(field, it, context, oneLine = true) }

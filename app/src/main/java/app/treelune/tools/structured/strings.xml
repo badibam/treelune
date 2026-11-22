@@ -16,6 +16,8 @@
     <string name="field_table_columns">Columns of the table</string>
     <string name="schema_config_table_columns">How many of the user\'s fields (extra_fields, in their order) the table shows after the name</string>
     <string name="field_name_length">Length of the names</string>
+    <string name="field_default_sort">Default sort</string>
+    <string name="schema_config_default_sort">The order the table opens in: keys one after the other, each a field of the records with an order (name, created_at, updated_at, extra.&lt;field&gt;) and its direction; by the name, A to Z, when empty. Touching a column's header still sorts by it for the visit</string>
     <string name="schema_config_name_length">How long a record\'s name may be: SHORT (60 characters, a few words), MEDIUM (250, a sentence) or LONG (1,500, a paragraph). The name stays required and unique, and is what finds a record</string>
 
     <!-- Screen -->

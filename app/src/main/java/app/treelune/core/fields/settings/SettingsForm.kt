@@ -202,7 +202,7 @@ private fun List<SettingNode>.isPage(): Boolean = any { node ->
         is SettingNode.Selection, is SettingNode.Condition -> true
         is SettingNode.Section -> node.nodes.isPage()
         is SettingNode.Variant -> node.cases.values.any { it.isPage() }
-        is SettingNode.Field, is SettingNode.Period, is SettingNode.Instants,
+        is SettingNode.Field, is SettingNode.Sort, is SettingNode.Period, is SettingNode.Instants,
         is SettingNode.FieldValues -> false
     }
 }
@@ -759,6 +759,10 @@ private fun NodeForm(
                 )
             }
         }
+
+        // Its fields are the tool's being configured, which the config's screen knows: it gives the editor
+        is SettingNode.Sort -> requireNotNull(editors[node.name]) { "The sort '${node.name}' is edited by the editor its screen gives (ToolConfigScreen)" }
+            .Edit(config.optJSONArray(node.name)) { set(node.name, it) }
 
         is SettingNode.Selection -> app.treelune.core.ui.selectors.SelectionSetting(
             label = node.label,

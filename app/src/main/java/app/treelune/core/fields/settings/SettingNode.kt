@@ -218,6 +218,18 @@ sealed class SettingNode {
     ) : SettingNode()
 
     /**
+     * The order of the tool's own entries stored under [name] (the Sort brick, docs/BRICKS.md):
+     * `[{"field", "direction"}]`, each key a field of the tool being configured with an order
+     * (EntryFilters.sortableFields), empty for its default order; drawn by SortSetting, which the
+     * config's screen gives it with the tool's fields (ToolConfigScreen).
+     */
+    data class Sort(
+        val name: String,
+        val label: String,
+        val description: String
+    ) : SettingNode()
+
+    /**
      * A period stored under [name] (the Période brick, docs/BRICKS.md): `{"start", "end"}`, each
      * bound an instant (TimePoint), absent for no limit; drawn by PeriodPicker.
      *
@@ -289,7 +301,7 @@ fun List<SettingNode>.storedField(name: String): FieldDefinition? {
                 ?: node.cases.values.firstNotNullOfOrNull { it.storedField(name) }
             is SettingNode.Section -> node.nodes.storedField(name)
             is SettingNode.Group, is SettingNode.ListOf, is SettingNode.Condition,
-            is SettingNode.Term, is SettingNode.Selection, is SettingNode.Period, is SettingNode.Instants,
+            is SettingNode.Term, is SettingNode.Selection, is SettingNode.Sort, is SettingNode.Period, is SettingNode.Instants,
             is SettingNode.FieldValues -> null
         }
         if (found != null) return found
@@ -331,6 +343,7 @@ fun List<SettingNode>.labelOf(name: String): String? {
             is SettingNode.Condition -> node.label.takeIf { node.name == name }
             is SettingNode.Term -> node.label.takeIf { node.name == name }
             is SettingNode.Selection -> node.label.takeIf { node.name == name }
+            is SettingNode.Sort -> node.label.takeIf { node.name == name }
             is SettingNode.Period -> node.label.takeIf { node.name == name }
             is SettingNode.Instants -> node.label.takeIf { node.name == name }
             is SettingNode.FieldValues -> node.label.takeIf { node.name == name }

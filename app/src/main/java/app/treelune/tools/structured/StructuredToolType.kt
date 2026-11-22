@@ -8,6 +8,7 @@ import app.treelune.core.fields.CoreFieldUsage
 import app.treelune.core.fields.EntryFields
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
+import app.treelune.core.fields.toFieldDefinitions
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.strings.Strings
 import app.treelune.core.tools.ToolTypeContract
@@ -30,6 +31,9 @@ object StructuredToolType : ToolTypeContract {
 
     /** How long a sheet's name may be: one of [NAME_LENGTHS], a few words by default. */
     const val NAME_LENGTH = "name_length"
+
+    /** The order its table opens in (the Sort brick): its keys, the name A to Z without them. */
+    const val DEFAULT_SORT = "default_sort"
 
     /** The lengths a name may take: a text field's, but those a name found by can hold. */
     private val NAME_LENGTHS = listOf(app.treelune.core.fields.TextLength.SHORT, app.treelune.core.fields.TextLength.MEDIUM, app.treelune.core.fields.TextLength.LONG)
@@ -67,7 +71,22 @@ object StructuredToolType : ToolTypeContract {
                     NAME_LENGTHS.associate { it.name to s.shared("text_length_${it.name.lowercase()}_display_name") }))),
             required = true,
             default = app.treelune.core.fields.TextLength.SHORT.name
-        ))
+        ), app.treelune.core.fields.settings.SettingNode.Sort(DEFAULT_SORT, s.tool("field_default_sort"), s.tool("schema_config_default_sort")))
+    }
+
+    /** Its table's order when it opens: the config's default sort, the name A to Z without one. */
+    fun defaultSort(config: JSONObject, text: (String) -> String): List<app.treelune.core.fields.SortKey> =
+        config.optJSONArray(DEFAULT_SORT)?.takeIf { it.length() > 0 }?.let { app.treelune.core.fields.EntrySort.read(it, text) }
+            ?: listOf(app.treelune.core.fields.SortKey("name", ascending = true))
+
+    /** The default sort names fields of the sheets with an order, each once (EntrySort.parse): a field removed since is named. */
+    override suspend fun refuseConfig(config: JSONObject, context: Context): String? {
+        val sort = config.optJSONArray(DEFAULT_SORT)?.takeIf { it.length() > 0 } ?: return null
+        val s = Strings.`for`(tool = "structured", context = context)
+        val fields = app.treelune.core.fields.EntryFilters.sortableFields(getEntryFields(config, context),
+            config.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList()) { s.shared(it) }
+        return (app.treelune.core.fields.EntrySort.parse(sort, fields) { s.shared(it) } as? app.treelune.core.fields.EntrySort.Parsed.Refused)
+            ?.let { s.shared("settings_count").format(s.tool("field_default_sort"), it.error) }
     }
 
     /** A sheet: its name, required, unique, as long as the config says; no date; nothing of the tool type in data. */
