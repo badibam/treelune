@@ -90,6 +90,22 @@ class ZoneContents(private val context: Context) {
     }
 
     companion object {
+        /** What says how a zone or a tile looks: its size, icon, colour, texture and a zone's tile pieces. */
+        private val LOOK = setOf("tile_size", "icon_name", IconColor.KEY, Texture.KEY, app.treelune.core.look.TilePieces.KEY)
+
+        /**
+         * A zone as [read] gives it, without the look of the zone and of its tiles: the snapshot
+         * the AI gets at the start says what exists and where, ZONE_CONTENTS how it looks.
+         */
+        fun withoutLook(zone: Map<String, Any?>): Map<String, Any?> = (zone - LOOK).mapValues { (key, value) ->
+            if (key != "sections") value else (value as List<*>).map { section ->
+                val held = section as Map<*, *>
+                held.entries.associate { (k, v) ->
+                    k.toString() to if (k == "tiles") (v as List<*>).map { tile -> (tile as Map<*, *>).filterKeys { it !in LOOK } } else v
+                }
+            }
+        }
+
         /**
          * The keys of a tool's fields by where they stand in an entry, as TOOL_DATA reads them
          * (`data.value`, `extra.calories`, `state.read`): its type's [declared] and the user's

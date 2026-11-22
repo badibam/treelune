@@ -1065,6 +1065,7 @@
     <string name="ai_prompt_level3_title">Snapshot de l\'état de l\'application</string>
     <string name="ai_prompt_level3_snapshot_time">Snapshot pris au début de la session : **%1$s**</string>
     <string name="ai_prompt_level3_snapshot_note">Note : Il s\'agit d\'un snapshot qui a pu évoluer depuis le début de la session.</string>
+    <string name="ai_prompt_level3_look_note">L\'apparence des zones et des tuiles (taille, icône, couleur, texture, pièces) n\'y est pas : ZONE_CONTENTS la donne.</string>
     <string name="ai_prompt_level3_zone_groups_title">Groupes de zones de l\'accueil</string>
     <string name="ai_prompt_level3_zones_title">Zones</string>
     <string name="ai_prompt_level3_tools_title">Instances d\'outils</string>

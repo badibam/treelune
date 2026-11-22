@@ -537,7 +537,7 @@ object PromptManager {
         val zonesArray = org.json.JSONArray()
         (contents.data?.get("zones") as? List<*> ?: emptyList<Any>()).forEach { zone ->
             @Suppress("UNCHECKED_CAST")
-            zonesArray.put(app.treelune.core.utils.JsonUtils.toJSONObject(zone as Map<String, Any?>))
+            zonesArray.put(app.treelune.core.utils.JsonUtils.toJSONObject(app.treelune.core.grid.ZoneContents.withoutLook(zone as Map<String, Any?>)))
         }
 
         // The routines, each in a line (RoutineSchemas.listed)
@@ -601,6 +601,7 @@ object PromptManager {
         sb.appendLine()
         sb.appendLine(s.shared("ai_prompt_level3_snapshot_time").format(dateStr))
         sb.appendLine(s.shared("ai_prompt_level3_snapshot_note"))
+        sb.appendLine(s.shared("ai_prompt_level3_look_note"))
         sb.appendLine()
         // A snapshot stored before the zone groups were part of it has none to show
         snapshotObj.optJSONArray("zone_groups")?.let { groups ->
