@@ -599,7 +599,6 @@ private fun HomeScreenBody(zones: ZonesState) {
                         groupName = groupName,
                         zones = zones.list,
                         groupHead = rising(app.treelune.core.readouts.ReadoutSettings.Place.ZONE_GROUP_HEAD),
-                        onTile = rising(app.treelune.core.readouts.ReadoutSettings.Place.ZONE_TILE),
                         piecesOf = piecesOf,
                         configuredGroups = zoneGroups,
                         editor = gridEditor,
@@ -618,7 +617,6 @@ private fun HomeScreenBody(zones: ZonesState) {
                     groupName = null, // null = ungrouped
                     zones = zones.list,
                     groupHead = rising(app.treelune.core.readouts.ReadoutSettings.Place.ZONE_GROUP_HEAD),
-                    onTile = rising(app.treelune.core.readouts.ReadoutSettings.Place.ZONE_TILE),
                     piecesOf = piecesOf,
                     hasConfiguredGroups = zoneGroups.isNotEmpty(),
                     configuredGroups = zoneGroups, // Pass list to filter orphaned zones
@@ -652,7 +650,6 @@ private fun ZoneGroupSection(
     groupName: String?,
     zones: List<Zone>,
     groupHead: List<app.treelune.core.readouts.ui.ReadoutRow>,
-    onTile: List<app.treelune.core.readouts.ui.ReadoutRow>,
     /** The pieces a zone's tile lists, found among its own (ListedPiece). */
     piecesOf: (Zone) -> List<app.treelune.core.ui.components.ListedPiece>,
     hasConfiguredGroups: Boolean = true,
@@ -723,7 +720,6 @@ private fun ZoneGroupSection(
         app.treelune.core.ui.components.GridLayout(groupZones, groupZones.map { app.treelune.core.ui.components.zoneGridTile(it, piecesOf(it)) }, groupZones.map { app.treelune.core.look.TileSize.ofStored(it.tile_size).followsContent }, editor.gridEdit(key)) { zone ->
             UI.ZoneCard(
                 zone = zone,
-                readouts = onTile.filter { it.zoneId == zone.id },
                 pieces = piecesOf(zone),
                 onClick = { onZoneClick(zone) },
                 onLongClick = { onZoneLongClick(zone) }

@@ -3318,10 +3318,9 @@
     <string name="readout_schema_color_line">Une condition sur ses valeurs, chaque côté une de ses valeurs par son nom ({\"field\": \"fait\"}) ou une valeur écrite, et la couleur qu\'elle donne</string>
     <string name="readout_schema_colors">Lues dans l\'ordre, la première dont la condition est vraie colore le Repère ; aucune vraie, pas de couleur</string>
     <string name="readout_places">Montré aussi</string>
-    <string name="readout_schema_places">Là où il remonte en plus de sa tuile propre, plusieurs Repères au même endroit réunis en une tuile dans l\'ordre de l\'arbre : group_head (la tête de son groupe), zone_head (la tête de sa zone), zone_tile (la tuile de sa zone à l\'accueil), zone_group_head (la tête du groupe de sa zone à l\'accueil), home_head (la tête de l\'accueil)</string>
+    <string name="readout_schema_places">Là où il remonte en plus de sa tuile propre, plusieurs Repères au même endroit réunis en une tuile dans l\'ordre de l\'arbre : group_head (la tête de son groupe), zone_head (la tête de sa zone), zone_group_head (la tête du groupe de sa zone à l\'accueil), home_head (la tête de l\'accueil)</string>
     <string name="readout_place_group_head">En tête de son groupe</string>
     <string name="readout_place_zone_head">En tête de sa zone</string>
-    <string name="readout_place_zone_tile">Sur la tuile de sa zone</string>
     <string name="readout_place_zone_group_head">En tête du groupe de sa zone, à l\'accueil</string>
     <string name="readout_place_home_head">En tête de l\'accueil</string>
     <string name="readout_error">Repère : %1$s</string>

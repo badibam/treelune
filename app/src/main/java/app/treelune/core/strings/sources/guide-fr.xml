@@ -204,7 +204,7 @@
     <string name="guide_readouts_4_goal">Changer ce qui est attendu</string>
     <string name="guide_readouts_4_text">Dans la zone Cuisine, appuie longuement sur son icône dans le groupe Repas pour ouvrir sa config. Sous Valeurs, ouvre expected et change son chiffre, par exemple 8. Enregistre.</string>
     <string name="guide_readouts_5_goal">Créer le tien</string>
-    <string name="guide_readouts_5_text">Dans une zone, touche le + en haut, puis Repère. Donne-lui ses Valeurs, son Cœur, qui écrit chaque valeur par son nom entre accolades, et si tu veux une Phrase, qui place le cœur avec deux accolades vides. Choisis ce qu\'il Ouvre, ses Couleurs, et où il est Montré aussi : en tête de son groupe ou de sa zone, sur la tuile de sa zone, en tête de l\'accueil.</string>
+    <string name="guide_readouts_5_text">Dans une zone, touche le + en haut, puis Repère. Donne-lui ses Valeurs, son Cœur, qui écrit chaque valeur par son nom entre accolades, et si tu veux une Phrase, qui place le cœur avec deux accolades vides. Choisis ce qu\'il Ouvre, ses Couleurs, et où il est Montré aussi : en tête de son groupe ou de sa zone, en tête de l\'accueil. Sur la tuile de sa zone, ajoute-le comme Pièce dans la configuration de la zone.</string>
     <string name="guide_talk_to_ai_title">Parler à l\'IA</string>
     <string name="guide_talk_to_ai_intro">Ce chapitre couvre la conversation avec l\'IA : ce qu\'on peut lui joindre, comment elle répond et demande ton accord, les réglages d\'une conversation et ce qu\'elle coûte.</string>
     <string name="guide_talk_to_ai_outro">Tu sais maintenant joindre ce qu\'il faut, répondre à l\'IA et régler une conversation. Pour que l\'IA fasse la même chose sans toi, lis le chapitre Les routines.</string>

@@ -206,52 +206,6 @@ fun ReadoutLine(readout: ReadoutRow, maxLines: Int = 2, short: Boolean = false) 
     }
 }
 
-/**
- * The readouts of a zone's tile, side by side and wrapping to the next line where room ends, each
- * its icon and its core in its colour; what the tile does not hold is cut. A touch on one opens
- * its target, a long touch its config.
- */
-@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
-@Composable
-fun ReadoutCores(readouts: List<ReadoutRow>) {
-    androidx.compose.foundation.layout.FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
-        verticalArrangement = Arrangement.spacedBy(UI.Space.XS)
-    ) {
-        readouts.forEach { readout ->
-            androidx.compose.runtime.key(readout.id) {
-                val shown = rememberReadoutShown(readout)
-                Row(
-                    modifier = Modifier.combinedClickable(onClick = { openTarget(readout) }, onLongClick = { configure(readout) }),
-                    horizontalArrangement = Arrangement.spacedBy(UI.Space.XS),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    readout.look.iconName?.let { UI.ItemIcon(it, IconColor.of(readout.look.iconColor), 20.dp) }
-                    ReadoutSentence(shown, maxLines = 1, short = true)
-                }
-            }
-        }
-    }
-}
-
-/**
- * The dots of the readouts that signal, for a tile that holds no line (a zone's in ICON or
- * MINIMAL): one per readout that signals, three at most, in the order given, each in its colour.
- */
-@Composable
-fun ReadoutDots(readouts: List<ReadoutRow>) {
-    // Each read in its own place of the composition, keyed by its id: the list may change
-    val shown = readouts.map { readout -> androidx.compose.runtime.key(readout.id) { rememberReadoutShown(readout) } }
-    val signalling = shown.filterNotNull().filter { it.signal }.take(MAX_DOTS)
-    if (signalling.isEmpty()) return
-    Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
-        signalling.forEach { UI.ItemIcon("circle", it.color, 8.dp) }
-    }
-}
-
-/** The dots a tile shows at most. */
-private const val MAX_DOTS = 3
-
 /** The readouts among [readouts] that rise to [place], in the order of the tree given by [zoneOrder] (zone ids) and each zone's [groupsOf]. */
 fun risingTo(readouts: List<ReadoutRow>, place: ReadoutSettings.Place, zoneOrder: List<String>, groupsOf: (String) -> List<String>): List<ReadoutRow> =
     readouts.filter { place in it.places }.sortedWith(compareBy<ReadoutRow>(

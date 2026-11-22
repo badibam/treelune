@@ -791,7 +791,6 @@ object UI {
     @Composable
     fun ZoneCard(
         zone: Zone,
-        readouts: List<app.treelune.core.readouts.ui.ReadoutRow> = emptyList(),
         pieces: List<app.treelune.core.ui.components.ListedPiece> = emptyList(),
         onClick: () -> Unit,
         onLongClick: () -> Unit = { }
@@ -799,15 +798,8 @@ object UI {
         val look = app.treelune.core.look.Look(zone.name, zone.description, zone.icon_name, zone.icon_color, zone.texture,
             requireNotNull(app.treelune.core.look.TileSize.parse(zone.tile_size)) { "Zone ${zone.id}: no tile size '${zone.tile_size}'" })
         val size = look.tileSize
-        // The lines its readouts' cores or its description have: none in icons and in 2×1
-        val linesHeld = size.let { if (it.inIcons || it.height == 1 && !it.summaryBeside) 0 else if (it.height == 1) 1 else 2 }
         @Composable
-        fun Glance() {
-            // Each by its icon and its core, side by side as many as the tile holds
-            if (readouts.isNotEmpty() && linesHeld > 0) app.treelune.core.readouts.ui.ReadoutCores(readouts)
-            else zone.description?.let { Text(it, TextType.BODY, maxLines = 2) }
-        }
-        val dots: (@Composable () -> Unit)? = if (readouts.isNotEmpty() && size.inIcons) ({ app.treelune.core.readouts.ui.ReadoutDots(readouts) }) else null
+        fun Glance() { zone.description?.let { Text(it, TextType.BODY, maxLines = 2) } }
         Box {
             LookCard(
                 look = look,
@@ -821,12 +813,8 @@ object UI {
                 glance = { Glance() },
                 body = { room -> app.treelune.core.ui.components.ZonePiecesBody(room, pieces, zone.id) },
                 frame = LookFrame.ZONE,
-                pieces = if (size.inIcons) app.treelune.core.ui.components.stripPieces(size, pieces, zone.id) else emptyList(),
-                iconMarks = dots
+                pieces = if (size.inIcons) app.treelune.core.ui.components.stripPieces(size, pieces, zone.id) else emptyList()
             )
-            if (readouts.isNotEmpty() && linesHeld == 0 && !size.inIcons) Box(modifier = Modifier.align(Alignment.BottomEnd).padding(Space.S)) {
-                app.treelune.core.readouts.ui.ReadoutDots(readouts)
-            }
         }
     }
 
@@ -960,8 +948,7 @@ object UI {
         frame: LookFrame = LookFrame.SECTION,
         second: (@Composable () -> Unit)? = null,
         secondWaits: Boolean = false,
-        pieces: List<app.treelune.core.ui.components.IconPiece> = emptyList(),
-        iconMarks: (@Composable () -> Unit)? = null
+        pieces: List<app.treelune.core.ui.components.IconPiece> = emptyList()
     ) {
         // Inside another tile (a zone's pieces), at the size it is given and without a frame
         val inner = app.treelune.core.ui.components.LocalInnerTile.current
@@ -1018,8 +1005,6 @@ object UI {
                 } else {
                     TileIcon(look.iconName, color, marked, running)
                 }
-                // What the owner marks on its icon besides (a zone's readouts that signal)
-                iconMarks?.let { Box(modifier = Modifier.align(Alignment.BottomEnd).padding(Space.XS)) { it() } }
             }
 
             when {

@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 119
+        const val VERSION = 120
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2363,6 +2363,49 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * A readout reaches its zone's tile only as a piece of the tile: each readout that ticked
+         * the place `zone_tile` joins its zone's `tile_pieces`, the place leaving its settings, the
+         * history's copies with them: see ReadoutTilePiecesAtV120.
+         */
+        private val MIGRATION_119_120 = object : ConnectionMigration(119, 120) {
+            override fun migrate(database: MigrationDatabase) {
+                val v = app.treelune.core.versioning.ReadoutTilePiecesAtV120
+                val moved = mutableListOf<app.treelune.core.versioning.ReadoutTilePiecesAtV120.Readout>()
+                database.query("SELECT id, zone_id, \"group\", grid_x, grid_y, settings_json FROM readouts").use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getString(0)
+                        val settings = v.settings(cursor.getString(5)) ?: continue
+                        database.execSQL("UPDATE readouts SET settings_json = ? WHERE id = ?", arrayOf<Any?>(settings, id))
+                        moved += app.treelune.core.versioning.ReadoutTilePiecesAtV120.Readout(id, cursor.getString(1),
+                            if (cursor.isNull(2)) null else cursor.getString(2), cursor.getInt(3), cursor.getInt(4))
+                    }
+                }
+                val byZone = moved.groupBy { it.zoneId }
+                byZone.forEach { (zoneId, readouts) ->
+                    database.query("SELECT tile_pieces, tool_groups FROM zones WHERE id = ?", arrayOf<Any?>(zoneId)).use { cursor ->
+                        if (!cursor.moveToNext()) return@use
+                        val pieces = v.pieces(if (cursor.isNull(0)) null else cursor.getString(0), if (cursor.isNull(1)) null else cursor.getString(1), readouts)
+                        database.execSQL("UPDATE zones SET tile_pieces = ? WHERE id = ?", arrayOf<Any?>(pieces, zoneId))
+                    }
+                }
+                app.treelune.core.versioning.HistoryCopies.rewrite(database, "readouts") { copy ->
+                    copy.optString("settings_json").takeIf { copy.has("settings_json") && !copy.isNull("settings_json") }
+                        ?.let { v.settings(it) }?.let { copy.put("settings_json", it) }
+                    copy
+                }
+                // A zone put back as it was before keeps the readouts on its tile
+                app.treelune.core.versioning.HistoryCopies.rewrite(database, "zones") { copy ->
+                    byZone[copy.optString("id")]?.let { readouts ->
+                        copy.put("tile_pieces", v.pieces(copy.optString("tile_pieces").takeIf { copy.has("tile_pieces") && !copy.isNull("tile_pieces") },
+                            copy.optString("tool_groups").takeIf { copy.has("tool_groups") && !copy.isNull("tool_groups") }, readouts) ?: org.json.JSONObject.NULL)
+                    }
+                    copy
+                }
+                LogManager.database("MIGRATION 119->120: ${moved.size} readout(s) moved into their zone's tile pieces", "INFO")
+            }
+        }
+
         /** A zone's tile lists pieces of the zone (docs/design/icon-tiles.md): its column `tile_pieces`, empty for every zone. */
         private val MIGRATION_118_119 = object : ConnectionMigration(118, 119) {
             override fun migrate(database: MigrationDatabase) {
@@ -3658,7 +3701,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_115_116,
                     MIGRATION_116_117,
                     MIGRATION_117_118,
-                    MIGRATION_118_119
+                    MIGRATION_118_119,
+                    MIGRATION_119_120
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

@@ -204,7 +204,7 @@
     <string name="guide_readouts_4_goal">Change what is expected</string>
     <string name="guide_readouts_4_text">In the zone Kitchen, touch and hold its icon in the Meals group to open its config. Under Values, open expected and change its figure, for example 8. Save.</string>
     <string name="guide_readouts_5_goal">Make your own</string>
-    <string name="guide_readouts_5_text">In a zone, touch the + at the top, then Readout. Give it its Values, its Core, which writes each value by its name between braces, and if you want a Sentence, which places the core with two empty braces. Choose what it Opens, its Colours, and where it is Also shown: at the head of its group or of its zone, on its zone\'s tile, at the head of the home screen.</string>
+    <string name="guide_readouts_5_text">In a zone, touch the + at the top, then Readout. Give it its Values, its Core, which writes each value by its name between braces, and if you want a Sentence, which places the core with two empty braces. Choose what it Opens, its Colours, and where it is Also shown: at the head of its group or of its zone, at the head of the home screen. On its zone\'s tile, add it as a Piece in the zone\'s configuration.</string>
     <string name="guide_talk_to_ai_title">Talk to the AI</string>
     <string name="guide_talk_to_ai_intro">This chapter covers the conversation with the AI: what you can attach, how it answers and asks for your approval, the settings of a conversation and what it costs.</string>
     <string name="guide_talk_to_ai_outro">You now know how to attach what is needed, answer the AI and set up a conversation. To have the AI do the same without you, read the Routines chapter.</string>

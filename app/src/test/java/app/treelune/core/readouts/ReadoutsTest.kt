@@ -67,7 +67,7 @@ class ReadoutsTest {
             mapOf("when" to mapOf("left" to mapOf("field" to "done"), "op" to "<", "right" to mapOf("field" to "expected")), "color" to "RED", "signal" to true),
             mapOf("when" to mapOf("left" to mapOf("field" to "done"), "op" to ">=", "right" to mapOf("field" to "expected")), "color" to "GREEN")
         ),
-        "places" to listOf("zone_head", "zone_tile")
+        "places" to listOf("zone_head", "home_head")
     ) + extra
 
     private suspend fun read(id: String) = ok("readouts.read", mapOf("readout_id" to id))
@@ -106,7 +106,7 @@ class ReadoutsTest {
         ok("readouts.update", mapOf("readout_id" to id, "text" to "{done} glasses"))
         val settings = (ok("readouts.get", mapOf("readout_id" to id))["readout"] as Map<*, *>)["settings"] as Map<*, *>
         assertEquals("{done} glasses", settings["text"])
-        assertEquals(listOf("zone_head", "zone_tile"), settings["places"])
+        assertEquals(listOf("zone_head", "home_head"), settings["places"])
         assertEquals("Water today", settings["name"])
         assertEquals("0 glasses", read(id)["text"])
     }

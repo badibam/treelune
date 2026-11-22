@@ -3318,10 +3318,9 @@
     <string name="readout_schema_color_line">A condition on its values, each side one of its values by its name ({\"field\": \"done\"}) or a written value, and the colour it gives</string>
     <string name="readout_schema_colors">Read in order, the first whose condition holds colours the readout; none holding, no colour</string>
     <string name="readout_places">Also shown</string>
-    <string name="readout_schema_places">Where it rises to besides its own tile, several readouts at the same place gathered in one tile in the order of the tree: group_head (the head of its group), zone_head (the head of its zone), zone_tile (its zone\'s tile on the home screen), zone_group_head (the head of its zone\'s group on the home screen), home_head (the head of the home screen)</string>
+    <string name="readout_schema_places">Where it rises to besides its own tile, several readouts at the same place gathered in one tile in the order of the tree: group_head (the head of its group), zone_head (the head of its zone), zone_group_head (the head of its zone\'s group on the home screen), home_head (the head of the home screen)</string>
     <string name="readout_place_group_head">At the head of its group</string>
     <string name="readout_place_zone_head">At the head of its zone</string>
-    <string name="readout_place_zone_tile">On its zone\'s tile</string>
     <string name="readout_place_zone_group_head">At the head of its zone\'s group, on the home screen</string>
     <string name="readout_place_home_head">At the head of the home screen</string>
     <string name="readout_error">Readout: %1$s</string>

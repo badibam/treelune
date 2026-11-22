@@ -49,7 +49,6 @@ object ReadoutSettings {
     enum class Place(val key: String) {
         GROUP_HEAD("group_head"),
         ZONE_HEAD("zone_head"),
-        ZONE_TILE("zone_tile"),
         ZONE_GROUP_HEAD("zone_group_head"),
         HOME_HEAD("home_head");
 
