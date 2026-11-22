@@ -2148,6 +2148,7 @@
     <string name="about_version">Treelune %1$s, build %2$d</string>
     <string name="about_licence">Free software under the GNU General Public License, version 3 or any later version.</string>
     <string name="about_site">The site</string>
+    <string name="about_site_url">https://treelune.app/</string>
     <string name="about_source">The source code</string>
     <string name="background_restricted_title">The app may be stopped in the background</string>
     <string name="background_restricted_text">Android may stop Treelune while it is closed. Then what is planned may not go: scheduled routines, messages, lists\' due dates, questionnaires\' and sessions\' invitations, goals\' ends of period. Allow it to run in the background to be sure.</string>

@@ -21,7 +21,7 @@ import app.treelune.core.ui.UI
 
 /**
  * What the app is, at Settings › About: its version as a bug report names it (the name and the
- * build), its licence, and the ways to its site and its source code, opened in the browser.
+ * build), its licence, and the ways to its site, in the app's language (`about_site_url`), and its source code, opened in the browser.
  */
 @Composable
 fun AboutScreen(onBack: () -> Unit) {
@@ -41,14 +41,11 @@ fun AboutScreen(onBack: () -> Unit) {
             }
         }
         UI.FormActions {
-            UI.Button(type = ButtonType.DEFAULT, onClick = { open(SITE) }) { UI.Text(s.shared("about_site"), TextType.BODY) }
+            UI.Button(type = ButtonType.DEFAULT, onClick = { open(s.shared("about_site_url")) }) { UI.Text(s.shared("about_site"), TextType.BODY) }
             UI.Button(type = ButtonType.DEFAULT, onClick = { open(SOURCE) }) { UI.Text(s.shared("about_source"), TextType.BODY) }
         }
     }
 }
-
-/** The app's site, in the language its texts are read in by the site itself. */
-private const val SITE = "https://treelune.app"
 
 /** Its source code, which F-Droid builds the published app from. */
 private const val SOURCE = "https://github.com/badibam/treelune"
