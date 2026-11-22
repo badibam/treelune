@@ -501,5 +501,6 @@
   "auto_lighten_name": "Alléger la semaine",
   "auto_lighten_seed": "Le travail est lourd cette semaine. Lis les sorties et les séances de fractionné de la semaine, puis écris dans le Carnet d'entraînement un plan plus léger pour les jours qui restent : moins de kilomètres, pas de fractionné, le sommeil d'abord. Ne change rien d'autre.",
   "readout_water_name": "Eau du jour",
-  "readout_water_text": "Eau : {}"
+  "readout_water_text": "Eau : {}",
+  "auto_giulia_seed": "Parle avec moi en italien, à mon niveau : corrige mes fautes en une ligne, puis continue la conversation."
 }

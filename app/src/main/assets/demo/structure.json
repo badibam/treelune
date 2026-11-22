@@ -97,8 +97,7 @@
       "tool_groups": [],
       "grid_x": 2,
       "grid_y": 3,
-      "texture": "CHECKER",
-      "identity_id": "demo-identity-giulia"
+      "texture": "CHECKER"
     }
   ],
   "tools": [
@@ -3155,6 +3154,27 @@
           "level": "read"
         }
       ]
+    },
+    {
+      "id": "demo-auto-italian-giulia",
+      "seed_session_id": "demo-seed-italian-giulia",
+      "zone_id": "demo-italian",
+      "name": "Giulia",
+      "icon_name": "graduation-cap",
+      "icon_color": "TEAL",
+      "identity_id": "demo-identity-giulia",
+      "usage": "conversation",
+      "is_enabled": true,
+      "access": [
+        {
+          "target": {
+            "kind": "ZONE",
+            "id": "demo-italian"
+          },
+          "level": "read"
+        }
+      ],
+      "seed": "@auto_giulia_seed"
     },
     {
       "id": "demo-auto-italian-lesson",

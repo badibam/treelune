@@ -48,8 +48,6 @@ object ZoneSettings {
             *app.treelune.core.look.Looks.nodes(LOOK, s::shared).toTypedArray(),
             // One of the zone groups of the main screen
             field("group", "label_zone_group", FieldType.TEXT, TextLength.SHORT),
-            // The identity its tile opens a conversation with; checked to exist by the service
-            field("identity_id", "label_zone_identity", FieldType.TEXT, TextLength.SHORT),
             // The groups the zone's tools are sorted into
             SettingNode.ListOf("tool_groups", s.shared("label_tool_groups"),
                 SettingNode.Item.Value(FieldDefinition("tool_group", s.shared("label_tool_group"), s.shared("zone_schema_tool_groups"),

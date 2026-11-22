@@ -101,31 +101,6 @@ fun IdentitySelector(
 }
 
 /**
- * The tile at the top of a zone that has an identity (docs/AI.md, « Identities »): its icon, its name, and a button opening a new conversation with it -- the gesture
- * that opens one from a zone, with its rules. Nothing of the zone is attached: a pointer adds it.
- */
-@Composable
-fun IdentityTile(identity: IdentityChoice) {
-    UI.Card(type = CardType.DEFAULT) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(UI.Space.M),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(UI.Space.M)
-        ) {
-            UI.ItemIcon(identity.iconName, IconColor.of(identity.iconColor))
-            Box(modifier = Modifier.weight(1f)) {
-                UI.Text(text = identity.name, type = TextType.SUBTITLE)
-            }
-            UI.ActionButton(
-                action = ButtonAction.AI_CHAT,
-                display = ButtonDisplay.ICON,
-                onClick = { ChatRequests.open(emptyList(), identity.id) }
-            )
-        }
-    }
-}
-
-/**
  * The button of a conversation's header bar, first of its buttons: the identity it speaks as
  * (its icon, drawn as every icon button; the identities' own, a figure, for the app's AI). Before the first message [fixed] is false and a
  * touch opens the choice among [identities] and the app's AI; after it, a touch shows who speaks,

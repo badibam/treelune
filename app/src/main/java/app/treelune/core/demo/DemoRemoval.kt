@@ -39,7 +39,6 @@ object DemoRemoval {
         "routines" to "SELECT id FROM routines WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%'",
         "zones" to "SELECT id FROM zones WHERE id LIKE 'demo-%'",
         "identities" to """SELECT id FROM identities WHERE id LIKE 'demo-%'
-            AND id NOT IN (SELECT identity_id FROM zones WHERE identity_id IS NOT NULL)
             AND id NOT IN (SELECT identity_id FROM routines WHERE identity_id IS NOT NULL)"""
     )
 }

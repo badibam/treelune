@@ -175,7 +175,6 @@ class PartImport(private val context: Context) {
                     if (zone.has(key) && !zone.isNull(key)) put(key, zone.get(key))
                 }
                 put("validate", zone.optBoolean("validate", false))
-                BackupPart.identityOf(zone)?.let { put("identity_id", it) }
                 zone.optString("tool_groups").takeIf { it.isNotEmpty() }?.let { put("tool_groups", JSONArray(it)) }
             })
             written.zones += zone.getString("id")

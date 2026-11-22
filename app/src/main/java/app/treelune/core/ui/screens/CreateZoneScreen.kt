@@ -60,7 +60,6 @@ fun CreateZoneScreen(
                 zone.tool_groups?.let { put("tool_groups", JSONArray(it)) }
                 put("tile_size", zone.tile_size)
                 put("validate", zone.validate)
-                zone.identity_id?.let { put("identity_id", it) }
                 put(app.treelune.core.readouts.ReadoutColumns.KEY, zone.readout_columns ?: app.treelune.core.readouts.ReadoutColumns.HOME)
                 zone.tile_pieces?.let { put(app.treelune.core.look.TilePieces.KEY, JSONArray(it)) }
             }
@@ -77,18 +76,8 @@ fun CreateZoneScreen(
         }
     }
 
-    // The identities its tile may open a conversation with
-    val identities = app.treelune.core.identities.ui.rememberIdentities()
-
     // Its icon, colour and texture, as every look's (Looks)
     val editors = app.treelune.core.look.ui.lookEditors(ZoneSettings.LOOK, settings, s) { settings = it } + mapOf(
-        "identity_id" to object : SettingEditor {
-            @Composable
-            override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
-                app.treelune.core.identities.ui.IdentitySelector(identities = identities.orEmpty(), selected = value as? String,
-                    onSelect = { onChange(it) }, label = s.shared("label_zone_identity"), noneLabel = s.shared("label_none"))
-            }
-        },
         // The pieces its tile shows, among the zone's, named when its size leaves some out
         app.treelune.core.look.TilePieces.KEY to app.treelune.core.ui.components.tilePiecesEditor(existingZone?.id,
             app.treelune.core.look.TileSize.parse(settings.optString("tile_size")) ?: ZoneSettings.LOOK.defaultSize,
@@ -112,7 +101,7 @@ fun CreateZoneScreen(
             val result = if (existingZone != null) {
                 // Every setting is sent: an absent one is sent as null, which empties it
                 val params = mutableMapOf<String, Any?>("zone_id" to existingZone.id)
-                listOf("name", "description", "icon_name", app.treelune.core.themes.IconColor.KEY, app.treelune.core.themes.Texture.KEY, "group", "tool_groups", "tile_size", "validate", "identity_id", app.treelune.core.readouts.ReadoutColumns.KEY, app.treelune.core.look.TilePieces.KEY).forEach { params[it] = given[it] ?: JSONObject.NULL }
+                listOf("name", "description", "icon_name", app.treelune.core.themes.IconColor.KEY, app.treelune.core.themes.Texture.KEY, "group", "tool_groups", "tile_size", "validate", app.treelune.core.readouts.ReadoutColumns.KEY, app.treelune.core.look.TilePieces.KEY).forEach { params[it] = given[it] ?: JSONObject.NULL }
                 params["renames"] = mapOf("tool_groups" to origins.renames("tool_groups", settings.optJSONArray("tool_groups")))
                 coordinator.processUserAction("zones.update", params)
             } else {

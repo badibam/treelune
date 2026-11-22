@@ -104,11 +104,9 @@ fun RoutineConfigScreen(place: Place.RoutineConfig, onDone: () -> Unit, onDelete
             messageText = JSONArray(result.data?.get("message") as List<*>).toString()
             accessText = JSONArray(result.data?.get("access") as List<*>).toString()
         } else {
-            // A new routine starts with the default provider and its zone's identity, shown chosen
-            val zone = coordinator.processUserAction("zones.get", mapOf("zone_id" to place.zoneId)).data?.get("zone") as? Map<*, *>
+            // A new routine starts with the default provider, shown chosen
             settings = JSONObject(settings.toString()).apply {
                 providers?.firstOrNull { it["is_default"] as? Boolean ?: false }?.let { put(RoutineSettings.PROVIDER_ID, it["id"] as String) }
-                (zone?.get("identity_id") as? String)?.let { put(RoutineSettings.IDENTITY_ID, it) }
             }
         }
         asLoaded = snapshot()

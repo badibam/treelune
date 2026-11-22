@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 120
+        const val VERSION = 121
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2364,6 +2364,18 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
+         * A zone no longer names an identity: a conversation routine with one does what its card
+         * did. The column goes, the history's copies without it; what the zones named is not kept.
+         */
+        private val MIGRATION_120_121 = object : ConnectionMigration(120, 121) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("ALTER TABLE zones DROP COLUMN identity_id")
+                app.treelune.core.versioning.HistoryCopies.rewrite(database, "zones") { copy -> copy.apply { remove("identity_id") } }
+                LogManager.database("MIGRATION 120->121: zones.identity_id dropped", "INFO")
+            }
+        }
+
+        /**
          * A readout reaches its zone's tile only as a piece of the tile: each readout that ticked
          * the place `zone_tile` joins its zone's `tile_pieces`, the place leaving its settings, the
          * history's copies with them: see ReadoutTilePiecesAtV120. A zone's tile draws its pieces in
@@ -3704,7 +3716,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_116_117,
                     MIGRATION_117_118,
                     MIGRATION_118_119,
-                    MIGRATION_119_120
+                    MIGRATION_119_120,
+                    MIGRATION_120_121
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

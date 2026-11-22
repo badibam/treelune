@@ -13,9 +13,8 @@ import app.treelune.core.strings.StringsContext
  */
 object InUse {
 
-    /** The zones and the routines naming identity [identityId], by name. */
+    /** The routines and the Tasks naming identity [identityId], by name. */
     suspend fun identity(database: AppDatabase, identityId: String): Users = Users(
-        zones = database.zoneDao().getAllZones().filter { it.identity_id == identityId }.map { it.name },
         routines = database.aiDao().getAllRoutines().filter { it.identityId == identityId }.map { it.name },
         // A Task that sends it to an API (an `assemble` step's identity)
         tasks = database.taskDao().getAll().filter { identityId in app.treelune.core.tasks.StepObject.identitiesOf(it.stepsJson) }.map { it.name }
@@ -23,7 +22,6 @@ object InUse {
 
     /** The Tasks one of whose steps calls API [apiId], by name. */
     suspend fun api(database: AppDatabase, apiId: String): Users = Users(
-        zones = emptyList(),
         routines = emptyList(),
         tasks = database.taskDao().getAll().filter { task ->
             org.json.JSONArray(task.stepsJson).let { steps -> (0 until steps.length()).any { steps.getJSONObject(it).optString("api_id") == apiId } }
@@ -31,14 +29,13 @@ object InUse {
     )
 
     /** What names a thing, by kind. */
-    data class Users(val zones: List<String>, val routines: List<String>, val tasks: List<String> = emptyList()) {
-        val none: Boolean get() = zones.isEmpty() && routines.isEmpty() && tasks.isEmpty()
+    data class Users(val routines: List<String>, val tasks: List<String> = emptyList()) {
+        val none: Boolean get() = routines.isEmpty() && tasks.isEmpty()
 
         /** The refusal of [what]'s deletion, naming each; null when nothing names it. */
         fun refusal(what: String, s: StringsContext): String? {
             if (none) return null
             val named = listOfNotNull(
-                zones.takeIf { it.isNotEmpty() }?.let { s.shared("in_use_zones").format(it.joinToString(", ")) },
                 routines.takeIf { it.isNotEmpty() }?.let { s.shared("in_use_routines").format(it.joinToString(", ")) },
                 tasks.takeIf { it.isNotEmpty() }?.let { s.shared("in_use_tasks").format(it.joinToString(", ")) }
             )

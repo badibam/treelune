@@ -1684,7 +1684,6 @@
     <string name="share_link_routine">« %1$s » vise « %2$s », hors de la sélection. Sur un autre téléphone, ce lien ne mènera à rien.</string>
     <string name="share_link_routine_alone">« %1$s » arrivera éteinte, sans fournisseur d\'IA. Il faudra en choisir un avant de l\'allumer.</string>
     <string name="share_link_routine_identity">« %1$s » arrivera sans son identité « %2$s » : elle parlera comme l\'IA de l\'app.</string>
-    <string name="share_link_zone_identity">La zone « %1$s » arrivera sans son identité « %2$s » : ses conversations se feront avec l\'IA de l\'app.</string>
     <string name="share_element_identity">Identité « %1$s »</string>
     <string name="share_export_title">Exporter</string>
     <string name="share_export_card">Une partie de l\'app à partager, ou toute l\'app.</string>
@@ -1706,7 +1705,7 @@
     <string name="share_apis_title">API</string>
     <string name="share_apis_help">La clé d\'une API ne part jamais : qui l\'importe saisit la sienne.</string>
     <string name="share_task_off">Elle arrivera éteinte, à allumer une fois relue.</string>
-    <string name="share_zone_details">La zone elle-même : son nom, sa description, son apparence, l\'identité qui parle en son nom et ses réglages</string>
+    <string name="share_zone_details">La zone elle-même : son nom, sa description, son apparence et ses réglages</string>
     <string name="share_zone_holder">Zone partagée</string>
     <string name="share_zone_holder_numbered">Zone partagée %1$d</string>
     <string name="share_event_arrives">L\'événement « %1$s » de la zone « %2$s » arrivera dans cette zone, avec ce qui le nomme.</string>
@@ -2601,7 +2600,6 @@
     <string name="identity_import_no_language">Ce fichier ne contient aucune langue</string>
     <string name="identity_import_no_text">Ce fichier ne contient aucun texte en %1$s : une langue a au moins une voix, un esprit ou un portrait</string>
     <string name="identity_import_replace_needed">L'identité %1$s est déjà là : l'importer la remplace en entier, avec replace: true. Perdu alors (textes retouchés, langues retirées) : %2$s</string>
-    <string name="in_use_zones">zones : %1$s</string>
     <string name="in_use_routines">routines : %1$s</string>
     <string name="in_use_refused">%1$s sert encore (%2$s) : change-les d'abord</string>
     <string name="action_verbalize_identity_create">Création de l'identité « %1$s »</string>
@@ -2609,8 +2607,6 @@
     <string name="action_verbalize_identity_delete">Suppression de l'identité « %1$s »</string>
     <string name="action_verbalize_identity_import">Import d'une identité</string>
     <string name="action_verbalize_identity_export">Export de l'identité « %1$s »</string>
-    <string name="label_zone_identity">Identité</string>
-    <string name="zone_schema_identity_id">L'identité avec laquelle sa tuile ouvre une conversation : son id (IDENTITIES)</string>
     <string name="label_identity">Identité</string>
     <string name="routine_identity_required">Une nouvelle routine dit en tant que quelle identité elle parle : identity_id, null pour l'IA de l'app</string>
     <string name="identity_session_not_chat">Seule une conversation choisit son identité : l'exécution d'une routine parle comme sa routine</string>
@@ -3297,7 +3293,7 @@
     <string name="piece_pointer_screen">- {crosshair} Sous un message : ajoute un pointeur\n- Config et Entrées, cochées : leurs données partent avec le message</string>
     <string name="piece_identity_name">Identité</string>
     <string name="piece_identity_usage">Un personnage que l\'IA incarne, avec une voix, un esprit et un portrait : le travail dans les outils reste le même, seuls les mots qu\'elle t\'adresse changent.</string>
-    <string name="piece_identity_screen">- En haut d\'une zone qui en a une : son bouton ouvre une conversation avec elle\n- Dans une conversation, avant le premier message : le bouton à côté du message choisit qui parle</string>
+    <string name="piece_identity_screen">- Une routine qui sert à converser, avec son Identité : sa tuile ouvre une conversation avec elle\n- Dans une conversation, avant le premier message : le bouton à côté du message choisit qui parle</string>
     <string name="piece_conversation_name">Conversation</string>
     <string name="piece_conversation_usage">Toi qui parles avec l\'IA, laquelle lit et écrit les données de l\'app comme tu le ferais, en demandant ton accord là où tu protèges.</string>
     <string name="piece_conversation_screen">- {message-circle} La bulle flottante l\'ouvre, depuis les lieux qu\'on consulte\n- {rotate-ccw-clock} Rouvre une conversation passée\n- {settings} Ses réglages : l\'accord demandé sur plus de choses, sa réflexion</string>

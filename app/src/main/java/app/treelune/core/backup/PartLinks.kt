@@ -17,7 +17,7 @@ data class PartElement(val kind: Kind, val id: String) {
  * A tool, its entries, a variable, a Task or an event carried would arrive broken without its
  * target, the service refusing it: the link blocks the file, a Task's to the identity it sends
  * included. A routine arrives in a state the app knows (switched off, without provider, an access
- * or a pointer reaching nothing), and a zone or a routine without its identity speaks as the app's
+ * or a pointer reaching nothing), and a routine without its identity speaks as the app's
  * own AI: these links only warn.
  */
 data class PartLink(val from: PartElement, val to: PartElement) {
@@ -54,10 +54,6 @@ object PartLinks {
         rows(data, "events").forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.EVENT, it.getString("id")) }
 
         val links = LinkedHashSet<PartLink>()
-        // A zone and the identity it speaks as
-        rows(data, "zones").forEach { zone ->
-            BackupPart.identityOf(zone)?.let { links += PartLink(PartElement(PartElement.Kind.ZONE, zone.getString("id")), PartElement(PartElement.Kind.IDENTITY, it)) }
-        }
         fun scan(from: PartElement, row: JSONObject) {
             IdWords.words(row).forEach { word ->
                 val to = targets[word] ?: return@forEach
@@ -104,9 +100,7 @@ object PartLinks {
     fun left(links: Set<PartLink>, selection: PartSelection): Set<PartLink> {
         val carried = carried(links, selection)
         fun goes(element: PartElement) = if (element.kind == PartElement.Kind.EVENT) element.id in carried else kept(element, selection)
-        // A zone names its identity only when its details go: kept as a bare holder it speaks as nobody
-        fun from(element: PartElement) = if (element.kind == PartElement.Kind.ZONE) element.id in selection.zoneDetails else goes(element)
-        return links.filterTo(LinkedHashSet()) { from(it.from) && !goes(it.to) }
+        return links.filterTo(LinkedHashSet()) { goes(it.from) && !goes(it.to) }
     }
 
     /**
@@ -141,7 +135,6 @@ object PartLinks {
         val key = when {
             link.to.kind == PartElement.Kind.PROVIDER -> return text("share_link_routine_alone").format(name(link.from))
             link.to.kind == PartElement.Kind.IDENTITY && link.from.kind == PartElement.Kind.TASK -> "share_link_task_to_element"
-            link.to.kind == PartElement.Kind.IDENTITY && link.from.kind == PartElement.Kind.ZONE -> "share_link_zone_identity"
             link.to.kind == PartElement.Kind.IDENTITY -> "share_link_routine_identity"
             !link.blocking -> "share_link_routine"
             link.from.kind == PartElement.Kind.EVENT -> "share_link_event_to_element"

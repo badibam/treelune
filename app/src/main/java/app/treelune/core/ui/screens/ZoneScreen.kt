@@ -226,9 +226,6 @@ private fun ZoneScreenBody(zone: Zone) {
             }
         )
 
-        // The identity its tile opens a conversation with, under its header
-        val identities = app.treelune.core.identities.ui.rememberIdentities()
-        identities?.firstOrNull { it.id == zone.identity_id }?.let { app.treelune.core.identities.ui.IdentityTile(it) }
         // The readouts raised to its head, in the order of its groups
         if (loadedOnce) app.treelune.core.readouts.ui.ReadoutLines(
             app.treelune.core.readouts.ui.risingTo(readouts, app.treelune.core.readouts.ReadoutSettings.Place.ZONE_HEAD, listOf(zone.id)) { zoneToolGroups })

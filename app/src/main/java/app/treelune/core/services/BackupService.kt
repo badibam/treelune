@@ -529,7 +529,6 @@ class BackupService(private val context: Context) : ExecutableService {
                                 if (zone.group != null) {
                                     put("group", zone.group)
                                 }
-                                put("identity_id", zone.identity_id ?: JSONObject.NULL)
                                 put("readout_columns", zone.readout_columns ?: JSONObject.NULL)
                                 put(app.treelune.core.look.TilePieces.KEY, zone.tile_pieces ?: JSONObject.NULL)
                                 put(app.treelune.core.look.TilePieces.ICONS, zone.tile_pieces_icons)
@@ -1172,8 +1171,6 @@ class BackupService(private val context: Context) : ExecutableService {
                         group = item.optString("group", null),
                         // Given to a backup made before version 69 by ValidationAtV69
                         validate = item.getBoolean("validate"),
-                        // Absent from a backup made before version 77: no identity, as the migration does
-                        identity_id = item.nullableString("identity_id"),
                         // Absent from a backup made before version 111: the home screen's, as the migration does
                         readout_columns = item.nullableString("readout_columns"),
                         // Absent from a backup made before version 119: none, as the migration does

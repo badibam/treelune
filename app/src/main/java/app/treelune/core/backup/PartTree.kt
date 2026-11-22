@@ -134,7 +134,7 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>, val apis: L
                     Element(PartElement.Kind.TASK, task.getString("id"), task.getString("name"), task.group(), null, 0)
                 }
                 // A part holds only the identities kept: one left out is named by no zone nor routine there
-                val spoken = ((listOf(zone) + routines[id].orEmpty().sortedBy { it.getString("name") }).mapNotNull { BackupPart.identityOf(it) } +
+                val spoken = (routines[id].orEmpty().sortedBy { it.getString("name") }.mapNotNull { BackupPart.identityOf(it) } +
                     tasks[id].orEmpty().sortedBy { it.getString("name") }.flatMap { app.treelune.core.tasks.StepObject.identitiesOf(it.getString("steps_json")) }).distinct()
                     .mapNotNull { identities[it] }.map { Element(PartElement.Kind.IDENTITY, it.getString("id"), it.getString("name"), null, null, 0) }
                 Zone(id, zone.getString("name"), zone.group(), spoken + elements.sortedBy { element -> element.group?.let { toolGroups.indexOf(it) } ?: Int.MAX_VALUE })

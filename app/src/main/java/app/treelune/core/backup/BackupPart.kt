@@ -122,12 +122,11 @@ object BackupPart {
         (keptTools + keptVariables + keptRoutineRows + keptTasks).firstOrNull { it.getString("zone_id") !in selection.zones }?.let {
             throw IllegalArgumentException("${it.getString("id")} is kept without its zone ${it.getString("zone_id")}")
         }
-        // An identity goes with a zone kept with its details that speaks as it, or one of whose
-        // routines does, or with a Task kept that sends it
-        val spoken = (zones.filter { it.getString("id") in selection.zoneDetails } + routines.filter { it.getString("zone_id") in selection.zones })
+        // An identity goes with a routine of a zone kept that speaks as it, or with a Task kept that sends it
+        val spoken = routines.filter { it.getString("zone_id") in selection.zones }
             .mapNotNull { identityOf(it) }.toSet() + keptTasks.flatMap { app.treelune.core.tasks.StepObject.identitiesOf(it.getString("steps_json")) }
         selection.identities.firstOrNull { it !in spoken }?.let { throw IllegalArgumentException("The identity $it is kept without a zone that speaks as it") }
-        // What a zone or a routine kept speaks as: its identity when kept, the app's own AI otherwise
+        // What a routine kept speaks as: its identity when kept, the app's own AI otherwise
         fun spokenAs(row: JSONObject): Any = identityOf(row)?.takeIf { it in selection.identities } ?: JSONObject.NULL
 
         // A readout goes with its zone when every tool, variable and zone it names goes too
@@ -149,14 +148,13 @@ object BackupPart {
             copy(zone).apply {
                 if (groups.isEmpty()) remove("tool_groups") else put("tool_groups", JSONArray(groups).toString())
                 if (id in selection.zoneDetails) {
-                    put("identity_id", spokenAs(zone))
                     // Its tile's pieces among those going with it
                     val pieces = app.treelune.core.look.TilePieces.read(zone.optString(app.treelune.core.look.TilePieces.KEY).takeIf { !zone.isNull(app.treelune.core.look.TilePieces.KEY) })
                         .filter { it.id in keptPieces }
                     put(app.treelune.core.look.TilePieces.KEY, app.treelune.core.look.TilePieces.write(pieces) ?: JSONObject.NULL)
                 } else {
                     // Only what holds the elements ticked: its home group and place, its tool groups;
-                    // its own name, description, appearance, identity and settings stay home
+                    // its own name, description, appearance and settings stay home
                     put("name", holderName(if (holders.size == 1) null else holders.indexOf(id) + 1))
                     put("description", JSONObject.NULL)
                     put("icon_name", JSONObject.NULL)
@@ -164,7 +162,6 @@ object BackupPart {
                     put("texture", JSONObject.NULL)
                     put("tile_size", HOLDER_TILE_SIZE)
                     put("validate", false)
-                    put("identity_id", JSONObject.NULL)
                     put("readout_columns", JSONObject.NULL)
                     put(app.treelune.core.look.TilePieces.KEY, JSONObject.NULL)
                     put(app.treelune.core.look.TilePieces.ICONS, false)
@@ -264,7 +261,7 @@ object BackupPart {
         updatedAt = row.getLong("updated_at")
     )
 
-    /** The identity a zone's or a routine's [row] speaks as, null for the app's own AI. */
+    /** The identity a routine's [row] speaks as, null for the app's own AI. */
     fun identityOf(row: JSONObject): String? =
         if (row.isNull("identity_id")) null else row.optString("identity_id").ifEmpty { null }
 

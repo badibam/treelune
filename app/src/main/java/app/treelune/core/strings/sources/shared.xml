@@ -1684,7 +1684,6 @@
     <string name="share_link_routine">“%1$s” points to “%2$s”, outside the selection. On another phone, this link will lead nowhere.</string>
     <string name="share_link_routine_alone">“%1$s” will arrive switched off, without an AI provider. One needs choosing before switching it on.</string>
     <string name="share_link_routine_identity">“%1$s” will arrive without its identity “%2$s”: it will speak as the app\'s AI.</string>
-    <string name="share_link_zone_identity">The zone “%1$s” will arrive without its identity “%2$s”: its conversations will be with the app\'s AI.</string>
     <string name="share_element_identity">Identity “%1$s”</string>
     <string name="share_export_title">Export</string>
     <string name="share_export_card">A part of the app to share, or the whole app.</string>
@@ -1706,7 +1705,7 @@
     <string name="share_apis_title">APIs</string>
     <string name="share_apis_help">An API\'s key never goes: whoever imports it enters their own.</string>
     <string name="share_task_off">It will arrive switched off, to switch on once read.</string>
-    <string name="share_zone_details">The zone itself: its name, description, appearance, the identity that speaks for it and its settings</string>
+    <string name="share_zone_details">The zone itself: its name, description, appearance and its settings</string>
     <string name="share_zone_holder">Shared zone</string>
     <string name="share_zone_holder_numbered">Shared zone %1$d</string>
     <string name="share_event_arrives">The event “%1$s” of the zone “%2$s” will arrive in this zone, with what names it.</string>
@@ -2601,7 +2600,6 @@
     <string name="identity_import_no_language">This file holds no language</string>
     <string name="identity_import_no_text">This file holds no text in %1$s: a language has at least a voice, a mind or a portrait</string>
     <string name="identity_import_replace_needed">The identity %1$s is already there: importing replaces it whole, with replace: true. Lost then (retouched texts, languages gone): %2$s</string>
-    <string name="in_use_zones">zones: %1$s</string>
     <string name="in_use_routines">routines: %1$s</string>
     <string name="in_use_refused">%1$s is still used (%2$s): change these first</string>
     <string name="action_verbalize_identity_create">Creating the identity "%1$s"</string>
@@ -2609,8 +2607,6 @@
     <string name="action_verbalize_identity_delete">Deleting the identity "%1$s"</string>
     <string name="action_verbalize_identity_import">Importing an identity</string>
     <string name="action_verbalize_identity_export">Exporting the identity “%1$s”</string>
-    <string name="label_zone_identity">Identity</string>
-    <string name="zone_schema_identity_id">The identity its tile opens a conversation with: its id (IDENTITIES)</string>
     <string name="label_identity">Identity</string>
     <string name="routine_identity_required">A new routine says which identity it speaks as: identity_id, null for the app's own AI</string>
     <string name="identity_session_not_chat">Only a conversation chooses its identity: a routine's run speaks as its routine</string>
@@ -3297,7 +3293,7 @@
     <string name="piece_pointer_screen">- {crosshair} Under a message: adds a pointer\n- Config and Entries, ticked: their data go with the message</string>
     <string name="piece_identity_name">Identity</string>
     <string name="piece_identity_usage">A character the AI speaks as, with a voice, a mind and a portrait: the work in the tools stays the same, only the words it addresses to you change.</string>
-    <string name="piece_identity_screen">- At the top of a zone that has one: its button opens a conversation with it\n- In a conversation, before the first message: the button beside the message chooses who speaks</string>
+    <string name="piece_identity_screen">- A routine used for conversation, with its Identity: its tile opens a conversation with it\n- In a conversation, before the first message: the button beside the message chooses who speaks</string>
     <string name="piece_conversation_name">Conversation</string>
     <string name="piece_conversation_usage">You talking with the AI, which reads and writes the app\'s data as you would, asking for your approval where you protect it.</string>
     <string name="piece_conversation_screen">- {message-circle} The floating bubble opens it, from the places one looks at\n- {rotate-ccw-clock} Opens a past conversation again\n- {settings} Its settings: approval asked on more, its reasoning</string>

@@ -117,26 +117,30 @@ def demo_text(texts, value):
 
 
 def zone():
-    """The demo's Italian zone: its name, its identity, its tools in the demo's order, and its routine."""
+    """The demo's Italian zone: its name, its identity (the routine that converses as it), its tools in the demo's order, and its routine."""
     structure = json.loads((DEMO / "structure.json").read_text(encoding="utf-8"))
     texts = {lang: json.loads((DEMO / f"texts-{lang}.json").read_text(encoding="utf-8")) for lang in LANGUAGES}
     found = [z for z in structure["zones"] if z["id"] == ZONE]
     if not found:
         raise SystemExit(f"make_site_data: the demo has no zone {ZONE}")
     named = lambda value: {lang: demo_text(t, value) for lang, t in texts.items()}
+    # One routine that converses as the zone's identity, its tile opening the conversation; one other, shown as the routine
     routines = [a for a in structure["routines"] if a["zone_id"] == ZONE]
-    if len(routines) != 1:
-        raise SystemExit(f"make_site_data: the zone {ZONE} has {len(routines)} routines, the site shows one")
-    routine = routines[0]
-    identities = [i for i in structure["identities"] if i["id"] == found[0].get("identity_id")]
+    talking = [a for a in routines if a.get("usage") == "conversation" and a.get("identity_id")]
+    others = [a for a in routines if a not in talking]
+    if len(talking) != 1 or len(others) != 1:
+        raise SystemExit(f"make_site_data: the zone {ZONE} has {len(talking)} conversation routines with an identity and {len(others)} other routines, the site shows one of each")
+    routine = others[0]
+    identities = [i for i in structure["identities"] if i["id"] == talking[0]["identity_id"]]
     if not identities:
-        raise SystemExit(f"make_site_data: the zone {ZONE} has no identity, the site shows one")
+        raise SystemExit(f"make_site_data: the identity {talking[0]['identity_id']} of the zone {ZONE} is not in the demo")
     identity = identities[0]
     return {
         "id": ZONE,
         "name": named(found[0]["name"]),
         "identity": {
-            "id": identity["id"],
+            # The tile is the routine's, which opens the conversation
+            "id": talking[0]["id"],
             "icon": identity["icon_name"],
             "color": (identity.get("icon_color") or "").lower() or None,
             "name": named(identity["name"]),

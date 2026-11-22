@@ -104,8 +104,6 @@ class ZoneService(private val context: Context) : ExecutableService {
         val validate = params.optBoolean("validate", false)
         app.treelune.core.coordinator.Protections.refusal(s.shared("label_zone_validate"), false, validate, s)?.let { return OperationResult.error(it) }
 
-        val identityId = params.givenText("identity_id")
-        identityRefusal(identityId)?.let { return OperationResult.error(it) }
         val readoutColumns = ReadoutColumns.stored(params.givenText(ReadoutColumns.KEY))
         // A new zone holds nothing yet: a piece named for its tile is refused
         val pieces = TilePieces.of(params.opt(TilePieces.KEY))
@@ -127,7 +125,6 @@ class ZoneService(private val context: Context) : ExecutableService {
             tool_groups = toolGroupsJson,
             group = group,
             validate = validate,
-            identity_id = identityId,
             readout_columns = readoutColumns,
             tile_pieces = TilePieces.write(pieces),
             tile_pieces_icons = piecesInIcons
@@ -186,19 +183,6 @@ class ZoneService(private val context: Context) : ExecutableService {
             database.taskDao().getByZone(zoneId).map { it.id } +
             database.readoutDao().getByZone(zoneId).map { it.id }).toSet()
 
-    /** A zone's identity is one that exists, or none. */
-    private suspend fun identityRefusal(identityId: String?): String? =
-        if (identityId == null || database.identityDao().getById(identityId) != null) null
-        else s.shared("identity_error_not_found").format(identityId)
-
-    /** The identity [zone] names, by id and name, for the screen and the AI. */
-    private suspend fun identityOf(zone: Zone, into: MutableMap<String, Any?>) {
-        val id = zone.identity_id ?: return
-        into["identity_id"] = id
-        // One deleted in a way the service refuses would read here as named by its id alone
-        into["identity_name"] = database.identityDao().getById(id)?.name
-    }
-
     /**
      * Check a zone's settings exactly as they are about to be stored, against the schema
      * generated from their declaration (ZoneSettings). Every write goes through here, whoever
@@ -214,7 +198,6 @@ class ZoneService(private val context: Context) : ExecutableService {
             zone.icon_color?.let { put(IconColor.KEY, it) }
             zone.texture?.let { put(Texture.KEY, it) }
             zone.group?.let { put("group", it) }
-            zone.identity_id?.let { put("identity_id", it) }
             put("tile_size", zone.tile_size)
             zone.tool_groups?.let { put("tool_groups", JsonUtils.toList(it)) }
             put("validate", zone.validate)
@@ -394,9 +377,6 @@ class ZoneService(private val context: Context) : ExecutableService {
         val look = Looks.read(ZoneSettings.LOOK, lookValues)
         val validate = if (params.has("validate")) params.optBoolean("validate") else existingZone.validate
         app.treelune.core.coordinator.Protections.refusal(s.shared("label_zone_validate"), existingZone.validate, validate, s)?.let { return OperationResult.error(it) }
-        val identityId = if (params.has("identity_id")) params.givenText("identity_id") else existingZone.identity_id
-        // Only an identity that changes is checked: a zone saved again keeps the one it has
-        if (identityId != existingZone.identity_id) identityRefusal(identityId)?.let { return OperationResult.error(it) }
         val readoutColumns = if (params.has(ReadoutColumns.KEY)) ReadoutColumns.stored(params.givenText(ReadoutColumns.KEY)) else existingZone.readout_columns
         // The pieces of its tile: a list given replaces the one it has, null empties it
         val piecesBefore = TilePieces.read(existingZone.tile_pieces)
@@ -413,7 +393,6 @@ class ZoneService(private val context: Context) : ExecutableService {
             tool_groups = toolGroupsJson,
             group = group,
             validate = validate,
-            identity_id = identityId,
             readout_columns = readoutColumns,
             tile_pieces = TilePieces.write(pieces),
             tile_pieces_icons = piecesInIcons,
@@ -550,7 +529,6 @@ class ZoneService(private val context: Context) : ExecutableService {
         if (zone.group != null) {
             zoneMap["group"] = zone.group
         }
-        identityOf(zone, zoneMap)
 
         return OperationResult.success(mapOf("zone" to zoneMap))
     }
@@ -592,7 +570,6 @@ class ZoneService(private val context: Context) : ExecutableService {
             if (zone.group != null) {
                 zoneMap["group"] = zone.group
             }
-            identityOf(zone, zoneMap)
 
             // Its place on the home screen, for the screen: the AI neither sees nor changes places
             if (params.optBoolean("include_position", false)) {
