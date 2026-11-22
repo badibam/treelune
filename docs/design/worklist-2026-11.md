@@ -18,10 +18,8 @@ La 0.9.11 publiée et le téléphone sont en base 119. Les migrations 120 et 121
 
 Décidé, spec relue et complétée le 2026-11-22 : `docs/design/linked-files.md`. Dans cet ordre :
 
-1. Le vocabulaire à l'écran, en français et en anglais : « Dossiers autorisés », « Autoriser un dossier ».
-2. « Relier un lien introuvable » : la recherche par nom et taille, son bilan, à l'import, à la restauration et dans Réglages › Données.
-3. Le lien attendu et `EXPECT_FILES`.
-4. Les entrées absentes grisées dans « Que jouer ? ».
+1. Le lien attendu et `EXPECT_FILES`.
+2. Les entrées absentes grisées dans « Que jouer ? ».
 
 Ouvert, à ne pas coder maintenant : un filtre « seulement ce qui est sur le téléphone », pour une bibliothèque sans ordre de progression où les présents sont épars.
 

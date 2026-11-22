@@ -56,7 +56,8 @@ private data class AppZone(val id: String, val name: String, val group: String?)
 
 /** What arrived, as the import answers it; [otherNames] each API and event arrived under another name. */
 private data class Imported(val zones: Int, val elements: Int, val entries: Int, val filesMissing: Int, val identitiesAdded: Int, val identitiesReplaced: Int,
-    val apisAdded: Int, val apisReplaced: Int, val otherNames: Map<String, String>)
+    val apisAdded: Int, val apisReplaced: Int, val otherNames: Map<String, String>,
+    val linkIds: List<String>, val links: app.treelune.core.files.LinkSearch.Report?)
 
 private val SelectionSaver: Saver<PartSelection?, String> = Saver(
     save = { it?.toJson()?.toString() ?: "" },
@@ -221,7 +222,9 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
                                             (data["entries"] as Number).toInt(), (data["files_missing"] as Number).toInt(),
                                             (data["identities_added"] as Number).toInt(), (data["identities_replaced"] as Number).toInt(),
                                             (data["apis_added"] as Number).toInt(), (data["apis_replaced"] as Number).toInt(),
-                                            data["other_names"] as Map<String, String>)
+                                            data["other_names"] as Map<String, String>,
+                                            data["link_ids"] as List<String>,
+                                            (data["links"] as? Map<*, *>)?.let { app.treelune.core.files.LinkSearch.Report.of(it) })
                                     } else UI.Toast(result.error ?: "", app.treelune.core.ui.Duration.LONG)
                                 }
                             }
@@ -272,6 +275,7 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
                     UI.Text(s.shared("share_import_done_apis").format(done.apisAdded, done.apisReplaced), TextType.CAPTION)
                 done.otherNames.forEach { (name, arrived) -> UI.Text(s.shared("share_import_done_renamed").format(name, arrived), TextType.CAPTION) }
                 if (done.filesMissing > 0) UI.Text(s.shared("share_import_files_missing").format(done.filesMissing), TextType.WARNING)
+                done.links?.let { app.treelune.core.files.LinkSearchResult(it, done.linkIds) }
             }
         }
     }

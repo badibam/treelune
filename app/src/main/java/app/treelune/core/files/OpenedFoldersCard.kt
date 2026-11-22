@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.strings.Strings
 import app.treelune.core.ui.*
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +38,9 @@ fun OpenedFoldersCard() {
     var read by remember { mutableStateOf(0) }
     // The folder about to close, with the links it leaves
     var closing by remember { mutableStateOf<Pair<LinkedFiles.OpenedFolder, Int>?>(null) }
+    var searching by remember { mutableStateOf(false) }
+    // What the last search found, shown until its window is closed
+    var searched by remember { mutableStateOf<LinkSearch.Report?>(null) }
     LaunchedEffect(read) { folders = withContext(Dispatchers.IO) { LinkedFiles.folders(context) } }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { tree ->
@@ -72,6 +76,28 @@ fun OpenedFoldersCard() {
             UI.Button(type = ButtonType.DEFAULT, size = Size.M, onClick = { picker.launch(null) }) {
                 UI.Text(text = s.shared("opened_folders_add"), type = TextType.BODY)
             }
+            UI.Button(
+                type = ButtonType.DEFAULT,
+                size = Size.M,
+                state = if (searching) ComponentState.DISABLED else ComponentState.NORMAL,
+                onClick = {
+                    searching = true
+                    scope.launch {
+                        val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("files.relink", emptyMap())
+                        searching = false
+                        if (result.isSuccess) searched = result.data?.let { LinkSearch.Report.of(it) }
+                        else UI.Toast(result.error ?: "", Duration.LONG)
+                    }
+                }
+            ) {
+                UI.Text(text = s.shared(if (searching) "message_loading" else "link_search_button"), type = TextType.BODY)
+            }
+        }
+    }
+
+    searched?.let { report ->
+        UI.Dialog(type = DialogType.INFO, onConfirm = { searched = null }, onCancel = { searched = null }) {
+            LinkSearchResult(report, ids = null, onFolderAdded = { read++ })
         }
     }
 

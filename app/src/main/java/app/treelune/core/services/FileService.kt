@@ -62,12 +62,18 @@ import java.util.UUID
  * - link: `folder_id`, `path`: the sound or the video there prepared as a link, as `prepare` sets a
  *   file aside, until an entry's field in linked mode takes its id. Answer: its `file_id`, `kind`,
  *   `format`, `size_bytes`, `name` and `duration` (ISO 8601).
+ * - relink: `ids`?, the links to check (all of them by default): those that no longer read and
+ *   whose file is found by its name and size get its address (LinkSearch). Answer: the report's
+ *   `checked`, `relinked`, `not_found`, `other_size`, `several`, `folders_refused`.
  */
 class FileService(private val context: Context) : ExecutableService {
 
     private val s = Strings.`for`(context = context)
     private val dao = AppDatabase.getDatabase(context).fileDao()
     private val writes = app.treelune.core.history.Writes(context)
+
+    /** A search walks every authorized folder, however large. */
+    override val longOperations = setOf("relink")
 
     override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
@@ -88,6 +94,7 @@ class FileService(private val context: Context) : ExecutableService {
             "join" -> join(params)
             "folders" -> folders(params)
             "link" -> link(params)
+            "relink" -> relink(params, token)
             else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
         }
     }
@@ -306,6 +313,12 @@ class FileService(private val context: Context) : ExecutableService {
         }
     }
 
+    private suspend fun relink(params: JSONObject, token: CancellationToken): OperationResult {
+        val only = params.optJSONArray("ids")?.let { ids -> (0 until ids.length()).map { ids.getString(it) }.toSet() }
+        val report = app.treelune.core.files.LinkSearch.run(context, only) { token.isCancelled } ?: return OperationResult.cancelled()
+        return OperationResult.success(report.toMap())
+    }
+
     private suspend fun read(params: JSONObject): OperationResult {
         val id = params.optString("id").takeIf { it.isNotEmpty() } ?: return OperationResult.error(s.shared("service_error_missing_id"))
         val file = dao.getById(id)?.takeIf { it.fileKind == FileKind.TEXT } ?: return OperationResult.error(s.shared("file_error_not_found").format(id))
@@ -336,6 +349,7 @@ class FileService(private val context: Context) : ExecutableService {
             "join" -> s.shared("action_verbalize_files_join")
             "folders" -> s.shared("action_verbalize_files_folders")
             "link" -> s.shared("action_verbalize_files_link")
+            "relink" -> s.shared("action_verbalize_files_relink")
             else -> s.shared("action_verbalize_unknown")
         }
     }

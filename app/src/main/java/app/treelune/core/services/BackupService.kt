@@ -69,6 +69,7 @@ import app.treelune.core.ai.data.LegacyCatchUp
  *   there added to the app (performImportPart, PartImport), one step of the history; an identity
  *   the app holds kept unless listed in `replace_identities`. Answer: `zones` (the new ones),
  *   `elements`, `entries`, `renamed` (each variable's name in the file and the one it took),
+ *   `link_ids` and `links` (the links that arrived and the search for their files, LinkSearch),
  *   `files_missing`, `identities_added`, `identities_replaced`
  * - import: `uri`: data restored from a backup there (with version migrations): a zip, or the
  *   `.json` of the backups made before files, still readable
@@ -941,12 +942,17 @@ class BackupService(private val context: Context) : ExecutableService {
             }
             if (token.isCancelled) return OperationResult.cancelled()
 
+            val linksBefore = AppDatabase.getDatabase(context).fileDao().getLinked().map { it.id }.toSet()
             val report = try {
                 app.treelune.core.backup.PartImport(context).run(part, staging, arrivals, replaced, replacedApis)
             } catch (e: app.treelune.core.backup.PartImport.Refused) {
                 LogManager.service("Part import refused: ${e.message}", "ERROR")
                 return OperationResult.error(s.shared("share_import_refused").format(e.message ?: ""))
             }
+            // The links that arrived look for their files; the import is done whatever they find
+            val arrivedLinks = AppDatabase.getDatabase(context).fileDao().getLinked().map { it.id }.filter { it !in linksBefore }
+            val links = if (arrivedLinks.isEmpty()) null
+                else app.treelune.core.files.LinkSearch.run(context, arrivedLinks.toSet()) { token.isCancelled }
             app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
             LogManager.service("Part imported: ${report.zones} new zones, ${report.elements} elements, ${report.entries} entries, ${report.renamed.size} variables renamed, ${report.filesMissing} files missing, ${report.identitiesAdded} identities added, ${report.identitiesReplaced} replaced")
             OperationResult.success(mapOf(
@@ -959,8 +965,9 @@ class BackupService(private val context: Context) : ExecutableService {
                 "identities_replaced" to report.identitiesReplaced,
                 "apis_added" to report.apisAdded,
                 "apis_replaced" to report.apisReplaced,
-                "other_names" to report.otherNames
-            ))
+                "other_names" to report.otherNames,
+                "link_ids" to arrivedLinks
+            ) + (links?.let { mapOf("links" to it.toMap()) } ?: emptyMap()))
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {

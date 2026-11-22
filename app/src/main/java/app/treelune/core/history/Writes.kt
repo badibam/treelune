@@ -169,6 +169,9 @@ class Writes(private val context: Context) {
 
     suspend fun insertFile(file: FileEntity) = write(CoveredTable.FILES, file.id) { database.fileDao().insert(file) }
 
+    /** Gives the link [id] the address its file was found at (LinkSearch). */
+    suspend fun setFileUri(id: String, uri: String) = write(CoveredTable.FILES, id) { database.fileDao().setUri(id, uri) }
+
     suspend fun deleteFile(id: String) = delete(CoveredTable.FILES, id) { database.fileDao().delete(id) }
 
     // ── A selection ──

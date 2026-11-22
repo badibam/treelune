@@ -3424,5 +3424,16 @@
     <string name="opened_folders_close_confirm">L\'app n\'aura plus accès à %1$s.</string>
     <string name="opened_folders_close_confirm_links">L\'app n\'aura plus accès à %1$s, et %2$d liens vers ses fichiers ne joueront plus.</string>
     <string name="opened_folders_refused">Android n\'a pas donné le droit de lire ce dossier.</string>
-    <string name="backup_import_links_unreachable">%1$d fichiers liés ne sont pas sur ce téléphone.</string>
+    <string name="link_search_button">Chercher les fichiers introuvables</string>
+    <string name="link_search_all_there">Tous les fichiers liés sont là.</string>
+    <string name="link_search_relinked_one">1 relié</string>
+    <string name="link_search_relinked_other">%1$d reliés</string>
+    <string name="link_search_not_found_one">1 pas trouvé</string>
+    <string name="link_search_not_found_other">%1$d pas trouvés</string>
+    <string name="link_search_other_size">Même nom, autre taille, pas repris :</string>
+    <string name="link_search_several">Plusieurs fichiers correspondent, aucun n\'a été choisi :</string>
+    <string name="link_search_folders_refused">Dossiers que l\'app ne peut plus lire : %1$s</string>
+    <string name="link_search_again">Chercher à nouveau</string>
+    <string name="action_verbalize_files_relink">Recherche des fichiers introuvables</string>
+    <string name="backup_import_links_unreachable">%1$d fichiers liés pas trouvés. Autorise leur dossier, puis lance la recherche dans Réglages › Données.</string>
 </resources>

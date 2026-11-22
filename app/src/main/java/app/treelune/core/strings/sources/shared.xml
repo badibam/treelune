@@ -3424,5 +3424,16 @@
     <string name="opened_folders_close_confirm">The app will no longer have access to %1$s.</string>
     <string name="opened_folders_close_confirm_links">The app will no longer have access to %1$s, and %2$d links to its files will no longer play.</string>
     <string name="opened_folders_refused">Android did not give the right to read this folder.</string>
-    <string name="backup_import_links_unreachable">%1$d linked files are not on this phone.</string>
+    <string name="link_search_button">Find the missing files</string>
+    <string name="link_search_all_there">Every linked file is there.</string>
+    <string name="link_search_relinked_one">1 relinked</string>
+    <string name="link_search_relinked_other">%1$d relinked</string>
+    <string name="link_search_not_found_one">1 not found</string>
+    <string name="link_search_not_found_other">%1$d not found</string>
+    <string name="link_search_other_size">Same name, another size, not taken:</string>
+    <string name="link_search_several">Several files match, none was chosen:</string>
+    <string name="link_search_folders_refused">Folders the app can no longer read: %1$s</string>
+    <string name="link_search_again">Search again</string>
+    <string name="action_verbalize_files_relink">Searching for the missing files</string>
+    <string name="backup_import_links_unreachable">%1$d linked files not found. Authorize their folder, then run the search in Settings › Data.</string>
 </resources>

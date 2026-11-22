@@ -66,7 +66,7 @@ L'IA dans l'app y a accès comme le connecteur, hors d'un masque d'accès : les 
 
 - Le zip ne prend pas les octets d'un fichier lié. La ligne y est, avec son `uri`.
 - La vérification des fichiers manquants de la sauvegarde (`BackupService`, ceux d'une ligne sans fichier) ignore les lignes liées.
-- La restauration garde les liens tels quels et dit combien sont introuvables sur ce téléphone, puis propose de les relier (« Relier un lien introuvable »).
+- La restauration garde les liens tels quels et ne cherche rien : le droit de lire un dossier appartient au téléphone et ne voyage pas avec la sauvegarde, et l'app redémarre aussitôt. Après le redémarrage, elle dit combien de liens ne sont pas trouvés, et d'autoriser leur dossier puis de lancer la recherche dans Réglages › Données.
 
 ## La partie exportée
 
@@ -74,13 +74,13 @@ Une partie exportée garde ses liens comme une sauvegarde : la ligne part, le fi
 
 ## Relier un lien introuvable
 
-Décidé le 2026-11-21, à coder. Le besoin : partager un montage (une bibliothèque jouée, sa Séance, ses Tâches) avec quelqu'un qui a les mêmes fichiers. On donne séparément le dossier des fichiers et la partie exportée ; l'autre copie le dossier sur son téléphone, l'ouvre à l'app, importe. Le même besoin vient d'une sauvegarde restaurée sur un autre téléphone et de ses propres fichiers déplacés.
+Décidé le 2026-11-21, codé le 2026-11-22 (`LinkSearch`, `files.relink`). Le besoin : partager un montage (une bibliothèque jouée, sa Séance, ses Tâches) avec quelqu'un qui a les mêmes fichiers. On donne séparément le dossier des fichiers et la partie exportée ; l'autre copie le dossier sur son téléphone, l'ouvre à l'app, importe. Le même besoin vient d'une sauvegarde restaurée sur un autre téléphone et de ses propres fichiers déplacés.
 
 - **Un fichier se reconnaît à son nom et à sa taille à l'octet**, déjà dans la description de chaque lien : aucun chemin gardé, aucune colonne, aucune migration. Pour un son ou une vidéo de plusieurs Mo, deux fichiers différents de même nom et de même taille ne se rencontrent pas en pratique. Celui qui reçoit range les fichiers où il veut ; seuls leurs noms restent.
 - **La recherche** : tous les dossiers ouverts, à toute profondeur. Un fichier de même nom et de même taille se relie (le lien prend sa nouvelle URI). Même nom et autre taille : dit, pas pris. Deux candidats : dits, l'app ne choisit pas. Le parcours d'un grand dossier ouvert (tout le stockage) n'est pas mesuré ; il n'a lieu qu'à l'import, à la restauration et au bouton, jamais en fond.
 - **À l'import, rien ne bloque** : ce qui se trouve est relié et dit ; ce qui manque est compté, avec « Chercher à nouveau » (les fichiers copiés entre-temps) et « Autoriser un dossier », qui l'ajoute aux dossiers autorisés et relance la recherche. « Importer » garde les liens manquants, introuvables et réparables ; aucune option ne les supprime.
 - **Après, à tout moment** : Réglages › Données, un bouton « Chercher les fichiers introuvables », sans nombre : le toucher vérifie chaque lien et lance la même recherche, puis dit ce qui est relié, ce qui manque, ce qui est ambigu. Aucun compte à l'ouverture de l'écran, qui ouvrirait chaque lien (« pas de vérification à l'avance de tous les liens ») ; seuls l'import et la restauration, qui font ce passage, disent un nombre. Elle sert la restauration d'une sauvegarde et un dossier déplacé.
-- **Le bilan**, le même à l'import, à la restauration et au bouton : « 5 reliés » ; « 75 pas trouvés », leurs noms repliés ; en entier, ce que l'app ne peut pas trancher (même nom et autre taille, deux candidats).
+- **Le bilan**, le même à l'import et au bouton : « 5 reliés » ; « 75 pas trouvés », leurs noms repliés ; en entier, ce que l'app ne peut pas trancher (même nom et autre taille, deux candidats).
 - **Relier ne relit pas le fichier** : seule l'adresse change, la description reste.
 
 ## Le lien attendu

@@ -138,6 +138,10 @@ interface FileDao {
     @Query("SELECT * FROM files WHERE uri IS NOT NULL")
     suspend fun getLinked(): List<FileEntity>
 
+    /** A link given the address its file was found at. */
+    @Query("UPDATE files SET uri = :uri WHERE id = :id")
+    suspend fun setUri(id: String, uri: String)
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(file: FileEntity)
 
