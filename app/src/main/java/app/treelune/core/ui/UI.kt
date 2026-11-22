@@ -798,8 +798,6 @@ object UI {
         val look = app.treelune.core.look.Look(zone.name, zone.description, zone.icon_name, zone.icon_color, zone.texture,
             requireNotNull(app.treelune.core.look.TileSize.parse(zone.tile_size)) { "Zone ${zone.id}: no tile size '${zone.tile_size}'" })
         val size = look.tileSize
-        @Composable
-        fun Glance() { zone.description?.let { Text(it, TextType.BODY, maxLines = 2) } }
         Box {
             LookCard(
                 look = look,
@@ -809,8 +807,9 @@ object UI {
                 running = LocalRunning.current.zone(zone.id),
                 onClick = onClick,
                 onLongClick = onLongClick,
-                summary = { Glance() },
-                glance = { Glance() },
+                // No summary: its header alone on its first row, its pieces under it
+                summary = { },
+                glance = { },
                 body = { room -> app.treelune.core.ui.components.ZonePiecesBody(room, pieces, zone.id) },
                 frame = LookFrame.ZONE,
                 pieces = if (size.inIcons) app.treelune.core.ui.components.stripPieces(size, pieces, zone.id) else emptyList()
@@ -955,8 +954,8 @@ object UI {
         val size = inner ?: look.tileSize
         val color = IconColor.of(look.iconColor)
         val texture = ItemTexture.of(look.texture, look.iconName, color)
-        // A zone's description reads from its start, a section tile's preview stands centered
-        val glanceAlign = if (frame == LookFrame.ZONE) Alignment.CenterStart else Alignment.Center
+        // A section tile's preview stands centered
+        val glanceAlign = Alignment.Center
         @Composable
         fun Header() = TileHeader(look.iconName, color, look.name, waiting, running, TextType.HEADING, subtitle = subtitle)
         @Composable
@@ -973,7 +972,9 @@ object UI {
         Frame {
             // In one column every tile is laid as a tile 2 wide across the whole width (Grid.oneColumnSize)
             val laid = if (CurrentTheme.oneColumn) size.inOneColumn() else size
-            val room = laid.body
+            // A zone's tile has no summary: its pieces start under its header (TileSize.zoneBody)
+            val zone = frame == LookFrame.ZONE && inner == null
+            val room = if (zone) laid.zoneBody else laid.body
 
             /** [first] and [other] on half the width each. */
             @Composable
@@ -1022,7 +1023,7 @@ object UI {
                     }
                 // Without a body: the header alone 2 wide on one row, the glance beside it 4 wide, under it 2 high
                 room == null -> when {
-                    laid.height == 1 && !laid.summaryBeside -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) { Header() }
+                    zone || laid.height == 1 && !laid.summaryBeside -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) { Header() }
                     laid.summaryBeside -> SideBySide(Modifier.fillMaxSize(), { Header() }, glance)
                     else -> Stacked(Modifier.fillMaxSize(), { Header() }, glance)
                 }
@@ -1032,10 +1033,13 @@ object UI {
                     // height is a fixed box, filled whatever its body shows; a tile that follows its
                     // content is as tall as its body, which GridLayout measures
                     val row = app.treelune.core.ui.components.LocalGridRow.current
-                    val top = (if (laid.summaryBeside) row else row * 2) - CurrentTheme.current.tileFrame(size)
+                    val top = (if (zone || laid.summaryBeside) row else row * 2) - CurrentTheme.current.tileFrame(size)
                     @Composable
-                    fun Top() = if (laid.summaryBeside) SideBySide(Modifier.fillMaxWidth().height(top), { Header() }, summary)
-                        else Stacked(Modifier.fillMaxWidth().height(top), { Header() }, summary)
+                    fun Top() = when {
+                        zone -> Box(modifier = Modifier.fillMaxWidth().height(top), contentAlignment = Alignment.CenterStart) { Header() }
+                        laid.summaryBeside -> SideBySide(Modifier.fillMaxWidth().height(top), { Header() }, summary)
+                        else -> Stacked(Modifier.fillMaxWidth().height(top), { Header() }, summary)
+                    }
                     if (room.rows == null) Column(modifier = Modifier.fillMaxWidth()) {
                         Top()
                         body(room)

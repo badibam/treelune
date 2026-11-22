@@ -33,11 +33,11 @@ import org.json.JSONArray
 /**
  * How many of [pieces] a zone's tile of [size] shows (docs/design/icon-tiles.md): in icons, as
  * many as hold after the zone's own icon (IconStrips.fitting, stripCells); with text, as many as
- * its body holds (ZoneTileBody), none without a body (4×1, 2×1, 2×2), all when it follows its content.
+ * the rows under its header hold (TileSize.zoneBody, ZoneTileBody), none on one row (4×1, 2×1), all when it follows its content.
  */
 fun shownPieces(size: TileSize, pieces: List<ListedPiece>): Int = when {
     size.inIcons -> (IconStrips.fitting(size.length, listOf(1) + stripCells(pieces)) - 1).coerceAtLeast(0)
-    else -> size.body?.let { room -> ZoneTileBody.plan(room, pieces.map { it.summary }).placed.size } ?: 0
+    else -> size.zoneBody?.let { room -> ZoneTileBody.plan(room, pieces.map { it.summary }).placed.size } ?: 0
 }
 
 /**

@@ -60,6 +60,17 @@ data class TileSize private constructor(val width: Int, val height: Int?, val in
     }
 
     /**
+     * The room a zone's tile with text gives its pieces: a zone's tile has no summary, its header
+     * alone on its first row, its pieces on the rows under it ([Room.rows] null when it follows its
+     * content); null in icons and on one row, the header alone.
+     */
+    val zoneBody: Room? get() {
+        if (inIcons) return null
+        val h = height ?: return Room(width, null)
+        return if (h > 1) Room(width, h - 1) else null
+    }
+
+    /**
      * What it is laid as in one column: every tile with text as a tile 2 wide drawn across the
      * whole width, a tile 4 wide one row taller, its header and its summary one under the other;
      * a tile in icons keeps its cells, each a half of the width (IconTile folds a long row). One
