@@ -101,7 +101,8 @@ class DemoService(private val context: Context) : ExecutableService {
             run("identities.create", JSONObject(identity.toString()).apply { remove("texts") })
             run("identities.update", JSONObject(identity.getJSONObject("texts").toString()).put("identity_id", identity.getString("id")))
         }
-        content.zones.forEach { run("zones.create", DemoContent.paramsOf(it)) }
+        // A zone's tile pieces are given once they exist (tasks), the zone refusing a piece it does not hold
+        content.zones.forEach { run("zones.create", DemoContent.paramsOf(it).apply { remove(app.treelune.core.look.TilePieces.KEY) }) }
         placeZones(content)
         val (readingVariables, others) = content.tools.partition { DemoContent.readsVariable(it) }
         var created = 0
@@ -144,6 +145,10 @@ class DemoService(private val context: Context) : ExecutableService {
         content.tasks.forEach { run("tasks.create", it) }
         // The readouts, at the end of their section as the Tasks, once what they read is there
         content.readouts.forEach { run("readouts.create", it) }
+        // Then the zones' tile pieces, the readouts among them
+        content.zones.filter { it.has(app.treelune.core.look.TilePieces.KEY) }.forEach { zone ->
+            run("zones.update", JSONObject().put("zone_id", zone.getString("id")).put(app.treelune.core.look.TilePieces.KEY, zone.getJSONArray(app.treelune.core.look.TilePieces.KEY)))
+        }
     }
 
     /**

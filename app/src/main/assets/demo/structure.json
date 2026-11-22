@@ -58,6 +58,12 @@
       "icon_name": "chef-hat",
       "icon_color": "RED",
       "tile_size": "4x1",
+      "tile_pieces": [
+        {
+          "id": "demo-readout-water",
+          "summary": true
+        }
+      ],
       "group": "@zone_group",
       "tool_groups": [
         "@kitchen_group_meals",
@@ -3552,8 +3558,7 @@
         }
       ],
       "places": [
-        "zone_head",
-        "zone_tile"
+        "zone_head"
       ]
     }
   ]
