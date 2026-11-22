@@ -4,7 +4,6 @@ Les retours du téléphone et les items décidés, classés le 2026-11-22. « À
 
 ## 1. Plantages et bugs
 
-- L'écran d'une Tâche en cours ne se rafraîchit pas : le compte à rebours avant la prochaine demande à une API différée ne descend pas, les étapes n'avancent pas à l'écran.
 - Le bouton « retour en haut » ne remonte pas tout en haut.
 - Un défaut d'affichage sur une tuile de zone de longueur « selon le contenu ».
 - La fiche : le défilement n'est pas remis en haut au changement de fiche.
