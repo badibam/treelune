@@ -6,10 +6,6 @@ Les retours du téléphone et les items décidés, classés le 2026-11-22. « À
 
 - Distinguer l'icône de la zone de celles de ses outils : une taille différente, ou autre chose. À discuter.
 
-## 4. Nouvelles fonctions dans des outils existants
-
-- Graphique : se déplacer dans le temps et zoomer quand la période est variable. À discuter.
-
 ## 5. Modèle de données, import et export
 
 - Le lien entre une identité et une zone, retiré : une routine de discussion qui a une identité fait la même chose. L'export inclut les identités des routines ; leur place dans la liste d'export, au premier niveau comme les API, est à discuter.
