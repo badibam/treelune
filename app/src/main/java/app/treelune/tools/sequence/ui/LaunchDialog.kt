@@ -17,6 +17,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldInput
 import app.treelune.core.fields.FieldType
@@ -114,16 +115,29 @@ private fun MediaDialog(config: JSONObject, history: List<SequenceEntry>, s: Str
             if (entries.isEmpty() && error == null) UI.Text(s.tool("launch_media_none"), TextType.CAPTION)
             val start = entries.indexOfFirst { it["id"] == lastPlayed }.coerceAtLeast(0)
             val list = rememberLazyListState(initialFirstVisibleItemIndex = start)
+            val presence = rememberMediaPresence(entries, config.optString(SequenceVariants.MEDIA_FIELD), list)
+            if (!presence.ready) return@Column UI.LoadingIndicator()
             LazyColumn(state = list) {
                 itemsIndexed(entries, key = { _, e -> e["id"] as String }) { _, entry ->
                     val id = entry["id"] as String
-                    Column(modifier = Modifier.fillMaxWidth().clickable { previewed = entry }.padding(vertical = UI.Space.S)) {
-                        // An entry without a name says its date
-                        UI.Text((entry["name"] as? String)?.takeIf { it.isNotBlank() }
-                            ?: DateTimeFormatter.formatForDisplay((entry["timestamp"] as Number).toLong(), context), TextType.BODY)
-                        playedAt[id]?.let { at ->
-                            val played = DateTimeFormatter.formatForDisplay(at, context)
-                            UI.Text(s.tool(if (id == lastPlayed) "launch_media_last" else "launch_media_played").format(played), TextType.CAPTION)
+                    // A medium missing from the phone: the entry keeps its place, touchable, in the
+                    // secondary style every theme draws, its icon saying it without colour
+                    val missing = id in presence.absent
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable { previewed = entry }.padding(vertical = UI.Space.S),
+                        horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (missing) UI.Icon("unlink", size = 20.dp)
+                        Column(modifier = Modifier.weight(1f)) {
+                            // An entry without a name says its date
+                            UI.Text((entry["name"] as? String)?.takeIf { it.isNotBlank() }
+                                ?: DateTimeFormatter.formatForDisplay((entry["timestamp"] as Number).toLong(), context), if (missing) TextType.CAPTION else TextType.BODY)
+                            if (missing) UI.Text(s.tool("launch_media_not_found"), TextType.CAPTION)
+                            playedAt[id]?.let { at ->
+                                val played = DateTimeFormatter.formatForDisplay(at, context)
+                                UI.Text(s.tool(if (id == lastPlayed) "launch_media_last" else "launch_media_played").format(played), TextType.CAPTION)
+                            }
                         }
                     }
                 }

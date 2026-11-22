@@ -14,14 +14,6 @@ La 0.9.11 publiée et le téléphone sont en base 119. Les migrations 120 et 121
 
 - Distinguer l'icône de la zone de celles de ses outils : une taille différente, ou autre chose. À discuter.
 
-## 5. Fichiers liés
-
-Décidé, spec relue et complétée le 2026-11-22 : `docs/design/linked-files.md`. Reste :
-
-- Les entrées absentes grisées dans « Que jouer ? ».
-
-Ouvert, à ne pas coder maintenant : un filtre « seulement ce qui est sur le téléphone », pour une bibliothèque sans ordre de progression où les présents sont épars.
-
 ## 6. L'IA
 
 - `app_context` : l'alléger, ou en avoir deux versions. À discuter.
