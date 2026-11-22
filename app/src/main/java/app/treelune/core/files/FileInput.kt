@@ -49,9 +49,12 @@ import kotlinx.coroutines.withContext
  * would leave a file nowhere but in the app (docs/design/linked-files.md).
  *
  * The value is the list of ids, null once empty: no file is no answer.
+ *
+ * @param browseFromFirst Whether the browser of a linked field opens at the folder of the first
+ *   of its files the phone has, rather than at the list of folders
  */
 @Composable
-fun FileInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, context: Context) {
+fun FileInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, context: Context, browseFromFirst: Boolean = false) {
     val s = remember { Strings.`for`(context = context) }
     val scope = rememberCoroutineScope()
     val ids = FileField.ids(value)
@@ -237,10 +240,18 @@ fun FileInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, 
 
     open?.let { index -> Opened(ids, index) { open = null } }
 
-    if (browsing) FolderBrowser(kinds, onDismiss = { browsing = false }, onPick = { folder, path ->
-        browsing = false
-        addLink(folder, path)
-    })
+    if (browsing) {
+        // Where it opens, looked for once: wrapped, a place not found being an answer too
+        val start by androidx.compose.runtime.produceState<List<Pair<String, String>>?>(initialValue = if (browseFromFirst) null else emptyList()) {
+            if (browseFromFirst) this.value = listOfNotNull(kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { LinkedFiles.folderOf(context, current) })
+        }
+        start?.let { place ->
+            FolderBrowser(kinds, onDismiss = { browsing = false }, startAt = place.firstOrNull(), onPick = { folder, path ->
+                browsing = false
+                addLink(folder, path)
+            })
+        }
+    }
 
     if (copying) {
         app.treelune.core.ui.selectors.EntryFieldPicker(

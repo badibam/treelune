@@ -45,6 +45,13 @@ class LinkedFilesTest {
     }
 
     @Test
+    fun `a document's path under its folder, or none outside it`() {
+        assertEquals("Live/a.flac", LinkedFiles.pathUnder("primary:Music", "primary:Music/Live/a.flac"))
+        assertEquals("a.flac", LinkedFiles.pathUnder("primary:", "primary:a.flac"))
+        assertEquals(null, LinkedFiles.pathUnder("primary:Music", "primary:Musique/a.flac"))
+    }
+
+    @Test
     fun `a backup's row is a link by its mark, or by its address before the mark`() {
         assertTrue(LinkedFiles.isLinkRow(org.json.JSONObject().put("linked", true)))
         assertTrue(LinkedFiles.isLinkRow(org.json.JSONObject().put("uri", "content://x")))

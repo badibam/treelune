@@ -48,6 +48,12 @@ object SequenceVariants {
     /** The variant of [config]; steps for a config from before variants, its declared default. */
     fun of(config: JSONObject): String = config.optString(VARIANT).ifEmpty { STEPS }
 
+    /** Whether a session of [config] offers a background sound before it starts. */
+    fun offersBackground(config: JSONObject): Boolean = config.optBoolean(SequenceToolType.BACKGROUND_ENABLED, false)
+
+    /** Whether starting a session of [config] opens a window first: its variant asks, or its background. */
+    fun asksAtLaunch(config: JSONObject): Boolean = of(config) != STEPS || offersBackground(config)
+
     /** What was answered at launch: nothing for steps, a length for a timer, an entry for a medium. */
     sealed interface Answer {
         data object None : Answer

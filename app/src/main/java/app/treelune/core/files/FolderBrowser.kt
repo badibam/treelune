@@ -30,14 +30,16 @@ import kotlinx.coroutines.withContext
  * and its files of [kinds], a trail to go back up. A file touched is [onPick] with its folder and
  * its path under it. Without any folder opened, it says so and leads to Settings › Data, where one
  * is opened.
+ *
+ * @param startAt The folder's id and the path under it to open at; null, the list of folders
  */
 @Composable
-fun FolderBrowser(kinds: List<FileKind>, onDismiss: () -> Unit, onPick: (LinkedFiles.OpenedFolder, String) -> Unit) {
+fun FolderBrowser(kinds: List<FileKind>, onDismiss: () -> Unit, startAt: Pair<String, String>? = null, onPick: (LinkedFiles.OpenedFolder, String) -> Unit) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     // Where the browser stands: a folder's id and the path under it; none, the list of folders
-    var folderId by rememberSaveable { mutableStateOf<String?>(null) }
-    var path by rememberSaveable { mutableStateOf("") }
+    var folderId by rememberSaveable { mutableStateOf(startAt?.first) }
+    var path by rememberSaveable { mutableStateOf(startAt?.second.orEmpty()) }
 
     val folders by produceState<List<LinkedFiles.OpenedFolder>?>(initialValue = null) {
         value = withContext(Dispatchers.IO) { LinkedFiles.folders(context) }

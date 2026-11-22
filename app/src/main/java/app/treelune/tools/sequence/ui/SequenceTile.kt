@@ -107,7 +107,7 @@ fun rememberSequenceTile(tool: ToolInstance): ToolTile {
                         display = app.treelune.core.ui.ButtonDisplay.ICON, size = app.treelune.core.ui.Size.S, onClick = open)
                     else UI.ActionButton(action = app.treelune.core.ui.ButtonAction.START, display = app.treelune.core.ui.ButtonDisplay.ICON,
                         size = app.treelune.core.ui.Size.S, onClick = {
-                            if (SequenceVariants.of(config) == SequenceVariants.STEPS) start(emptyMap()) else asking = true
+                            if (!SequenceVariants.asksAtLaunch(config)) start(emptyMap()) else asking = true
                         })
                     Column(modifier = Modifier.weight(1f).fillMaxSize(), verticalArrangement = Arrangement.SpaceEvenly) {
                         UI.Text(first, TextType.BODY, maxLines = 1)
@@ -126,7 +126,7 @@ fun rememberSequenceTile(tool: ToolInstance): ToolTile {
                 val going = loaded.any { it.run != null || it.status == SequenceToolType.Status.TO_FINISH }
                 if (going) app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.VIEW, onClick = open)
                 else app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.START) {
-                    if (SequenceVariants.of(config) == SequenceVariants.STEPS) start(emptyMap()) else asking = true
+                    if (!SequenceVariants.asksAtLaunch(config)) start(emptyMap()) else asking = true
                 }
                 if (asking) LaunchDialog(config, loaded.filter { it.status != SequenceToolType.Status.PLANNED && it.status != SequenceToolType.Status.TO_FINISH }, s,
                     onAnswer = { answer -> asking = false; start(answer) }, onCancel = { asking = false })

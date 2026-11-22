@@ -85,7 +85,11 @@ data class SequenceEntry(
     /** The steps it keeps once over, null for one finished before they were kept */
     val steps: List<SequenceSteps.Kept>? = null,
     /** The values of the user's fields */
-    val extra: Map<String, Any?> = emptyMap()
+    val extra: Map<String, Any?> = emptyMap(),
+    /** The background files chosen for it, its own links */
+    val background: List<String> = emptyList(),
+    /** The background's volume chosen at launch */
+    val backgroundVolume: Int? = null
 ) {
     /** The steps of the session, once it is over: done, skipped and not reached together. */
     val stepsTotal: Int? get() = if (stepsDone != null && stepsSkipped != null && stepsNotDone != null) stepsDone + stepsSkipped + stepsNotDone else null
@@ -108,7 +112,9 @@ internal fun sequenceEntries(result: Map<String, Any?>?): List<SequenceEntry> =
             run = (state?.get(SequenceToolType.RUN) as? String)?.takeIf { it.isNotEmpty() && state[SequenceToolType.STATUS] == SequenceToolType.Status.RUNNING }
                 ?.let { SequenceRun.fromJson(JSONObject(it)) },
             steps = SequenceSteps.read(data?.get(SequenceToolType.KEPT_STEPS) as? String),
-            extra = (e["extra"] as? Map<*, *>)?.entries?.associate { it.key.toString() to it.value } ?: emptyMap()
+            extra = (e["extra"] as? Map<*, *>)?.entries?.associate { it.key.toString() to it.value } ?: emptyMap(),
+            background = app.treelune.core.fields.FileField.ids(data?.get(SequenceToolType.BACKGROUND)),
+            backgroundVolume = count(SequenceToolType.BACKGROUND_VOLUME)
         )
     }
 
@@ -214,7 +220,7 @@ fun SequenceScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigu
         val open = openId?.let { id -> loaded.find { it.id == id && it.stepsTotal != null } }
         when {
             open != null -> SessionView(open, fields, s) { params -> call(SequenceService.CORRECT, mapOf("id" to open.id) + params) {} }
-            running != null && live == running.id -> Running(running.id, running.run!!, s) { op -> call(op, mapOf("id" to running.id)) }
+            running != null && live == running.id -> Running(running, running.run!!, s) { op -> call(op, mapOf("id" to running.id)) }
             running != null -> Interrupted(s,
                 onResume = { call(SequenceService.RESUME_INTERRUPTED, mapOf("id" to running.id)) },
                 onStop = { call(SequenceService.STOP, mapOf("id" to running.id)) })
@@ -227,7 +233,8 @@ fun SequenceScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigu
 /** A session running: its step large, the next small, the gestures; the screen kept on while shown. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Running(id: String, run: SequenceRun, s: StringsContext, gesture: (String) -> Unit) {
+private fun Running(entry: SequenceEntry, run: SequenceRun, s: StringsContext, gesture: (String) -> Unit) {
+    val id = entry.id
     val view = LocalView.current
     // Its controls are what the screen is for while it runs: the chat's button stays away
     app.treelune.core.ui.HideChatButton()
@@ -255,11 +262,12 @@ private fun Running(id: String, run: SequenceRun, s: StringsContext, gesture: (S
             step.instruction?.let { MarkupText(it, icons = false, selectable = false) }
             // Where its files were read from, or that what it followed is gone
             step.source?.let { UI.Text(it, TextType.CAPTION) }
-            step.media?.let { media -> if (media.isVideo) StepVideo(media, run, now) else UI.Icon("audio-lines", contentDescription = s.tool("field_step_media")) }
+            step.media?.let { media -> if (media.isVideo) StepVideo(media, run, now, withBackground = entry.background.isNotEmpty()) else UI.Icon("audio-lines", contentDescription = s.tool("field_step_media")) }
             if (step.images.isNotEmpty()) StepImages(step.images)
         }
     }
     run.next?.let { UI.Text(s.tool("running_next").format(it.name), TextType.CAPTION) }
+    if (entry.background.isNotEmpty()) BackgroundVolume(entry, s)
 
     UI.Button(type = ButtonType.PRIMARY, onClick = { gesture(SequenceService.DONE) }) { UI.Text(s.tool("action_done"), TextType.LABEL) }
     FlowRow(horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
@@ -310,9 +318,10 @@ private fun StepImages(ids: List<String>) {
 /**
  * A step's video, played on the session's screen as the step's clock stands: from where it is
  * once the step has begun, paused with the session, from its place again after `back` or `restart`.
+ * Under a background sound, it asks for no audio focus, which would cut it.
  */
 @Composable
-private fun StepVideo(media: app.treelune.tools.sequence.StepMedia, run: SequenceRun, now: Long) {
+private fun StepVideo(media: app.treelune.tools.sequence.StepMedia, run: SequenceRun, now: Long, withBackground: Boolean) {
     val context = LocalContext.current
     // A file of the app or a linked one, played through its address
     val source by androidx.compose.runtime.produceState<app.treelune.core.files.Files.Source?>(initialValue = null, media.id) {
@@ -324,7 +333,10 @@ private fun StepVideo(media: app.treelune.tools.sequence.StepMedia, run: Sequenc
     val playing = !run.isPaused && !run.held && elapsed >= 0 && elapsed < media.durationMs
     val started = androidx.compose.runtime.remember(key) { androidx.compose.runtime.mutableStateOf(false) }
     androidx.compose.ui.viewinterop.AndroidView(
-        factory = { android.widget.VideoView(it).apply { setVideoURI(uri) } },
+        factory = { android.widget.VideoView(it).apply {
+            if (withBackground) setAudioFocusRequest(android.media.AudioManager.AUDIOFOCUS_NONE)
+            setVideoURI(uri)
+        } },
         update = { view ->
             when {
                 playing && (!view.isPlaying || !started.value) -> { view.seekTo(elapsed.toInt()); view.start(); started.value = true }
@@ -359,10 +371,12 @@ private fun Idle(config: JSONObject, entries: List<SequenceEntry>, s: StringsCon
     // What the question opened for: starting, or a planned session done, by its id
     var asking by rememberSaveable { mutableStateOf<String?>(null) }
     fun launch(operation: String, params: Map<String, Any?>) {
-        if (variant == SequenceVariants.STEPS) call(operation, params) {} else asking = params["id"] as? String ?: SequenceService.START
+        // A session done without the app played no background: only starting one offers it
+        val asks = if (operation == SequenceService.START) SequenceVariants.asksAtLaunch(config) else variant != SequenceVariants.STEPS
+        if (!asks) call(operation, params) {} else asking = params["id"] as? String ?: SequenceService.START
     }
     asking?.let { forWhat ->
-        LaunchDialog(config, history, s, onAnswer = { answer ->
+        LaunchDialog(config, history, s, withBackground = forWhat == SequenceService.START, onAnswer = { answer ->
             asking = null
             if (forWhat == SequenceService.START) call(SequenceService.START, answer) {} else call(SequenceService.COMPLETE, answer + ("id" to forWhat)) {}
         }, onCancel = { asking = null })
@@ -462,6 +476,10 @@ private fun SessionView(entry: SequenceEntry, fields: List<FieldDefinition>, s: 
         if (fields.isNotEmpty()) CustomFieldsInput(customFieldsMetadata = fields, values = values, onValuesChange = { values = it }, context = context)
     }
     val extra = { mapOf("extra" to fields.associate { it.name to values[it.name] }) }
+    if (entry.background.isNotEmpty()) {
+        UI.Text(s.tool("field_background"), TextType.LABEL)
+        app.treelune.core.fields.FieldValue(backgroundFilesField(s), entry.background, context)
+    }
     entry.steps?.let { kept ->
         KeptStepsView(kept, at, { at = it }, duration, { duration = it }, s, entry.id, userFields) { onSave(it + extra()) }
         return

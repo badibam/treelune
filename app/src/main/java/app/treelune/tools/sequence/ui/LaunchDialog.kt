@@ -46,28 +46,42 @@ import org.json.JSONObject
 /**
  * What a session's variant asks before it starts (SequenceVariants), as the params of the
  * operation it opens for: a timer's `duration`, a medium's `entry`; nothing for steps, which
- * starts at once. [onAnswer] gets those params, [onCancel] closes without starting.
+ * starts at once unless it offers a background. [onAnswer] gets those params, [onCancel] closes
+ * without starting.
  *
  * @param history The tool's sessions, which tell the entry played last
+ * @param withBackground Whether the window offers the config's background, `background` in the
+ *   answer: for a session starting, not for one marked done without the app
  */
 @Composable
-internal fun LaunchDialog(config: JSONObject, history: List<SequenceEntry>, s: StringsContext, onAnswer: (Map<String, Any?>) -> Unit, onCancel: () -> Unit) {
+internal fun LaunchDialog(config: JSONObject, history: List<SequenceEntry>, s: StringsContext, withBackground: Boolean = true, onAnswer: (Map<String, Any?>) -> Unit, onCancel: () -> Unit) {
+    val offers = withBackground && SequenceVariants.offersBackground(config)
+    var chosen by rememberSaveable(stateSaver = app.treelune.core.ui.FieldValuesSaver) {
+        mutableStateOf(app.treelune.tools.sequence.BackgroundChoice.ofConfig(config).toValues())
+    }
+    val answer: (Map<String, Any?>) -> Unit = { given -> onAnswer(if (offers) given + ("background" to chosen) else given) }
+    val background: @Composable () -> Unit = { if (offers) BackgroundInput(chosen, { chosen = it }, s) }
     when (SequenceVariants.of(config)) {
-        SequenceVariants.TIMER -> TimerDialog(config, s, onAnswer, onCancel)
-        SequenceVariants.MEDIA -> MediaDialog(config, history, s, onAnswer, onCancel)
-        else -> LaunchedEffect(Unit) { onAnswer(emptyMap()) }
+        SequenceVariants.TIMER -> TimerDialog(config, s, background, answer, onCancel)
+        SequenceVariants.MEDIA -> MediaDialog(config, history, s, background, answer, onCancel)
+        else -> if (offers) UI.Dialog(type = DialogType.CONFIRM, onConfirm = { answer(emptyMap()) }, onCancel = onCancel) {
+            Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) { background() }
+        } else LaunchedEffect(Unit) { onAnswer(emptyMap()) }
     }
 }
 
 /** How long: the config's length proposed. */
 @Composable
-private fun TimerDialog(config: JSONObject, s: StringsContext, onAnswer: (Map<String, Any?>) -> Unit, onCancel: () -> Unit) {
+private fun TimerDialog(config: JSONObject, s: StringsContext, background: @Composable () -> Unit, onAnswer: (Map<String, Any?>) -> Unit, onCancel: () -> Unit) {
     val context = LocalContext.current
     var length by rememberSaveable { mutableStateOf<Any?>(config.optLong(SequenceVariants.TIMER_DURATION, SequenceVariants.DEFAULT_TIMER)) }
     val field = FieldDefinition(SequenceToolType.DURATION, s.tool("launch_timer"), null, FieldType.DURATION, false, SequenceToolType.SESSION_UNITS)
     UI.Dialog(type = DialogType.CONFIRM, onConfirm = { onAnswer(mapOf(SequenceToolType.DURATION to length)) }, onCancel = onCancel,
         confirmEnabled = ((length as? Number)?.toLong() ?: 0L) > 0L) {
-        FieldInput(field, length, { length = it }, context, required = true)
+        Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+            FieldInput(field, length, { length = it }, context, required = true)
+            background()
+        }
     }
 }
 
@@ -77,7 +91,7 @@ private fun TimerDialog(config: JSONObject, s: StringsContext, onAnswer: (Map<St
  * A touch never starts: it opens the entry's window ([MediaPreview]), whose « Start » answers.
  */
 @Composable
-private fun MediaDialog(config: JSONObject, history: List<SequenceEntry>, s: StringsContext, onAnswer: (Map<String, Any?>) -> Unit, onCancel: () -> Unit) {
+private fun MediaDialog(config: JSONObject, history: List<SequenceEntry>, s: StringsContext, background: @Composable () -> Unit, onAnswer: (Map<String, Any?>) -> Unit, onCancel: () -> Unit) {
     val context = LocalContext.current
     var offered by remember { mutableStateOf<List<Map<String, Any?>>?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -146,7 +160,7 @@ private fun MediaDialog(config: JSONObject, history: List<SequenceEntry>, s: Str
     }
 
     previewed?.let { entry ->
-        MediaPreview(config, entry, playedAt[entry["id"]], playCounts[entry["id"]] ?: 0, s,
+        MediaPreview(config, entry, playedAt[entry["id"]], playCounts[entry["id"]] ?: 0, s, background,
             onStart = { onAnswer(mapOf("entry" to entry["id"] as String)) }, onBack = { previewed = null })
     }
 }
@@ -158,7 +172,7 @@ private fun MediaDialog(config: JSONObject, history: List<SequenceEntry>, s: Str
  * A linked medium the phone no longer has is said, and nothing starts.
  */
 @Composable
-private fun MediaPreview(config: JSONObject, entry: Map<String, Any?>, lastAt: Long?, count: Int, s: StringsContext, onStart: () -> Unit, onBack: () -> Unit) {
+private fun MediaPreview(config: JSONObject, entry: Map<String, Any?>, lastAt: Long?, count: Int, s: StringsContext, background: @Composable () -> Unit, onStart: () -> Unit, onBack: () -> Unit) {
     val context = LocalContext.current
     val toolId = config.optJSONObject(SequenceVariants.MEDIA_SOURCE)?.optJSONObject("target")?.optString("id").orEmpty()
     val shown = config.optJSONArray(SequenceVariants.MEDIA_SHOWN)?.let { list -> (0 until list.length()).mapNotNull { list.optString(it).takeIf { p -> p.isNotEmpty() } } }.orEmpty()
@@ -201,6 +215,7 @@ private fun MediaPreview(config: JSONObject, entry: Map<String, Any?>, lastAt: L
                     FieldValue(definition, value, context)
                 }
             }
+            background()
             Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {
                 UI.ActionButton(action = ButtonAction.BACK, onClick = onBack)
                 UI.Button(type = ButtonType.PRIMARY, size = Size.M,

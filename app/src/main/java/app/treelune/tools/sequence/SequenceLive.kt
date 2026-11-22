@@ -32,6 +32,13 @@ object SequenceLive {
 
     internal fun setRunning(id: String?) { _running.value = id }
 
+    private val _backgroundVolume = MutableStateFlow<Int?>(null)
+
+    /** The background's volume set on the session's screen, for this session; null until it is. */
+    val backgroundVolume: StateFlow<Int?> = _backgroundVolume.asStateFlow()
+
+    fun setBackgroundVolume(volume: Int?) { _backgroundVolume.value = volume }
+
     /** A session started, or resumed after the app stopped: the service runs it. */
     fun started(context: Context, id: String) {
         // Known at once, so the screen never takes the session starting for one interrupted

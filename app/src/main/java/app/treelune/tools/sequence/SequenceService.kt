@@ -34,7 +34,8 @@ import org.json.JSONObject
  * For the screen and the notification only, refused to the AI and to an outside client: they
  * have a meaning only for whoever does the session.
  * - start: `tool_instance_id`, and what its variant asks at launch (SequenceVariants): a timer's
- *   `duration`, its config's without one; a medium's `entry`, the id of the entry played — the
+ *   `duration`, its config's without one; a medium's `entry`, the id of the entry played; and
+ *   `background`, the background chosen when the config offers one (BackgroundChoice) — the
  *   session begins, on the planned entry waiting if there is one, a new one if not
  * - done, skip, back, restart, pause, resume, extend, stop: `id` — the gestures (SequenceGestures);
  *   the last step passed or the session stopped, it is written whole and waits « to finish »
@@ -58,7 +59,7 @@ class SequenceService(private val context: Context) : ExecutableService {
             if (origin != Source.USER && origin != Source.SYSTEM) return OperationResult.error(s.tool("error_gesture_origin"))
         }
         return when (operation) {
-            START -> start(params.optString("tool_instance_id"), answer(params))
+            START -> start(params.optString("tool_instance_id"), answer(params), params.optJSONObject("background"))
             COMPLETE -> complete(params)
             CORRECT -> correct(params)
             FINISH -> finish(params)
@@ -88,7 +89,7 @@ class SequenceService(private val context: Context) : ExecutableService {
         else -> SequenceVariants.Answer.None
     }
 
-    private suspend fun start(toolInstanceId: String, answer: SequenceVariants.Answer): OperationResult {
+    private suspend fun start(toolInstanceId: String, answer: SequenceVariants.Answer, chosen: JSONObject?): OperationResult {
         if (toolInstanceId.isEmpty()) return OperationResult.error(s.shared("service_error_missing_tool_instance_id"))
         unfinished()?.let { (tool, name, status) ->
             val here = tool == toolInstanceId
@@ -105,6 +106,8 @@ class SequenceService(private val context: Context) : ExecutableService {
             is SequenceVariants.Made.Steps -> made.steps
         }
         val run = SequenceRun.start(steps, now)
+        // Its background, which the entry takes as its own links; none where the config offers none
+        val background = chosen?.takeIf { SequenceVariants.offersBackground(config) }?.let { BackgroundChoice.of(it) }?.toData().orEmpty()
         val state = mapOf(
             SequenceToolType.STATUS to SequenceToolType.Status.RUNNING,
             SequenceToolType.STARTED_AT to now,
@@ -114,13 +117,13 @@ class SequenceService(private val context: Context) : ExecutableService {
         // time kept apart (PlannedTime); without one, a new entry
         val planned = entriesOf(toolInstanceId, SequenceToolType.Status.PLANNED).maxByOrNull { it.timestamp ?: 0L }
         val result = if (planned != null) {
-            coordinator.processUserAction("tool_data.update", mapOf("id" to planned.id, "timestamp" to now,
+            coordinator.processUserAction("tool_data.update", mapOf("id" to planned.id, "timestamp" to now, "data" to background,
                 "state" to state + (app.treelune.core.tools.PlannedTime.KEY to planned.timestamp)))
         } else {
             coordinator.processUserAction("tool_data.create", mapOf(
                 "tool_instance_id" to toolInstanceId,
                 "timestamp" to now,
-                "data" to emptyMap<String, Any>(),
+                "data" to background,
                 "state" to state
             ))
         }

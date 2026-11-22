@@ -66,6 +66,20 @@ object SequenceToolType : ToolTypeContract {
     const val COUNTDOWN = "countdown"
     const val VOICE = "voice"
     const val ENABLED = "enabled"
+    /** Whether a session offers a background sound (docs/design/sequence-background.md) */
+    const val BACKGROUND_ENABLED = "background_enabled"
+    /** The background proposed at launch */
+    const val BACKGROUND_FILES = "background_files"
+    const val DEFAULT_BACKGROUND_VOLUME = 50
+
+    // Config and entry: how the background plays
+    const val BACKGROUND_SHUFFLE = "background_shuffle"
+    const val BACKGROUND_LOOP = "background_loop"
+    const val BACKGROUND_VOLUME = "background_volume"
+
+    /** Sounds only, linked: a copied one would be copied whole into each session. */
+    val BACKGROUND_FILE_CONFIG: Map<String, Any> = FileField.config(listOf(FileKind.AUDIO)) + (FileField.STORAGE to FileField.LINKED)
+    val BACKGROUND_VOLUME_CONFIG: Map<String, Any> = mapOf("min" to 0, "max" to 100, "step" to 5)
 
     // Entry: state
     const val STATUS = "status"
@@ -83,6 +97,8 @@ object SequenceToolType : ToolTypeContract {
     const val KEPT_STEPS = "steps"
     /** The correction of a session that keeps its steps: their states, one a step */
     const val STEP_STATUSES = "step_statuses"
+    /** The background files chosen for the session, its own links */
+    const val BACKGROUND = "background"
 
     private fun s(context: Context) = Strings.`for`(tool = "sequence", context = context)
 
@@ -125,6 +141,15 @@ object SequenceToolType : ToolTypeContract {
         val shared = Strings.`for`(context = context)
         return listOf(
             SettingNode.Section(s.tool("section_session"), listOf(variant(s::tool))),
+            SettingNode.Section(s.tool("section_background"), listOf(
+                SettingNode.Field(field(BACKGROUND_ENABLED, s.tool("field_background_enabled"), FieldType.BOOLEAN, s.tool("schema_background_enabled")), default = false)
+            )),
+            SettingNode.Section(s.tool("section_background_default"), listOf(
+                SettingNode.Field(field(BACKGROUND_FILES, s.tool("field_background_files"), FieldType.FILE, s.tool("schema_background_files"), BACKGROUND_FILE_CONFIG)),
+                SettingNode.Field(field(BACKGROUND_SHUFFLE, s.tool("field_background_shuffle"), FieldType.BOOLEAN, s.tool("schema_background_shuffle")), default = false),
+                SettingNode.Field(field(BACKGROUND_LOOP, s.tool("field_background_loop"), FieldType.BOOLEAN, s.tool("schema_background_loop")), default = true),
+                SettingNode.Field(field(BACKGROUND_VOLUME, s.tool("field_background_volume"), FieldType.SCALE, s.tool("schema_background_volume"), BACKGROUND_VOLUME_CONFIG), default = DEFAULT_BACKGROUND_VOLUME)
+            ), shownWith = SettingNode.ShownWith(BACKGROUND_ENABLED, "true")),
             SettingNode.Section(s.tool("section_signals"), listOf(
                 SettingNode.Field(field(STEP_SIGNAL, s.tool("field_step_signal"), FieldType.CHOICE, s.tool("schema_step_signal"),
                     choice(StepSignal.ALL) { s.tool("step_signal_$it") }), required = true, default = StepSignal.SOUND_AND_VIBRATION),
@@ -254,7 +279,11 @@ object SequenceToolType : ToolTypeContract {
                 data(STEPS_DONE, FieldType.NUMERIC, count),
                 data(STEPS_SKIPPED, FieldType.NUMERIC, count),
                 data(STEPS_NOT_DONE, FieldType.NUMERIC, count),
-                FixedField(field(KEPT_STEPS, s.tool("field_kept_steps"), FieldType.TEXT, s.tool("schema_kept_steps"), mapOf("length" to TextLength.UNLIMITED.name)), systemWritten = true)
+                FixedField(field(KEPT_STEPS, s.tool("field_kept_steps"), FieldType.TEXT, s.tool("schema_kept_steps"), mapOf("length" to TextLength.UNLIMITED.name)), systemWritten = true),
+                data(BACKGROUND, FieldType.FILE, BACKGROUND_FILE_CONFIG),
+                data(BACKGROUND_SHUFFLE, FieldType.BOOLEAN),
+                data(BACKGROUND_LOOP, FieldType.BOOLEAN),
+                data(BACKGROUND_VOLUME, FieldType.SCALE, BACKGROUND_VOLUME_CONFIG)
             ),
             state = listOf(
                 StateField(field(STATUS, s.tool("field_status"), FieldType.CHOICE, s.tool("schema_status"), choice(Status.ALL) { s.tool("status_$it") }), filterable = true),

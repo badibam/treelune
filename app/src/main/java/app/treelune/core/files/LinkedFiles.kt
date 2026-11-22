@@ -133,6 +133,31 @@ object LinkedFiles {
     /** Whether the link [row] reads now: an expected link, without an address, never does. */
     fun reads(context: Context, row: FileEntity): Boolean = row.uri?.let { readable(context, Uri.parse(it)) } == true
 
+    /**
+     * The path of the document [document] under the tree's root document [root], for a provider
+     * whose ids are paths (`primary:Music/a.flac`); null when it is not under it or they are not.
+     */
+    fun pathUnder(root: String, document: String): String? = when {
+        root.endsWith(":") && document.startsWith(root) -> document.removePrefix(root)
+        document.startsWith("$root/") -> document.removePrefix("$root/")
+        else -> null
+    }
+
+    /** The authorized folder's id and the path under it of the folder of the first of [ids] the phone has; null when none. */
+    suspend fun folderOf(context: Context, ids: List<String>): Pair<String, String>? {
+        val folders = folders(context)
+        for (id in ids) {
+            val uri = Files.locate(context, id)?.uri ?: continue
+            if (!DocumentsContract.isDocumentUri(context, uri)) continue
+            val document = DocumentsContract.getDocumentId(uri)
+            for (folder in folders) {
+                val under = pathUnder(DocumentsContract.getTreeDocumentId(folder.tree), document) ?: continue
+                return folder.id to under.substringBeforeLast('/', "")
+            }
+        }
+        return null
+    }
+
     /** Whether a file's row in a backup is a link: one written before `linked` is by its address. */
     fun isLinkRow(row: JSONObject): Boolean = row.optBoolean("linked") || (row.has("uri") && !row.isNull("uri"))
 
