@@ -207,7 +207,7 @@ class ApiService(private val context: Context) : ExecutableService {
         LogManager.service("API ${api.id} called: ${reply.code}", "INFO")
         return try {
             if (call.deferred) OperationResult.success(mapOf("job_id" to call.jobId(reply), "raw" to raw(reply)))
-            else OperationResult.success(mapOf("values" to call.read(reply), "raw" to raw(reply)))
+            else OperationResult.success(mapOf("values" to call.read(reply) + answer(ApiCall.parse(reply)), "raw" to raw(reply)))
         } catch (e: ApiCall.Failure) {
             OperationResult.error(failure(e), mapOf("raw" to raw(reply)))
         }
@@ -224,12 +224,18 @@ class ApiService(private val context: Context) : ExecutableService {
             when (call.status(reply)) {
                 ApiCall.Status.PENDING -> OperationResult.success(mapOf("status" to "pending", "raw" to raw(reply)))
                 ApiCall.Status.FAILED -> OperationResult.success(mapOf("status" to "failed", "raw" to raw(reply)))
-                ApiCall.Status.READY -> OperationResult.success(mapOf("status" to "ready", "values" to call.read(reply), "raw" to raw(reply)))
+                ApiCall.Status.READY -> OperationResult.success(mapOf("status" to "ready", "values" to call.read(reply) + answer(ApiCall.parse(reply)), "raw" to raw(reply)))
             }
         } catch (e: ApiCall.Failure) {
             OperationResult.error(failure(e), mapOf("raw" to raw(reply)) + passing(e))
         }
     }
+
+    /** The whole answer every API gives besides its declared values (ApiSettings.ANSWER): an object, or a list for a body that is one. */
+    private fun answer(json: Any): Map<String, Any> = mapOf(ApiSettings.ANSWER to when (json) {
+        is org.json.JSONArray -> app.treelune.core.utils.JsonUtils.toList(json)
+        else -> app.treelune.core.utils.JsonUtils.toMap(json)
+    })
 
     /** `passing` when [e] may be mended by asking again later (ApiCall.Failure.passing). */
     private fun passing(e: ApiCall.Failure): Map<String, Any> = if (e.passing) mapOf(PASSING to true) else emptyMap()
@@ -243,7 +249,8 @@ class ApiService(private val context: Context) : ExecutableService {
         val call = RecipeCall.of(context, JSONObject(api.configJson))
         val (status, result) = call.status(job)
         return when (status) {
-            ApiCall.Status.READY -> OperationResult.success(mapOf("status" to "ready", "values" to call.values(job, result!!), "raw" to result.toString().take(ApiCall.RAW_KEPT)))
+            ApiCall.Status.READY -> OperationResult.success(mapOf("status" to "ready",
+                "values" to call.values(job, result!!) + answer(result.optJSONObject("values") ?: JSONObject()), "raw" to result.toString().take(ApiCall.RAW_KEPT)))
             else -> OperationResult.success(mapOf("status" to "pending", "raw" to ""))
         }
     }

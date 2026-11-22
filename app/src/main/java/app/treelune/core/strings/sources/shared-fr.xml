@@ -2924,6 +2924,7 @@
     <string name="api_schema_items">Pour une liste : ce que contient chaque élément, chacun par son nom et son chemin dans l\'élément ; un champ qu\'un élément n\'a pas reste vide</string>
     <string name="api_error_list_items">La liste « %1$s » ne nomme aucun champ de ses éléments</string>
     <string name="api_error_name_form">« %1$s » : un nom s\'écrit en minuscules, chiffres et _, en commençant par une lettre</string>
+    <string name="api_error_name_answer">Une valeur ne peut pas s\'appeler %1$s : toute API donne sa réponse entière sous ce nom</string>
     <string name="api_error_status_url">L\'adresse de suivi contient %1$s, là où va l\'identifiant</string>
     <string name="api_error_failed_half">Un échec se dit par un chemin et une valeur ensemble, ou pas du tout</string>
     <string name="api_error_url">« %1$s » n\'est pas une adresse qui commence par https:// ou http://</string>
@@ -2991,7 +2992,11 @@
     <string name="task_error_block_no_entry">Le bloc %1$s ne donne aucune entrée</string>
     <string name="task_error_result_step">L\'étape %1$s lit l\'étape %2$s, qui ne vient pas avant elle</string>
     <string name="task_error_result_value">L\'étape %1$s lit « %3$s » de l\'étape %2$s, qui ne le donne pas</string>
+    <string name="task_error_result_path">L\'étape %1$s lit %2$s : un chemin va dans un objet ou une liste</string>
+    <string name="task_error_result_path_absent">L\'étape %1$s n\'a rien donné à %2$s</string>
+    <string name="task_error_recipe_file">%1$s ne nomme aucun fichier du dossier de résultat de la recette</string>
     <string name="task_output_entry">l\'entrée créée</string>
+    <string name="task_output_answer">Réponse</string>
     <string name="task_error_api">Étape %1$s : aucune API %2$s</string>
     <string name="task_error_tool">Étape %1$s : aucun outil %2$s</string>
     <string name="task_error_entry">Étape %1$s : quelle entrée modifier</string>
@@ -3032,6 +3037,8 @@
     <string name="task_input_entry">Une entrée</string>
     <string name="task_input_term">Une valeur, une lecture ou une variable</string>
     <string name="task_input_from_step">Ce qu\'une étape a donné</string>
+    <string name="task_input_path">Chemin dedans (vide pour la valeur entière)</string>
+    <string name="task_input_item_path">Le champ de l\'élément, par son chemin</string>
     <string name="task_input_source">Depuis</string>
     <string name="task_reference_run">Par rapport à : le moment de l\'exécution</string>
     <string name="task_run_now">Lancer maintenant</string>

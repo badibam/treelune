@@ -478,7 +478,8 @@ object TaskRunner {
                 val field = fields[key]
                 put(key, when {
                     // A file an API gives comes down into the field, with that API's key on its server
-                    field?.type == FieldType.FILE && value is String -> listOf(download(context, value, FileField.kinds(field.config), apiOf(input, step, steps)))
+                    field?.type == FieldType.FILE && value is String -> listOf(download(context, fileAddress(context, value, input, step, steps, results),
+                        FileField.kinds(field.config), apiOf(input, step, steps)))
                     // An object, written into a JSON field as its text
                     field != null && field.json() && (value is Map<*, *> || value is List<*>) -> said(value)
                     // The entry a step created, designated in a field that holds a Reference; a
@@ -596,6 +597,27 @@ object TaskRunner {
         }
     }
 
+    /**
+     * Where the file [value] names comes from: an address as it is; a file's name a recipe's
+     * answer gives (its `answer`, which no declaration resolves) the address of that file in
+     * `result/` of the branch of the call the step's result keeps (its job). A name the recipe's
+     * result folder cannot hold fails the step, named.
+     */
+    private suspend fun fileAddress(context: Context, value: String, input: TaskSteps.Input, step: JSONObject, steps: org.json.JSONArray, results: List<TaskRun.StepResult>): String {
+        if ("://" in value) return value
+        val apiId = apiOf(input, step, steps) ?: return value
+        val config = AppDatabase.getDatabase(context).apiDao().get(apiId)?.configJson?.let { JSONObject(it) } ?: return value
+        if (!app.treelune.core.apis.ApiSettings.isRecipe(config)) return value
+        val source = when (input) {
+            is TaskSteps.Input.Result -> input.step
+            is TaskSteps.Input.Item -> step.optJSONObject(TaskSteps.FOR_EACH)?.optJSONObject(TaskSteps.RESULT)?.optInt(TaskSteps.STEP, -1)
+            else -> null
+        }
+        val job = source?.let { results.getOrNull(it) }?.job ?: return value
+        return app.treelune.core.apis.RecipeCall.of(context, config).fileAddress(job, value)
+            ?: throw StepFailed(Strings.`for`(context = context).shared("task_error_recipe_file").format(value))
+    }
+
     /** The API whose answer [input] reads: a value an earlier step's call gave, or a field of an element of the list it answered. */
     private fun apiOf(input: TaskSteps.Input, step: JSONObject, steps: org.json.JSONArray): String? = when (input) {
         is TaskSteps.Input.Result -> steps.optJSONObject(input.step)
@@ -698,7 +720,8 @@ object TaskRunner {
     private suspend fun resolve(context: Context, input: TaskSteps.Input, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?, item: Map<String, Any?>? = null): Any? {
         val s = Strings.`for`(context = context)
         return when (input) {
-            is TaskSteps.Input.Item -> (item ?: throw StepFailed(s.shared("task_error_item_unrepeated").format(""))) [input.field]
+            // A field of the element, by a path into it for a list no declaration describes (TaskSteps.ValuePath)
+            is TaskSteps.Input.Item -> TaskSteps.ValuePath.at(item ?: throw StepFailed(s.shared("task_error_item_unrepeated").format("")), input.field)
             is TaskSteps.Input.Selection -> listed(context, input.selection, at)
             is TaskSteps.Input.Received -> when {
                 input.value != null -> when (received) {
@@ -717,6 +740,8 @@ object TaskRunner {
             is TaskSteps.Input.Result -> {
                 val given = results.getOrNull(input.step) ?: throw StepFailed(s.shared("task_error_result_step").format("", input.step + 1))
                 if (input.value == null) given.entryId ?: throw StepFailed(s.shared("task_error_result_value").format("", input.step + 1, s.shared("task_output_entry")))
+                // A path that holds nothing fails here, named: it is never checked when the Task is saved
+                else if (TaskSteps.ValuePath.rest(input.value) != null) given.valueOf(input.value) ?: throw StepFailed(s.shared("task_error_result_path_absent").format(input.step + 1, input.value))
                 else given.valueOf(input.value)
             }
             is TaskSteps.Input.Of -> when (val term = input.term) {

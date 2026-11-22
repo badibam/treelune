@@ -133,6 +133,14 @@ object ApiSettings {
      */
     const val OBJECT = "object"
 
+    /**
+     * The value every API gives besides those it declares (docs/CORE.md, « APIs »): its whole
+     * answer, an object — a web API's body, a recipe's `values` —, read by a path
+     * (`answer.session.title`, TaskSteps.ValuePath) for what its caller shapes and no
+     * declaration can say ahead. No declared value takes its name.
+     */
+    const val ANSWER = "answer"
+
     /** Whether the answer is the result, or an id to follow until the result is ready. */
     const val RESPONSE = "response"
     const val IMMEDIATE = "immediate"
@@ -249,6 +257,7 @@ object ApiSettings {
             val names = config.optJSONArray(list)?.let { array -> (0 until array.length()).map { array.getJSONObject(it).optString(NAME) } }.orEmpty()
             names.groupBy { it }.filter { it.value.size > 1 }.keys.firstOrNull()?.let { return s.shared("api_error_name_twice").format(it) }
             names.firstOrNull { !NAME_FORM.matches(it) }?.let { return s.shared("api_error_name_form").format(it) }
+            if (list == VALUES && ANSWER in names) return s.shared("api_error_name_answer").format(ANSWER)
         }
         // A list's elements are read by their fields: at least one, each named once
         config.optJSONArray(VALUES)?.let { array -> (0 until array.length()).map { array.getJSONObject(it) } }.orEmpty()

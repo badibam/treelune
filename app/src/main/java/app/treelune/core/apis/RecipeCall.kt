@@ -53,6 +53,13 @@ class RecipeCall(private val repo: GitHubRepo, private val recipe: String, priva
         }
     }
 
+    /** The address of the file [file] in `result/` of the branch of the call [job]; null for a name no file there can have. */
+    fun fileAddress(job: String, file: String): String? {
+        if (!FILE_NAME.matches(file)) return null
+        val (call, _) = parse(job)
+        return repo.fileAddress("result/$file", BRANCH_PREFIX + call)
+    }
+
     /**
      * The values the recipe declares, read from [result] under `values`, each of its type: a file
      * is the address of the file of that name in `result/` of the call's branch.

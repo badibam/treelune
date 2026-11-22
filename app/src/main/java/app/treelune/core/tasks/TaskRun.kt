@@ -67,12 +67,16 @@ object TaskRun {
         /**
          * What the step gave under [name]: one of its [values]; or, for an object made (an
          * `assemble` step), one of its keys, which [types] names beside the object stored once
-         * under StepObject.OUTPUT and read from it.
+         * under StepObject.OUTPUT and read from it. A path after the name reads a part of it
+         * (`answer.session.title`, TaskSteps.ValuePath); null when it holds nothing there.
          */
-        fun valueOf(name: String): Any? =
-            if (values.containsKey(name)) values[name]
-            else if (types.containsKey(name)) (values[StepObject.OUTPUT] as? Map<*, *>)?.get(name)
-            else null
+        fun valueOf(name: String): Any? {
+            val head = TaskSteps.ValuePath.head(name)
+            val whole = if (values.containsKey(head)) values[head]
+                else if (types.containsKey(head)) (values[StepObject.OUTPUT] as? Map<*, *>)?.get(head)
+                else null
+            return TaskSteps.ValuePath.rest(name)?.let { TaskSteps.ValuePath.at(whole, it) } ?: whole.takeIf { TaskSteps.ValuePath.rest(name) == null }
+        }
 
         fun toJson(): JSONObject = JSONObject().apply {
             put("summary", summary)

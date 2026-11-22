@@ -48,6 +48,9 @@ internal val LocalReceived = androidx.compose.runtime.staticCompositionLocalOf {
 /** The fields of the element a repeated step stands at, by name (TaskSteps.itemFields); null when it is not repeated. */
 private val LocalItems = androidx.compose.runtime.staticCompositionLocalOf<Map<String, FieldDefinition>?> { null }
 
+/** Whether the step repeats over a list found by a path (TaskSteps.ValuePath): its elements' fields are named by hand, no declaration giving them. */
+private val LocalAnyItem = androidx.compose.runtime.staticCompositionLocalOf { false }
+
 /**
  * The form of one step, [step] in its stored form (TaskSteps), its kind already chosen: what it
  * names (an API, a tool, an operation, a routine), then each of its inputs (StepInput).
@@ -60,7 +63,7 @@ internal fun StepEditor(step: JSONObject, earlier: Earlier, onChange: (JSONObjec
     val items = TaskSteps.itemFields(step, earlier.map { it.second }, s)
     Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
         ForEach(step, earlier, s, ::with)
-        androidx.compose.runtime.CompositionLocalProvider(LocalItems provides items) {
+        androidx.compose.runtime.CompositionLocalProvider(LocalItems provides items, LocalAnyItem provides (TaskSteps.repeats(step) && items == null)) {
             when (step.optString(TaskSteps.KIND)) {
                 TaskSteps.CALL_API -> CallApi(step, earlier, s, ::with)
                 TaskSteps.CREATE_ENTRY, TaskSteps.UPDATE_ENTRY -> WriteEntry(step, earlier, s, ::with)
@@ -81,17 +84,45 @@ internal fun StepEditor(step: JSONObject, earlier: Earlier, onChange: (JSONObjec
  */
 @Composable
 private fun ForEach(step: JSONObject, earlier: Earlier, s: StringsContext, with: (JSONObject.() -> Unit) -> Unit) {
+    // A declared list, or an object holding one at a path (an API's answer)
     val lists = earlier.flatMap { (index, outputs) ->
-        outputs.filter { it.type == ApiSettings.LIST }.map { output ->
+        outputs.filter { it.type == ApiSettings.LIST || it.type == ApiSettings.OBJECT }.map { output ->
             JSONObject().put(TaskSteps.RESULT, JSONObject().put(TaskSteps.STEP, index).put(TaskSteps.VALUE, output.value)).toString() to
-                s.shared("task_input_result").format(index + 1, output.value)
+                s.shared("task_input_result").format(index + 1, outputName(output, s))
         }
     }
     if (lists.isEmpty() && !TaskSteps.repeats(step)) return
-    Choice(s.shared("task_for_each"), listOf(ONCE to s.shared("task_for_each_once")) + lists,
-        step.optJSONObject(TaskSteps.FOR_EACH)?.toString() ?: ONCE) { key ->
+    val chosen = step.optJSONObject(TaskSteps.FOR_EACH)
+    // The list chosen, by its value without the path, which the field under it holds
+    val value = chosen?.optJSONObject(TaskSteps.RESULT)?.optString(TaskSteps.VALUE)
+    val shown = chosen?.let { JSONObject(it.toString()).apply { value?.let { v -> optJSONObject(TaskSteps.RESULT)?.put(TaskSteps.VALUE, TaskSteps.ValuePath.head(v)) } }.toString() } ?: ONCE
+    Choice(s.shared("task_for_each"), listOf(ONCE to s.shared("task_for_each_once")) + lists, shown) { key ->
         with { if (key == ONCE) remove(TaskSteps.FOR_EACH) else put(TaskSteps.FOR_EACH, JSONObject(key)) }
     }
+    val type = chosen?.optJSONObject(TaskSteps.RESULT)?.let { result ->
+        earlier.firstOrNull { it.first == result.optInt(TaskSteps.STEP, -1) }?.second?.firstOrNull { it.value == value?.let { v -> TaskSteps.ValuePath.head(v) } }?.type
+    }
+    if (type == ApiSettings.OBJECT && value != null) PathField(value, s) { next ->
+        with { optJSONObject(TaskSteps.FOR_EACH)?.optJSONObject(TaskSteps.RESULT)?.put(TaskSteps.VALUE, next) }
+    }
+}
+
+/**
+ * The path into the object [value] names (TaskSteps.ValuePath, `answer.session.title`): its
+ * first part kept, the rest typed; empty, the object whole.
+ */
+@Composable
+private fun PathField(value: String, s: StringsContext, onChange: (String) -> Unit) {
+    val head = TaskSteps.ValuePath.head(value)
+    UI.FormField(label = s.shared("task_input_path"), value = TaskSteps.ValuePath.rest(value).orEmpty(),
+        onChange = { rest -> onChange(rest.trim().trim('.').let { if (it.isEmpty()) head else "$head.$it" }) }, required = false)
+}
+
+/** What an earlier step gives, as the screen names it: a value by its name, an API's whole answer and an entry created by theirs. */
+private fun outputName(output: TaskSteps.Output, s: StringsContext): String = when (output.value) {
+    null -> s.shared("task_output_entry")
+    app.treelune.core.apis.ApiSettings.ANSWER -> s.shared("task_output_answer")
+    else -> output.value
 }
 
 /** A choice among [options] (id to label), [selected] by its id. */
@@ -437,7 +468,7 @@ internal fun StepInput(input: JSONObject?, field: FieldDefinition, earlier: Earl
         // A list is what a step repeats over, never a value
         outputs.filter { (it.value == null) == (field.type == FieldType.REFERENCE) && it.type != ApiSettings.LIST }.map { output ->
             JSONObject().put(TaskSteps.RESULT, JSONObject().put(TaskSteps.STEP, index).apply { output.value?.let { put(TaskSteps.VALUE, it) } }) to
-                s.shared("task_input_result").format(index + 1, output.value ?: s.shared("task_output_entry"))
+                s.shared("task_input_result").format(index + 1, outputName(output, s))
         }
     }
     // The entry a trigger gives, for an entry; its fields of the same type, for any other value
@@ -451,10 +482,12 @@ internal fun StepInput(input: JSONObject?, field: FieldDefinition, earlier: Earl
     } + given.values.orEmpty().filterValues { it.type == field.type }.map { (name, _) ->
         JSONObject().put(TaskSteps.RECEIVED, JSONObject().put(TaskSteps.VALUE, name)) to s.shared("task_input_received_value").format(name)
     }
-    // The fields of the element a repeated step stands at, of the same type
-    val items = LocalItems.current.orEmpty().filterValues { it.type == field.type }.map { (name, _) ->
-        JSONObject().put(TaskSteps.ITEM, JSONObject().put(TaskSteps.FIELD, name)) to s.shared("task_input_item_field").format(name)
-    }
+    // The fields of the element a repeated step stands at, of the same type; named by hand for a list found by a path
+    val anyItem = LocalAnyItem.current
+    val items = if (anyItem) listOf(JSONObject().put(TaskSteps.ITEM, JSONObject().put(TaskSteps.FIELD, "")) to s.shared("task_input_item"))
+        else LocalItems.current.orEmpty().filterValues { it.type == field.type }.map { (name, _) ->
+            JSONObject().put(TaskSteps.ITEM, JSONObject().put(TaskSteps.FIELD, name)) to s.shared("task_input_item_field").format(name)
+        }
     val sources = listOfNotNull(
         (NONE to s.shared("task_input_none")).takeIf { optional },
         (ITEM to s.shared("task_input_item")).takeIf { items.isNotEmpty() },
@@ -480,9 +513,21 @@ internal fun StepInput(input: JSONObject?, field: FieldDefinition, earlier: Earl
         })
     }
     when (source) {
-        RESULT -> Choice(s.shared("task_input_from_step"), results.map { it.first.toString() to it.second }, input.toString()) { onChange(JSONObject(it)) }
+        RESULT -> {
+            // The value chosen, by its name without the path, which the field under it holds
+            val result = input!!.getJSONObject(TaskSteps.RESULT)
+            val value = result.optString(TaskSteps.VALUE).ifEmpty { null }
+            val shown = JSONObject(input.toString()).apply { value?.let { getJSONObject(TaskSteps.RESULT).put(TaskSteps.VALUE, TaskSteps.ValuePath.head(it)) } }
+            Choice(s.shared("task_input_from_step"), results.map { it.first.toString() to it.second }, shown.toString()) { onChange(JSONObject(it)) }
+            val type = earlier.firstOrNull { it.first == result.optInt(TaskSteps.STEP, -1) }?.second?.firstOrNull { it.value == value?.let { v -> TaskSteps.ValuePath.head(v) } }?.type
+            if (type == ApiSettings.OBJECT && value != null) PathField(value, s) { next ->
+                onChange(JSONObject(input.toString()).apply { getJSONObject(TaskSteps.RESULT).put(TaskSteps.VALUE, next) })
+            }
+        }
         RECEIVED -> Choice(s.shared("task_input_received"), receivable.map { it.first.toString() to it.second }, input.toString()) { onChange(JSONObject(it)) }
-        ITEM -> Choice(s.shared("task_input_item"), items.map { it.first.toString() to it.second }, input.toString()) { onChange(JSONObject(it)) }
+        ITEM -> if (anyItem) UI.FormField(label = s.shared("task_input_item_path"), value = input?.optJSONObject(TaskSteps.ITEM)?.optString(TaskSteps.FIELD).orEmpty(),
+            onChange = { onChange(JSONObject().put(TaskSteps.ITEM, JSONObject().put(TaskSteps.FIELD, it.trim()))) }, required = true)
+            else Choice(s.shared("task_input_item"), items.map { it.first.toString() to it.second }, input.toString()) { onChange(JSONObject(it)) }
         TERM -> if (field.type == FieldType.REFERENCE) {
             // An entry designated: stored as a constant, read as its id when the step runs
             val context = LocalContext.current
@@ -545,7 +590,7 @@ private fun StepCondition(condition: JSONObject, earlier: Earlier, s: StringsCon
         } + earlier.flatMap { (index, outputs) ->
             outputs.filter { it.type != ApiSettings.LIST }.map { output ->
                 Triple(JSONObject().put(TaskSteps.RESULT, JSONObject().put(TaskSteps.STEP, index).apply { output.value?.let { put(TaskSteps.VALUE, it) } }),
-                    s.shared("task_input_result").format(index + 1, output.value ?: s.shared("task_output_entry")),
+                    s.shared("task_input_result").format(index + 1, outputName(output, s)),
                     if (output.value == null) StepConditions.entryField(s) else StepConditions.outputField(output, s))
             }
         }

@@ -16,7 +16,7 @@ Plus de routine de mémoire. La session hypnogen qui fabrique la séance N+1 met
 
 - **Le décalage d'une séance** : les retours de la séance N arrivent après sa fabrication ; la session N+1 intègre les retours des séances écoutées depuis, et ce qu'elle crée pour N+1 (ancres posées, faits de la narratrice).
 - **En entrée** (le contexte, assemblé) : les consignes du parcours (ce qu'il y a à faire, les règles de chaque outil : « mes mots restent mes mots », une entrée par lieu…), et les matériaux, des pointeurs Lisibles avec la configuration et les entrées identifiées, de n'importe quel type d'outil.
-- **En retour** : `retour` (`docs/design/api-return.md`), une clé par outil cible, choisie par le montage ; chacune deux listes, à modifier (avec l'identifiant de l'entrée) et à créer. Une clé `seance` réservée par le contrat de hypnogen.
+- **En retour** : `answer`, la réponse entière de l'API (`docs/CORE.md`, « APIs »), une clé par outil cible, choisie par le montage ; chacune deux listes, à modifier (avec l'identifiant de l'entrée) et à créer. Une clé `seance` réservée par le contrat de hypnogen.
 - **La Tâche range** : une étape par clé, répétée sur sa liste ; « modifier une entrée » prend son entrée dans l'élément (vérifié : `TaskSteps.kt:587-590`, `TaskRunner.kt:485`, `idOf`) ; un identifiant faux fait échouer la Tâche et l'étape répétée défait ce qu'elle avait écrit. Jamais de rapprochement par le nom, qui créerait en silence un double.
 - **Les séances à intégrer** : un champ « intégrée » sur les séances du lecteur, le pointeur ne joignant que celles où il est absent, coché par la Tâche après ; il remplace « versée à la mémoire » de la fiche, et chaque réécoute est une séance avec ses retours.
 - **Des retours corrigés** après la fabrication suivante ne sont plus repris : accepté.
@@ -24,8 +24,8 @@ Plus de routine de mémoire. La session hypnogen qui fabrique la séance N+1 met
 ## Le contrat de hypnogen
 
 - **Valeurs déclarées**, ce que toute séance a par nature : `audio`, `fiche`, `titre`, `duree`.
-- **Disparaissent** : `voix` (Treelune l'a envoyée), `memoire` ; `intention`, `metaphore` et la ligne anti-redite passent dans `retour`, demandées par les consignes.
-- **Une passe de plus**, après l'écriture de la séance : appliquer les consignes aux matériaux, rendre `retour`. Le temps qu'elle ajoute n'est pas mesuré (10 à 11 min de machine mesurées le 2026-11-08, `timeout_minutes` 45).
+- **Disparaissent** : `voix` (Treelune l'a envoyée), `memoire` ; `intention`, `metaphore` et la ligne anti-redite passent dans `answer`, demandées par les consignes.
+- **Une passe de plus**, après l'écriture de la séance : appliquer les consignes aux matériaux, rendre `answer`. Le temps qu'elle ajoute n'est pas mesuré (10 à 11 min de machine mesurées le 2026-11-08, `timeout_minutes` 45).
 - **Une consigne contre les redites** dans sa passe de conception : ne refaire ni un lieu ni une métaphore déjà faits que le contexte nomme, sauf s'il le demande.
 - Le changement casse les deux montages qui lisent `intention`, `metaphore`, `voix`, `memoire` (Racines › Hypnose, la zone Hypnose v2) : passés au nouveau contrat avec hypnogen, et `hypnogen/docs/treelune-contract.md` réécrit.
 

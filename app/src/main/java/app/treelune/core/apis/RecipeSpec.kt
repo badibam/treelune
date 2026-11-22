@@ -72,6 +72,8 @@ class RecipeSpec private constructor(
                 val name = item.optString(ApiSettings.NAME)
                 val type = item.optString(ApiSettings.TYPE)
                 if (!ApiSettings.NAME_FORM.matches(name) || !seen.add(name)) throw ApiCall.Failure("api_error_recipe_spec", "$key: $name")
+                // Every recipe gives its whole values as `answer`: none of them takes the name
+                if (name == ApiSettings.ANSWER) throw ApiCall.Failure("api_error_recipe_spec", "$key: $name")
                 if (type !in types) throw ApiCall.Failure("api_error_recipe_spec", "$key: $name, $type")
                 out.put(JSONObject().put(ApiSettings.NAME, name).put(ApiSettings.TYPE, type))
             }

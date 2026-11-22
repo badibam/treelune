@@ -245,6 +245,35 @@ object TaskSteps {
     }
 
     /**
+     * A value read by a path (`answer.session.title`): its first part names a value a step gives
+     * ([head]), the rest goes into it, an object's keys and a list's indexes joined by dots ([rest]),
+     * as an API's answer is read (ApiCall.at). A value's name holds no dot (ApiSettings.NAME_FORM,
+     * an object's keys), so the first dot parts them. What the rest names is never declared: it is
+     * checked when read, a path that holds nothing failing the step that reads it.
+     */
+    object ValuePath {
+        fun head(path: String): String = path.substringBefore('.')
+        fun rest(path: String): String? = path.substringAfter('.', "").ifEmpty { null }
+
+        /** What [value] holds at [path]; null when it holds nothing there. */
+        fun at(value: Any?, path: String): Any? {
+            var here = value
+            for (step in path.replace("[", ".").replace("]", "").split('.').filter { it.isNotEmpty() }) {
+                here = when (here) {
+                    is Map<*, *> -> here[step]
+                    is List<*> -> step.toIntOrNull()?.let { here.getOrNull(it) }
+                    else -> null
+                }
+                if (here == null) return null
+            }
+            return here
+        }
+    }
+
+    /** The type of a value read by a path into another: unknown until read, any input takes it (ValuePath). */
+    const val ANY = "any"
+
+    /**
      * One value a step gives the ones after it: its name (null for an entry created), its type for
      * the screen; a list's, the fields of its elements, [items].
      */
@@ -253,7 +282,18 @@ object TaskSteps {
     /** The type of what [input] gives, when it is what an earlier step gave ([given], by step); null otherwise. */
     private fun givenType(input: JSONObject?, given: List<List<Output>>): String? {
         val result = input?.optJSONObject(RESULT) ?: return null
-        return given.getOrNull(result.optInt(STEP, -1))?.firstOrNull { it.value == result.optString(VALUE).ifEmpty { null } }?.type
+        val value = result.optString(VALUE).ifEmpty { null }
+        // Read by a path into it: what is there is known when read alone
+        if (value != null && ValuePath.rest(value) != null) return ANY
+        return given.getOrNull(result.optInt(STEP, -1))?.firstOrNull { it.value == value }?.type
+    }
+
+    /** Whether [result] reads a whole value, or by a path into one that is an object or a list (ValuePath). */
+    private fun pathInto(result: Input.Result, given: List<List<Output>>): Boolean {
+        val value = result.value ?: return true
+        if (ValuePath.rest(value) == null) return true
+        val type = given.getOrNull(result.step)?.firstOrNull { it.value == ValuePath.head(value) }?.type
+        return type == ApiSettings.OBJECT || type == ApiSettings.LIST
     }
 
     /** Whether [step] is made once per element of a list (`for_each`). */
@@ -290,7 +330,7 @@ object TaskSteps {
                         value.optJSONArray(ApiSettings.ITEMS)?.let { items -> (0 until items.length()).map { items.getJSONObject(it) } }.orEmpty()
                             .map { Output(it.getString(ApiSettings.NAME), it.optString(ApiSettings.TYPE, ApiSettings.TEXT)) })
                 }
-            }
+            } + Output(ApiSettings.ANSWER, ApiSettings.OBJECT)
         }.orEmpty()
         CREATE_ENTRY -> listOf(Output(null, ENTRY))
         ASSEMBLE -> listOf(Output(StepObject.OUTPUT, ApiSettings.OBJECT)) + (step.optJSONObject(StepObject.OBJECT)?.let { json ->
@@ -484,9 +524,13 @@ object TaskSteps {
                     return e.message
                 }
                 val list = (source as? Input.Result)?.let { result -> given.getOrNull(result.step)?.firstOrNull { it.value == result.value && it.type == ApiSettings.LIST } }
+                        // A list read by a path into a value: its elements' fields are known when read alone
+                    ?: (source as? Input.Result)?.takeIf { it.value != null && ValuePath.rest(it.value) != null && pathInto(it, given) }?.let { null }
                     ?: return s.shared("task_error_for_each").format(number)
-                list.items.mapNotNull { item -> StepConditions.outputField(item, s)?.let { item.value!! to it } }.toMap()
+                list?.items?.mapNotNull { item -> StepConditions.outputField(item, s)?.let { item.value!! to it } }?.toMap()
             }
+            // Whether a repeated step's elements are read by fields no declaration names (a list found by a path)
+            val anyItem = repeats(step) && items == null
             fun inputs(holder: JSONObject?, allowed: Set<String>?): String? {
                 holder ?: return null
                 for (key in holder.keys()) {
@@ -505,7 +549,7 @@ object TaskSteps {
                         if (input.field != null && input.field !in received) return s.shared("task_error_received_field").format(number, input.field, received.keys.joinToString(", "))
                     }
                     if (input is Input.Selection && step.optString(KIND) != CALL_API) return s.shared("task_error_list_input").format(number, key)
-                    if (input is Input.Item) {
+                    if (input is Input.Item && !anyItem) {
                         items ?: return s.shared("task_error_item_unrepeated").format(number)
                         if (input.field !in items) return s.shared("task_error_item_field").format(number, input.field, items.keys.joinToString(", "))
                     }
@@ -515,7 +559,10 @@ object TaskSteps {
                     }
                     if (input is Input.Result) {
                         val earlier = given.getOrNull(input.step) ?: return s.shared("task_error_result_step").format(number, input.step + 1)
-                        if (earlier.none { it.value == input.value }) return s.shared("task_error_result_value").format(number, input.step + 1, input.value ?: s.shared("task_output_entry"))
+                        val head = input.value?.let { ValuePath.head(it) }
+                        if (earlier.none { it.value == head }) return s.shared("task_error_result_value").format(number, input.step + 1, head ?: s.shared("task_output_entry"))
+                        // A path goes into an object or a list alone; what it names is checked when read
+                        if (input.value != null && !pathInto(input, given)) return s.shared("task_error_result_path").format(number, input.value)
                     }
                 }
                 return null

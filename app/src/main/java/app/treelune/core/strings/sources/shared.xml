@@ -2924,6 +2924,7 @@
     <string name="api_schema_items">For a list: what each element holds, each by its name and its path in the element; a field an element does not hold is empty</string>
     <string name="api_error_list_items">The list “%1$s” names no field of its elements</string>
     <string name="api_error_name_form">“%1$s”: a name is written in lowercase letters, digits and _, starting with a letter</string>
+    <string name="api_error_name_answer">A value cannot be named %1$s: every API gives its whole answer under that name</string>
     <string name="api_error_status_url">The status address holds %1$s, where the id goes</string>
     <string name="api_error_failed_half">A failure is said by a path and a value together, or not at all</string>
     <string name="api_error_url">“%1$s” is not an address starting with https:// or http://</string>
@@ -2991,7 +2992,11 @@
     <string name="task_error_block_no_entry">Block %1$s gives no entry</string>
     <string name="task_error_result_step">Step %1$s reads step %2$s, which does not come before it</string>
     <string name="task_error_result_value">Step %1$s reads “%3$s” from step %2$s, which does not give it</string>
+    <string name="task_error_result_path">Step %1$s reads %2$s: a path goes into an object or a list</string>
+    <string name="task_error_result_path_absent">Step %1$s gave nothing at %2$s</string>
+    <string name="task_error_recipe_file">%1$s names no file of the recipe\'s result folder</string>
     <string name="task_output_entry">the entry created</string>
+    <string name="task_output_answer">Answer</string>
     <string name="task_error_api">Step %1$s: no API %2$s</string>
     <string name="task_error_tool">Step %1$s: no tool %2$s</string>
     <string name="task_error_entry">Step %1$s: which entry to change</string>
@@ -3032,6 +3037,8 @@
     <string name="task_input_entry">An entry</string>
     <string name="task_input_term">A value, a reading or a variable</string>
     <string name="task_input_from_step">What a step gave</string>
+    <string name="task_input_path">Path in it (empty for the whole value)</string>
+    <string name="task_input_item_path">The element\'s field, by its path</string>
     <string name="task_input_source">From</string>
     <string name="task_reference_run">Relative to: the run\'s moment</string>
     <string name="task_run_now">Run now</string>

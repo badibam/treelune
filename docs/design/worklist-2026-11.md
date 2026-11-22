@@ -26,6 +26,3 @@ Les retours du téléphone et les items décidés, classés le 2026-11-22. « À
 
 - L'outil Schéma, le schéma écrit : `docs/design/schema.md` (config JSON au vocabulaire de Mermaid, placement par ELK, largeur, tuile, écran), ses vérifications d'abord (« Ouvert »). Décidé.
 
-## 8. Les API
-
-- Le retour d'une API, `docs/design/api-return.md` : `retour`, la réponse entière, d'office sur toute API ; une valeur lue par un chemin ; un texte écrit dans un champ Fichier téléchargé, le nom d'un fichier de recette résolu sur sa branche. Décidé. Les parcours d'hypnose (`docs/design/hypnosis-paths.md`) l'attendent.
