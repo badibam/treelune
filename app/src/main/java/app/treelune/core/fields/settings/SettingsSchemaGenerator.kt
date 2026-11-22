@@ -80,8 +80,9 @@ object SettingsSchemaGenerator {
         nodes.forEach { node ->
             val (name, isRequired, schema) = when (node) {
                 is SettingNode.Field -> Triple(node.definition.name, node.required, fieldSchema(node, text))
-                is SettingNode.Group -> Triple(node.name, node.required, objectOf(node.nodes, text).put("title", node.label)
+                is SettingNode.Group -> Triple(node.name, node.required, objectOf(node.nodes, text)
                     .also { schema ->
+                        if (node.labelForModel) schema.put("title", node.label)
                         node.description?.let { schema.put("description", it) }
                         node.definition?.let { schema.put(DEFINITION, it) }
                     })

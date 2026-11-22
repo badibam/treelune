@@ -324,8 +324,8 @@
 
     <!-- AI Errors - Field grammar -->
     <string name="field_reading_unit">In %1$s.</string>
-    <string name="field_reading_whole">A whole number: a value with decimals is rounded.</string>
-    <string name="field_reading_decimals">%1$d decimal(s): a value with more is rounded.</string>
+    <string name="field_reading_whole">A whole number.</string>
+    <string name="field_reading_decimals">%1$d decimal(s).</string>
     <string name="field_reading_scale">Scale from %1$s to %2$s.</string>
     <string name="field_reading_bound">%1$s (%2$s)</string>
     <string name="field_reading_boolean">true: %1$s; false: %2$s.</string>
@@ -1869,7 +1869,6 @@
     <string name="field_type_schema_type_description">What a value of the field is, and so which settings the field has</string>
     <string name="field_type_schema_always_visible_description">If true, this field is always shown in the interface (even when it is empty). If false, it is only shown when it holds a value.</string>
     <string name="field_default_value">Default value</string>
-    <string name="field_type_schema_default_value_description">A value of this field suggested for a new entry: the form prefills it and a quick entry applies it. The app never writes it on its own; absent, a new entry starts with no answer.</string>
 
     <!-- CUSTOM FIELDS - Default labels for field types -->
     <string name="label_scale_bad">Bad</string>
@@ -2723,7 +2722,6 @@
     <!-- Field settings, for the AI that reads their schema -->
     <string name="field_type_file_description">Files attached to an entry, of the kinds the field takes, at most the number set</string>
     <string name="field_type_schema_field_description">What the field holds, which the AI reads with the entries</string>
-    <string name="field_type_schema_config_description">How the values of this type are made and shown</string>
     <string name="field_type_unit_description">The unit every value is in, shown after it</string>
     <string name="field_type_min_description">Smallest value accepted</string>
     <string name="field_type_max_description">Largest value accepted</string>

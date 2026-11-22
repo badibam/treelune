@@ -93,7 +93,7 @@ object FieldValueSchema {
             FieldType.CHOICE -> {
                 val choice = ChoiceSettings.fromConfig(config)
                 val options = choice.options.joinToString(", ") { option ->
-                    choice.labelOf(option).takeIf { it != option }?.let { text("field_reading_bound").format(option, it) } ?: option
+                    choice.labelOf(option).takeIf { !it.equals(option, ignoreCase = true) }?.let { text("field_reading_bound").format(option, it) } ?: option
                 }
                 listOfNotNull(
                     options.takeIf { it.isNotEmpty() }?.let { text("field_reading_options").format(it) },

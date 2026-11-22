@@ -52,6 +52,8 @@ sealed class SettingNode {
      * Settings stored together as one object under [name].
      *
      * @property description What the settings it gathers make together, for the AI that reads its schema
+     * @property labelForModel Whether its schema carries its label; without it, a title for the
+     *   screen alone, where what stands above it in the schema already says the same
      * @property definition The name its settings are written under once, at the end of the
      *   schema the AI reads, where it stands in several places (SchemaNotation)
      */
@@ -61,7 +63,8 @@ sealed class SettingNode {
         val nodes: List<SettingNode>,
         val required: Boolean = false,
         val description: String? = null,
-        val definition: String? = null
+        val definition: String? = null,
+        val labelForModel: Boolean = true
     ) : SettingNode()
 
     /**

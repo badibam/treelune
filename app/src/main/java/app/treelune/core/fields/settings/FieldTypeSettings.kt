@@ -63,7 +63,7 @@ object FieldTypeSettings {
         // files, each owned by one entry. A reference has one: the thing most entries name (the
         // sheet a session plays), which the form proposes and the user changes
         val default = if (type in setOf(FieldType.DATE, FieldType.DATETIME, FieldType.FILE)) null
-            else field("default_value", "field_default_value", type, text, description = "field_type_schema_default_value_description")
+            else field("default_value", "field_default_value", type, text)
                 .copy(valueOfDefined = true)
         return listOfNotNull(config, default)
     }
@@ -103,7 +103,8 @@ object FieldTypeSettings {
         // config is required
         return if (settings.isEmpty()) null else SettingNode.Group("config", text("field_config_section_title").format(text("field_type_${type.name.lowercase()}_display_name")), settings,
             required = type in setOf(FieldType.NUMERIC, FieldType.RANGE, FieldType.SCALE, FieldType.CHOICE, FieldType.REFERENCE, FieldType.FILE),
-            description = text("field_type_schema_config_description"))
+            // Under « if type = X » in the schema, which already says whose settings they are
+            labelForModel = false)
     }
 
     /**

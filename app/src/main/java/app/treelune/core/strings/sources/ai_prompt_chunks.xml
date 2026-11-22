@@ -1377,6 +1377,8 @@ A schema is written one value per line, what a value holds indented under it:
 - constraints: `min`, `max`, `step`, `max length`; for a list, `at least N` and `distinct`
 - `default …`: in a config, what an absent value means: leave it out to take it, write it only to choose another. In an entry, a value suggested for a new entry, never filled in for you: write it when it is what the user means, or the value stays without an answer
 - `suggested …`: on a required value, what to write when you mean nothing else
+- `default_value`, in a field definition: a value suggested for a new entry, which the form prefills and a quick entry applies. The app never writes it on its own; absent, a new entry starts with no answer
+- `N decimal(s)`, on a number: a value with more is rounded; `A whole number`: a value with decimals is rounded
 - `written by the app, never sent`: read it, never write it
 - `if type = X: …` what X means, then, indented under it, what the value named just above adds when it is X
 - `list of … Each element: …`: what the list is, then what one of its elements is

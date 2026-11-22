@@ -324,8 +324,8 @@
 
     <!-- AI Errors - Field grammar -->
     <string name="field_reading_unit">En %1$s.</string>
-    <string name="field_reading_whole">Un nombre entier : une valeur à décimales est arrondie.</string>
-    <string name="field_reading_decimals">%1$d décimale(s) : une valeur qui en a plus est arrondie.</string>
+    <string name="field_reading_whole">Un nombre entier.</string>
+    <string name="field_reading_decimals">%1$d décimale(s).</string>
     <string name="field_reading_scale">Échelle de %1$s à %2$s.</string>
     <string name="field_reading_bound">%1$s (%2$s)</string>
     <string name="field_reading_boolean">true : %1$s ; false : %2$s.</string>
@@ -1869,7 +1869,6 @@
     <string name="field_type_schema_type_description">Ce qu\'est une valeur du champ, et donc quels réglages le champ a</string>
     <string name="field_type_schema_always_visible_description">Si true, ce champ est toujours affiché dans l\'interface (même s\'il est vide). Si false, il n\'est affiché que lorsqu\'il contient une valeur.</string>
     <string name="field_default_value">Valeur par défaut</string>
-    <string name="field_type_schema_default_value_description">Une valeur de ce champ proposée pour une nouvelle entrée : le formulaire la préremplit et une saisie rapide l\'applique. L\'app ne l\'écrit jamais d\'elle-même ; absente, une nouvelle entrée part sans réponse.</string>
 
     <!-- CUSTOM FIELDS - Default labels for field types -->
     <string name="label_scale_bad">Mauvais</string>
@@ -2723,7 +2722,6 @@
     <!-- Field settings, for the AI that reads their schema -->
     <string name="field_type_file_description">Des fichiers joints à une entrée, des sortes que le champ accepte, au plus le nombre fixé</string>
     <string name="field_type_schema_field_description">Ce que contient le champ, que l\'IA lit avec les entrées</string>
-    <string name="field_type_schema_config_description">Comment les valeurs de ce type sont faites et montrées</string>
     <string name="field_type_unit_description">L\'unité de toutes les valeurs, montrée après elles</string>
     <string name="field_type_min_description">La plus petite valeur acceptée</string>
     <string name="field_type_max_description">La plus grande valeur acceptée</string>
