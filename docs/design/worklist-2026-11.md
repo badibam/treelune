@@ -2,6 +2,10 @@
 
 Les retours du téléphone et les items décidés, classés le 2026-11-22. « À discuter » marque une question ouverte, pas une décision. Un item fait sort du fichier ; le fichier entier sort quand il est vide.
 
+## 1. Plantages et bugs
+
+- L'export CSV d'une Fiche par le bouton de sa config échoue : elle n'a pas de date d'entrée (`timestamp`). Les autres outils sans date (le Graphique, `SelectionSortAtV116.UNDATED`) sont à vérifier avec ; tous les cas gérés. Cause à confirmer : la période de la fenêtre d'export, lue sur la date de l'entrée (`EntriesExportDialog`).
+
 ## 2. Tuile de zone, en mode icônes et en mode compact
 
 - Distinguer l'icône de la zone de celles de ses outils : une taille différente, ou autre chose. À discuter.
@@ -15,6 +19,8 @@ Les retours du téléphone et les items décidés, classés le 2026-11-22. « À
   2. La recherche de « Relier » (par nom et taille, dans tous les dossiers ouverts, à l'import, à la restauration et au bouton « Chercher les fichiers introuvables » de Réglages › Données) relie aussi les liens attendus, le fichier trouvé leur donnant leur adresse. Le geste : copier un volume sur le téléphone, toucher le bouton, ses fiches se relient ; le retirer les rend de nouveau introuvables sans rien perdre, le remettre et toucher le bouton les relie encore.
   3. « Que jouer ? » de la Séance « Son ou vidéo » (`LaunchDialog`) : une entrée dont le média est introuvable ou attendu reste à sa place dans la liste, grisée, avec sous son nom « Pas sur ce téléphone » ; touchable, sa fenêtre montre son nom et ses champs « Montrés avant de lancer », « Lancer » y étant déjà grisé (codé). Les cacher est écarté : dans une bibliothèque ordonnée, voir la suite non copiée fait partie de la vue d'ensemble. Le gris demande de tester chaque lien à l'ouverture de la liste, ce que la conception excluait (« pas de vérification à l'avance de tous les liens ») ; un lien attendu n'a rien à tester. Pour une liste d'environ 80 entrées, le coût de ces requêtes à Android (sans lire les fichiers) est à mesurer sur le téléphone avant de lever l'exclusion.
   Ouvert, à ne pas coder maintenant : un filtre « seulement ce qui est sur le téléphone », pour une bibliothèque sans ordre de progression où les présents sont épars.
+
+- L'export d'une partie, ses liens une toile inextricable : un bouton « Résoudre tous les liens » (cocher ce que les éléments cochés désignent). À discuter : forcer l'export malgré des liens cassés, des configs qui ne valident plus corrigées à l'arrivée.
 
 ## 6. L'IA
 
