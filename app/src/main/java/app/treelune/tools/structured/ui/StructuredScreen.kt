@@ -302,7 +302,7 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
                 UI.Button(type = ButtonType.SECONDARY, onClick = { if (openId == "") close() else editing = false }) { UI.Text(s.shared("action_cancel"), TextType.LABEL) }
             }
         } } } else if (openSheet != null && position != null) { item { Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
-            // Its gestures above it: a long record keeps them in reach; its neighbours at its end, where reading stops
+            // Its gestures above it, its neighbours' buttons included: a long record keeps them in reach
             app.treelune.core.ui.components.ButtonRow {
                 UI.Button(type = ButtonType.PRIMARY, onClick = { open(openSheet); editing = true }) { UI.Text(s.tool("action_edit"), TextType.LABEL) }
                 UI.ActionButton(action = ButtonAction.DELETE, onClick = { confirmDelete = true })
@@ -401,7 +401,7 @@ private fun LazyListScope.sheetsTable(
 }
 
 /**
- * One sheet, its name and every field in full; a swipe or the buttons lead to its neighbours. The
+ * One sheet, its name and every field in full; a swipe or the buttons above it lead to its neighbours. The
  * name heads it, whatever its length: the page's title, which every theme cuts at one or two
  * lines, may not hold it.
  */
@@ -424,11 +424,11 @@ private fun SheetView(sheet: Sheet, config: JSONObject, context: android.content
         },
         verticalArrangement = Arrangement.spacedBy(UI.Space.M)
     ) {
-        UI.Text(sheet.name, TextType.STRONG)
-        CustomFieldsDisplay(StructuredToolType, config, sheet.extra, FieldsLayout.EXPANDED, context)
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             UI.ActionButton(action = ButtonAction.LEFT, display = ButtonDisplay.ICON, size = Size.S, enabled = onPrevious != null, onClick = { onPrevious?.invoke() })
             UI.ActionButton(action = ButtonAction.RIGHT, display = ButtonDisplay.ICON, size = Size.S, enabled = onNext != null, onClick = { onNext?.invoke() })
         }
+        UI.Text(sheet.name, TextType.STRONG)
+        CustomFieldsDisplay(StructuredToolType, config, sheet.extra, FieldsLayout.EXPANDED, context)
     }
 }
