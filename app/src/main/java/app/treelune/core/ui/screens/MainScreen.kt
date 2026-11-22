@@ -267,6 +267,7 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                     "write_history" -> app.treelune.core.history.ui.WriteHistoryScreen(onBack = back)
                     "logs" -> LogsScreen(onBack = back)
                     "bug_report" -> BugReportScreen(onBack = back)
+                    "about" -> app.treelune.core.ui.screens.settings.AboutScreen(onBack = back)
                     else -> throw IllegalArgumentException("No settings page '${place.id}'")
                 }
             }

@@ -2144,6 +2144,11 @@
     <!-- Logs Screen -->
     <string name="settings_logs">Logs d'erreurs</string>
     <string name="settings_bug_report">Signaler un bug</string>
+    <string name="settings_about">À propos</string>
+    <string name="about_version">Treelune %1$s, build %2$d</string>
+    <string name="about_licence">Logiciel libre sous licence publique générale GNU, version 3 ou toute version ultérieure.</string>
+    <string name="about_site">Le site</string>
+    <string name="about_source">Le code source</string>
     <string name="background_restricted_title">L\'app peut être arrêtée en arrière-plan</string>
     <string name="background_restricted_text">Android peut arrêter Treelune quand elle est fermée. Ce qui est planifié peut alors ne pas partir : routines planifiées, messages, échéances des listes, invitations des questionnaires et des séances, fins de période des objectifs. Autorise-la en arrière-plan pour en être sûr.</string>
     <string name="background_restricted_open">Autoriser en arrière-plan</string>
