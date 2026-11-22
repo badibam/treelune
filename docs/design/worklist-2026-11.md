@@ -2,10 +2,6 @@
 
 Les retours du téléphone et les items décidés, classés le 2026-11-22. « À discuter » marque une question ouverte, pas une décision. Un item fait sort du fichier ; le fichier entier sort quand il est vide.
 
-## 1. Plantages et bugs
-
-- L'export CSV d'une Fiche par le bouton de sa config échoue : elle n'a pas de date d'entrée (`timestamp`). Les autres outils sans date (le Graphique, `SelectionSortAtV116.UNDATED`) sont à vérifier avec ; tous les cas gérés. Cause à confirmer : la période de la fenêtre d'export, lue sur la date de l'entrée (`EntriesExportDialog`).
-
 ## 2. Tuile de zone, en mode icônes et en mode compact
 
 - Distinguer l'icône de la zone de celles de ses outils : une taille différente, ou autre chose. À discuter.
