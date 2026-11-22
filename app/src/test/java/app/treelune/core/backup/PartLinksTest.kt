@@ -84,19 +84,13 @@ class PartLinksTest {
     }
 
     @Test
-    fun `a zone with its details or a routine without its identity only warns, naming both, and none once it is ticked`() {
+    fun `a routine without its identity only warns, and none once it is ticked`() {
         val document = backup()
         val data = document.getJSONObject("data")
-        data.getJSONArray("zones").getJSONObject(1).put("identity_id", "i1")
         data.put("identities", JSONArray().put(JSONObject().put("id", "i1").put("name", "Coach")))
-        val sport = PartSelection(setOf("z2"), emptyMap(), emptySet(), emptySet(), emptySet(), zoneDetails = setOf("z2"))
-        // Kept as a bare holder, the zone speaks as nobody: nothing to say
-        assertEquals(emptySet<PartLink>(), PartLinks.of(document, sport.copy(zoneDetails = emptySet())))
-        val left = PartLinks.of(document, sport)
-        assertEquals(setOf(link(Kind.ZONE, "z2", Kind.IDENTITY, "i1")), left)
-        assertFalse(left.single().blocking)
-        assertEquals("Sport without Coach", PartLinks.text(left.single(), { PartLinks.name(document, it) }, { mapOf("share_link_zone_identity" to "%1\$s without %2\$s").getValue(it) }))
-        assertEquals(emptySet<PartLink>(), PartLinks.of(document, sport.copy(identities = setOf("i1"))))
+        val left = PartLinks.of(document, PartSelection(setOf("z1"), emptyMap(), emptySet(), setOf("a1"), emptySet()))
+        assertTrue(link(Kind.ROUTINE, "a1", Kind.IDENTITY, "i1") in left)
+        assertFalse(left.first { it.to.kind == Kind.IDENTITY }.blocking)
         // The routine's identity ticked, its provider alone is left
         val routine = PartLinks.of(document, PartSelection(setOf("z1", "z2"), mapOf("weight" to false), emptySet(), setOf("a1"), setOf("i1")))
         assertEquals(setOf(link(Kind.ROUTINE, "a1", Kind.PROVIDER, "p1")), routine)

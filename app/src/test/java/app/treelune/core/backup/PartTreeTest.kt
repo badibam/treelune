@@ -12,9 +12,10 @@ import org.junit.Test
 /**
  * What the export's screen shows and does (docs/DATA.md, « A part of the app »): the zones in
  * the home screen's order under their group, their elements under their tool group, the entries
- * counted, the identities a zone and its routines speak as at its top; a zone ticked takes all it
- * holds, its identities included, an element ticked takes its zone, a routine its identity, a
- * zone unticked lets all of it go but an identity another zone ticked speaks as.
+ * counted, the identities beside the zones, each once; a zone ticked takes all it holds and the
+ * identities its routines speak as, an element ticked takes its zone, a routine its identity, a
+ * zone unticked lets all of it go but an identity another ticked routine uses; an identity goes
+ * alone.
  */
 class PartTreeTest {
 
@@ -77,47 +78,45 @@ class PartTreeTest {
         assertEquals(nothing, Ticks.zone(all, tree, cuisine, false))
     }
 
-    /** [backup] with Cuisine speaking as Coach, its routine as Sage, and Course as Coach too. */
+    /** [backup] with Cuisine's routine speaking as Sage, and Coach whom nothing speaks as. */
     private fun spoken(): PartTree {
         val document = backup()
         val data = document.getJSONObject("data")
-        val zones = data.getJSONArray("zones")
-        zones.getJSONObject(1).put("identity_id", "coach")
-        zones.getJSONObject(2).put("identity_id", "coach")
         data.getJSONArray("routines").getJSONObject(0).put("identity_id", "sage")
         data.put("identities", JSONArray().put(JSONObject().put("id", "sage").put("name", "Sage")).put(JSONObject().put("id", "coach").put("name", "Coach")))
         return PartTree.of(document)
     }
 
     @Test
-    fun `a zone lists the identities it and its routines speak as, its own first`() {
+    fun `the identities are listed once beside the zones, by name`() {
         val tree = spoken()
-        val cuisine = tree.zones.first()
-        assertEquals(listOf("coach", "sage"), cuisine.elements.take(2).map { it.id })
-        assertTrue(cuisine.elements.take(2).all { it.kind == Kind.IDENTITY && it.group == null })
+        assertEquals(listOf("coach", "sage"), tree.identities.map { it.id })
+        assertTrue(tree.elements.none { it.kind == Kind.IDENTITY })
         assertEquals("Sage", tree.name(PartElement(Kind.IDENTITY, "sage")))
-        assertEquals(listOf("coach"), tree.zones.first { it.id == "course" }.elements.map { it.id })
         assertEquals(tree, PartTree.read(JSONObject(tree.toJson().toString())))
     }
 
     @Test
-    fun `a zone ticked takes its identities, unticked keeps the one another zone ticked speaks as`() {
+    fun `a zone ticked takes the identities its routines speak as, an identity goes alone too`() {
         val tree = spoken()
         val cuisine = tree.zones.first()
-        val course = tree.zones.first { it.id == "course" }
+        val sage = tree.identities.first { it.id == "sage" }
         val nothing = PartSelection(emptySet(), emptyMap(), emptySet(), emptySet(), emptySet())
-        val both = Ticks.zone(Ticks.zone(nothing, tree, cuisine, true), tree, course, true)
-        assertEquals(setOf("coach", "sage"), both.identities)
-        assertEquals(setOf("coach"), Ticks.zone(both, tree, cuisine, false).identities)
-        assertEquals(nothing, Ticks.zone(Ticks.zone(both, tree, cuisine, false), tree, course, false))
+        val ticked = Ticks.zone(nothing, tree, cuisine, true)
+        assertEquals(setOf("sage"), ticked.identities)
+        assertEquals(nothing, Ticks.zone(ticked, tree, cuisine, false))
         // A routine ticked alone takes the identity it speaks as, which unticks on its own
         val routine = Ticks.element(nothing, tree, cuisine, cuisine.elements.first { it.id == "a1" }, true)
         assertEquals(setOf("sage"), routine.identities)
-        assertEquals(emptySet<String>(), Ticks.element(routine, tree, cuisine, cuisine.elements.first { it.id == "sage" }, false).identities)
+        assertEquals(emptySet<String>(), Ticks.element(routine, tree, null, sage, false).identities)
+        // An identity alone, in no zone
+        val alone = Ticks.element(nothing, tree, null, tree.identities.first { it.id == "coach" }, true)
+        assertEquals(setOf("coach"), alone.identities)
+        assertEquals(emptySet<String>(), alone.zones)
     }
 
     @Test
-    fun `a zone's details tick apart, with them its identity, without them the zone stays a holder`() {
+    fun `a zone's details tick apart, without them the zone stays a holder`() {
         val tree = spoken()
         val cuisine = tree.zones.first()
         val nothing = PartSelection(emptySet(), emptyMap(), emptySet(), emptySet(), emptySet())
@@ -125,13 +124,11 @@ class PartTreeTest {
         val element = Ticks.element(nothing, tree, cuisine, cuisine.elements.first { it.id == "meals" }, true)
         assertTrue("cuisine" in element.zones)
         assertFalse("cuisine" in element.zoneDetails)
-        val details = Ticks.details(element, tree, cuisine, true)
+        val details = Ticks.details(element, cuisine, true)
         assertEquals(setOf("cuisine"), details.zoneDetails)
-        assertEquals(setOf("coach"), details.identities)
-        val off = Ticks.details(details, tree, cuisine, false)
+        assertEquals(element.identities, details.identities)
+        val off = Ticks.details(details, cuisine, false)
         assertEquals(element, off)
-        // The zone's identity ticked alone brings its details
-        assertEquals(setOf("cuisine"), Ticks.element(element, tree, cuisine, cuisine.elements.first { it.id == "coach" }, true).zoneDetails)
     }
 
     @Test

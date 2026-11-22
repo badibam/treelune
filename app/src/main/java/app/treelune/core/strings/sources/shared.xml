@@ -1702,6 +1702,8 @@
     <string name="share_element_routine">Routine “%1$s”</string>
     <string name="share_element_task">Task “%1$s”</string>
     <string name="share_element_api">API “%1$s”</string>
+    <string name="share_identities_title">Identities</string>
+    <string name="share_identities_help">Each goes alone or with the routines that speak as it and the Tasks that send it, which tick it.</string>
     <string name="share_apis_title">APIs</string>
     <string name="share_apis_help">An API\'s key never goes: whoever imports it enters their own.</string>
     <string name="share_task_off">It will arrive switched off, to switch on once read.</string>

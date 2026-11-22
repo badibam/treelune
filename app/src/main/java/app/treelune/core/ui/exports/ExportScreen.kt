@@ -155,7 +155,7 @@ fun ExportScreen(onBack: () -> Unit) {
                     type = ButtonType.PRIMARY,
                     size = Size.M,
                     // A part holds a zone, or APIs alone
-                    state = if (!running && folderReady && (!part || ((selection.zones.isNotEmpty() || selection.apis.isNotEmpty()) && blocking == 0))) ComponentState.NORMAL else ComponentState.DISABLED,
+                    state = if (!running && folderReady && (!part || ((selection.zones.isNotEmpty() || selection.apis.isNotEmpty() || selection.identities.isNotEmpty()) && blocking == 0))) ComponentState.NORMAL else ComponentState.DISABLED,
                     onClick = {
                         running = true
                         scope.launch {

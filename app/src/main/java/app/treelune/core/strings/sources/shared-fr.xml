@@ -1702,6 +1702,8 @@
     <string name="share_element_routine">Routine « %1$s »</string>
     <string name="share_element_task">Tâche « %1$s »</string>
     <string name="share_element_api">API « %1$s »</string>
+    <string name="share_identities_title">Identités</string>
+    <string name="share_identities_help">Chacune part seule ou avec les routines qui parlent comme elle et les Tâches qui l\'envoient, qui la cochent.</string>
     <string name="share_apis_title">API</string>
     <string name="share_apis_help">La clé d\'une API ne part jamais : qui l\'importe saisit la sienne.</string>
     <string name="share_task_off">Elle arrivera éteinte, à allumer une fois relue.</string>

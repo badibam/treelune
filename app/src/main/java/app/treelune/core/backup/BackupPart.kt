@@ -7,8 +7,8 @@ import org.json.JSONObject
 
 /**
  * What is ticked of the app to share (docs/DATA.md, « A part of the app »): zones, and in them tools — each with
- * its entries or without —, variables, routines, Tasks and the identities the zone or its routines
- * speak as; beside the zones, APIs. An element of a zone is kept only with its zone; a zone may be
+ * its entries or without —, variables, routines, Tasks; beside the zones, APIs and identities, each
+ * of which may go alone. An element of a zone is kept only with its zone; a zone may be
  * kept alone, empty, and with its own details or as a bare holder. The events go with what names them, unticked.
  */
 data class PartSelection(
@@ -69,8 +69,8 @@ data class PartSelection(
  * (docs/DATA.md, « Export/import format »), marked partial in its metadata, holding only what is
  * ticked. What never goes is left out whole: the app's settings, the AI providers, the
  * conversations, the files joined to them; a routine keeps its seed session, the message each of
- * its runs starts from, and nothing of its runs. An identity goes when ticked, a zone and a routine
- * keeping it then, and speaking through the app's own AI otherwise. A Task goes switched off; an
+ * its runs starts from, and nothing of its runs. An identity goes when ticked, a routine keeping it
+ * then, and speaking through the app's own AI otherwise. A Task goes switched off; an
  * API without its secret settings, its key; an event when what goes names it, in the zone it
  * arrives in (PartTree.eventArrivals). A readout goes with its zone when what it reads and what it
  * opens go too: without them it would arrive broken.
@@ -94,7 +94,7 @@ object BackupPart {
      * @param holderName The name of a zone kept without its details: its number among them, in the
      *   home screen's order, or null when it is the only one
      * @throws IllegalArgumentException when the selection names what the backup does not hold, an
-     *   element without its zone, or an identity no zone kept speaks as, nor any of its routines
+     *   or an element without its zone
      */
     fun cut(document: JSONObject, selection: PartSelection, apiSecrets: List<String>, holderName: (Int?) -> String): JSONObject {
         val data = document.getJSONObject("data")
@@ -122,10 +122,6 @@ object BackupPart {
         (keptTools + keptVariables + keptRoutineRows + keptTasks).firstOrNull { it.getString("zone_id") !in selection.zones }?.let {
             throw IllegalArgumentException("${it.getString("id")} is kept without its zone ${it.getString("zone_id")}")
         }
-        // An identity goes with a routine of a zone kept that speaks as it, or with a Task kept that sends it
-        val spoken = routines.filter { it.getString("zone_id") in selection.zones }
-            .mapNotNull { identityOf(it) }.toSet() + keptTasks.flatMap { app.treelune.core.tasks.StepObject.identitiesOf(it.getString("steps_json")) }
-        selection.identities.firstOrNull { it !in spoken }?.let { throw IllegalArgumentException("The identity $it is kept without a zone that speaks as it") }
         // What a routine kept speaks as: its identity when kept, the app's own AI otherwise
         fun spokenAs(row: JSONObject): Any = identityOf(row)?.takeIf { it in selection.identities } ?: JSONObject.NULL
 

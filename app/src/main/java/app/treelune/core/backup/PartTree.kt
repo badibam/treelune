@@ -14,13 +14,13 @@ import org.json.JSONObject
  * @property demoLeftOut Whether the backup held the demo, which no part carries (withoutDemo)
  */
 data class PartTree(val zones: List<Zone>, val links: Set<PartLink>, val apis: List<Element> = emptyList(), val events: List<Event> = emptyList(),
-                    val demoLeftOut: Boolean = false) {
+                    val demoLeftOut: Boolean = false, val identities: List<Element> = emptyList()) {
 
     data class Zone(val id: String, val name: String, val group: String?, val elements: List<Element>)
 
     /**
-     * A tool, a variable, a routine, a Task, under the tool group [group] of its zone or none, or an
-     * identity the zone or one of its routines speaks as, under none; or an API, beside the zones.
+     * A tool, a variable, a routine, a Task, under the tool group [group] of its zone or none; or
+     * an API or an identity, beside the zones, each once whatever names it.
      *
      * @property tooltype A tool's type, null for anything else
      * @property entries A tool's number of entries, 0 for anything else
@@ -35,6 +35,7 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>, val apis: L
         PartElement.Kind.ZONE -> zones.first { it.id == element.id }.name
         PartElement.Kind.ENTRIES -> elements.first { it.kind == PartElement.Kind.TOOL && it.id == element.id }.name
         PartElement.Kind.API -> apis.first { it.id == element.id }.name
+        PartElement.Kind.IDENTITY -> identities.first { it.id == element.id }.name
         PartElement.Kind.EVENT -> events.first { it.id == element.id }.name
         else -> elements.first { it.kind == element.kind && it.id == element.id }.name
     }
@@ -67,6 +68,7 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>, val apis: L
         }))
         .put("links", JSONArray(links.map { link -> JSONObject().put("from", element(link.from)).put("to", element(link.to)) }))
         .put("apis", JSONArray(apis.map { element(it) }))
+        .put("identities", JSONArray(identities.map { element(it) }))
         .put("events", JSONArray(events.map { JSONObject().put("id", it.id).put("name", it.name).put("zone_id", it.zoneId) }))
         .put("demo_left_out", demoLeftOut)
 
@@ -81,13 +83,15 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>, val apis: L
         fun demo(element: PartElement) = element.id.startsWith(app.treelune.core.demo.DemoContent.PREFIX)
         val kept = links.filter { !demo(it.from) && (!demo(it.to) || it.to.kind == PartElement.Kind.API || it.to.kind == PartElement.Kind.IDENTITY) }.toSet()
         val called = kept.filter { it.to.kind == PartElement.Kind.API }.map { it.to.id }.toSet()
+        val spoken = kept.filter { it.to.kind == PartElement.Kind.IDENTITY }.map { it.to.id }.toSet()
         val demoZones = zones.filter { demo(PartElement(PartElement.Kind.ZONE, it.id)) }.map { it.id }.toSet()
         return PartTree(
             zones.filter { it.id !in demoZones },
             kept,
             apis.filter { !demo(PartElement(PartElement.Kind.API, it.id)) || it.id in called },
             events.filter { it.zoneId !in demoZones },
-            demoLeftOut = demoZones.isNotEmpty()
+            demoLeftOut = demoZones.isNotEmpty(),
+            identities = identities.filter { !demo(PartElement(PartElement.Kind.IDENTITY, it.id)) || it.id in spoken }
         )
     }
 
@@ -97,11 +101,10 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>, val apis: L
          * The tree of [document], a whole backup at the current version or a part. The zones in
          * the home screen's order: its groups as the backup's settings list them, then those a
          * part names in its zones' order, then the zones without a group; in a group by their
-         * place. In a zone, the identities it and its routines speak as, its own first; then its
-         * tool groups in its order then the elements without one: the tools by their place, the
-         * variables by theirs, the routines and the Tasks by name. An identity two zones speak as
-         * is under each. The APIs by name, beside the zones; the events, which go unticked. The
-         * demo left out (withoutDemo).
+         * place. In a zone, its tool groups in its order then the elements without one: the tools
+         * by their place, the variables by theirs, the routines and the Tasks by name. The APIs and
+         * the identities by name, beside the zones; the events, which go unticked. The demo left
+         * out (withoutDemo).
          */
         fun of(document: JSONObject): PartTree {
             val data = document.getJSONObject("data")
@@ -116,7 +119,6 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>, val apis: L
             val variables = rows(data, "variables").groupBy { it.getString("zone_id") }
             val routines = rows(data, "routines").groupBy { it.getString("zone_id") }
             val tasks = rows(data, "tasks").groupBy { it.getString("zone_id") }
-            val identities = rows(data, "identities").associateBy { it.getString("id") }
 
             val ordered = zones.sortedWith(compareBy<JSONObject>({ zone -> zone.group()?.let { homeGroups.indexOf(it) } ?: Int.MAX_VALUE }, { it.optInt("grid_y") }, { it.optInt("grid_x") }))
             return PartTree(ordered.map { zone ->
@@ -133,14 +135,11 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>, val apis: L
                 } + tasks[id].orEmpty().sortedBy { it.getString("name") }.map { task ->
                     Element(PartElement.Kind.TASK, task.getString("id"), task.getString("name"), task.group(), null, 0)
                 }
-                // A part holds only the identities kept: one left out is named by no zone nor routine there
-                val spoken = (routines[id].orEmpty().sortedBy { it.getString("name") }.mapNotNull { BackupPart.identityOf(it) } +
-                    tasks[id].orEmpty().sortedBy { it.getString("name") }.flatMap { app.treelune.core.tasks.StepObject.identitiesOf(it.getString("steps_json")) }).distinct()
-                    .mapNotNull { identities[it] }.map { Element(PartElement.Kind.IDENTITY, it.getString("id"), it.getString("name"), null, null, 0) }
-                Zone(id, zone.getString("name"), zone.group(), spoken + elements.sortedBy { element -> element.group?.let { toolGroups.indexOf(it) } ?: Int.MAX_VALUE })
+                Zone(id, zone.getString("name"), zone.group(), elements.sortedBy { element -> element.group?.let { toolGroups.indexOf(it) } ?: Int.MAX_VALUE })
             }, PartLinks.all(document),
                 rows(data, "apis").sortedBy { it.getString("name").lowercase() }.map { Element(PartElement.Kind.API, it.getString("id"), it.getString("name"), null, null, 0) },
-                rows(data, "events").map { Event(it.getString("id"), it.getString("name"), it.getString("zone_id")) }).withoutDemo()
+                rows(data, "events").map { Event(it.getString("id"), it.getString("name"), it.getString("zone_id")) },
+                identities = rows(data, "identities").sortedBy { it.getString("name").lowercase() }.map { Element(PartElement.Kind.IDENTITY, it.getString("id"), it.getString("name"), null, null, 0) }).withoutDemo()
         }
 
         /** The tree in its stored form [json]; one that does not read throws (org.json's JSONException). */
@@ -161,7 +160,8 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>, val apis: L
             json.getJSONArray("events").let { events ->
                 (0 until events.length()).map { events.getJSONObject(it) }.map { Event(it.getString("id"), it.getString("name"), it.getString("zone_id")) }
             },
-            json.getBoolean("demo_left_out")
+            json.getBoolean("demo_left_out"),
+            json.getJSONArray("identities").let { identities -> (0 until identities.length()).map { treeElement(identities.getJSONObject(it)) } }
         )
 
         private fun element(element: PartElement): JSONObject = JSONObject().put("kind", element.kind.name).put("id", element.id)

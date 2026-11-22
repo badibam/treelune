@@ -201,7 +201,7 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
                             type = ButtonType.PRIMARY,
                             size = Size.M,
                             // A part brings a zone, or APIs alone
-                            state = if (!running && (chosen.zones.isNotEmpty() || chosen.apis.isNotEmpty()) && blocking == 0) ComponentState.NORMAL else ComponentState.DISABLED,
+                            state = if (!running && (chosen.zones.isNotEmpty() || chosen.apis.isNotEmpty() || chosen.identities.isNotEmpty()) && blocking == 0) ComponentState.NORMAL else ComponentState.DISABLED,
                             onClick = {
                                 running = true
                                 scope.launch {
@@ -363,7 +363,7 @@ private fun everything(tree: PartTree): PartSelection = PartSelection(
     tree.elements.filter { it.kind == PartElement.Kind.TOOL }.associate { it.id to (it.entries > 0) },
     tree.elements.filter { it.kind == PartElement.Kind.VARIABLE }.map { it.id }.toSet(),
     tree.elements.filter { it.kind == PartElement.Kind.ROUTINE }.map { it.id }.toSet(),
-    tree.elements.filter { it.kind == PartElement.Kind.IDENTITY }.map { it.id }.toSet(),
+    tree.identities.map { it.id }.toSet(),
     tree.elements.filter { it.kind == PartElement.Kind.TASK }.map { it.id }.toSet(),
     tree.apis.map { it.id }.toSet(),
     tree.zones.map { it.id }.toSet()

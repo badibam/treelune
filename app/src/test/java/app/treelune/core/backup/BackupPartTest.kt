@@ -11,8 +11,7 @@ import org.junit.Test
 /**
  * What a part of the app shared promises (docs/DATA.md, « A part of the app »): the backup's
  * format marked partial, holding only what is ticked, a tool's entries only when asked, and never
- * the settings, the AI providers, the conversations; an identity only ticked, with a zone that
- * speaks as it.
+ * the settings, the AI providers, the conversations; an identity only ticked, alone as well.
  */
 class BackupPartTest {
 
@@ -39,7 +38,7 @@ class BackupPartTest {
             .put("ai_provider_configs", JSONArray().put(JSONObject().put("id", "p1")))
             .put("identities", JSONArray().put(JSONObject().put("id", "i1").put("name", "Chef")))
             .put("zones", JSONArray()
-                .put(JSONObject().put("id", "z1").put("name", "Cuisine").put("identity_id", "i1").put("tool_groups", JSONArray(listOf("Repas", "Analyse")).toString()))
+                .put(JSONObject().put("id", "z1").put("name", "Cuisine").put("tool_groups", JSONArray(listOf("Repas", "Analyse")).toString()))
                 .put(JSONObject().put("id", "z2").put("name", "Sport")))
             .put("tool_instances", JSONArray()
                 .put(JSONObject().put("id", "meals").put("zone_id", "z1").put("tooltype", "tracking").put("config_json", JSONObject().put("group", "Repas").toString()))
@@ -98,7 +97,6 @@ class BackupPartTest {
         assertEquals(emptyList<String>(), ids(data, "identities"))
         assertEquals(listOf("seed"), ids(data, "ai_sessions"))
         assertEquals(listOf("m1"), ids(data, "session_messages"))
-        assertTrue(row("zones", data, "z1").isNull("identity_id"))
     }
 
     @Test
@@ -110,23 +108,18 @@ class BackupPartTest {
     }
 
     @Test
-    fun `an identity ticked goes, its zone and routine speaking as it`() {
+    fun `an identity ticked goes, its routine speaking as it`() {
         val data = cut(backup(), PartSelection(setOf("z1"), emptyMap(), emptySet(), setOf("a1"), setOf("i1"), zoneDetails = setOf("z1"))).getJSONObject("data")
         assertEquals(listOf("i1"), ids(data, "identities"))
-        assertEquals("i1", row("zones", data, "z1").getString("identity_id"))
         val routine = row("routines", data, "a1")
         assertEquals("i1", routine.getString("identity_id"))
         assertTrue(routine.isNull("provider_id"))
     }
 
     @Test
-    fun `an identity goes only with a zone that speaks as it, or one of its routines`() {
-        assertThrows(IllegalArgumentException::class.java) { cut(backup(), PartSelection(setOf("z2"), emptyMap(), emptySet(), emptySet(), setOf("i1"))) }
+    fun `an identity goes alone, one the backup lacks refused`() {
+        assertEquals(listOf("i1"), ids(cut(backup(), PartSelection(emptySet(), emptyMap(), emptySet(), emptySet(), setOf("i1"))).getJSONObject("data"), "identities"))
         assertThrows(IllegalArgumentException::class.java) { cut(backup(), PartSelection(setOf("z1"), emptyMap(), emptySet(), emptySet(), setOf("i9"))) }
-        // The zone speaking as another, its routine still as i1: the identity goes with the zone
-        val whole = backup()
-        whole.getJSONObject("data").getJSONArray("zones").getJSONObject(0).put("identity_id", JSONObject.NULL)
-        assertEquals(listOf("i1"), ids(cut(whole, PartSelection(setOf("z1"), emptyMap(), emptySet(), emptySet(), setOf("i1"))).getJSONObject("data"), "identities"))
     }
 
     @Test
