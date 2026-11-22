@@ -16,7 +16,7 @@ La 0.9.11 publiée et le téléphone sont en base 119. Les migrations 120 et 121
 
 ## 6. L'IA
 
-- `app_context` : mesuré le 2026-11-22 sur le téléphone à 165 699 caractères, dont 45 274 d'indentation de la photo des zones, retirés. La suite est à discuter : les `extra_fields` comptent autant que les champs système, sans devoir rester dans la photo pour autant ; l'apparence des tuiles, les notions.
+- `app_context` : mesuré le 2026-11-22 sur le téléphone à 165 699 caractères, dont 45 274 d'indentation de la photo des zones, retirés. Chaque outil y donne maintenant les clés de tous ses champs (`fields` : `data`, `extra`, `state`), leur définition restant dans `SCHEMA`. La suite est à discuter : l'apparence des tuiles, les notions.
 - Le fournisseur « Abonnement Claude », `docs/design/github-worker.md` (Claude Code lancé sur GitHub Actions dans le dépôt de Réglages › GitHub, le jeton de l'abonnement jamais dans l'app), ses vérifications d'abord (« Ouvert », le point 2). Décidé, à revérifier ensemble avant de le coder.
 - Que l'IA, sur demande, range visuellement une zone ou l'accueil de façon pertinente, sans deviner et sans placer des coordonnées à la main. Entièrement à discuter, sans certitude qu'on le fasse.
 

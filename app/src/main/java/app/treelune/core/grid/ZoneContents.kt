@@ -3,8 +3,10 @@ package app.treelune.core.grid
 import android.content.Context
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.database.entities.Zone
+import app.treelune.core.fields.EntryFields
 import app.treelune.core.themes.IconColor
 import app.treelune.core.themes.Texture
+import app.treelune.core.tools.ToolTypeManager
 import app.treelune.core.utils.JsonUtils
 import org.json.JSONObject
 
@@ -14,7 +16,8 @@ import org.json.JSONObject
  * tools, variables, routines, Tasks, readouts — in reading order (row by row, left to right),
  * each with its kind, its name, its size and its look; then the zone's events. The zones in the
  * home screen's order: its groups', the ungrouped last, each in reading order. A tool also gives
- * its type, its description and its extra fields, which writing its entries needs.
+ * its type, its description and the keys of its fields ([fieldKeys]), the type's and the user's
+ * alike, by which its entries are read; a field's whole definition is its schema's.
  */
 class ZoneContents(private val context: Context) {
 
@@ -59,15 +62,16 @@ class ZoneContents(private val context: Context) {
     private suspend fun tiles(zoneId: String): List<Tile> {
         val tools = database.toolInstanceDao().getToolInstancesByZone(zoneId).map { tool ->
             val config = JSONObject(tool.config_json)
-            val extra = config.optJSONArray("extra_fields")?.let { fields ->
-                (0 until fields.length()).map { fields.getJSONObject(it) }.map { mapOf("name" to it.optString("name"), "display_name" to it.optString("display_name"), "type" to it.optString("type")) }
-            }.orEmpty()
+            val extra = config.optJSONArray("extra_fields")?.let { fields -> (0 until fields.length()).map { fields.getJSONObject(it).getString("name") } }.orEmpty()
+            val declared = ToolTypeManager.getToolType(tool.tooltype)?.getEntryFields(config, context)
+                ?: throw IllegalStateException("Tool ${tool.id}: unknown type ${tool.tooltype}")
+            val keys = fieldKeys(declared, extra)
             Tile(config.optString("group").takeIf { it.isNotEmpty() }, tool.grid_x, tool.grid_y, look("tool", tool.id, config.optString("name"), config.optString("tile_size"),
                 config.optString("icon_name").takeIf { it.isNotEmpty() }, config.optString(IconColor.KEY).takeIf { it.isNotEmpty() }, config.optString(Texture.KEY).takeIf { it.isNotEmpty() },
                 buildMap<String, Any?> {
                     put("tooltype", tool.tooltype)
                     config.optString("description").takeIf { it.isNotEmpty() }?.let { put("description", it) }
-                    if (extra.isNotEmpty()) put("extra_fields", extra)
+                    if (keys.isNotEmpty()) put("fields", keys)
                 }))
         }
         val variables = database.variableDao().getByZone(zoneId).map {
@@ -86,6 +90,17 @@ class ZoneContents(private val context: Context) {
     }
 
     companion object {
+        /**
+         * The keys of a tool's fields by where they stand in an entry, as TOOL_DATA reads them
+         * (`data.value`, `extra.calories`, `state.read`): its type's [declared] and the user's
+         * [extra], the same way. The app's bookkeeping is left out, and a place without a key.
+         */
+        fun fieldKeys(declared: EntryFields, extra: List<String>): Map<String, List<String>> = listOf(
+            "data" to declared.data.map { it.definition.name },
+            "extra" to extra,
+            "state" to declared.state.filterNot { it.bookkeeping }.map { it.definition.name }
+        ).filter { it.second.isNotEmpty() }.toMap()
+
         /** [zones] in the home screen's order: by section, its groups' then the ungrouped, each in reading order. */
         fun ordered(zones: List<Zone>, zoneGroups: List<String>): List<Zone> {
             val sections = zoneGroups.map { it as String? } + null
