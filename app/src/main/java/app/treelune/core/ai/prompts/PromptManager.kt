@@ -595,6 +595,7 @@ object PromptManager {
             timestamp, app.treelune.core.utils.AppConfigManager.getDateTimeConfig().getZoneId()
         )
 
+        // Its JSON compact: a model reads it as well, and indentation would be over a quarter of the context
         val sb = StringBuilder()
         sb.appendLine("## ${s.shared("ai_prompt_level3_title")}")
         sb.appendLine()
@@ -613,7 +614,7 @@ object PromptManager {
         sb.appendLine("### ${s.shared("ai_prompt_level3_zones_title")}")
         sb.appendLine()
         sb.appendLine("```json")
-        sb.appendLine(zones.toString(2))
+        sb.appendLine(zones.toString())
         sb.appendLine("```")
         sb.appendLine()
         // A snapshot stored before the zones held their contents lists the tools apart
@@ -621,7 +622,7 @@ object PromptManager {
             sb.appendLine("### ${s.shared("ai_prompt_level3_tools_title")}")
             sb.appendLine()
             sb.appendLine("```json")
-            sb.appendLine(toolInstances.toString(2))
+            sb.appendLine(toolInstances.toString())
             sb.appendLine("```")
         }
         // A snapshot stored before the routines were part of it has none to show
@@ -630,7 +631,7 @@ object PromptManager {
             sb.appendLine("### ${s.shared("ai_prompt_level3_routines_title")}")
             sb.appendLine()
             sb.appendLine("```json")
-            sb.appendLine(routines.toString(2))
+            sb.appendLine(routines.toString())
             sb.appendLine("```")
         }
         // A snapshot stored before the identities were part of it has none to show
@@ -639,7 +640,7 @@ object PromptManager {
             sb.appendLine("### ${s.shared("ai_prompt_level3_identities_title")}")
             sb.appendLine()
             sb.appendLine("```json")
-            sb.appendLine(identities.toString(2))
+            sb.appendLine(identities.toString())
             sb.appendLine("```")
         }
         // A snapshot stored before the providers were part of it has none to show
@@ -648,7 +649,7 @@ object PromptManager {
             sb.appendLine("### ${s.shared("ai_prompt_level3_providers_title")}")
             sb.appendLine()
             sb.appendLine("```json")
-            sb.appendLine(providers.toString(2))
+            sb.appendLine(providers.toString())
             sb.appendLine("```")
         }
 

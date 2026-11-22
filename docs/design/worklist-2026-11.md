@@ -16,7 +16,7 @@ La 0.9.11 publiée et le téléphone sont en base 119. Les migrations 120 et 121
 
 ## 6. L'IA
 
-- `app_context` : l'alléger, ou en avoir deux versions. À discuter.
+- `app_context` : mesuré le 2026-11-22 sur le téléphone à 165 699 caractères, dont 45 274 d'indentation de la photo des zones, retirés. Les `extra_fields` restent, aussi importants que les champs système. La suite (l'apparence des tuiles, les notions) est à discuter.
 - Le fournisseur « Abonnement Claude », `docs/design/github-worker.md` (Claude Code lancé sur GitHub Actions dans le dépôt de Réglages › GitHub, le jeton de l'abonnement jamais dans l'app), ses vérifications d'abord (« Ouvert », le point 2). Décidé, à revérifier ensemble avant de le coder.
 - Que l'IA, sur demande, range visuellement une zone ou l'accueil de façon pertinente, sans deviner et sans placer des coordonnées à la main. Entièrement à discuter, sans certitude qu'on le fasse.
 
