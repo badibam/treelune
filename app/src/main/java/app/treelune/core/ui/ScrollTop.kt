@@ -49,14 +49,15 @@ object ScrollTop {
  * at its end (chatButtonSpace), and hands its scroll to the « back to top » button.
  *
  * @param state The scroll, when the screen reads it too (the Guide); its own otherwise
+ * @param chatSpace False on a place no chat's button floats over (an identity), which needs no room for it
  */
-fun Modifier.pageScroll(state: ScrollState? = null): Modifier = composed {
+fun Modifier.pageScroll(state: ScrollState? = null, chatSpace: Boolean = true): Modifier = composed {
     val scroll = state ?: rememberScrollState()
     ScrollTop.Follow(scroll) {
         // A screen down: the visible height, once laid out
         ScrollTop.Followed(far = { scroll.viewportSize > 0 && scroll.value > scroll.viewportSize }, toTop = { scroll.animateScrollTo(0) })
     }
-    verticalScroll(scroll).chatButtonSpace()
+    verticalScroll(scroll).let { if (chatSpace) it.chatButtonSpace() else it }
 }
 
 /**

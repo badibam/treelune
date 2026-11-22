@@ -163,7 +163,7 @@ fun MainScreen(openToolId: String? = null, openEntryId: String? = null, onToolOp
                 }
             }
             // Back to the top of the page, facing the chat's button: once the top is a screen away
-            if (base.chatButton && Navigator.top != Place.Chat && !ChatButton.hidden && !app.treelune.core.ui.keyboardOpen() && app.treelune.core.ui.ScrollTop.shown) {
+            if (base.toTopButton && Navigator.top != Place.Chat && !ChatButton.hidden && !app.treelune.core.ui.keyboardOpen() && app.treelune.core.ui.ScrollTop.shown) {
                 Box(modifier = Modifier.align(Alignment.BottomStart).padding(UI.Space.L)) {
                     UI.FloatingButton(action = ButtonAction.TO_TOP, onClick = { toTopScope.launch { app.treelune.core.ui.ScrollTop.toTop() } })
                 }
@@ -290,6 +290,7 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                 onBack = back,
                 onGone = { Navigator.drop(place) }
             )
+            is Place.IdentityText -> app.treelune.core.identities.ui.IdentityTextScreen(place, onName = { name(it) }, onBack = back, onGone = { Navigator.drop(place) })
             is Place.CreateZone -> {
                 name(s.shared("nav_new_zone"))
                 CreateZoneScreen(onCancel = back, onCreate = back)

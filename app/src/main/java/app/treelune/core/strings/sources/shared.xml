@@ -2657,7 +2657,6 @@
     <string name="identity_resource_description">Description: when to call it up</string>
     <string name="identity_resource_content">Content</string>
     <string name="identity_resource_read">Read</string>
-    <string name="identity_resource_fold">Fold</string>
     <string name="identity_resource_delete_confirm">Delete the resource “%1$s”?</string>
     <string name="identity_delete_confirm">Delete the identity “%1$s”?</string>
     <string name="identity_saved">Saved</string>

@@ -39,6 +39,9 @@ sealed class Place {
      */
     open val chatButton: Boolean = false
 
+    /** Whether « back to top » shows over it (ScrollTop): every place the chat's button floats over, and a long page without it (an identity). */
+    open val toTopButton: Boolean get() = chatButton
+
     val address: String
         get() = (listOf(kind) + parameters.map { it.orEmpty() }).joinToString("/") { URLEncoder.encode(it, "UTF-8") }
 
@@ -109,6 +112,24 @@ sealed class Place {
         override val kind = "identity"
         override val parameters get() = listOf(id)
         override fun parent() = SettingsPage("identities")
+    }
+
+    /**
+     * One text of an identity read whole, its page showing it cut (Clipped): a piece of its
+     * [section] (the language it is written in) by its [key] (voice, mind, portrait), or a
+     * resource of its bagage when [resource].
+     */
+    data class IdentityText(val id: String, val section: String, val key: String, val resource: Boolean) : Place() {
+        override val kind = "identity_text"
+        override val parameters get() = listOf(id, section, key, if (resource) RESOURCE else PIECE)
+        // A long text, and no chat's button floats over it: « back to top » alone
+        override val toTopButton = true
+        override fun parent() = Identity(id)
+
+        companion object {
+            const val PIECE = "piece"
+            const val RESOURCE = "resource"
+        }
     }
 
     /** A zone to create, its group chosen in its form. */
@@ -241,6 +262,7 @@ sealed class Place {
                 "export" -> Export
                 "import" -> Import(r(1))
                 "identity" -> Identity(r(1))
+                "identity_text" -> IdentityText(r(1), r(2), r(3), r(4) == IdentityText.RESOURCE)
                 "ai_provider_kind" -> AIProviderKind
                 "ai_provider" -> AIProvider(p(1), p(2), p(3))
                 "api" -> Api(p(1), p(2))

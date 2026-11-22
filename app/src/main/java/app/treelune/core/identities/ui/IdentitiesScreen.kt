@@ -38,6 +38,7 @@ import app.treelune.core.ui.DialogType
 import app.treelune.core.ui.Duration
 import app.treelune.core.ui.FieldType
 import app.treelune.core.ui.TextType
+import app.treelune.core.ui.pageScroll
 import app.treelune.core.ui.UI
 import app.treelune.core.ui.components.GridLayout
 import app.treelune.core.utils.DataChangeEvent
@@ -265,7 +266,8 @@ fun IdentityScreen(id: String, onName: @Composable (String) -> Unit, onBack: () 
     val resources = (current["resources"] as List<*>).map { it as Map<*, *> }
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = UI.Space.L),
+        // A long page: its scroll handed to « back to top » (Place.toTopButton); no chat's button floats over it
+        modifier = Modifier.fillMaxSize().pageScroll(chatSpace = false).padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(title = shown["name"] as String, subtitle = s.shared("identity_display_name"), icon = iconName, iconColor = IconColor.of(iconColor),
@@ -350,16 +352,20 @@ fun IdentityScreen(id: String, onName: @Composable (String) -> Unit, onBack: () 
 
         IdentityLanguage.PIECES.forEach { key ->
             val piece = pieces[key] as? Map<*, *>
+            // Cut at a few lines and read whole on a place of its own, its edit above it
             UI.Card(type = CardType.DEFAULT) {
                 Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-                    UI.Text(s.shared("identity_piece_$key"), TextType.HEADING)
+                    androidx.compose.foundation.layout.Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        androidx.compose.foundation.layout.Box(modifier = Modifier.weight(1f)) { UI.Text(s.shared("identity_piece_$key"), TextType.HEADING) }
+                        UI.ActionButton(action = ButtonAction.EDIT, onClick = { editingPiece = key })
+                    }
                     if (piece == null) UI.Text(s.shared("identity_piece_empty"), TextType.CAPTION)
                     else {
                         val content = piece["content"] as String
                         UI.Text(origin(s, content.length, piece["imported"] == true), TextType.CAPTION)
-                        MarkupText(content, icons = false)
+                        app.treelune.core.ui.components.Clipped(onOpen = { Navigator.push(Place.IdentityText(id, section, key, resource = false)) },
+                            readLabel = s.shared("identity_resource_read")) { MarkupText(content, icons = false) }
                     }
-                    UI.FormActions { UI.ActionButton(action = ButtonAction.EDIT, onClick = { editingPiece = key }) }
                 }
             }
         }
@@ -367,7 +373,7 @@ fun IdentityScreen(id: String, onName: @Composable (String) -> Unit, onBack: () 
         // The bagage: resources read when needed
         UI.Text(s.shared("identity_bagage"), TextType.HEADING)
         UI.Text(s.shared("identity_bagage_hint"), TextType.CAPTION)
-        resources.forEach { resource -> ResourceCard(resource, onEdit = { editingResource = resource["key"] as String }, onDelete = {
+        resources.forEach { resource -> ResourceCard(resource, onRead = { Navigator.push(Place.IdentityText(id, section, resource["key"] as String, resource = true)) }, onEdit = { editingResource = resource["key"] as String }, onDelete = {
             update(mapOf("section" to section, "resources" to mapOf(resource["key"] as String to null)))
         }) }
         UI.FormActions {
@@ -400,24 +406,85 @@ private fun origin(s: app.treelune.core.strings.StringsContext, chars: Int, impo
 
 /** A resource: its title, size, origin and description; its content shown on demand, laid out. */
 @Composable
-private fun ResourceCard(resource: Map<*, *>, onEdit: () -> Unit, onDelete: () -> Unit) {
+private fun ResourceCard(resource: Map<*, *>, onRead: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
-    var open by rememberSaveable(resource["key"]) { mutableStateOf(false) }
     val content = resource["content"] as String
     UI.Card(type = CardType.DEFAULT) {
         Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
             UI.Text(resource["title"] as String, TextType.STRONG)
             UI.Text(origin(s, content.length, resource["imported"] == true), TextType.CAPTION)
             UI.Text(resource["description"] as String, TextType.BODY, selectable = true)
-            if (open) MarkupText(content, icons = false)
+            // Its content read whole on a place of its own
             UI.FormActions {
-                UI.Button(type = ButtonType.DEFAULT, onClick = { open = !open }) {
-                    UI.Text(s.shared(if (open) "identity_resource_fold" else "identity_resource_read"), TextType.BODY)
-                }
+                UI.Button(type = ButtonType.DEFAULT, onClick = onRead) { UI.Text(s.shared("identity_resource_read"), TextType.BODY) }
                 UI.ActionButton(action = ButtonAction.EDIT, onClick = onEdit)
                 UI.ActionButton(action = ButtonAction.DELETE, requireConfirmation = true,
                     confirmMessage = s.shared("identity_resource_delete_confirm").format(resource["title"] as String), onClick = onDelete)
+            }
+        }
+    }
+}
+
+/**
+ * One text of an identity read whole ([Place.IdentityText]), its page showing it cut: a piece of a
+ * section, or a resource of its bagage with its description, under its name and how long it is,
+ * with its edit at the top, in reach whatever its length. A text gone (removed, its section gone)
+ * leaves the place.
+ */
+@Composable
+fun IdentityTextScreen(place: Place.IdentityText, onName: @Composable (String) -> Unit, onBack: () -> Unit, onGone: () -> Unit) {
+    val context = LocalContext.current
+    val s = remember { Strings.`for`(context = context) }
+    val scope = rememberCoroutineScope()
+    val coordinator = remember { Coordinator(context) }
+    var identity by remember { mutableStateOf<Map<*, *>?>(null) }
+    var version by remember { mutableStateOf(0) }
+    var editing by rememberSaveable(place) { mutableStateOf(false) }
+    LaunchedEffect(place.id, version) {
+        val result = coordinator.processUserAction("identities.get", mapOf("identity_id" to place.id))
+        if (result.isSuccess) identity = result.data!!["identity"] as Map<*, *>
+        else { UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG); onGone() }
+    }
+    LaunchedEffect(place.id) {
+        DataChangeNotifier.changes.collect { if (it is DataChangeEvent.IdentitiesChanged) version++ }
+    }
+    val shown = identity ?: run {
+        UI.Text(s.shared("message_loading"), TextType.BODY)
+        return
+    }
+    val current = (shown["sections"] as Map<*, *>)[place.section] as? Map<*, *>
+    val piece = if (place.resource) null else (current?.get("pieces") as? Map<*, *>)?.get(place.key) as? Map<*, *>
+    val resource = if (!place.resource) null else (current?.get("resources") as? List<*>)?.map { it as Map<*, *> }?.firstOrNull { it["key"] == place.key }
+    val content = (piece ?: resource)?.get("content") as? String
+    if (content == null) {
+        LaunchedEffect(Unit) { onGone() }
+        return
+    }
+    val title = resource?.get("title") as? String ?: s.shared("identity_piece_${place.key}")
+    onName(title)
+
+    fun update(params: Map<String, Any?>) = scope.launch {
+        val result = coordinator.processUserAction("identities.update", mapOf("identity_id" to place.id, "section" to place.section) + params)
+        if (result.isSuccess) editing = false else UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
+    }
+
+    Column(
+        // A long text: its scroll handed to « back to top » (Place.toTopButton); no chat's button floats over it
+        modifier = Modifier.fillMaxSize().pageScroll(chatSpace = false).padding(vertical = UI.Space.L),
+        verticalArrangement = Arrangement.spacedBy(UI.Space.L)
+    ) {
+        UI.PageHeader(title = title, subtitle = shown["name"] as String, leftButton = ButtonAction.BACK, onLeftClick = onBack,
+            rightButton = if (editing) null else ButtonAction.EDIT, onRightClick = { editing = true })
+        when {
+            editing && resource != null -> ResourceEditor(resource,
+                onSave = { newTitle, description, text -> update(mapOf("resources" to mapOf(place.key to mapOf("title" to newTitle, "description" to description, "content" to text)))) },
+                onCancel = { editing = false })
+            editing -> PieceEditor(title, content, onSave = { text -> update(mapOf(place.key to text)) }, onCancel = { editing = false })
+            else -> {
+                UI.Text(origin(s, content.length, (piece ?: resource)?.get("imported") == true), TextType.CAPTION)
+                resource?.let { UI.Text(it["description"] as String, TextType.BODY, selectable = true) }
+                MarkupText(content, icons = false)
             }
         }
     }
