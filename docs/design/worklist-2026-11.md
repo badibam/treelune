@@ -14,6 +14,10 @@ La 0.9.11 publiée et le téléphone sont en base 119. Les migrations 120 et 121
 
 - Distinguer l'icône de la zone de celles de ses outils : une taille différente, ou autre chose. À discuter.
 
+## Séance : un fond sonore
+
+- `docs/design/sequence-background.md`. Décidé, en cours.
+
 ## 6. L'IA
 
 - `app_context` : l'alléger, ou en avoir deux versions. À discuter.
