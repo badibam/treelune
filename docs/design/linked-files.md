@@ -16,7 +16,7 @@ Conception du 2026-11-04. Une bibliothèque d'audios de séances, plusieurs Go d
 
 Un fichier lié a sa ligne dans `files`, comme un fichier copié : un seul propriétaire (l'entrée, ou l'outil), sa sorte, son format, son nom sur le téléphone, sa taille, sa durée. La règle « un fichier a exactement un propriétaire » tient : l'entrée possède le **lien**, pas les octets.
 
-- Une colonne nouvelle, `uri` (texte, nulle pour un fichier copié). Présente, la ligne est un lien. Une migration l'ajoute (`ConnectionMigration`, `docs/DATA.md`).
+- Une colonne `uri` (texte) : l'adresse du fichier, nulle pour un fichier copié et pour un lien attendu. Une colonne `linked` dit si la ligne est un lien (`isLinked`), à ajouter dans l'unique migration du chantier (« Le lien attendu »).
 - Le chemin d'un fichier copié découle toujours de son propriétaire, de son id et de son format (`Files.file`). Un lien n'a pas de chemin : `Files.file` refuse une ligne liée.
 - La cascade emporte la ligne avec son propriétaire ; il n'y a rien à supprimer sur le disque.
 
@@ -31,7 +31,7 @@ Les lecteurs à passer, relevés le 2026-11-04 :
 - la description lue au lien (`FileDescription.read`, par `MediaMetadataRetriever.setDataSource(context, uri)` pour une durée) ;
 - la sauvegarde (`BackupService`).
 
-« Introuvable » se décide à l'ouverture : le `ContentResolver` refuse (fichier absent, droit perdu). Il n'y a pas de vérification à l'avance de tous les liens.
+« Introuvable » se décide à l'ouverture : le `ContentResolver` refuse (fichier absent, droit perdu). Un échec n'efface jamais l'adresse : il peut être passager, et un dossier autorisé à nouveau ou une sauvegarde restaurée sur le même téléphone s'en resservent. Seule la liste de « Que jouer ? » teste ses liens d'avance (« Le lien attendu »).
 
 ## Ajouter un lien
 
@@ -78,8 +78,19 @@ Décidé le 2026-11-21, à coder. Le besoin : partager un montage (une biblioth�
 
 - **Un fichier se reconnaît à son nom et à sa taille à l'octet**, déjà dans la description de chaque lien : aucun chemin gardé, aucune colonne, aucune migration. Pour un son ou une vidéo de plusieurs Mo, deux fichiers différents de même nom et de même taille ne se rencontrent pas en pratique. Celui qui reçoit range les fichiers où il veut ; seuls leurs noms restent.
 - **La recherche** : tous les dossiers ouverts, à toute profondeur. Un fichier de même nom et de même taille se relie (le lien prend sa nouvelle URI). Même nom et autre taille : dit, pas pris. Deux candidats : dits, l'app ne choisit pas. Le parcours d'un grand dossier ouvert (tout le stockage) n'est pas mesuré ; il n'a lieu qu'à l'import, à la restauration et au bouton, jamais en fond.
-- **À l'import, rien ne bloque** : ce qui se trouve est relié et dit ; ce qui manque est listé (les noms des fichiers attendus), avec « Chercher à nouveau » (les fichiers copiés entre-temps) et « Ouvrir un dossier », qui l'ajoute aux dossiers ouverts et relance la recherche. « Importer » garde les liens manquants, introuvables et réparables ; aucune option ne les supprime.
+- **À l'import, rien ne bloque** : ce qui se trouve est relié et dit ; ce qui manque est compté, avec « Chercher à nouveau » (les fichiers copiés entre-temps) et « Autoriser un dossier », qui l'ajoute aux dossiers autorisés et relance la recherche. « Importer » garde les liens manquants, introuvables et réparables ; aucune option ne les supprime.
 - **Après, à tout moment** : Réglages › Données, un bouton « Chercher les fichiers introuvables », sans nombre : le toucher vérifie chaque lien et lance la même recherche, puis dit ce qui est relié, ce qui manque, ce qui est ambigu. Aucun compte à l'ouverture de l'écran, qui ouvrirait chaque lien (« pas de vérification à l'avance de tous les liens ») ; seuls l'import et la restauration, qui font ce passage, disent un nombre. Elle sert la restauration d'une sauvegarde et un dossier déplacé.
+- **Le bilan**, le même à l'import, à la restauration et au bouton : « 5 reliés » ; « 75 pas trouvés », leurs noms repliés ; en entier, ce que l'app ne peut pas trancher (même nom et autre taille, deux candidats).
+- **Relier ne relit pas le fichier** : seule l'adresse change, la description reste.
+
+## Le lien attendu
+
+Décidé le 2026-11-22. Le besoin : monter une bibliothèque complète depuis les fichiers du PC (des volumes numérotés, dans une Fiche), le téléphone n'en portant qu'une partie à la fois.
+
+- **Un lien sans adresse** : `linked` vrai, `uri` nulle. Il se comporte comme un lien introuvable : dit sur la fiche, refusé au lancement, gardé par la sauvegarde et l'export. Une sauvegarde d'avant la colonne se lit « lié si elle a une adresse ».
+- **`EXPECT_FILES`** (connecteur et IA) prend une liste de descriptions, `name`, `size_bytes`, `format` (un son ou une vidéo), `duration_ms` facultatif, et rend les ids dans le même ordre ; `CREATE_DATA` les écrit dans les fiches, comme des liens préparés. Le fichier d'attente d'un lien préparé (`LinkedFiles.pending`, `pendAs`) et l'import d'une partie (`PartImport`) acceptent donc un lien sans adresse.
+- **Relier** lui donne son adresse et garde la description venue du PC.
+- **« Que jouer ? »** (`LaunchDialog`) : une entrée dont le média manque reste à sa place, grisée, avec « Pas trouvé » sous son nom. Les lignes visibles sont testées avant l'affichage, l'attente plafonnée ; le reste en fond, un lien à la fois, à partir de la position affichée, jusqu'à la fermeture de la fenêtre. Rien n'est retenu d'une ouverture à l'autre. Un lien attendu est gris sans test.
 
 ## Hors de cette version
 
