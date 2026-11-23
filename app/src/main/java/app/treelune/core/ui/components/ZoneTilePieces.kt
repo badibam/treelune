@@ -49,20 +49,25 @@ fun zoneGridTile(zone: app.treelune.core.database.entities.Zone, pieces: List<Li
         tile.copy(inOneColumn = IconStrips.oneColumn(size, listOf(1) + stripCells(pieces))) else tile
 }
 
+/** Whether what is drawn here is a piece of a zone's tile: its icon is then the small one (UI.TileIcon), the zone's standing out. */
+val LocalZonePiece = androidx.compose.runtime.staticCompositionLocalOf { false }
+
 /** What a piece of a zone's tile does when touched, from the home screen: what its own tile does in its zone. */
 @Composable
 fun PieceContent(tile: SectionTile, zoneId: String) {
     val context = LocalContext.current
     val routineActions = app.treelune.core.ai.ui.routine.rememberRoutineActions { UI.Toast(it, app.treelune.core.ui.Duration.LONG) }
-    SectionTileContent(
-        tile = tile,
-        context = context,
-        onToolClick = { Navigator.push(Place.Tool(it.id, zoneId)) },
-        onToolLongClick = { Navigator.push(Place.ToolConfig(zoneId, it.tooltype, it.id)) },
-        onOpenEntry = { tool, entry -> Navigator.push(Place.Tool(tool.id, zoneId), entry) },
-        onOpenVariable = { Navigator.push(Place.Variable(zoneId, it)) },
-        routineActions = routineActions
-    )
+    CompositionLocalProvider(LocalZonePiece provides true) {
+        SectionTileContent(
+            tile = tile,
+            context = context,
+            onToolClick = { Navigator.push(Place.Tool(it.id, zoneId)) },
+            onToolLongClick = { Navigator.push(Place.ToolConfig(zoneId, it.tooltype, it.id)) },
+            onOpenEntry = { tool, entry -> Navigator.push(Place.Tool(tool.id, zoneId), entry) },
+            onOpenVariable = { Navigator.push(Place.Variable(zoneId, it)) },
+            routineActions = routineActions
+        )
+    }
 }
 
 /**

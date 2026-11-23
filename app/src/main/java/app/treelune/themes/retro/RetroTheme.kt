@@ -535,6 +535,32 @@ object RetroTheme : ThemeContract {
         Icon(resourceId, size, null, color?.takeIf { it != TagColor.GREY }?.let { retroColors.icon(it, retroSurface).srgb }, null)
     }
 
+    /**
+     * A small icon on its own whole number of screen pixels per pixel of its drawing
+     * (RetroGrid.smallIconUnit), which may differ from the text's: the one place the register
+     * leaves its single pixel size, so that a small icon stays smaller than a tile's at every
+     * size step. [size] is not read: the unit follows the tile's icon on this screen.
+     */
+    @Composable
+    override fun SmallItemIcon(resourceId: Int, size: Dp, kind: app.treelune.core.themes.SmallIcon, color: TagColor?) {
+        val grid = retroGrid()
+        val density = LocalDensity.current
+        // The tile's icon as GridLayout and UI.TileIcon size it, on a page's width: a readout may stand outside any grid
+        val screenWidth = Dp(androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat())
+        val edge = spacing(Spacing.EDGE)
+        val pageWidth = with(density) { (screenWidth - edge * 2).roundToPx() }
+        val row = gridRowPx(gridCellPx(pageWidth))
+        val tileIconPx = (row - with(density) { tileFrame(TileSize.Icon).roundToPx() }) / 2f
+        val zoneUnit = (tileIconPx / grid.px(RetroGrid.ICON)).roundToInt().coerceAtLeast(1) * grid.scale
+        val side = with(density) { (RetroGrid.ICON * RetroGrid.smallIconUnit(kind, zoneUnit, grid.scale)).toDp() }
+        Image(
+            painter = painterResource(resourceId),
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(color?.takeIf { it != TagColor.GREY }?.let { retroColors.icon(it, retroSurface).srgb } ?: LocalRetroInk.current ?: retroSurface.ink.srgb),
+            modifier = Modifier.size(side)
+        )
+    }
+
     @Composable
     override fun Dialog(type: DialogType, onConfirm: () -> Unit, onCancel: () -> Unit, confirmEnabled: Boolean, content: @Composable () -> Unit) {
         val s = Strings.`for`(context = LocalContext.current)

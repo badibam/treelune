@@ -336,6 +336,13 @@ interface ThemeContract {
     @Composable
     fun ItemIcon(resourceId: Int, size: Dp, color: TagColor?)
 
+    /**
+     * An item's icon of the small [kind], [size] across as the core computes it. A theme whose
+     * icons only exist at certain sizes (the retro's whole pixels) chooses its own from [kind].
+     */
+    @Composable
+    fun SmallItemIcon(resourceId: Int, size: Dp, kind: SmallIcon, color: TagColor?) = ItemIcon(resourceId, size, color)
+
     @Composable
     fun Dialog(
         type: DialogType,
