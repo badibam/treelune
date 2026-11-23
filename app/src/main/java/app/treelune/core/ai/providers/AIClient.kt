@@ -96,6 +96,9 @@ class AIClient(private val context: Context) {
         }
     }
 
+    /** The session [sessionId] is over: each kind stops what it keeps running for it. */
+    fun sessionEnded(sessionId: String) = kinds.all().forEach { it.sessionEnded(sessionId) }
+
     /**
      * Why [reasoning] cannot go with the model of [providerId], in the kind's words
      * (AIProviderKind.configError on its config with [reasoning] in place), or null when it can.

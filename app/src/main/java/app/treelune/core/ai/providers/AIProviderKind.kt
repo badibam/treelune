@@ -83,6 +83,9 @@ interface AIProviderKind {
      * @return AIResponse with raw JSON content
      */
     suspend fun query(promptData: PromptData, config: String): AIResponse
+
+    /** The session [sessionId] is over: what this kind keeps running for it stops. Nothing by default. */
+    fun sessionEnded(sessionId: String) {}
 }
 
 /**
@@ -106,10 +109,10 @@ data class ProviderModels(val models: List<ProviderModel>, val error: String? = 
 
 /**
  * Prices a provider's config sets by hand, in dollars per million tokens: its input, its input
- * read from the server's cache, its output (reasoning included). One left empty is unknown: a call
- * with tokens of that sort has an unknown cost, never a free one.
+ * read from the server's cache, its output (reasoning included), its input written to that cache.
+ * One left empty is unknown: a call with tokens of that sort has an unknown cost, never a free one.
  */
-data class ManualPrices(val input: Double?, val cachedInput: Double?, val output: Double?)
+data class ManualPrices(val input: Double?, val cachedInput: Double?, val output: Double?, val cacheWrite: Double? = null)
 
 /**
  * Longest answer asked of a provider when its config sets none. Without streaming nothing arrives

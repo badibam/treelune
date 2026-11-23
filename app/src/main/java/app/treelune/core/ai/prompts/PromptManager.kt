@@ -111,6 +111,7 @@ object PromptManager {
             level2Content = level2Content,
             level3Content = level3Content,
             sessionMessages = promptMessages,
+            sessionId = sessionId,
             scheduledExecutionTime = if (sessionType == SessionType.ROUTINE_RUN) {
                 sessionData["scheduled_execution_time"] as? Long
             } else {

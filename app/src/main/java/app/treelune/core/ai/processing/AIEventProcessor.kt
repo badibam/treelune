@@ -1837,6 +1837,9 @@ class AIEventProcessor(
         networkRetryJob?.cancel()
         sessionClosureJob?.cancel()
 
+        // What a provider keeps running for this session stops
+        aiClient.sessionEnded(sessionId)
+
         // Force state to idle
         stateRepository.forceIdle()
         // No longer active: a chat that waited no longer does (ChatWaiting)
@@ -2311,9 +2314,9 @@ class AIEventProcessor(
                 LogManager.aiSession("callPricing: no model in the config of provider $providerId", "ERROR")
                 return null
             }
-            // Prices set by hand (a server of the user's), per million tokens; none written to the cache there
+            // Prices the kind sets itself, per million tokens
             kind.ownPrices(config, context)?.let { own ->
-                return CallPricing(modelId, own.input?.div(1_000_000), null, own.cachedInput?.div(1_000_000), own.output?.div(1_000_000))
+                return CallPricing(modelId, own.input?.div(1_000_000), own.cacheWrite?.div(1_000_000), own.cachedInput?.div(1_000_000), own.output?.div(1_000_000))
             }
             val inputTokens = response.inputTokens + response.cacheWriteTokens + response.cacheReadTokens
             app.treelune.core.ai.utils.ModelPriceManager.getModelPrice(context, modelId)?.forCall(inputTokens)
