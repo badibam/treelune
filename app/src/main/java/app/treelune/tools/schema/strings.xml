@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Strings of the schema tooltype -->
+    <!-- Why a config is refused, naming the id at fault -->
+    <string name="error_direction">Unknown direction “%1$s”: TD (top to bottom) or BT (bottom to top).</string>
+    <string name="error_id_missing">A box or a group has no id.</string>
+    <string name="error_id_twice">The id “%1$s” is used twice among the boxes and groups.</string>
+    <string name="error_shape">Box “%1$s”: unknown shape “%2$s”.</string>
+    <string name="error_thing">Box “%1$s”: its link does not designate a thing of the app.</string>
+    <string name="error_node_empty">Box “%1$s” has neither a text nor a link.</string>
+    <string name="error_color">“%1$s”: unknown color “%2$s”.</string>
+    <string name="error_texture">“%1$s”: unknown texture “%2$s”.</string>
+    <string name="error_edge_end">An arrow lacks its start or its end.</string>
+    <string name="error_edge_unknown">An arrow names the box “%1$s”, which does not exist.</string>
+    <string name="error_line">Arrow from “%1$s” to “%2$s”: unknown line “%3$s”.</string>
+    <string name="error_group_title">Group “%1$s” has no title.</string>
+    <string name="error_group_unknown_node">Group “%1$s” names the box “%2$s”, which does not exist.</string>
+    <string name="error_group_unknown_group">Group “%1$s” names the group “%2$s”, which does not exist.</string>
+    <string name="error_node_two_groups">Box “%1$s” is in two groups: “%2$s” and “%3$s”.</string>
+    <string name="error_group_two_parents">Group “%1$s” is in two groups: “%2$s” and “%3$s”.</string>
+    <string name="error_group_loop">Group “%1$s” ends up inside itself.</string>
+</resources>
