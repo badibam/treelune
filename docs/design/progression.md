@@ -22,10 +22,15 @@ Tenir où on en est dans quelque chose qui se déroule par morceaux. Comme tout 
 - Ce qui rend un élément atteint s'écrit avec la brique Condition, pas avec une Tâche. Un cas complexe passe par ce que la Condition sait déjà lire : une variable, une lecture, peut-être le résultat d'un Objectif, par exemple.
 - Les périodes de ces conditions gardent tous les choix de la lecture, avec une borne de plus : « l'ouverture de l'élément ». Elle permet d'écrire « 10 sorties à ce palier ». Une période vide veut toujours dire sans limite, et la référence reste le moment de la lecture.
 
-## Penchants, pas encore décidés
+## En discussion : que sont les `tool_data` ?
 
-- Chaque élément serait une entrée de l'outil, comme un item de Liste : ses champs, ses Références et ses déclencheurs viendraient d'emblée.
-- Refaire un plan serait d'abord une simple remise à zéro, les passages conservés pouvant s'ajouter plus tard si le besoin se confirme. -> ce point reste à discuter, car ça détruit des données précieuses...
+Rien n'est tranché. Exemple : Camille monte 5 paliers de course, arrête l'hiver, puis recommence au printemps sans vouloir perdre les dates de l'an dernier. Une remise à zéro détruirait ces données précieuses.
+
+- **Une entrée = un élément** : le plan est dans les entrées, chaque élément porte son état. On peut viser un élément par une Référence, mais recommencer écrase ses dates sans mécanisme en plus.
+- **Plan en config, une entrée = un mouvement** (« palier 3 atteint le 12 mars ») : rien n'est écrasé, mais l'utilisateur trouve cette donnée peu réutilisable.
+- **Plan en config, une entrée = un passage**, qui inclut les états de ses éléments : recommencer est naturel, et le passage peut garder une copie du plan, comme une tentative d'Objectif. Non vérifié : une Tâche pourrait réagir à un élément atteint si la progression émet un événement, comme l'Objectif émet le sien.
+
+Si une entrée est un passage, les champs supplémentaires peuvent aller sur le passage (« reprise après une entorse », un bilan), sur l'élément dans le plan (sa consigne, sa séance), ou sur les deux : à discuter, en regardant si le passage seul est restrictif. Une troisième place existe, l'élément par passage (« palier 3 en 28 min, genou un peu raide ») : la plus riche, au prix d'une deuxième liste de champs et d'une saisie à chaque élément atteint.
 
 ## Les scènes
 
@@ -74,7 +79,6 @@ Si elle tient, ligne, arbre, boucle et aiguillage sont une seule chose, des lien
 
 ## Ouvert
 
-- Que sont les `tool_data` : un élément, un mouvement (allumé, éteint) ou un passage complet ? La réponse décide aussi des champs supplémentaires, de la trace et de la réutilisabilité.
 - Qu'est-ce qu'un élément ? Une capacité, une période et une action ont peut-être en commun d'être « une chose dont on peut dire qu'elle est atteinte ». Et son nom.
 - La découpe carte, états, règles est-elle juste ?
 - Quelles scènes l'outil doit-il vraiment couvrir, et où s'arrête-t-il ?
@@ -101,4 +105,4 @@ Si elle tient, ligne, arbre, boucle et aiguillage sont une seule chose, des lien
 
 ## Reprise
 
-Valider la liste des variables, puis vérifier que les scènes en couvrent assez de combinaisons. Ensuite seulement, définir ce qu'est un élément.
+Reprendre à « En discussion » : que sont les `tool_data`, puis où vont les champs supplémentaires. La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
