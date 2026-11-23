@@ -93,6 +93,16 @@ Liste à valider, pour vérifier que les scènes couvrent assez de combinaisons 
 { "left": { "field": "data.brick" }, "op": "in", "right": { "self": "prerequisites" } }
 ```
 
+- La Condition du core gagne aussi un quantificateur, à côté du ET et du OU : un ensemble, une condition sur chacun, une quantité (`"all"`, `"any"`, `"none"` ou un nombre pour « au moins N »).
+
+```json
+{
+  "of": { "self": "prerequisites" },
+  "where": { "left": { "field": "data.status" }, "op": "in", "right": { "constant": ["held"] } },
+  "count": "all"
+}
+```
+
 Exemple :
 
 ```text
@@ -137,4 +147,4 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 
 ## Reprise
 
-Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception, en commençant par la rééducation (3), puis la boucle (4) et le choix exclusif (9). La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
+Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception : la boucle (4), puis le choix exclusif (9). La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
