@@ -22,15 +22,23 @@ Tenir où on en est dans quelque chose qui se déroule par morceaux. Comme tout 
 - Ce qui rend un élément atteint s'écrit avec la brique Condition, pas avec une Tâche. Un cas complexe passe par ce que la Condition sait déjà lire : une variable, une lecture, peut-être le résultat d'un Objectif, par exemple.
 - Les périodes de ces conditions gardent tous les choix de la lecture, avec une borne de plus : « l'ouverture de l'élément ». Elle permet d'écrire « 10 sorties à ce palier ». Une période vide veut toujours dire sans limite, et la référence reste le moment de la lecture.
 
-## En discussion : que sont les `tool_data` ?
+## Le montage retenu
 
-Rien n'est tranché. Exemple : Camille monte 5 paliers de course, arrête l'hiver, puis recommence au printemps sans vouloir perdre les dates de l'an dernier. Une remise à zéro détruirait ces données précieuses.
+Validé dans son principe le 2026-11-23. Rien n'est codé ni mesuré.
 
-- **Une entrée = un élément** : le plan est dans les entrées, chaque élément porte son état. On peut viser un élément par une Référence, mais recommencer écrase ses dates sans mécanisme en plus.
-- **Plan en config, une entrée = un mouvement** (« palier 3 atteint le 12 mars ») : rien n'est écrasé, mais l'utilisateur trouve cette donnée peu réutilisable.
-- **Plan en config, une entrée = un passage**, qui inclut les états de ses éléments : recommencer est naturel, et le passage peut garder une copie du plan, comme une tentative d'Objectif. Non vérifié : une Tâche pourrait réagir à un élément atteint si la progression émet un événement, comme l'Objectif émet le sien.
+- **Le journal** : le plan est en config, une entrée = un mouvement (départ, atteint, perdu, fin). Les champs supplémentaires d'un mouvement portent « palier 3 en 28 min, genou un peu raide » ; ceux de la fin, le bilan du passage.
+- **La vue** : l'outil présente à la lecture des lignes calculées, jamais stockées, une par élément et par passage : élément, passage, courant, état, depuis (la date du mouvement qui a donné l'état). Lue à une autre référence, elle ne rejoue que les mouvements d'avant cet instant.
+- **Qui répond à quoi** : la vue répond à « où en suis-je ? », le journal à « que s'est-il passé, et quand ? ». Une ligne de vue n'a qu'une date : « atteints en avril » posé à la vue manquerait un palier atteint en avril, perdu, puis réatteint en mai. Une sélection sur une vue refuse donc `period`, et un filtre sur `depuis` reste possible.
+- **Défaire** : une erreur se corrige en supprimant le mouvement ; un vrai recul écrit un mouvement « perdu ».
+- **Le passage** : en cours, il suit le plan actuel, modifiable librement ; sa fin garde une copie du plan, et il ne change plus. Recommencer = une fin si le passage est ouvert, puis un départ. Rouvrir = supprimer le mouvement de fin. Pas d'état « en pause » : un passage ouvert sans activité en est déjà une.
+- **Limite acceptée** : une date passée du passage en cours se relit avec le plan actuel.
 
-Si une entrée est un passage, les champs supplémentaires peuvent aller sur le passage (« reprise après une entorse », un bilan), sur l'élément dans le plan (sa consigne, sa séance), ou sur les deux : à discuter, en regardant si le passage seul est restrictif. Une troisième place existe, l'élément par passage (« palier 3 en 28 min, genou un peu raide ») : la plus riche, au prix d'une deuxième liste de champs et d'une saisie à chaque élément atteint.
+Ce que ça demande au core :
+
+- Une seule notion de lignes calculées, passant par la même porte que les entrées, dont la série d'une variable deviendrait un cas particulier, plutôt qu'un cas `view` de plus dans chaque lecteur. La sélection y gagne un paramètre, `view`.
+- Une Référence vers une ligne de vue, à inventer si un besoin de désigner un élément apparaît.
+- Le coût à mesurer : un Graphique recalculerait la vue à chaque point de temps.
+- Second usage pressenti : une vue `cards` des Flashcards (acquises, en retard, nouvelles), lisible par toute l'app.
 
 ## Les scènes
 
@@ -86,7 +94,9 @@ Si elle tient, ligne, arbre, boucle et aiguillage sont une seule chose, des lien
 - Une condition déjà vraie à l'ouverture d'un élément l'atteint-elle aussitôt ? -> réglage ? est ce la distinction "devenir vrai" vs "être vrai" ?
 - Plusieurs conditions sur un élément : toutes, ou N parmi M ?
 - « En cours » : un état qu'on écrit, ou simplement ce qui est ouvert et pas encore atteint ?
-- L'état global : toujours déduit des éléments ?
+- La règle de recul : quand le palier 2 est perdu, que devient le palier 3, atteint ou ouvert ?
+- Les champs supplémentaires d'un élément dans le plan (sa consigne, sa séance).
+- Retirer un élément du plan : son identifiant ne doit pas être une option d'un champ Choix obligatoire, dont le retrait supprimerait ses mouvements (`EntryMigration`).
 - Toucher un élément : son texte et un lien vers un geste (lancer sa séance) ; à améliorer.
 - Les affichages : plusieurs rendus très différents, comme le Graphique (chemin, achievements, tableau de voyants qui s'éteignent).
 - Les notifications : quand est-on prévenu ?
@@ -102,7 +112,10 @@ Si elle tient, ligne, arbre, boucle et aiguillage sont une seule chose, des lien
 - Dupliquer un outil copie sa config, pas ses entrées (`ToolInstanceService.handleDuplicate`).
 - Une config peut garder des valeurs remplies de champs supplémentaires : c'est le cas des raccourcis du Suivi (`SettingNode.FieldValues`). Des éléments déclarés en config pourraient donc porter leur texte et leurs champs.
 - Une Référence vise une entrée, pas un morceau de config.
+- Une Lecture ou un filtre vise un champ à un seul niveau (`data.x`), et aucun type de champ ne contient une liste d'objets.
+- Les Flashcards sont un journal : une entrée par révision, l'état de la carte après elle dans `state`, l'état actuel de chaque carte relu par leur propre SQL (`FlashcardsJournal`).
+- La série d'une variable est faite de lignes calculées, filtrées par le même SQL que les entrées (`VariableSeries`) ; seule une Lecture sait la lire.
 
 ## Reprise
 
-Reprendre à « En discussion » : que sont les `tool_data`, puis où vont les champs supplémentaires. La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
+Reprendre à la façon dont la vue calcule l'état, par la règle de recul, en repassant les scènes sur le montage retenu. La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
