@@ -121,6 +121,13 @@ class ValidationResolver(private val context: Context) {
                     ?: (if (params.containsKey("tool_groups") || params.containsKey("renames")) zoneReason(zoneId, levels) else null)
             }
 
+            // The home screen is the app's; a zone's tiles its own, its tile on the home screen the app's
+            "ARRANGE_PAGE" -> {
+                val zoneId = params["zone_id"] as? String
+                if (zoneId == null) appReason(levels)
+                else (if (params.containsKey("zone_tile")) appReason(levels) else null) ?: zoneReason(zoneId, levels)
+            }
+
             // A zone's level: its tools, their configs, its variables
             "CREATE_TOOL" -> zoneReason(params["zone_id"] as? String ?: error(s.shared("validation_reason_no_target")), levels)
             "UPDATE_TOOL", "DELETE_TOOL" -> {

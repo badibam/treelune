@@ -233,6 +233,12 @@ class AICommandProcessor(private val context: Context) {
                 params = command.params,
                 isActionCommand = true
             )
+            "ARRANGE_PAGE" -> ExecutableCommand(
+                resource = "zones",
+                operation = "arrange",
+                params = command.params,
+                isActionCommand = true
+            )
             "DELETE_ZONE" -> ExecutableCommand(
                 resource = "zones",
                 operation = "delete",
@@ -359,6 +365,12 @@ class AICommandProcessor(private val context: Context) {
             "UPDATE_ZONE" -> ExecutableCommand(
                 resource = "zones",
                 operation = "update",
+                params = command.params,
+                isActionCommand = true
+            )
+            "ARRANGE_PAGE" -> ExecutableCommand(
+                resource = "zones",
+                operation = "arrange",
                 params = command.params,
                 isActionCommand = true
             )

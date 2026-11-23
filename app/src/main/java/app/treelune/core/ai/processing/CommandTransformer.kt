@@ -70,6 +70,12 @@ object CommandTransformer {
                         operation = "contents",
                         params = command.params.filterKeys { it == "zone_id" }.mapValues { it.value!! }
                     )
+                    // A page as the AI arranges it (docs/design/ai-page-layout.md)
+                    "PAGE_PLAN" -> ExecutableCommand(
+                        resource = "zones",
+                        operation = "page_plan",
+                        params = command.params.filterKeys { it == "zone_id" || it == "home" }.mapValues { it.value!! }
+                    )
                     "CURRENT_DATETIME" -> transformCurrentDatetimeCommand(command)
                     // The design guide (ai_design_guide), the same text for every caller
                     "DESIGN_GUIDE" -> ExecutableCommand(resource = "app_config", operation = "design_guide", params = emptyMap())

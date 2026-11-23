@@ -491,6 +491,8 @@ class CommandExecutor(private val context: Context) {
                 data["id"]?.let { filtered["id"] = it }
                 data["zone_id"]?.let { filtered["zone_id"] = it }
                 data["tool_instance_id"]?.let { filtered["tool_instance_id"] = it }
+                // The page as it now stands, for the AI to see what it arranged (ARRANGE_PAGE)
+                data["plan"]?.let { filtered["plan"] = it }
 
                 // Name/type fields
                 data["name"]?.let { filtered["name"] = it }
@@ -565,6 +567,7 @@ class CommandExecutor(private val context: Context) {
             "zones.get" -> line("zone_config", zone ?: throw IllegalStateException("zones.get without a zone_id"))
             "zones.list" -> line("zones")
             "zones.contents" -> zone?.let { line("contents_of", it) } ?: line("contents")
+            "zones.page_plan" -> zone?.let { line("page_plan_of", it) } ?: line("page_plan")
             "variables.list" -> line("variables_of", zone ?: "")
             "variables.list_all" -> line("variables")
             "readings.read" -> line("reading", params["variable"] as? String ?: "")
@@ -701,6 +704,7 @@ class CommandExecutor(private val context: Context) {
                     }
                     "list" -> "All zones"
                     "contents" -> (command.params["zone_id"] as? String)?.let { "Contents of zone '${resolveZoneName(it)}'" } ?: "Contents of every zone"
+                    "page_plan" -> (command.params["zone_id"] as? String)?.let { "Plan of zone '${resolveZoneName(it)}'" } ?: "Plan of the home screen"
                     else -> ""
                 }
             }

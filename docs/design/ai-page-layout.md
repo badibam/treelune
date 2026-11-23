@@ -1,6 +1,6 @@
 # Le rangement d'une page par l'IA
 
-Sur demande, l'IA améliore la disposition et l'apparence d'une page : une zone ou l'accueil. Conception du 2026-11-23, rien n'est codé.
+Sur demande, l'IA améliore la disposition et l'apparence d'une page : une zone ou l'accueil. Conçu et codé le 2026-11-23 ; jamais essayé avec une vraie IA ni vu sur le téléphone.
 
 ## Principes
 
@@ -21,7 +21,7 @@ plan a3f9
  T1  T1  T1  T1
  t2  t2  T3  T3
  T4  T4  t5   .
-T1 tool «Sorties» 4x2 footprints ORANGE - corps:demis,2l
+T1 tool «Sorties» 4x2 footprints ORANGE - item_width=halves item_lines=2
 t2 routine «Alléger la semaine» icons_2x1 feather GREEN -
 T3 tool «Renfo» 2x1 dumbbell RED -
 T4 tool «Étirements» 2x1 activity - -
@@ -73,7 +73,7 @@ Coût mesuré sur une maquette, les 5 zones de la démo, 61 tuiles : 4 115 carac
 - La cible est `zone_id`, ou `"home": true` pour l'accueil, dont les tuiles sont les zones.
 - Un repère seul garde l'apparence de la tuile et lui donne sa nouvelle place. Un objet change les réglages qu'il nomme ; `null` retire une couleur ou une texture.
 - Une section listée est donnée entière. Une section non listée ne bouge pas. Une tuile qui quitte une section oblige à lister cette section.
-- Un nom nouveau crée une section, `"tiles": []` supprime la section.
+- Un nom nouveau crée une section, `"tiles": []` supprime la section, `"name": null` désigne la section sans groupe, écrite `(ungrouped)` dans le plan.
 - `section_order`, facultatif, donne l'ordre de toutes les sections.
 - La réponse contient le nouveau plan : l'IA voit le résultat réel et peut corriger sans relire.
 
