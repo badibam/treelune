@@ -121,6 +121,9 @@ Liste à valider, pour vérifier que les scènes couvrent assez de combinaisons 
 
 - Le choix exclusif (scène 9) tient : des options dans un groupe, chacune disponible si aucune de ses voisines (`self.siblings`) n'est commencée. Deux briques qui dépendent l'une de l'autre lisent `last_move`, un fait du journal, plutôt que `status`, qui formerait une boucle ; la vue expose cette colonne, et l'enregistrement refuse une règle circulaire.
 
+- Une sorte peut porter des `marks` : des indicateurs calculés qui s'ajoutent à l'état sans entrer en concurrence avec lui. Un lot de la maison (scène 12) peut être fermé et en retard.
+- « Tous » sur un ensemble vide est vrai : juste pour une brique sans prérequis, faux pour un lot sans tâches, dont la règle ajoute « au moins une existe ».
+
 Exemple :
 
 ```text
@@ -164,4 +167,4 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 
 ## Reprise
 
-Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception. Le passage reste, à la racine seulement : il délimite un parcours, fige son plan et porte son bilan, là où `set` ne change que des états. Reprendre à la complexité de l'ensemble, jugée lourde et non tranchée, et à ce qu'une première version garderait. Piste en attente : un écran de config qui montre d'abord des cases à cocher et trois réglages (`opens_when`, `done_when`, `expires_after`), traduits en règles d'état. Avant l'écran et les modèles, finir de tester les scènes en vraie syntaxe : la maison (12), puis le marathon (5). La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
+Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception. Le passage reste, à la racine seulement : il délimite un parcours, fige son plan et porte son bilan, là où `set` ne change que des états. Reprendre à la complexité de l'ensemble, jugée lourde et non tranchée, et à ce qu'une première version garderait. Piste en attente : un écran de config qui montre d'abord des cases à cocher et trois réglages (`opens_when`, `done_when`, `expires_after`), traduits en règles d'état. Avant l'écran et les modèles, finir de tester les scènes en vraie syntaxe : le marathon (5). La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
