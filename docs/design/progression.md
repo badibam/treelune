@@ -104,7 +104,7 @@ Liste à valider, pour vérifier que les scènes couvrent assez de combinaisons 
 }
 ```
 
-- Une brique peut porter des effets, « quand ceci arrive, ces briques passent à tel état » : `on` est une Condition, `set` écrit un mouvement ordinaire par brique visée. L'état reste donc toujours lu sur le dernier mouvement. La boucle, refaire seulement ce qui est raté et la rechute en chaîne sont trois `set`.
+- Une sorte peut porter des `effects`, « quand ceci arrive, ces briques passent à tel état » : `on` est une Condition qui ne lit que l'état des briques, `set` un mouvement virtuel par brique visée, jamais écrit. L'état se calcule en rejouant le journal : chaque mouvement réel, puis les effets dont le `on` vient de devenir vrai. Supprimer un mouvement supprime donc ce qu'il avait déclenché, et le rejeu sait dire d'où vient un état. La boucle, refaire seulement ce qui est raté et la rechute en chaîne sont trois `set`.
 
 ```json
 {
@@ -117,7 +117,7 @@ Liste à valider, pour vérifier que les scènes couvrent assez de combinaisons 
 }
 ```
 
-- `set` n'est pas une Tâche : il ne touche que les briques de sa progression, dans la même transaction que l'écriture qui le déclenche (`settleEntries`, à étendre : il modifie des entrées sans en créer). Un `on` qui dépend du temps ou d'un autre outil passe par le planificateur de l'outil. Pour agir ailleurs, la progression émet un événement qu'une Tâche écoute. Un plafond doit empêcher un `set` d'en relancer un autre sans fin.
+- `set` n'est pas une Tâche : il ne touche que les briques de sa progression et n'écrit rien. Une date ou une donnée externe n'entre que par « quand la règle devient vraie », qui écrit un vrai mouvement. Pour agir ailleurs, la progression émet un événement qu'une Tâche écoute. Un plafond doit empêcher un effet d'en relancer un autre sans fin, et le coût du rejeu reste à mesurer.
 
 Exemple :
 
@@ -140,7 +140,6 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 - Plusieurs conditions sur un élément : toutes, ou N parmi M ?
 - « En cours » : un état qu'on écrit, ou simplement ce qui est ouvert et pas encore atteint ?
 - Un recul en chaîne (une rechute qui fait redescendre de deux niveaux) : un geste groupé, ou un `set` sur ce qui dépend de la brique.
-- Supprimer un mouvement qui a déclenché un `set` : les mouvements écrits par ce `set` restent, ce qui contredit « une erreur se corrige en supprimant le mouvement ».
 - Les champs supplémentaires d'un élément dans le plan (sa consigne, sa séance).
 - Retirer un élément du plan : son identifiant ne doit pas être une option d'un champ Choix obligatoire, dont le retrait supprimerait ses mouvements (`EntryMigration`).
 - Toucher un élément : son texte et un lien vers un geste (lancer sa séance) ; à améliorer.
@@ -164,4 +163,4 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 
 ## Reprise
 
-Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception. Le passage reste, à la racine seulement : il délimite un parcours, fige son plan et porte son bilan, là où `set` ne change que des états. Reprendre à la complexité de l'ensemble, jugée lourde et non tranchée, et à ce qu'une première version garderait. Pistes en attente : `set` calculé par le rejeu du journal plutôt qu'écrit, `on` limité à l'intérieur de la progression, ce qui garde « supprimer corrige tout » ; une boucle sans `set`, par comptage des « fait » ; un écran de config qui montre d'abord des cases à cocher et trois réglages (`opens_when`, `done_when`, `expires_after`), traduits en règles d'état. Puis le choix exclusif (9). La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
+Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception. Le passage reste, à la racine seulement : il délimite un parcours, fige son plan et porte son bilan, là où `set` ne change que des états. Reprendre à la complexité de l'ensemble, jugée lourde et non tranchée, et à ce qu'une première version garderait. Piste en attente : un écran de config qui montre d'abord des cases à cocher et trois réglages (`opens_when`, `done_when`, `expires_after`), traduits en règles d'état. Puis le choix exclusif (9). La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
