@@ -84,7 +84,7 @@ object SchemaToolType : ToolTypeContract {
                     choice(SchemaDirection.entries.map { it.key }) { s.tool("direction_${it.lowercase()}") }), required = true, default = SchemaDirection.TOP_DOWN.key),
                 SettingNode.ListOf(SchemaKeys.NODES, s.tool("field_nodes"), SettingNode.Item.Of(listOf(
                     SettingNode.Field(field(SchemaKeys.ID, s.tool("field_id"), FieldType.TEXT, s.tool("schema_node_id"), short()), required = true),
-                    SettingNode.Field(field(SchemaKeys.LABEL, s.tool("field_label"), FieldType.TEXT, s.tool("schema_node_label"), short())),
+                    SettingNode.Field(field(SchemaKeys.LABEL, s.tool("field_label"), FieldType.TEXT, s.tool("schema_node_label"), mapOf("length" to TextLength.MEDIUM.name))),
                     SettingNode.Field(field(SchemaKeys.THING, s.tool("field_thing"), FieldType.REFERENCE, s.tool("schema_thing"),
                         mapOf(ReferenceTarget.TARGET to mapOf(ReferenceTarget.KINDS to things)))),
                     SettingNode.Field(field(SchemaKeys.SHAPE, s.tool("field_shape"), FieldType.CHOICE, s.tool("schema_shape"),
