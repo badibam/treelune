@@ -86,6 +86,13 @@ Liste à valider, pour vérifier que les scènes couvrent assez de combinaisons 
 - Proposer n'est pas un mécanisme : c'est un état comme un autre (« à valider » si la règle est vraie), suivi d'un geste qui écrit « validé ».
 - Un état écrit peut dire « se note si » : une condition (l'état est disponible, le rythme, l'auteur). Sans elle, il se note toujours ; l'interdiction est donc un choix de chaque progression.
 
+- Une brique peut avoir un champ « lien vers des briques », dont le sens vient de son nom et des règles qui le lisent (prérequis, exclut, couvert aussi par). Le système sait seulement suivre ce lien, calculer dans le bon ordre et refuser les boucles.
+- Les règles sont des Conditions du core, étendues plutôt qu'un langage propre à la progression : le ET et le OU, et une valeur `self`, lue sur la brique jugée.
+
+```json
+{ "left": { "field": "data.brick" }, "op": "in", "right": { "self": "prerequisites" } }
+```
+
 Exemple :
 
 ```text
@@ -102,11 +109,11 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 ## Ouvert
 
 - Le nom de la brique.
-- Le choix exclusif (la reconversion, scène 9) : couvert ou hors de l'outil.
+- Le choix exclusif (la reconversion, scène 9). Piste : un lien « exclut », la brique n'étant disponible que si aucune brique visée n'est commencée.
 - Quelles scènes l'outil doit-il vraiment couvrir, et où s'arrête-t-il ?
 - Plusieurs conditions sur un élément : toutes, ou N parmi M ?
 - « En cours » : un état qu'on écrit, ou simplement ce qui est ouvert et pas encore atteint ?
-- Un recul en chaîne (une rechute qui fait redescendre de deux niveaux) : un geste qui écrit plusieurs mouvements, ou une règle.
+- Un recul en chaîne (une rechute qui fait redescendre de deux niveaux). Piste : un geste groupé, qui écrit un mouvement par brique.
 - Les champs supplémentaires d'un élément dans le plan (sa consigne, sa séance).
 - Retirer un élément du plan : son identifiant ne doit pas être une option d'un champ Choix obligatoire, dont le retrait supprimerait ses mouvements (`EntryMigration`).
 - Toucher un élément : son texte et un lien vers un geste (lancer sa séance) ; à améliorer.
@@ -130,4 +137,4 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 
 ## Reprise
 
-Repasser les scènes sur les briques, en commençant par celles qui résistent : le recul en chaîne (3), la boucle (4), le choix exclusif (9). La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
+Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception, en commençant par la rééducation (3), puis la boucle (4) et le choix exclusif (9). La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
