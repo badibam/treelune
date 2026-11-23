@@ -8,6 +8,7 @@
 - 9b59e58  screens call the command dispatcher (Coordinator) directly and keep only view state; the dispatcher and its services are the controller layer
 ## fdroid @ a85a2c3
 ## pixel-ui @ a85a2c3
+- 40bc2db  small icons (a zone tile's pieces, readouts) leave the single pixel size: still a whole number of screen pixels per drawing pixel, but not the text's, so that they stay smaller than a tile's icon at every size step
 ## ia-service-distant @ 4ab1831
 ## php-heberge-leger @ dc78ce2
 - 500a48b3  getSiteText has no default: a text missing from one language fails the page, the project allowing no fallback without validation
