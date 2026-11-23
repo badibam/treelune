@@ -8,24 +8,24 @@ Tenir où on en est dans quelque chose qui se déroule par morceaux. Comme tout 
 
 - le plus général possible ;
 - capable de couvrir les usages variés courants ;
-- propre et simple à concevoir.
+- propre et simple conceptuellement.
 
 ## La méthode
 
 - Partir de scènes de vie de formes différentes, chercher ce qu'elles ont en commun, et seulement ensuite définir la notion.
-- Un point à la fois, en quelques mots.
+- Un point à la fois, concis.
 - Chaque question donne une situation concrète et sa logique, ce qui est en jeu, de vrais embranchements, puis un avis présenté comme un avis.
 - Ne rien traiter comme acquis tant que l'utilisateur ne l'a pas décidé, et ne pas reconduire une piste parce qu'elle a déjà été écrite.
 
 ## Décidé
 
-- Ce qui rend un élément atteint s'écrit avec la brique Condition, pas avec une Tâche. Un cas complexe passe par ce que la Condition sait déjà lire : une variable, une lecture, peut-être le résultat d'un Objectif.
+- Ce qui rend un élément atteint s'écrit avec la brique Condition, pas avec une Tâche. Un cas complexe passe par ce que la Condition sait déjà lire : une variable, une lecture, peut-être le résultat d'un Objectif, par exemple.
 - Les périodes de ces conditions gardent tous les choix de la lecture, avec une borne de plus : « l'ouverture de l'élément ». Elle permet d'écrire « 10 sorties à ce palier ». Une période vide veut toujours dire sans limite, et la référence reste le moment de la lecture.
 
 ## Penchants, pas encore décidés
 
 - Chaque élément serait une entrée de l'outil, comme un item de Liste : ses champs, ses Références et ses déclencheurs viendraient d'emblée.
-- Refaire un plan serait d'abord une simple remise à zéro, les passages conservés pouvant s'ajouter plus tard si le besoin se confirme.
+- Refaire un plan serait d'abord une simple remise à zéro, les passages conservés pouvant s'ajouter plus tard si le besoin se confirme. -> ce point reste à discuter, car ça détruit des données précieuses...
 
 ## Les scènes
 
@@ -74,42 +74,31 @@ Si elle tient, ligne, arbre, boucle et aiguillage sont une seule chose, des lien
 
 ## Ouvert
 
-- Est-ce bien un nouveau type d'outil, ou une Liste enrichie suffit-elle ?
+- Que sont les `tool_data` : un élément, un mouvement (allumé, éteint) ou un passage complet ? La réponse décide aussi des champs supplémentaires, de la trace et de la réutilisabilité.
 - Qu'est-ce qu'un élément ? Une capacité, une période et une action ont peut-être en commun d'être « une chose dont on peut dire qu'elle est atteinte ». Et son nom.
 - La découpe carte, états, règles est-elle juste ?
 - Quelles scènes l'outil doit-il vraiment couvrir, et où s'arrête-t-il ?
-- Que fait une condition devenue vraie : atteindre l'élément, ou le proposer ?
-- Une condition déjà vraie à l'ouverture d'un élément l'atteint-elle aussitôt ?
+- Que fait une condition devenue vraie : atteindre l'élément, ou le proposer ? possibilité : que ce soit un réglage
+- Une condition déjà vraie à l'ouverture d'un élément l'atteint-elle aussitôt ? -> réglage ? est ce la distinction "devenir vrai" vs "être vrai" ?
 - Plusieurs conditions sur un élément : toutes, ou N parmi M ?
-- Quelle frontière avec l'Objectif, et faut-il le réduire ?
-- Quels affichages, quelles notifications, quelle gamification ?
+- « En cours » : un état qu'on écrit, ou simplement ce qui est ouvert et pas encore atteint ?
+- L'état global : toujours déduit des éléments ?
+- Toucher un élément : son texte et un lien vers un geste (lancer sa séance) ; à améliorer.
+- Les affichages : plusieurs rendus très différents, comme le Graphique (chemin, achievements, tableau de voyants qui s'éteignent).
+- Les notifications : quand est-on prévenu ?
+- La gamification : quels aspects la permettent ?
+- L'Objectif : le réduire à la mesure et au jugement, la progression consignant dans le temps ?
 - Que peut faire l'IA sur une progression ?
 
 ## Faits relevés dans le code
 
-- Une Condition est une seule comparaison, sans ET ni OU. L'Objectif assemble plusieurs conditions par ses critères et son « au moins N ».
+- Une Condition est une seule comparaison, sans ET ni OU. L'Objectif assemble plusieurs conditions par ses critères et son « au moins N ». -> si nécessaire, on peut envisager d'améliorer le core.
 - Seules les Tâches et les routines écoutent une condition (`ConditionTriggers`). Elles sont lancées quand elle passe de fausse à vraie ; un premier jugement ne lance rien.
 - Une lecture n'a qu'une référence, partagée par les deux côtés de la condition : ses dates relatives et ses variables se lisent à cet instant.
 - Dupliquer un outil copie sa config, pas ses entrées (`ToolInstanceService.handleDuplicate`).
-- Décocher un item de Liste efface sa date (`checked_at`).
+- Une config peut garder des valeurs remplies de champs supplémentaires : c'est le cas des raccourcis du Suivi (`SettingNode.FieldValues`). Des éléments déclarés en config pourraient donc porter leur texte et leurs champs.
+- Une Référence vise une entrée, pas un morceau de config.
 
 ## Reprise
 
 Valider la liste des variables, puis vérifier que les scènes en couvrent assez de combinaisons. Ensuite seulement, définir ce qu'est un élément.
-
-## Notes de l'utilisateur
-
-Plein de choses sont à revoir, voici en vrac quelques réflexions pour alimenter le brainstorming
-
-- une possibilité: achievements ; une autre, similaire, mais avec les éléments qui "s'éteignent" automatiquement ou sur geste = sorte de dashboard avec état des différents éléements... (pas l'usage principal, mais pourrait faire partie des possibilités, suivant config)
-- question ouverte : quand est on notifié ?
-- + généralement, quels aspects permettent la gamification ?
-- un élément peut il être 'en cours' = "le prochain, ou un des prochains à atteindre"
-- probablement, ça pourrait demander plusieurs modes d'affichage, un peu comme les graphiques ont des rendus très différents.
-- quand on lcique sur un élément on voit son texte, et aussi un lien vers un geste, par exemple vers une séance spécifique qui est en lien avec son accomplissement ? c'est un premier jet d'idée, je pressens qu'on peut faire mieux
-- que font les champs supplménetaires ? il doivent porter sur les éléments je suppose... 
-- mais que sont les tool_data d'ailleurs ? il y a plusieurs possibilités je pense... ce serait analgue aux flashcards par exemple ? ou un historique des pas effectués 1 entrée = 1 pas ?
-- y a t il des états ? une trace des moments allumés éteints dasn chaque élément ?
-- un état global ? toujours dérivé du reste ou pas ?
-- réutilisabilité ? par exemple programme annuel ... dasn ce cas : 1 tool_data = 1 exécution , et ça édite celle ci au fur et à mesure des pas effectués ? -> si on fait ça j'ai l'impression que ça fait redite avec objectifs
-- de façon générale , l'intersection n'est pas négligeable avec objectifs. peut etre faudra t il réduire objectifs et prévoir plutôt des montages de combinaison ? par exemple objectif = mesure/jugement de quelque chose et progression jouerait le rôle de consignation dasn le temps, par exemple ?
