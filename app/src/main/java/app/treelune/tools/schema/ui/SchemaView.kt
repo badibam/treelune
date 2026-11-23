@@ -65,18 +65,22 @@ sealed interface SchemaReading {
         suspend fun of(config: JSONObject, context: Context): SchemaReading {
             val s = Strings.`for`(tool = "schema", context = context)
             val spec = try { SchemaSpec.of(config) { s.tool(it) } } catch (e: IllegalArgumentException) { return Problem(e.message.orEmpty()) }
-            val things = spec.nodes.mapNotNull { it.thing }.distinct()
-            if (things.isEmpty()) return Drawn(spec, emptyMap())
-            val result = Coordinator(context).processUserAction("references.names", mapOf("references" to things.map { thing ->
-                mapOf("kind" to thing.kind.name, "id" to thing.id, "field" to thing.field).filterValues { it != null }
-            }))
-            if (!result.isSuccess) return Problem(result.error.orEmpty())
-            val names = (result.data?.get("references") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().mapNotNull { row ->
-                ReferenceTarget.referenceOf(row)?.let { it to (row["name"] as? String) }
-            }.toMap()
+            val names = thingNames(spec.nodes.mapNotNull { it.thing }, context) ?: return Problem(s.tool("mermaid_names_failed"))
             return Drawn(spec, names)
         }
     }
+}
+
+/** The current name of each of [things], null for one that no longer exists; null when they could not be read. */
+suspend fun thingNames(things: List<Reference>, context: Context): Map<Reference, String?>? {
+    if (things.isEmpty()) return emptyMap()
+    val result = Coordinator(context).processUserAction("references.names", mapOf("references" to things.distinct().map { thing ->
+        mapOf("kind" to thing.kind.name, "id" to thing.id, "field" to thing.field).filterValues { it != null }
+    }))
+    if (!result.isSuccess) return null
+    return (result.data?.get("references") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().mapNotNull { row ->
+        ReferenceTarget.referenceOf(row)?.let { it to (row["name"] as? String) }
+    }.toMap()
 }
 
 /**

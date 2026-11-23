@@ -112,6 +112,10 @@ object SchemaToolType : ToolTypeContract {
 
     override fun getRowFields(): RowFields = SchemaRowFields
 
+    /** The Mermaid import and copy, at the head of the config. */
+    @Composable
+    override fun ConfigTools(config: JSONObject, onChange: (JSONObject) -> Unit) = app.treelune.tools.schema.ui.SchemaMermaidSection(config, onChange)
+
     override suspend fun refuseConfig(config: JSONObject, context: Context): String? = try {
         SchemaSpec.of(config) { s(context).tool(it) }
         null

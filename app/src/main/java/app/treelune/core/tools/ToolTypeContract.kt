@@ -137,6 +137,14 @@ interface ToolTypeContract {
     fun rememberTile(tool: app.treelune.core.database.entities.ToolInstance, open: (EntryToOpen) -> Unit): ToolTile
 
     /**
+     * What this tool type offers at the head of its config's root page, beyond settings: actions
+     * on the config being edited (a schema's Mermaid import). [onChange] changes that draft, which
+     * the form saves or leaves like any other change. Nothing by default.
+     */
+    @Composable
+    fun ConfigTools(config: JSONObject, onChange: (JSONObject) -> Unit) {}
+
+    /**
      * The fields of this tool type's entries, for a tool instance whose config is [config]:
      * how it uses name and timestamp, its fixed fields in data, and the fields of their state.
      * The user's fields come from the config's extra_fields and are not declared here.
