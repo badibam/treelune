@@ -3164,7 +3164,7 @@
       "icon_color": "TEAL",
       "identity_id": "demo-identity-giulia",
       "usage": "conversation",
-      "is_enabled": true,
+      "is_enabled": false,
       "access": [
         {
           "target": {
