@@ -89,7 +89,7 @@ object SchemaToolType : ToolTypeContract {
                         mapOf(ReferenceTarget.TARGET to mapOf(ReferenceTarget.KINDS to things)))),
                     SettingNode.Field(field(SchemaKeys.SHAPE, s.tool("field_shape"), FieldType.CHOICE, s.tool("schema_shape"),
                         choice(SchemaShape.entries.map { it.key }) { s.tool("shape_$it") }), default = SchemaShape.ROUNDED.key)
-                ) + look(context), description = s.tool("schema_node")), summary = listOf(SchemaKeys.LABEL, SchemaKeys.ID), description = s.tool("schema_nodes")),
+                ) + look(context), description = s.tool("schema_node")), summary = listOf(SchemaKeys.LABEL, SchemaKeys.THING, SchemaKeys.ID), description = s.tool("schema_nodes")),
                 SettingNode.ListOf(SchemaKeys.EDGES, s.tool("field_edges"), SettingNode.Item.Of(listOf(
                     SettingNode.Field(field(SchemaKeys.FROM, s.tool("field_from"), FieldType.TEXT, s.tool("schema_from"), short()), required = true, rowField = true),
                     SettingNode.Field(field(SchemaKeys.TO, s.tool("field_to"), FieldType.TEXT, s.tool("schema_to"), short()), required = true, rowField = true),

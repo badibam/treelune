@@ -1034,6 +1034,8 @@ private fun Summary(summary: List<String>, nodes: List<SettingNode>, element: JS
  */
 private fun summaryText(list: SettingNode.ListOf, nodes: List<SettingNode>, element: JSONObject, index: Int, context: Context): String {
     val shown = list.summary.mapNotNull { key ->
+        // A reference's name needs a read, which a path written at once does not have: the element's other values name it
+        if (nodes.storedField(key)?.type == app.treelune.core.fields.FieldType.REFERENCE) return@mapNotNull null
         when (val value = JsonUtils.toValue(element.opt(key)?.takeIf { it != JSONObject.NULL })) {
             null -> null
             // A list of values is written one element at a time by the field its elements share
