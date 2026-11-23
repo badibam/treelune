@@ -124,6 +124,9 @@ Liste à valider, pour vérifier que les scènes couvrent assez de combinaisons 
 - Une sorte peut porter des `marks` : des indicateurs calculés qui s'ajoutent à l'état sans entrer en concurrence avec lui. Un lot de la maison (scène 12) peut être fermé et en retard.
 - « Tous » sur un ensemble vide est vrai : juste pour une brique sans prérequis, faux pour un lot sans tâches, dont la règle ajoute « au moins une existe ».
 
+- Une date relative est un Instant du core (`{"relative": {"unit": "DAY", "offset": 15, "edge": "START"}}`), résolu contre une référence nommée : `run_start` (le départ du passage), `opened_at` (l'ouverture de la brique), `since` (le début de son état actuel). Sans référence nommée, c'est le moment de la lecture. L'outil ne suppose rien de ce qu'une date représente.
+- Décaler un plan (une blessure d'une semaine) n'est pas une fonction : un passage en cours suit le plan, qu'on modifie à la main ou par l'IA.
+
 Exemple :
 
 ```text
@@ -167,4 +170,4 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 
 ## Reprise
 
-Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception. Le passage reste, à la racine seulement : il délimite un parcours, fige son plan et porte son bilan, là où `set` ne change que des états. Reprendre à la complexité de l'ensemble, jugée lourde et non tranchée, et à ce qu'une première version garderait. Piste en attente : un écran de config qui montre d'abord des cases à cocher et trois réglages (`opens_when`, `done_when`, `expires_after`), traduits en règles d'état. Avant l'écran et les modèles, finir de tester les scènes en vraie syntaxe : le marathon (5). La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
+Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception. Le passage reste, à la racine seulement : il délimite un parcours, fige son plan et porte son bilan, là où `set` ne change que des états. Reprendre à la complexité de l'ensemble, jugée lourde et non tranchée, et à ce qu'une première version garderait. Piste en attente : un écran de config qui montre d'abord des cases à cocher et trois réglages (`opens_when`, `done_when`, `expires_after`), traduits en règles d'état. Les scènes résistantes sont testées sur le papier en vraie syntaxe. Reprendre à l'écran de config et aux modèles tout prêts, avec une maquette à manipuler plutôt que du JSON. La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
