@@ -82,6 +82,7 @@ Liste à valider, pour vérifier que les scènes couvrent assez de combinaisons 
 - Pas de frontière atome/groupe : toute brique peut être notée et contenir, si sa sorte le permet.
 - L'état d'une brique est le premier de sa liste dont la règle est vraie. Une règle lit le dernier mouvement, la date, ses champs ou son contenu, donc un état n'est ni écrit ni déduit par nature : « disponible si son jour est arrivé OU si son dernier mouvement est « ouvert » ».
 - Une règle de groupe nomme ce qu'elle compte : « au moins 2 parmi [Sorties, Événements] sont [Participée, Passé] », une lecture de la vue filtrée sur le parent. Une sorte ajoutée ne compte qu'une fois nommée dans la règle ; pas de case « compte comme acquis ».
+- Un état a deux écritures : « si la règle est vraie », il suit la réalité et peut retomber ; « quand la règle devient vraie », il s'inscrit une fois par un mouvement et reste. Une règle déjà vraie au premier calcul compte : la différence entre « 10 livres dans ma vie » et « 10 livres de plus à ce palier » est dans la période de la règle. Un vrai franchissement (« passer sous 80 kg » en pesant 78) s'écrit dans la règle : a été au-dessus depuis l'ouverture, et est en dessous.
 - Un état écrit peut dire « se note si » : une condition (l'état est disponible, le rythme, l'auteur). Sans elle, il se note toujours ; l'interdiction est donc un choix de chaque progression.
 
 Exemple :
@@ -102,8 +103,7 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 - Le nom de la brique.
 - Le choix exclusif (la reconversion, scène 9) : couvert ou hors de l'outil.
 - Quelles scènes l'outil doit-il vraiment couvrir, et où s'arrête-t-il ?
-- Que fait une condition devenue vraie : atteindre l'élément, ou le proposer ? possibilité : que ce soit un réglage
-- Une condition déjà vraie à l'ouverture d'un élément l'atteint-elle aussitôt ? -> réglage ? est ce la distinction "devenir vrai" vs "être vrai" ?
+- Une règle devenue vraie : inscrire l'état, ou le proposer ? Piste : la proposition est un état comme un autre (« à valider »), suivi d'un geste.
 - Plusieurs conditions sur un élément : toutes, ou N parmi M ?
 - « En cours » : un état qu'on écrit, ou simplement ce qui est ouvert et pas encore atteint ?
 - Un recul en chaîne (une rechute qui fait redescendre de deux niveaux) : un geste qui écrit plusieurs mouvements, ou une règle.
@@ -130,4 +130,4 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 
 ## Reprise
 
-Reprendre à ce que fait une règle devenue vraie sur une donnée : un état simplement déduit, qui disparaît avec la donnée, ou un mouvement écrit, qui reste. Puis repasser les scènes sur les briques. La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
+Reprendre à la proposition : une règle devenue vraie qui attend une validation. Puis repasser les scènes sur les briques. La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
