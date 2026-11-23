@@ -47,9 +47,10 @@ Ce que ça demande au core :
 ## Créer un parcours
 
 - À la création, un point de départ (Liste, Suite, Arbre) préremplit une sorte, sans aucune brique ; ce n'est pas une notion du modèle, et tout reste éditable. L'affichage (liste, chemin, branches) est un réglage à part. Le rythme dit quand un passage commence et quand il se termine, pour n'importe quel parcours.
-- L'écran de config montre les briques, puis les sortes, dont la liste de leurs états : chaque ligne dit si l'état se note à la main, sa règle et son `note_if`. Expiration, date, condition et validation sont de simples lignes de cette liste. Une sorte unique reste invisible.
+- L'écran de config montre les sortes, dont la liste de leurs états : chaque ligne dit si l'état se note à la main, sa règle et son `note_if`. Expiration, date, condition et validation sont de simples lignes de cette liste. Une sorte unique reste invisible.
+- Le plan est de la configuration par son sens, des entrées par son stockage. Il se gère depuis l'écran de config, par un bouton qui ouvre un éditeur de plan sur sa propre page : une brique s'écrit tout de suite, alors qu'une config s'enregistre d'un bloc, et les mélanger laisserait croire qu'« Annuler » annule aussi les briques. Ce geste différent est accepté comme un moindre mal. L'écran de l'outil ne crée pas de briques, il sert à les noter. Non vérifié : comment un formulaire de config ouvre une telle page.
 - Un cycle conduit par un maître (le projet `parcours`, que Treelune remplacera en grande partie) n'utilise ni règles ni verrous : le plan y est écrit par l'IA phase après phase, et tout se note à la main.
-- Les champs configurables sont listés par sorte, et nulle part ailleurs : Parcours n'a pas les champs supplémentaires classiques (`takesUserFields`). La racine a sa sorte, dont les champs sont ceux du passage (cap, bilan). À la fin d'un passage tout est figé, sauf les champs de la racine : un bilan peut s'écrire après coup sans changer aucun résultat.
+- Les champs configurables sont listés par sorte, et nulle part ailleurs : Parcours n'a pas les champs supplémentaires classiques (`takesUserFields`). La racine a sa sorte, dont les champs décrivent le cycle (son cap, ses besoins). À la fin d'un passage, tout est figé, ces champs compris ; un bilan se remplit avant de conclure.
 
 ## La fin d'un passage
 
