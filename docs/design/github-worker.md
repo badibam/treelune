@@ -53,7 +53,7 @@ Relu le 2026-11-22, mêmes textes. D'où une seconde règle : **l'app publiée n
 
 Récrit le 2026-11-22, pas encore codé. L'app ne connaît ni Claude Code, ni son jeton, ni ses modèles.
 
-- **Un job éveillé par session.** Le démarrage se paie une fois : le job tient le processus de la recette et le nourrit tour après tour, jusqu'à la fin de la session ou à un délai sans message. Une routine lance son job à son lancement, une conversation dès qu'elle s'ouvre.
+- **Un job éveillé par session.** Le démarrage se paie une fois : le job tient le processus de la recette et le nourrit tour après tour, jusqu'à la fin de la session ou à un délai sans message. Il part au premier message de la session, routine ou conversation (décidé le 2026-11-23) : ouvrir une conversation sans rien envoyer ne coûte aucune minute, sa première réponse attend le démarrage. Le fournisseur reçoit l'identifiant de la session avec le prompt, et un signal à sa fin, qui arrête le job.
 - **Chaque minute d'éveil est décomptée** des 2 000 minutes gratuites par mois : une conversation abandonnée en perd 5 à attendre.
 - **La langue du contrat : le format de message de l'API Messages, tour par tour**, que l'app sait déjà produire (texte et images). Le prompt système part une seule fois, dans le premier fichier.
 
