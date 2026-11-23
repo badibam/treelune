@@ -103,6 +103,21 @@ Liste à valider, pour vérifier que les scènes couvrent assez de combinaisons 
 }
 ```
 
+- Une brique peut porter des effets, « quand ceci arrive, ces briques passent à tel état » : `on` est une Condition, `set` écrit un mouvement ordinaire par brique visée. L'état reste donc toujours lu sur le dernier mouvement. La boucle, refaire seulement ce qui est raté et la rechute en chaîne sont trois `set`.
+
+```json
+{
+  "on": {
+    "of": { "self": "content" },
+    "where": { "left": { "field": "data.status" }, "op": "in", "right": { "constant": ["done"] } },
+    "count": "all"
+  },
+  "set": { "of": { "self": "content" }, "state": "todo" }
+}
+```
+
+- `set` n'est pas une Tâche : il ne touche que les briques de sa progression, dans la même transaction que l'écriture qui le déclenche (`settleEntries`, à étendre : il modifie des entrées sans en créer). Un `on` qui dépend du temps ou d'un autre outil passe par le planificateur de l'outil. Pour agir ailleurs, la progression émet un événement qu'une Tâche écoute. Un plafond doit empêcher un `set` d'en relancer un autre sans fin.
+
 Exemple :
 
 ```text
@@ -123,7 +138,8 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 - Quelles scènes l'outil doit-il vraiment couvrir, et où s'arrête-t-il ?
 - Plusieurs conditions sur un élément : toutes, ou N parmi M ?
 - « En cours » : un état qu'on écrit, ou simplement ce qui est ouvert et pas encore atteint ?
-- Un recul en chaîne (une rechute qui fait redescendre de deux niveaux). Piste : un geste groupé, qui écrit un mouvement par brique.
+- Un recul en chaîne (une rechute qui fait redescendre de deux niveaux) : un geste groupé, ou un `set` sur ce qui dépend de la brique.
+- Le passage, maintenant que `set` sait tout remettre à faire : ce qu'il lui reste en propre (délimiter un parcours, garder sa copie du plan, porter son bilan).
 - Les champs supplémentaires d'un élément dans le plan (sa consigne, sa séance).
 - Retirer un élément du plan : son identifiant ne doit pas être une option d'un champ Choix obligatoire, dont le retrait supprimerait ses mouvements (`EntryMigration`).
 - Toucher un élément : son texte et un lien vers un geste (lancer sa séance) ; à améliorer.
@@ -147,4 +163,4 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 
 ## Reprise
 
-Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception : la boucle (4), puis le choix exclusif (9). La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
+Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception. Reprendre à ce que devient le passage maintenant que `set` existe, puis le choix exclusif (9). La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
