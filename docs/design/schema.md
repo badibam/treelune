@@ -28,7 +28,7 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
 {
   "direction": "TD",
   "nodes": [
-    {"id": "A", "shape": "rect", "thing": {"kind": "TOOL_INSTANCE", "id": "…"}, "color": "red", "texture": "waves"},
+    {"id": "A", "shape": "rect", "thing": {"kind": "TOOL_INSTANCE", "id": "…"}, "color": "RED"},
     {"id": "B", "label": "Ce qu'il me reste", "shape": "rounded"}
   ],
   "edges": [
@@ -44,7 +44,7 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
 - **Formes** : rectangle, coins arrondis, pilule, cercle, losange, sous les noms de la syntaxe `@{ shape: … }` de Mermaid 11 : `rect`, `rounded`, `stadium`, `circle`, `diamond`.
 - **Flèches** : un trait normal, pointillé ou épais, avec ou sans pointe, un texte facultatif.
 - **Groupes** : imbriquables, un titre, `folded` pour s'ouvrir replié ; `members` liste leurs boîtes et leurs sous-groupes, un identifiant ne servant qu'une fois parmi les deux.
-- **Couleur et texture** : sur une boîte ou un groupe, au plus une couleur d'étiquette et une texture, par leurs noms enregistrés ; le thème les dessine, jamais une couleur écrite en dur. Dans le thème E-reader, où une couleur est un motif, couleur et texture vont sur deux surfaces différentes de la boîte, comme pour une icône colorée.
+- **Couleur** : sur une boîte ou un groupe, au plus une couleur d'étiquette, par son nom enregistré ; le thème la dessine, jamais une couleur écrite en dur. La texture, un temps prévue, n'est pas dans l'outil : la dessiner demande une forme de plus dans `core/drawing` et dans les 9 thèmes.
 - **Le lien d'une boîte** : la brique Chose (`Reference`, `{"kind", "id"}`), choisie par le navigateur des choses. Une boîte liée sans `label` porte le nom actuel de sa chose, « supprimée » si elle n'est plus ; avec `label`, le sien.
 - Une flèche ou un groupe qui nomme une boîte absente est refusé, le refus nommant l'id.
 
@@ -52,7 +52,7 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
 
 - Le formulaire tiré de la config : les listes des boîtes, des flèches et des groupes.
 - L'IA, qui écrit le JSON.
-- **Importer du Mermaid**, dans une section « Mermaid » en tête de la config (`ToolTypeContract.ConfigTools`, qui agit sur le brouillon du formulaire) : un texte flowchart collé ou tapé, converti en une fois, son bilan montré avant (« 12 boîtes, 15 flèches, 2 groupes »), rien d'enregistré avant « Enregistrer » ; une erreur de syntaxe refusée en nommant sa ligne. La conversion dit ce qu'elle change ou laisse : `LR` et `RL` réécrits en `TD`, `style`, `classDef` et `linkStyle` ignorés. Sur un schéma existant, une boîte dont l'id reste garde sa chose, sa couleur et sa texture.
+- **Importer du Mermaid**, dans une section « Mermaid » en tête de la config (`ToolTypeContract.ConfigTools`, qui agit sur le brouillon du formulaire) : un texte flowchart collé ou tapé, converti en une fois, son bilan montré avant (« 12 boîtes, 15 flèches, 2 groupes »), rien d'enregistré avant « Enregistrer » ; une erreur de syntaxe refusée en nommant sa ligne. La conversion dit ce qu'elle change ou laisse : `LR` et `RL` réécrits en `TD`, `style`, `classDef` et `linkStyle` ignorés. Sur un schéma existant, une boîte dont l'id reste garde sa chose et sa couleur.
 - **Copier en Mermaid**, dans la même section : le texte flowchart du schéma, sans les liens.
 - Pas d'éditeur textuel. Le geste sur le dessin (toucher une boîte pour la modifier, tirer une flèche) est à concevoir une fois le dessin là.
 
@@ -62,7 +62,7 @@ Par l'app, sans vue web, chaque thème à sa manière (`core/drawing`, comme le 
 
 - Une dizaine de boîtes se lisent d'un coup d'œil en portrait, sans toucher ; au-delà, on défile verticalement.
 - Les enfants sans suite d'une même boîte, qu'elle atteint par des flèches identiques (même texte, même trait), forment un bloc rangé en lignes à la largeur de l'écran, à cadre discret, qu'une seule flèche atteint ; un groupe dont les boîtes n'ont aucune flèche entre elles, ni avec l'extérieur, se range de même, comme les parties d'un schéma qu'aucune flèche ne relie.
-- Encore trop large, dans l'ordre : l'app replie des blocs et des groupes, le plus large d'abord, chacun devenant une boîte (« + 6 autres », le titre du groupe) qu'on touche pour la déplier, et le dit sous le schéma (« 2 groupes repliés pour tenir dans l'écran ») ; puis le dessin rétrécit, jusqu'à un seuil où le texte reste lisible (75 %, à juger sur le téléphone) ; en dernier recours, il défile horizontalement.
+- Encore trop large, dans l'ordre : l'app resserre les textes et les espaces ; replie les groupes, le plus large d'abord, chacun devenant une boîte qu'on touche pour la déplier, et le dit sous le schéma (« 1 groupe replié pour tenir dans l'écran »), sans jamais refermer un groupe ouvert à la main ; réduit le dessin jusqu'à 75 %, sauf dans un thème en pixels entiers ; en dernier recours, il défile horizontalement. Le repli des blocs en « + 6 autres » n'est pas fait.
 - Pas de zoom par pincement.
 
 ## L'écran
@@ -94,23 +94,36 @@ Jugé visuellement acceptable par l'utilisateur à ce stade.
 
 ## Reprise
 
-Le chantier vit dans le worktree `.claude/worktrees/schema`, branche `schema` (`local.properties` y est copié ; `TODO.md` n'y existe pas).
+Le chantier vit dans le worktree `.claude/worktrees/schema`, branche `schema` (`local.properties` y est copié ; `TODO.md` n'y existe pas). Le téléphone a le build de cette branche dans l'app debug, avec une zone « Essai » et un schéma « Test » de 12 boîtes qui couvre les formes, les traits, les groupes et une boucle.
 
-Fait : le placement, la config et sa vérification (`SchemaSpec`), le formulaire, le dessin (`SchemaScene`), l'écran (ce qui est souligné se touche, le repli le temps de la visite), la tuile, la mise à la largeur (resserrer, replier le groupe le plus large, réduire jusqu'à 75 %, défiler ; un groupe ouvert à la main n'est jamais refermé), l'import et la copie Mermaid (`SchemaMermaid`).
+Fait : le placement, la config et sa vérification (`SchemaSpec`), le formulaire, le dessin (`SchemaScene`), l'écran (ce qui est souligné se touche, le repli le temps de la visite, le groupe touché qui reste en place), la tuile, la mise à la largeur, l'import et la copie Mermaid (`SchemaMermaid`).
 
-Mesuré sur le téléphone en build debug, pour un schéma de 12 boîtes : un nouvel état se calcule en 135 à 343 ms, hors du fil de l'écran. Le repli automatique et la réduction n'ont tourné qu'en test, ce schéma n'en ayant pas besoin.
+Mesuré sur le téléphone en build debug, pour ce schéma de 12 boîtes : un nouvel état se calcule en 135 à 343 ms, hors du fil de l'écran. Non mesuré : la release, un schéma plus grand.
 
-Reste, dans l'ordre :
+Reste à coder :
 
-1. La texture d'une boîte ou d'un groupe : le réglage est enregistré et vérifié, mais pas dessiné, `core/drawing` n'ayant pas de forme pour elle.
-2. Une tuile FULL dont la boîte liée ouvre sa chose : aujourd'hui, tout toucher ouvre l'outil.
-3. L'entrée du Schéma dans `docs/TOOLS.md`, à l'élagage de cette conception.
+1. Une tuile FULL dont la boîte liée ouvre sa chose : aujourd'hui, tout toucher ouvre l'outil.
+2. L'entrée du Schéma dans `docs/TOOLS.md`, à l'élagage de cette conception.
 
-Les contraintes du chantier :
+Jamais vu sur le téléphone :
 
-- Ne pas toucher à la base : ni `AppDatabase.VERSION`, ni migration, ni `FileEntity`. Un besoin de Schéma s'ajoute à `docs/design/worklist-2026-11.md` et se soumet à l'utilisateur. Le Graphique montre la forme sans table ni service propres.
-- Ne pas installer de build sur un appareil qui a déjà des données : la base passerait de 119 à 121, puis planterait à l'ouverture, `files.linked` n'ayant pas de migration. Une installation debug neuve devrait s'ouvrir, non essayé ; sinon, `./run compile` seul.
-- Fusionner dans `develop` sans lancer la suite de tests : elle tourne une seule fois, les deux branches réunies. Conflits possibles : `ToolTypeScanner.kt`, `shared.xml`, `shared-fr.xml`, `ai_prompt_chunks.xml`, les blocs générés des README.
+- Le repli automatique et la réduction à 75 %, qui n'ont tourné qu'en test : il faut un schéma plus large que l'écran.
+- Un schéma importé en Mermaid puis enregistré (l'import dans le brouillon est vu, pas la sauvegarde).
+- Le bouton « Ouvrir » de la fenêtre d'une boîte liée au texte coupé.
+- La coupe à deux lignes du résumé d'une boîte dans le formulaire.
+
+Défauts vus, laissés :
+
+- La longue flèche « ajuste » garde de petits décrochements près de ses extrémités.
+- Replier un sous-groupe fait rétrécir le cadre du groupe parent, dont le bord gauche se déplace.
+- Sur une tuile en thème rétro, le schéma réduit par crans entiers n'occupe qu'environ la moitié de la largeur.
+- Le champ de l'import Mermaid garde les boutons de liste et la majuscule automatique du clavier.
+
+Pour fusionner :
+
+- `develop` a avancé de 21 commits (relevé le 2026-11-23) : le fusionner dans `schema` d'abord. Conflit attendu sur `SettingDescriptionsTest`, corrigé des deux côtés ; possibles sur `ToolTypeScanner.kt`, les blocs générés des README et la fiche F-Droid, à régénérer par `scripts/make_readme.py`.
+- `develop` est passé à la base 120, avec sa migration unique ; cette branche est encore à 121. Après la fusion, l'app debug du téléphone, en 121, ne s'ouvrira plus : l'effacer avant d'installer (`adb shell pm clear app.treelune.debug`), ce qui perd le schéma « Test », à recopier d'abord par « Copier en Mermaid ».
+- Puis `./run test` une fois, sur l'arbre fusionné. Le Schéma ne touche ni à la base, ni aux migrations, ni à `FileEntity`.
 
 ## Ouvert
 
@@ -122,7 +135,7 @@ Le schéma écrit est conçu ; ce qui suit reste à trancher ou à vérifier.
 À juger sur le téléphone :
 
 - Le seuil de réduction (75 %).
-- Le dessin de chaque thème : les cinq formes, les traits, le texte des flèches, le bloc à cadre discret, un groupe replié ; dans l'E-reader, couleur et texture sur deux surfaces de la boîte.
+- Le dessin de chaque thème : vu en thème par défaut, rétro et encre ; les six autres restent à voir.
 
 À concevoir :
 
