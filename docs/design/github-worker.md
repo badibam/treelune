@@ -54,7 +54,7 @@ Relu le 2026-11-22, mêmes textes. D'où une seconde règle : **l'app publiée n
 Récrit le 2026-11-22, pas encore codé. L'app ne connaît ni Claude Code, ni son jeton, ni ses modèles.
 
 - **Un job éveillé par session.** Le démarrage se paie une fois : le job tient le processus de la recette et le nourrit tour après tour, jusqu'à la fin de la session ou à un délai sans message. Une routine lance son job à son lancement, une conversation dès qu'elle s'ouvre.
-- **Chaque minute d'éveil est décomptée** des 2 000 minutes gratuites par mois : avec 10 minutes d'attente, une conversation en coûte une dizaine au moins. Le délai est à choisir.
+- **Chaque minute d'éveil est décomptée** des 2 000 minutes gratuites par mois : une conversation abandonnée en perd 5 à attendre.
 - **La langue du contrat : le format de message de l'API Messages, tour par tour**, que l'app sait déjà produire (texte et images). Le prompt système part une seule fois, dans le premier fichier.
 
 ```json
@@ -75,10 +75,11 @@ Récrit le 2026-11-22, pas encore codé. L'app ne connaît ni Claude Code, ni so
 - **Le job parle à la commande de la recette par un objet JSON par ligne** (décidé le 2026-11-23). Sur son entrée, un tour `{"message": …}`, la première ligne portant aussi `"system"` : le prompt système ne passe pas en argument, Linux limitant un argument à 128 Kio. Sur sa sortie, une ligne par tour, la réponse ou `{"failure": …, "message": …}`. Une ligne illisible est un échec explicite. Sa sortie d'erreur ne va jamais dans les journaux GitHub.
 - **`recipe.json` déclare une recette de session par `"session": true`**, à côté de sa commande, de ses installations et de ses secrets, sans entrées ni valeurs d'API.
 
+- **Le job s'arrête après 5 minutes sans message** (décidé le 2026-11-23), une constante du workflow sans réglage dans l'app, et aussitôt à la fin de la session.
+
 ### À décider à la reprise
 
-1. Le délai d'attente du job, à choisir entre le coût en minutes et la reprise sans redémarrage.
-2. Comment le job surveille la branche sans dépasser les limites de l'API GitHub (`git fetch` plutôt que l'API, point 4 de « Ouvert »).
+1. Comment le job surveille la branche sans dépasser les limites de l'API GitHub (`git fetch` plutôt que l'API, point 4 de « Ouvert »).
 
 ## L'API « Recette sur GitHub »
 
