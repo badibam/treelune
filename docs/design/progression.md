@@ -44,6 +44,26 @@ Ce que ça demande au core :
 - Le coût à mesurer : un Graphique recalculerait la vue à chaque point de temps.
 - Second usage pressenti : une vue `cards` des Flashcards (acquises, en retard, nouvelles), lisible par toute l'app.
 
+## Créer un parcours
+
+- À la création, deux choix : la forme et le rythme. Une forme (cases à cocher, suite, calendrier, à renouveler, niveaux, prérequis, N parmi M, boucle) est un formulaire court qui écrit les sortes et les briques une fois ; tout reste éditable ensuite. Le rythme dit quand un passage commence et quand il se termine, pour n'importe quelle forme. « Objectif » n'est pas une forme : c'est N parmi M avec un rythme.
+- Une sorte a deux listes de champs : `fields`, ce qu'est la brique (sa vidéo, sa consigne), et `move_fields`, ce qu'on note quand son état change (« 28 min, genou raide », « sommeil : 7 h »). Le bilan d'un passage est fait des `move_fields` de la racine.
+
+## La fin d'un passage
+
+- Un passage est fermé quand le journal contient sa ligne `end`, qui fige le plan et les états. Elle vient du geste « Arrêter » ou de la racine entrant dans un état marqué `closes_run`. `run_end` n'est qu'une date : quand elle passe, l'état de la racine est recalculé à cette date, et c'est lui qui décide.
+- `closing`, un réglage de la config, dit qui termine le passage et déplie les états de la racine, alors affichés mais non éditables. « Écrire les règles moi-même » le retire et rend ces états modifiables.
+- Il n'y a ni verdict ni validation dans l'outil : les issues sont des états aux noms libres, choisis en config (« Terminé » par défaut), avec une couleur facultative. Attendre une validation, c'est être dans un état qui ne ferme rien.
+
+```json
+"closing": { "by": "nobody" }
+"closing": { "by": "person", "outcomes": ["validée", "redoublée"], "expire_after": "P7D" }
+"closing": { "by": "rule", "outcomes": [{ "key": "terminé", "when": { "…": "tout est fait" } }] }
+```
+
+- Avec une date de fin, la première issue vraie l'emporte et la dernière peut servir de « sinon » ; sans date, chaque issue a son `when`.
+- Le système ne connaît en dur que les clés d'un état (`key`, `manual`, `when`, `note_if`, `closes_run`), les mouvements `start` et `end`, et les références `run_start`, `run_end`, `opened_at`, `since`. Prévenir se règle en général : quand une brique entre dans tel état.
+
 ## La fusion avec l'Objectif (souhaitée, en exploration)
 
 L'Objectif s'écrit presque entièrement en briques : critère = brique à règle, sous-objectif = groupe, « au moins N » = quantificateur, tentative = passage. Ce que la fusion demande :
@@ -186,4 +206,4 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 
 ## Reprise
 
-Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception. Le passage reste, à la racine seulement : il délimite un parcours, fige son plan et porte son bilan, là où `set` ne change que des états. Reprendre à la complexité de l'ensemble, jugée lourde et non tranchée, et à ce qu'une première version garderait. Piste en attente : un écran de config qui montre d'abord des cases à cocher et trois réglages (`opens_when`, `done_when`, `expires_after`), traduits en règles d'état. Les scènes résistantes sont testées sur le papier en vraie syntaxe. Reprendre à l'écran de config et aux modèles tout prêts, avec une maquette à manipuler plutôt que du JSON. La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
+Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception. Le passage reste, à la racine seulement : il délimite un parcours, fige son plan et porte son bilan, là où `set` ne change que des états. Reprendre à la complexité de l'ensemble, jugée lourde et non tranchée, et à ce qu'une première version garderait. Piste en attente : un écran de config qui montre d'abord des cases à cocher et trois réglages (`opens_when`, `done_when`, `expires_after`), traduits en règles d'état. Les scènes résistantes sont testées sur le papier en vraie syntaxe. Reprendre aux exemples réels de l'utilisateur, le konnakol d'abord (une brique = une vidéo, 5 séances après son ouverture pour passer à la suivante), puis l'écran de config, avec une maquette à manipuler plutôt que du JSON. La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
