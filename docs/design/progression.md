@@ -27,7 +27,7 @@ Tenir où on en est dans quelque chose qui se déroule par morceaux. Comme tout 
 Validé dans son principe le 2026-11-23. Rien n'est codé ni mesuré.
 
 - **Le journal** : le plan est en config, une entrée = un mouvement (départ, atteint, perdu, fin). Les champs supplémentaires d'un mouvement portent « palier 3 en 28 min, genou un peu raide » ; ceux de la fin, le bilan du passage.
-- **La vue** : l'outil présente à la lecture des lignes calculées, jamais stockées, une par élément et par passage : élément, passage, courant, état, depuis (la date du mouvement qui a donné l'état). Lue à une autre référence, elle ne rejoue que les mouvements d'avant cet instant.
+- **La vue** : l'outil présente à la lecture des lignes calculées, jamais stockées, une par brique et par passage : brique, sorte, parent, passage, courant, état, depuis (la date du mouvement qui a donné l'état). Lue à une autre référence, elle ne rejoue que les mouvements d'avant cet instant.
 - **Qui répond à quoi** : la vue répond à « où en suis-je ? », le journal à « que s'est-il passé, et quand ? ». Une ligne de vue n'a qu'une date : « atteints en avril » posé à la vue manquerait un palier atteint en avril, perdu, puis réatteint en mai. Une sélection sur une vue refuse donc `period`, et un filtre sur `depuis` reste possible.
 - **Défaire** : une erreur se corrige en supprimant le mouvement ; un vrai recul écrit un mouvement « perdu ».
 - **Le passage** : en cours, il suit le plan actuel, modifiable librement ; sa fin garde une copie du plan, et il ne change plus. Recommencer = une fin si le passage est ouvert, puis un départ. Rouvrir = supprimer le mouvement de fin. Pas d'état « en pause » : un passage ouvert sans activité en est déjà une.
@@ -75,26 +75,38 @@ Liste à valider, pour vérifier que les scènes couvrent assez de combinaisons 
 12. Stabilité du plan : fixe, modifié en route, écrit au fur et à mesure.
 13. Refaire : une seule fois, ou plusieurs passages.
 
-## Une esquisse, comme hypothèse
+## Les briques (retenu a priori)
 
-Les variables semblent se ranger en trois questions :
+- Une brique est une chose qui a un état, qui change dans le temps. « Palier », « atteint », « perdu » ou « ouvert » ne sont pas des notions de l'outil.
+- Une progression déclare des sortes de briques (Module, Année), chacune avec ses champs (un jour, une validité, des prérequis), ce qu'elle peut contenir (une ou plusieurs sortes, facultatif), ses états et leurs règles. Un cas simple n'a qu'une sorte.
+- Pas de frontière atome/groupe : toute brique peut être notée et contenir, si sa sorte le permet.
+- L'état d'une brique est le premier de sa liste dont la règle est vraie. Une règle lit le dernier mouvement, la date, ses champs ou son contenu, donc un état n'est ni écrit ni déduit par nature : « disponible si son jour est arrivé OU si son dernier mouvement est « ouvert » ».
+- Une règle de groupe nomme ce qu'elle compte : « au moins 2 parmi [Sorties, Événements] sont [Participée, Passé] », une lecture de la vue filtrée sur le parent. Une sorte ajoutée ne compte qu'une fois nommée dans la règle ; pas de case « compte comme acquis ».
+- Un état écrit peut dire « se note si » : une condition (l'état est disponible, le rythme, l'auteur). Sans elle, il se note toujours ; l'interdiction est donc un choix de chaque progression.
 
-- **La carte** : qu'est-ce qui ouvre quoi ? (forme, accès, fin, profondeur)
-- **Les états** : où en est chaque élément ? (issue, durée de l'acquis, répétition)
-- **Les règles** : qu'est-ce qui change un état ? (temps, autre source, raté ou oubli)
+Exemple :
 
-Si elle tient, ligne, arbre, boucle et aiguillage sont une seule chose, des liens entre éléments, et « ouvert » se déduit de la carte et des états sans être écrit. Le risque est d'obtenir un moteur de workflow, où il faut programmer sa progression.
+```text
+CALENDRIER DE L'AVENT
+  chaque brique a : un jour
+  états :
+    faite        si son dernier mouvement est « faite » ; se note si elle est disponible
+    disponible   si son jour est arrivé
+    fermée       sinon
+```
+
+Risques : écrire ces règles revient un peu à programmer, d'où des modèles tout prêts à prévoir (« suite », « à renouveler », « prérequis ») ; la vue doit calculer du bas vers le haut, et une règle ne doit pas pouvoir dépendre d'elle-même.
 
 ## Ouvert
 
-- Qu'est-ce qu'un élément ? Une capacité, une période et une action ont peut-être en commun d'être « une chose dont on peut dire qu'elle est atteinte ». Et son nom.
-- La découpe carte, états, règles est-elle juste ?
+- Le nom de la brique.
+- Le choix exclusif (la reconversion, scène 9) : couvert ou hors de l'outil.
 - Quelles scènes l'outil doit-il vraiment couvrir, et où s'arrête-t-il ?
 - Que fait une condition devenue vraie : atteindre l'élément, ou le proposer ? possibilité : que ce soit un réglage
 - Une condition déjà vraie à l'ouverture d'un élément l'atteint-elle aussitôt ? -> réglage ? est ce la distinction "devenir vrai" vs "être vrai" ?
 - Plusieurs conditions sur un élément : toutes, ou N parmi M ?
 - « En cours » : un état qu'on écrit, ou simplement ce qui est ouvert et pas encore atteint ?
-- La règle de recul : quand le palier 2 est perdu, que devient le palier 3, atteint ou ouvert ?
+- Un recul en chaîne (une rechute qui fait redescendre de deux niveaux) : un geste qui écrit plusieurs mouvements, ou une règle.
 - Les champs supplémentaires d'un élément dans le plan (sa consigne, sa séance).
 - Retirer un élément du plan : son identifiant ne doit pas être une option d'un champ Choix obligatoire, dont le retrait supprimerait ses mouvements (`EntryMigration`).
 - Toucher un élément : son texte et un lien vers un geste (lancer sa séance) ; à améliorer.
@@ -118,4 +130,4 @@ Si elle tient, ligne, arbre, boucle et aiguillage sont une seule chose, des lien
 
 ## Reprise
 
-Reprendre à la façon dont la vue calcule l'état, par la règle de recul, en repassant les scènes sur le montage retenu. La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
+Reprendre à ce que fait une règle devenue vraie sur une donnée : un état simplement déduit, qui disparaît avec la donnée, ou un mouvement écrit, qui reste. Puis repasser les scènes sur les briques. La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
