@@ -95,7 +95,7 @@ class SchemaSceneTest {
     fun `a touch on a group's title finds the group`() {
         val scene = scene(grouped)
         val title = scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first { it.text == "Group" }
-        assertEquals(SchemaTouch.Group("G"), scene.hitAt(title.at.x + 2f, title.at.y + 2f))
+        assertEquals(SchemaTouch.Group("G", folded = false), scene.hitAt(title.at.x + 2f, title.at.y + 2f))
     }
 
     @Test
@@ -211,6 +211,45 @@ class SchemaSceneTest {
         val open = scene(json)
         val closed = scene(json, folded = setOf("G"))
         assertEquals(x(open, "lunch") < x(open, "neighbour"), x(closed, "lunch") < x(closed, "neighbour"))
+    }
+
+    private val wide = """{
+        "nodes": [{"id": "P", "label": "parent"}, {"id": "A", "label": "member one"}, {"id": "B", "label": "member two"},
+            {"id": "C", "label": "member three"}, {"id": "D", "label": "member four"}],
+        "edges": [{"from": "P", "to": "A", "label": "a"}, {"from": "P", "to": "B", "label": "b"}, {"from": "P", "to": "C", "label": "c"}, {"from": "P", "to": "D", "label": "d"}],
+        "groups": [{"id": "G", "title": "Group", "members": ["A", "B", "C", "D"]}]
+    }"""
+
+    private fun fitted(width: Float, keptOpen: Set<String> = emptySet(), unit: Float = 1f) =
+        SchemaSceneBuilder(1f, unit, text, own).build(spec(wide), { null }, emptySet(), width, keptOpen, fit = true)
+
+    @Test
+    fun `a schema too wide folds a group to fit, and says which`() {
+        // Narrower than a member inside its group's padding: no arrangement of the rows can hold it open
+        val scene = fitted(110f)
+        assertEquals(setOf("G"), scene.autoFolded)
+        assertTrue(scene.drawing.width <= 110.5f)
+        assertEquals(SchemaTouch.Group("G", folded = true), scene.hits.last { it.second is SchemaTouch.Group }.second)
+    }
+
+    @Test
+    fun `a group opened by hand is never folded to make room`() {
+        val scene = fitted(110f, keptOpen = setOf("G"))
+        assertTrue(scene.autoFolded.isEmpty())
+        assertTrue("member one" in scene.labels())
+    }
+
+    @Test
+    fun `what is shown smaller stays readable, and fits, or is left to scroll`() {
+        val open = SchemaSceneBuilder(1f, 1f, text, own).build(spec(wide), { null }, emptySet(), 10000f).drawing.width
+        val scene = fitted(open * 0.7f, keptOpen = setOf("G"))
+        assertTrue(scene.scale >= 0.75f)
+        assertTrue(scene.scale == 1f || scene.drawing.width * scene.scale <= open * 0.7f + 1f)
+    }
+
+    @Test
+    fun `a theme in whole pixels is never shown between two sizes`() {
+        assertEquals(1f, fitted(110f, keptOpen = setOf("G"), unit = 3f).scale)
     }
 
     @Test

@@ -70,6 +70,9 @@
     <string name="count_boxes">%1$d boîtes</string>
     <string name="count_arrow_one">1 flèche</string>
     <string name="count_arrows">%1$d flèches</string>
+    <!-- Said under a schema the app folded to fit -->
+    <string name="auto_folded_one">1 groupe replié pour tenir dans l\'écran</string>
+    <string name="auto_folded">%1$d groupes repliés pour tenir dans l\'écran</string>
     <!-- The underlined word closing a cut text, which a touch shows whole -->
     <string name="cut_more">suite</string>
     <string name="open_thing">Ouvrir</string>

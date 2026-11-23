@@ -53,6 +53,8 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
     var version by remember { mutableIntStateOf(0) }
     // Groups folded for this visit, starting from what the config says; a config changed starts over
     var folded by remember { mutableStateOf<Set<String>?>(null) }
+    // The groups the person opened, which the app never folds to make room
+    var keptOpen by remember { mutableStateOf<Set<String>>(emptySet()) }
     // The box whose whole text is open in a window
     var opened by remember { mutableStateOf<SchemaTouch.Box?>(null) }
     val pageScrollState = rememberScrollState()
@@ -71,6 +73,7 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
         reading = read
         if (changed || folded == null) {
             folded = (read as? SchemaReading.Drawn)?.spec?.groups.orEmpty().filter { it.folded }.map { it.id }.toSet()
+            keptOpen = emptySet()
             opened = null
         }
     }
@@ -100,7 +103,13 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
                 val shownFolded = folded.orEmpty()
                 SchemaView(read, shownFolded, onTouch = { touch ->
                     when (touch) {
-                        is SchemaTouch.Group -> folded = if (touch.id in shownFolded) shownFolded - touch.id else shownFolded + touch.id
+                        is SchemaTouch.Group -> if (touch.folded) {
+                            folded = shownFolded - touch.id
+                            keptOpen = keptOpen + touch.id
+                        } else {
+                            folded = shownFolded + touch.id
+                            keptOpen = keptOpen - touch.id
+                        }
                         is SchemaTouch.Box -> {
                             val thing = touch.open
                             when {
@@ -109,7 +118,7 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
                             }
                         }
                     }
-                }, pageScroll = pageScrollState)
+                }, pageScroll = pageScrollState, keptOpen = keptOpen)
             }
         }
     }

@@ -37,16 +37,26 @@ sealed interface SchemaTouch {
      */
     data class Box(val node: SchemaNode, val text: String, val cut: Boolean, val open: Reference?) : SchemaTouch
 
-    /** A group's title, or the box a folded group is drawn as. */
-    data class Group(val id: String) : SchemaTouch
+    /** A group's title, or the box a [folded] group is drawn as. */
+    data class Group(val id: String, val folded: Boolean) : SchemaTouch
 }
 
-/** A schema laid out: the drawing the theme draws, and what a touch finds on it, the topmost last. */
-data class SchemaScene(val drawing: Drawing, val hits: List<Pair<DrawRect, SchemaTouch>>) {
+/**
+ * A schema laid out: the drawing the theme draws, and what a touch finds on it, the topmost last.
+ *
+ * @property autoFolded The groups the app folded for the schema to fit the width
+ * @property scale What the drawing is shown at for the same reason, 1 for its full size
+ */
+data class SchemaScene(
+    val drawing: Drawing,
+    val hits: List<Pair<DrawRect, SchemaTouch>>,
+    val autoFolded: Set<String> = emptySet(),
+    val scale: Float = 1f
+) {
     fun hitAt(x: Float, y: Float): SchemaTouch? = hits.lastOrNull { it.first.contains(x, y) }?.second
 
     /** Where the group [id] stands, open by its title's band, folded by its box; null when a folded group hides it. */
-    fun groupArea(id: String): DrawRect? = hits.lastOrNull { it.second == SchemaTouch.Group(id) }?.first
+    fun groupArea(id: String): DrawRect? = hits.lastOrNull { (it.second as? SchemaTouch.Group)?.id == id }?.first
 }
 
 /**
@@ -119,15 +129,53 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
     /**
      * @param nameOf The current name of a thing, null when it no longer exists
      * @param folded The groups folded for this visit
+     * @param keptOpen The groups the person opened: the app never folds them to make room
+     * @param fit Whether a schema too wide is made to fit: tighter, then groups folded, then
+     *   shown smaller down to [MIN_SCALE]; what still does not fit is left to scroll sideways
      */
-    fun build(spec: SchemaSpec, nameOf: (Reference) -> String?, folded: Set<String>, width: Float): SchemaScene {
-        // Every folding is placed against the schema all open, so that its parts keep their sides
-        val reference = if (folded.isEmpty()) emptyMap() else prepare(spec, nameOf, emptySet(), width, emptyMap()).placement.let { open ->
-            (open.boxes + open.groups).mapValues { (_, rect) -> (rect.left + rect.right) / 2 }
+    fun build(spec: SchemaSpec, nameOf: (Reference) -> String?, folded: Set<String>, width: Float,
+              keptOpen: Set<String> = emptySet(), fit: Boolean = false): SchemaScene {
+        // Every state, folded or tightened, is placed against one drawing, the schema all open at
+        // its usual spacing, so that its parts keep their sides from one state to the other
+        val reference by lazy {
+            prepare(spec, nameOf, emptySet(), width, emptyMap(), Spacing.NORMAL).placement.let { open ->
+                (open.boxes + open.groups).mapValues { (_, rect) -> (rect.left + rect.right) / 2 }
+            }
         }
-        val (visible, boxes, byId, labels, titles, upward, placement) = prepare(spec, nameOf, folded, width, reference)
-        return draw(visible, boxes, byId, labels, titles, upward, placement)
+        fun placed(shut: Set<String>, spacing: Spacing): Prepared =
+            prepare(spec, nameOf, shut, width, if (shut.isEmpty() && spacing == Spacing.NORMAL) emptyMap() else reference, spacing)
+        fun Prepared.fits() = placement.width <= width + 0.5f
+
+        val normal = placed(folded, Spacing.NORMAL)
+        if (!fit || normal.fits()) return draw(normal)
+        val tight = placed(folded, Spacing.TIGHT)
+        if (tight.fits()) return draw(tight)
+
+        // Groups folded one at a time, the widest first; one whose folding gains nothing stays open.
+        // Each try is a whole placement, slow on a phone: never every group at every round
+        var best = tight
+        var auto = emptySet<String>()
+        val useless = mutableSetOf<String>()
+        while (!best.fits()) {
+            val widest = best.visible.groups.filter { it.id !in keptOpen && it.id !in useless }
+                .maxByOrNull { best.placement.groups[it.id]?.width ?: 0f } ?: break
+            val next = placed(folded + auto + widest.id, Spacing.TIGHT)
+            if (next.placement.width >= best.placement.width - 0.5f) useless += widest.id
+            else {
+                auto = auto + widest.id
+                best = next
+            }
+        }
+        if (auto.isNotEmpty()) placed(folded + auto, Spacing.NORMAL).takeIf { it.fits() }?.let { best = it }
+
+        // A theme drawing in whole pixels is never shown at a size between two of them
+        val wanted = width / best.placement.width
+        val scale = if (!best.fits() && unit <= 1f && wanted >= MIN_SCALE) wanted else 1f
+        return draw(best, auto, scale)
     }
+
+    /** How much room the text and the gaps take: tighter before anything is hidden. */
+    private enum class Spacing(val text: Float, val gap: Float) { NORMAL(1f, 1f), TIGHT(0.8f, 0.65f) }
 
     private data class Prepared(
         val visible: SchemaVisible,
@@ -140,9 +188,9 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
     )
 
     /** The boxes of what stays visible, measured, and placed. */
-    private fun prepare(spec: SchemaSpec, nameOf: (Reference) -> String?, folded: Set<String>, width: Float, reference: Map<String, Float>): Prepared {
+    private fun prepare(spec: SchemaSpec, nameOf: (Reference) -> String?, folded: Set<String>, width: Float, reference: Map<String, Float>, spacing: Spacing): Prepared {
         val visible = SchemaVisible(spec, folded)
-        val textLimit = min(width * 0.42f, dp(150f))
+        val textLimit = max(min(width * 0.42f, dp(150f)) * spacing.text, dp(88f))
         val boxes = visible.nodes.map { node ->
             val whole = node.label ?: node.thing?.let(nameOf) ?: own("thing_deleted")
             measure(node.id, whole, node.shape, node.color, node, null, node.thing?.takeIf { nameOf(it) != null }, textLimit)
@@ -156,7 +204,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         val labels = visible.edges.map { edge -> edge.label?.let { ellipsize(it, dp(120f)) } }
         val titles = visible.groups.associate { it.id to ellipsize(it.title, width * 0.6f) }
         val placement = SchemaLayout(LayoutOptions(
-            maxWidth = width, boxGap = dp(16f), rowGap = dp(24f), trackGap = dp(7f), portGap = dp(9f),
+            maxWidth = width, boxGap = dp(16f) * spacing.gap, rowGap = dp(24f), trackGap = dp(7f), portGap = dp(9f) * spacing.gap,
             groupPadding = GROUP_PADDING * density, blockPadding = dp(6f), blockGap = dp(6f), loopSize = dp(12f)
         )).place(LayoutGraph(
             boxes = boxes.map { box -> portSpan(box.shape)?.let { LayoutBox(box.id, box.width, box.height, it) } ?: LayoutBox(box.id, box.width, box.height) },
@@ -178,8 +226,8 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
     }
 
     /** The shapes the theme draws, and what a touch finds on them. */
-    private fun draw(visible: SchemaVisible, boxes: List<Measured>, byId: Map<String, Measured>, labels: List<String?>, titles: Map<String, String>,
-                     upward: Boolean, placement: Placement): SchemaScene {
+    private fun draw(prepared: Prepared, autoFolded: Set<String> = emptySet(), scale: Float = 1f): SchemaScene {
+        val (visible, boxes, byId, labels, titles, upward, placement) = prepared
         val shapes = mutableListOf<DrawShape>()
         val hits = mutableListOf<Pair<DrawRect, SchemaTouch>>()
 
@@ -192,7 +240,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
                 shapes += DrawShape.Path(outline, stroke(group.color, InkLevel.FAINT), 1f, thin(), null, false)
                 val pad = GROUP_PADDING * density
                 shapes += DrawShape.Label(titles.getValue(group.id), DrawPoint(rect.left + pad, rect.top + pad), TextAnchor.START, TextBaseline.TOP, DrawColor.Ink(InkLevel.MEDIUM))
-                hits += DrawRect(rect.left, rect.top, rect.right, rect.top + 2 * pad + text.height) to SchemaTouch.Group(group.id)
+                hits += DrawRect(rect.left, rect.top, rect.right, rect.top + 2 * pad + text.height) to SchemaTouch.Group(group.id, folded = false)
             }
 
         placement.blocks.forEach { block ->
@@ -227,9 +275,9 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             val centerX = (rect.left + rect.right) / 2
             val top = (rect.top + rect.bottom) / 2 - box.lines.size * text.height / 2
             writeLines(box, centerX, top, shapes)
-            hits += rect to (box.group?.let { SchemaTouch.Group(it.id) } ?: SchemaTouch.Box(box.node!!, box.whole, box.cut, box.open))
+            hits += rect to (box.group?.let { SchemaTouch.Group(it.id, folded = true) } ?: SchemaTouch.Box(box.node!!, box.whole, box.cut, box.open))
         }
-        return SchemaScene(Drawing(placement.width, placement.height, shapes), hits)
+        return SchemaScene(Drawing(placement.width, placement.height, shapes), hits, autoFolded, scale)
     }
 
     /**
@@ -480,6 +528,8 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
 
     private companion object {
         const val MAX_LINES = 3
+        // The smallest a drawing is shown at for its text to stay readable; to judge on the phone
+        const val MIN_SCALE = 0.75f
         // How close to a side of its box a line's end counts as standing on it, in pixels
         const val ON_SIDE = 1f
         const val ELLIPSIS = "…"
