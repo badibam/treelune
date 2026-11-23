@@ -177,11 +177,15 @@ class ChartSceneBuilderTest {
                 "encoding": {"x": {"field": "timestamp"}, "y": {"field": "w", "scale": {"zero": false}}}}"""
             return builder().build(spec(layer), listOf(table), day(1) to day(5), 400f)
         }
-        val joined = marks(scene(Cell.Failed("no entry", emptyList(), noEntry = true)))
+        val passedOver = scene(Cell.Failed("no entry", emptyList(), noEntry = true))
+        val joined = marks(passedOver)
         assertEquals(1, joined.filterIsInstance<DrawShape.Path>().size)
-        // No point stands on the step passed over
+        // No point and no hole stand on the step passed over
         assertEquals(4, joined.filterIsInstance<DrawShape.Symbol>().size)
-        assertEquals(2, marks(scene(Cell.Failed("no value", listOf("e3")))).filterIsInstance<DrawShape.Path>().size)
+        assertTrue(passedOver.drawing.shapes.filterIsInstance<DrawShape.Box>().none { it.missing })
+        val failed = scene(Cell.Failed("no value", listOf("e3")))
+        assertEquals(2, marks(failed).filterIsInstance<DrawShape.Path>().size)
+        assertEquals(1, failed.drawing.shapes.filterIsInstance<DrawShape.Box>().count { it.missing })
     }
 
     @Test

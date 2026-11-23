@@ -793,9 +793,13 @@ class ChartSceneBuilder(
         return if (hi == lo) (from + to) / 2 else (from + (to - from) * ((value - lo) / (hi - lo))).toFloat()
     }
 
-    /** A hole per row that could not be read, across the plot at its place, touched for its cause. */
+    /**
+     * A hole per row that could not be read, across the plot at its place, touched for its cause;
+     * none for a step without entries on a line or an area, which passes over it (drawSeries).
+     */
     private fun drawHoles(p: Prepared, xAxis: Axis, plot: DrawRect) {
-        p.rows.filter { it.failure != null }.forEach { r ->
+        val passesOver = p.layer.mark.type == MarkType.LINE || p.layer.mark.type == MarkType.AREA
+        p.rows.filter { it.failure != null && !(passesOver && it.failure.noEntry) }.forEach { r ->
             val (a, b) = extent(xAxis, r.x, null, r.row.span, metrics.holeWidth) ?: return@forEach
             val rect = DrawRect(a, plot.top, b, plot.bottom)
             shapes.add(DrawShape.Box(rect, DrawColor.Ink(InkLevel.MEDIUM), missing = true))
