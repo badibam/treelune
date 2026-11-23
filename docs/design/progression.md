@@ -30,28 +30,31 @@ L'outil s'appelle Parcours (Path en anglais). « Progression » reste le nom de 
 
 Validé dans son principe le 2026-11-23. Rien n'est codé ni mesuré.
 
-- **Le journal** : le plan est en config, une entrée = un mouvement (départ, atteint, perdu, fin). Les champs supplémentaires d'un mouvement portent « palier 3 en 28 min, genou un peu raide » ; ceux de la fin, le bilan du passage.
+- **Les entrées** : un Parcours a deux formes d'entrées (`form`). Une `brick` est un morceau du plan, propre à son passage (`run`), avec son parent et sa position ; un `move` est ce qui lui arrive (départ, état noté, fin). La config ne tient que la grammaire : les sortes, leurs états et leurs règles. Le vrai cycle de dessin l'impose : juillet seul fait 60 exercices et 48 901 caractères, trop pour une config que l'IA réécrirait à chaque exercice changé, et une brique doit pouvoir être visée par une Référence.
+- **Le journal** : les `move`. Leurs champs supplémentaires portent « palier 3 en 28 min, genou un peu raide » ; ceux de la fin, le bilan du passage.
 - **La vue** : l'outil présente à la lecture des lignes calculées, jamais stockées, une par brique et par passage : brique, sorte, parent, passage, courant, état, depuis (la date du mouvement qui a donné l'état). Lue à une autre référence, elle ne rejoue que les mouvements d'avant cet instant.
 - **Qui répond à quoi** : la vue répond à « où en suis-je ? », le journal à « que s'est-il passé, et quand ? ». Une ligne de vue n'a qu'une date : « atteints en avril » posé à la vue manquerait un palier atteint en avril, perdu, puis réatteint en mai. Une sélection sur une vue refuse donc `period`, et un filtre sur `depuis` reste possible.
 - **Défaire** : une erreur se corrige en supprimant le mouvement ; un vrai recul écrit un mouvement « perdu ».
-- **Le passage** : en cours, il suit le plan actuel, modifiable librement ; sa fin garde une copie du plan, et il ne change plus. Recommencer = une fin si le passage est ouvert, puis un départ. Rouvrir = supprimer le mouvement de fin. Pas d'état « en pause » : un passage ouvert sans activité en est déjà une.
+- **Le passage** : en cours, ses briques se modifient librement ; à sa fin, elles deviennent non modifiables et leur état final s'écrit sur elles, sans copie du plan. Recommencer = une fin si le passage est ouvert, puis un départ, avec ses briques dupliquées ou un plan neuf. Rouvrir = supprimer le mouvement de fin. Pas d'état « en pause » : un passage ouvert sans activité en est déjà une.
 - **Limite acceptée** : une date passée du passage en cours se relit avec le plan actuel.
 
 Ce que ça demande au core :
 
 - Une seule notion de lignes calculées, passant par la même porte que les entrées, dont la série d'une variable deviendrait un cas particulier, plutôt qu'un cas `view` de plus dans chaque lecteur. La sélection y gagne un paramètre, `view`.
-- Une Référence vers une ligne de vue, à inventer si un besoin de désigner un élément apparaît.
+- Plusieurs formes d'entrées pour un même outil, par une colonne `form`. Un type d'outil déclare ses formes, chacune avec ses champs. Sur un outil à une forme, `form` est refusé et rien ne change ; sur un outil à plusieurs, elle est obligatoire à chaque écriture et chaque sélection (`form`, ou `view` pour les briques avec leur état), sans valeur par défaut, et ne change jamais. Seuls la sauvegarde et l'export d'une partie lisent toutes les lignes, en gardant `form`.
 - Le coût à mesurer : un Graphique recalculerait la vue à chaque point de temps.
 - Second usage pressenti : une vue `cards` des Flashcards (acquises, en retard, nouvelles), lisible par toute l'app.
 
 ## Créer un parcours
 
-- À la création, deux choix : la forme et le rythme. Une forme (cases à cocher, suite, calendrier, à renouveler, niveaux, prérequis, N parmi M, boucle) est un formulaire court qui écrit les sortes et les briques une fois ; tout reste éditable ensuite. Le rythme dit quand un passage commence et quand il se termine, pour n'importe quelle forme. « Objectif » n'est pas une forme : c'est N parmi M avec un rythme.
+- À la création, un point de départ (Liste, Suite, Arbre) préremplit une sorte, sans aucune brique ; ce n'est pas une notion du modèle, et tout reste éditable. L'affichage (liste, chemin, branches) est un réglage à part. Le rythme dit quand un passage commence et quand il se termine, pour n'importe quel parcours.
+- L'écran de config montre les briques, puis les sortes, dont la liste de leurs états : chaque ligne dit si l'état se note à la main, sa règle et son `note_if`. Expiration, date, condition et validation sont de simples lignes de cette liste. Une sorte unique reste invisible.
+- Un cycle conduit par un maître (le projet `parcours`, que Treelune remplacera en grande partie) n'utilise ni règles ni verrous : le plan y est écrit par l'IA phase après phase, et tout se note à la main.
 - Une sorte a deux listes de champs : `fields`, ce qu'est la brique (sa vidéo, sa consigne), et `move_fields`, ce qu'on note quand son état change (« 28 min, genou raide », « sommeil : 7 h »). Le bilan d'un passage est fait des `move_fields` de la racine.
 
 ## La fin d'un passage
 
-- Un passage est fermé quand le journal contient sa ligne `end`, qui fige le plan et les états. Elle vient du geste « Arrêter » ou de la racine entrant dans un état marqué `closes_run`. `run_end` n'est qu'une date : quand elle passe, l'état de la racine est recalculé à cette date, et c'est lui qui décide.
+- Un passage est fermé quand le journal contient sa ligne `end`, qui fige ses briques et leurs états. Elle vient du geste « Arrêter » ou de la racine entrant dans un état marqué `closes_run`. `run_end` n'est qu'une date : quand elle passe, l'état de la racine est recalculé à cette date, et c'est lui qui décide.
 - `closing`, un réglage de la config, dit qui termine le passage et déplie les états de la racine, alors affichés mais non éditables. « Écrire les règles moi-même » le retire et rend ces états modifiables.
 - Il n'y a ni verdict ni validation dans l'outil : les issues sont des états aux noms libres, choisis en config (« Terminé » par défaut), avec une couleur facultative. Attendre une validation, c'est être dans un état qui ne ferme rien.
 
@@ -72,7 +75,7 @@ L'Objectif s'écrit presque entièrement en briques : critère = brique à règl
 - Plusieurs passages ouverts à la fois : un seul courant, les autres en attente de validation. Un état peut fermer son passage (réussi, raté, expiré).
 - Des valeurs saisies sur un mouvement (`"value": 7`), lues par une règle (`self.last_value`).
 - Une vue des passages : une ligne par passage et son verdict.
-- Un passage ouvert se calcule, un passage fermé est figé : sa fin copie le plan **et les états**, sinon corriger une donnée externe changerait un verdict clos.
+- Un passage ouvert se calcule, un passage fermé est figé : sa fin écrit les états sur ses briques, sinon corriger une donnée externe changerait un résultat clos.
 - Pas de reprise des données : les Objectifs existants ne servent qu'à l'utilisateur, qui les retire. Une migration retire le type, pour qu'une installation qui en a un ne casse pas.
 
 Condition : « Objectif » reste un vrai modèle, avec un écran aussi simple qu'aujourd'hui. Ordre : coder la progression, puis ce modèle, et ne retirer l'ancien outil qu'une fois le nouveau au moins aussi agréable. À repenser : une tentative n'étant plus une entrée, sa Référence et ses champs personnels.
@@ -206,4 +209,4 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 
 ## Reprise
 
-Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception. Le passage reste, à la racine seulement : il délimite un parcours, fige son plan et porte son bilan, là où `set` ne change que des états. Reprendre à la complexité de l'ensemble, jugée lourde et non tranchée, et à ce qu'une première version garderait. Piste en attente : un écran de config qui montre d'abord des cases à cocher et trois réglages (`opens_when`, `done_when`, `expires_after`), traduits en règles d'état. Les scènes résistantes sont testées sur le papier en vraie syntaxe. Reprendre aux exemples réels de l'utilisateur, le konnakol d'abord (une brique = une vidéo, 5 séances après son ouverture pour passer à la suivante), puis l'écran de config, avec une maquette à manipuler plutôt que du JSON. La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
+Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception. Le passage reste, à la racine seulement : il délimite un parcours, fige son plan et porte son bilan, là où `set` ne change que des états. Reprendre à la complexité de l'ensemble, jugée lourde et non tranchée, et à ce qu'une première version garderait. Piste en attente : un écran de config qui montre d'abord des cases à cocher et trois réglages (`opens_when`, `done_when`, `expires_after`), traduits en règles d'état. Les scènes résistantes sont testées sur le papier en vraie syntaxe. Reprendre aux exemples réels de l'utilisateur : le cycle de dessin du projet `parcours` (trimestre, mois, semaine, séance, exercices), en commençant par ce qu'on note réellement ; le konnakol (une brique = une vidéo, 5 séances après son ouverture pour passer à la suivante). Puis l'écran de config, avec une maquette à manipuler plutôt que du JSON. La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
