@@ -19,7 +19,7 @@ class SchemaSpecTest {
     private val valuesOf = mapOf(
         "error_id_missing" to 0, "error_edge_end" to 0,
         "error_shape" to 2, "error_color" to 2, "error_texture" to 2,
-        "error_group_unknown_node" to 2, "error_group_unknown_group" to 2,
+        "error_group_unknown_member" to 2,
         "error_line" to 3, "error_node_two_groups" to 3, "error_group_two_parents" to 3
     )
 
@@ -43,8 +43,8 @@ class SchemaSpecTest {
             ],
             "edges": [{"from": "A", "to": "B", "label": "nourrit", "line": "dotted", "head": false}],
             "groups": [
-                {"id": "out", "title": "Dehors", "groups": ["in"], "folded": true},
-                {"id": "in", "title": "Dedans", "nodes": ["A", "B"]}
+                {"id": "out", "title": "Dehors", "members": ["in"], "folded": true},
+                {"id": "in", "title": "Dedans", "members": ["A", "B"]}
             ]
         }""")
         assertEquals(SchemaDirection.BOTTOM_UP, spec.direction)
@@ -88,22 +88,21 @@ class SchemaSpecTest {
 
     @Test
     fun `a group names what exists`() {
-        assertTrue(refusal("""{"groups": [{"id": "G", "title": "t", "nodes": ["Z"]}]}""").startsWith("error_group_unknown_node G Z"))
-        assertTrue(refusal("""{"groups": [{"id": "G", "title": "t", "groups": ["Z"]}]}""").startsWith("error_group_unknown_group G Z"))
+        assertTrue(refusal("""{"groups": [{"id": "G", "title": "t", "members": ["Z"]}]}""").startsWith("error_group_unknown_member G Z"))
     }
 
     @Test
     fun `a box or a group stands in one group`() {
-        assertTrue(refusal("""{"nodes": [$twoBoxes], "groups": [{"id": "G", "title": "t", "nodes": ["A"]}, {"id": "H", "title": "t", "nodes": ["A"]}]}""")
+        assertTrue(refusal("""{"nodes": [$twoBoxes], "groups": [{"id": "G", "title": "t", "members": ["A"]}, {"id": "H", "title": "t", "members": ["A"]}]}""")
             .startsWith("error_node_two_groups A G H"))
-        assertTrue(refusal("""{"groups": [{"id": "G", "title": "t", "groups": ["K"]}, {"id": "H", "title": "t", "groups": ["K"]}, {"id": "K", "title": "t"}]}""")
+        assertTrue(refusal("""{"groups": [{"id": "G", "title": "t", "members": ["K"]}, {"id": "H", "title": "t", "members": ["K"]}, {"id": "K", "title": "t"}]}""")
             .startsWith("error_group_two_parents K G H"))
     }
 
     @Test
     fun `a group never ends up inside itself`() {
-        assertTrue(refusal("""{"groups": [{"id": "G", "title": "t", "groups": ["G"]}]}""").startsWith("error_group_loop G"))
-        assertTrue(refusal("""{"groups": [{"id": "G", "title": "t", "groups": ["H"]}, {"id": "H", "title": "t", "groups": ["G"]}]}""")
+        assertTrue(refusal("""{"groups": [{"id": "G", "title": "t", "members": ["G"]}]}""").startsWith("error_group_loop G"))
+        assertTrue(refusal("""{"groups": [{"id": "G", "title": "t", "members": ["H"]}, {"id": "H", "title": "t", "members": ["G"]}]}""")
             .startsWith("error_group_loop"))
     }
 

@@ -23,6 +23,7 @@ object SchemaKeys {
     const val LINE = "line"
     const val HEAD = "head"
     const val TITLE = "title"
+    const val MEMBERS = "members"
     const val FOLDED = "folded"
 }
 
@@ -69,7 +70,10 @@ data class SchemaNode(
 /** An arrow between two boxes; without [head], a plain line. */
 data class SchemaEdge(val from: String, val to: String, val label: String?, val line: SchemaLine, val head: Boolean)
 
-/** A group of boxes ([nodes]) and of other groups ([groups]), each in one group at most. */
+/**
+ * A group of boxes ([nodes]) and of other groups ([groups]), each in one group at most. Stored as
+ * one list, `members`, an id naming one box or one group.
+ */
 data class SchemaGroup(
     val id: String,
     val title: String,
@@ -103,7 +107,9 @@ data class SchemaSpec(
             }
             val nodes = config.objects(SchemaKeys.NODES).map { node(it, own) }
             val edges = config.objects(SchemaKeys.EDGES).map { edge(it, own) }
-            val groups = config.objects(SchemaKeys.GROUPS).map { group(it, own) }
+            val boxIds = nodes.map { it.id }.toSet()
+            val groupIds = config.objects(SchemaKeys.GROUPS).mapNotNull { it.text(SchemaKeys.ID) }.toSet()
+            val groups = config.objects(SchemaKeys.GROUPS).map { group(it, boxIds, groupIds, own) }
             return SchemaSpec(direction, nodes, edges, groups).also { it.check(own) }
         }
 
@@ -144,10 +150,12 @@ data class SchemaSpec(
             return SchemaEdge(from, to, json.text(SchemaKeys.LABEL), line, json.optBoolean(SchemaKeys.HEAD, true))
         }
 
-        private fun group(json: JSONObject, own: (String) -> String): SchemaGroup {
+        private fun group(json: JSONObject, boxIds: Set<String>, groupIds: Set<String>, own: (String) -> String): SchemaGroup {
             val id = json.text(SchemaKeys.ID) ?: refuse(own("error_id_missing"))
             val title = json.text(SchemaKeys.TITLE) ?: refuse(own("error_group_title").format(id))
-            return SchemaGroup(id, title, json.strings(SchemaKeys.NODES), json.strings(SchemaKeys.GROUPS),
+            val members = json.strings(SchemaKeys.MEMBERS)
+            members.firstOrNull { it !in boxIds && it !in groupIds }?.let { refuse(own("error_group_unknown_member").format(id, it)) }
+            return SchemaGroup(id, title, members.filter { it in boxIds }, members.filter { it in groupIds },
                 json.optBoolean(SchemaKeys.FOLDED, false), color(json, id, own), texture(json, id, own))
         }
     }
@@ -167,11 +175,9 @@ data class SchemaSpec(
         val parent = mutableMapOf<String, String>()
         groups.forEach { group ->
             group.nodes.forEach { box ->
-                if (box !in boxes) refuse(own("error_group_unknown_node").format(group.id, box))
                 groupOfBox.put(box, group.id)?.let { refuse(own("error_node_two_groups").format(box, it, group.id)) }
             }
             group.groups.forEach { child ->
-                if (child !in known) refuse(own("error_group_unknown_group").format(group.id, child))
                 parent.put(child, group.id)?.let { refuse(own("error_group_two_parents").format(child, it, group.id)) }
             }
         }

@@ -14,8 +14,7 @@
     <string name="error_edge_unknown">Une flèche nomme la boîte « %1$s », qui n\'existe pas.</string>
     <string name="error_line">Flèche de « %1$s » à « %2$s » : trait « %3$s » inconnu.</string>
     <string name="error_group_title">Le groupe « %1$s » n\'a pas de titre.</string>
-    <string name="error_group_unknown_node">Le groupe « %1$s » nomme la boîte « %2$s », qui n\'existe pas.</string>
-    <string name="error_group_unknown_group">Le groupe « %1$s » nomme le groupe « %2$s », qui n\'existe pas.</string>
+    <string name="error_group_unknown_member">Le groupe « %1$s » nomme « %2$s », ni une boîte ni un groupe.</string>
     <string name="error_node_two_groups">La boîte « %1$s » est dans deux groupes : « %2$s » et « %3$s ».</string>
     <string name="error_group_two_parents">Le groupe « %1$s » est dans deux groupes : « %2$s » et « %3$s ».</string>
     <string name="error_group_loop">Le groupe « %1$s » finit à l\'intérieur de lui-même.</string>
