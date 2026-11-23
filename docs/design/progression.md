@@ -22,6 +22,10 @@ Tenir où on en est dans quelque chose qui se déroule par morceaux. Comme tout 
 - Ce qui rend un élément atteint s'écrit avec la brique Condition, pas avec une Tâche. Un cas complexe passe par ce que la Condition sait déjà lire : une variable, une lecture, peut-être le résultat d'un Objectif, par exemple.
 - Les périodes de ces conditions gardent tous les choix de la lecture, avec une borne de plus : « l'ouverture de l'élément ». Elle permet d'écrire « 10 sorties à ce palier ». Une période vide veut toujours dire sans limite, et la référence reste le moment de la lecture.
 
+## Le nom
+
+L'outil s'appelle Parcours (Path en anglais). « Progression » reste le nom de ce document de conception.
+
 ## Le montage retenu
 
 Validé dans son principe le 2026-11-23. Rien n'est codé ni mesuré.
@@ -166,7 +170,6 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 - Les affichages : plusieurs rendus très différents, comme le Graphique (chemin, achievements, tableau de voyants qui s'éteignent).
 - Les notifications : quand est-on prévenu ?
 - La gamification : quels aspects la permettent ?
-- Le nom de l'outil. Proposition : Parcours (Path), le mot déjà employé pour les parcours d'hypnose.
 - Que peut faire l'IA sur une progression ?
 
 ## Faits relevés dans le code
