@@ -21,11 +21,14 @@ import kotlin.random.Random
  *    rather than side by side, and so are the leaf children a box reaches by identical arrows.
  */
 
+/** Where lines touch a box of straight sides, as a share of its width. */
+const val USUAL_PORT_SPAN = 0.7f
+
 /**
  * A box to place, measured by whoever draws it. [portSpan] is the share of its width, around its
  * middle, where lines may touch it: narrow for a shape whose top and bottom come to a point.
  */
-data class LayoutBox(val id: String, val width: Float, val height: Float, val portSpan: Float = 0.7f)
+data class LayoutBox(val id: String, val width: Float, val height: Float, val portSpan: Float = USUAL_PORT_SPAN)
 
 /**
  * An arrow. [look] says what makes two arrows identical besides their label (their line, their
@@ -172,6 +175,10 @@ private class Node(val id: String, val kind: Kind, var width: Float = 0f, var he
     /** The leftmost and rightmost places a line may touch it, off its corners. */
     fun portLow(corner: Float) = max(x + min(corner, width / 2), center - width * portSpan / 2)
     fun portHigh(corner: Float) = min(x + width - min(corner, width / 2), center + width * portSpan / 2)
+
+    /** The same for a line alone on its side, free to go straight: anywhere off the corners, unless the shape narrows. */
+    fun slideLow(corner: Float) = if (portSpan < USUAL_PORT_SPAN) portLow(corner) else x + min(corner, width / 2)
+    fun slideHigh(corner: Float) = if (portSpan < USUAL_PORT_SPAN) portHigh(corner) else x + width - min(corner, width / 2)
 }
 
 /** One arrow's stretch inside one scope, between two of its nodes, in the arrow's own direction. */
@@ -865,8 +872,11 @@ private class Layered(val nodes: List<Node>, val links: List<Link>, val limit: F
         links.forEach { link ->
             val inner = segments.filter { it.link === link }.map { it.down }.filter { it.kind == Kind.DUMMY || it.kind == Kind.LABEL }
             if (inner.size < 2) return@forEach
-            val center = inner.map { it.center }.sorted()[inner.size / 2]
-            if (inner.all { fits(it, center) }) inner.forEach { it.x = center - it.width / 2 }
+            val median = inner.map { it.center }.sorted()[inner.size / 2]
+            // Best in front of what it reaches: a group's port, or the place on a box nearest the line
+            fun reach(end: Node) = if (end.kind == Kind.GROUP) end.x + portX(link, end) else median.coerceIn(end.slideLow(CORNER), end.slideHigh(CORNER))
+            val center = listOf(reach(link.top), reach(link.bottom), median).firstOrNull { c -> inner.all { fits(it, c) } } ?: return@forEach
+            inner.forEach { it.x = center - it.width / 2 }
         }
     }
 
@@ -1006,15 +1016,15 @@ private class Layered(val nodes: List<Node>, val links: List<Link>, val limit: F
      */
     private fun straighten() {
         fun slides(node: Node, count: Int) = (node.kind == Kind.BOX || node.kind == Kind.BLOCK) && count == 1
-        fun within(node: Node, x: Float) = x >= node.portLow(CORNER) && x <= node.portHigh(CORNER)
+        fun within(node: Node, x: Float) = x >= node.slideLow(CORNER) && x <= node.slideHigh(CORNER)
         segments.forEach { s ->
             if (abs(s.upX - s.downX) <= 0.5f) return@forEach
             val upFree = slides(s.up, below[s.up]?.size ?: 0)
             val downFree = slides(s.down, above[s.down]?.size ?: 0)
             when {
                 upFree && downFree -> {
-                    val low = max(s.up.portLow(CORNER), s.down.portLow(CORNER))
-                    val high = min(s.up.portHigh(CORNER), s.down.portHigh(CORNER))
+                    val low = max(s.up.slideLow(CORNER), s.down.slideLow(CORNER))
+                    val high = min(s.up.slideHigh(CORNER), s.down.slideHigh(CORNER))
                     if (low <= high) { val x = (low + high) / 2; s.upX = x; s.downX = x }
                 }
                 downFree && within(s.down, s.upX) -> s.downX = s.upX
@@ -1039,10 +1049,15 @@ private class Layered(val nodes: List<Node>, val links: List<Link>, val limit: F
         val sorted = side.sortedBy(otherX)
         val low = node.portLow(CORNER)
         val high = node.portHigh(CORNER)
-        val pitch = if (sorted.size > 1) min(options.portGap, (high - low) / (sorted.size - 1)) else 0f
-        val places = FloatArray(sorted.size) { otherX(sorted[it]).coerceIn(low, high) }
+        val pitch = if (sorted.size > 1) min(options.portGap, (node.slideHigh(CORNER) - node.slideLow(CORNER)) / (sorted.size - 1)) else 0f
+        // A line that can go straight does, anywhere off the corners; one that must bend leaves near the middle
+        val places = FloatArray(sorted.size) { i ->
+            val wanted = otherX(sorted[i])
+            if (wanted >= node.slideLow(CORNER) && wanted <= node.slideHigh(CORNER)) wanted else wanted.coerceIn(low, high)
+        }
         for (i in 1 until places.size) places[i] = max(places[i], places[i - 1] + pitch)
-        if (places.last() > high) places[places.size - 1] = high
+        val end = node.slideHigh(CORNER)
+        if (places.last() > end) places[places.size - 1] = end
         for (i in places.size - 2 downTo 0) places[i] = min(places[i], places[i + 1] - pitch)
         sorted.forEachIndexed { i, segment -> set(segment, places[i]) }
     }
