@@ -44,8 +44,10 @@ class SettingDescriptionsTest {
     /** The paths under [path] of the values among [nodes] without a description. */
     private fun missing(nodes: List<SettingNode>, path: String): List<String> = nodes.flatMap { node ->
         when (node) {
-            is SettingNode.Field -> listOfNotNull("field $path.${node.definition.name}".takeIf { node.definition.description.isNullOrBlank() })
-            is SettingNode.Group -> listOfNotNull("group $path.${node.name}".takeIf { node.description.isNullOrBlank() }) + missing(node.nodes, "$path.${node.name}")
+            // A field's default value is said once, in the schema's legend
+            is SettingNode.Field -> listOfNotNull("field $path.${node.definition.name}".takeIf { !node.valueOfDefined && node.definition.description.isNullOrBlank() })
+            // A group the model reads without a label stands under what already names it (« if type = X »)
+            is SettingNode.Group -> listOfNotNull("group $path.${node.name}".takeIf { node.labelForModel && node.description.isNullOrBlank() }) + missing(node.nodes, "$path.${node.name}")
             // Its element is a field definition, which the prompt describes once (see Fields)
             is SettingNode.ListOf -> listOfNotNull("list $path.${node.name}".takeIf { node.description.isNullOrBlank() }) + if (node.fieldDefinitions) emptyList() else when (val item = node.item) {
                 is SettingNode.Item.Of -> listOfNotNull("element $path.${node.name}[]".takeIf { item.description.isNullOrBlank() }) + missing(item.nodes, "$path.${node.name}[]")
