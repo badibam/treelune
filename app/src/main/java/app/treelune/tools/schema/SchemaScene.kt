@@ -137,13 +137,10 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
               keptOpen: Set<String> = emptySet(), fit: Boolean = false): SchemaScene {
         // Every state, folded or tightened, is placed against one drawing, the schema all open at
         // its usual spacing, so that its parts keep their sides from one state to the other
-        val reference by lazy {
-            prepare(spec, nameOf, emptySet(), width, emptyMap(), Spacing.NORMAL).placement.let { open ->
-                (open.boxes + open.groups).mapValues { (_, rect) -> (rect.left + rect.right) / 2 }
-            }
-        }
+        val allOpen by lazy { prepare(spec, nameOf, emptySet(), width, emptyMap(), Spacing.NORMAL) }
+        val reference by lazy { (allOpen.placement.boxes + allOpen.placement.groups).mapValues { (_, rect) -> (rect.left + rect.right) / 2 } }
         fun placed(shut: Set<String>, spacing: Spacing): Prepared =
-            prepare(spec, nameOf, shut, width, if (shut.isEmpty() && spacing == Spacing.NORMAL) emptyMap() else reference, spacing)
+            if (shut.isEmpty() && spacing == Spacing.NORMAL) allOpen else prepare(spec, nameOf, shut, width, reference, spacing)
         fun Prepared.fits() = placement.width <= width + 0.5f
 
         val normal = placed(folded, Spacing.NORMAL)

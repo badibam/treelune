@@ -76,7 +76,8 @@ data class LayoutOptions(
     val blockPadding: Float = 6f,
     val blockGap: Float = 6f,
     val blockMinimum: Int = 3,
-    val loopSize: Float = 12f
+    val loopSize: Float = 12f,
+    val attempts: Int = 2
 )
 
 data class PlacedPoint(val x: Float, val y: Float)
@@ -114,18 +115,25 @@ class SchemaLayout(private val options: LayoutOptions = LayoutOptions()) {
         val ranking = rankingFor(graph.reference)
         val first = Run(graph, options, portsFollowInside = false, start = 0, ranking).place()
         if (graph.groups.isEmpty() && graph.reference.isEmpty() && crossings(first) == 0 && first.width <= options.maxWidth) return first
-        val others = (0 until ATTEMPTS).flatMap { start ->
-            listOfNotNull(
-                Run(graph, options, portsFollowInside = false, start = start, ranking).place().takeIf { start > 0 },
-                Run(graph, options, portsFollowInside = true, start = start, ranking).place().takeIf { graph.groups.isNotEmpty() }
-            )
+        val others = (0 until options.attempts).flatMap { start ->
+            buildList {
+                if (start > 0) add(Run(graph, options, portsFollowInside = false, start = start, ranking).place())
+                if (graph.groups.isNotEmpty()) add(Run(graph, options, portsFollowInside = true, start = start, ranking).place())
+            }
         }
         return (listOf(first) + others).minWith(ranking)
     }
 
     /** The better drawing: it fits the width, then has the fewest crossings, neighbours swapped from [reference], bends and height. */
-    private fun rankingFor(reference: Map<String, Float>): Comparator<Placement> =
-        compareBy<Placement> { it.width > options.maxWidth }.thenBy { crossings(it) }.thenBy { swapped(it, reference) }.thenBy { bends(it) }.thenBy { it.height }
+    private fun rankingFor(reference: Map<String, Float>): Comparator<Placement> {
+        // Counting crossings is the slow part, and a drawing is compared many times: counted once
+        val crossingsOf = java.util.IdentityHashMap<Placement, Int>()
+        val swappedOf = java.util.IdentityHashMap<Placement, Int>()
+        return compareBy<Placement> { it.width > options.maxWidth }
+            .thenBy { p -> crossingsOf.getOrPut(p) { crossings(p) } }
+            .thenBy { p -> swappedOf.getOrPut(p) { swapped(p, reference) } }
+            .thenBy { bends(it) }.thenBy { it.height }
+    }
 
     /** How many pairs side by side stand in the opposite order in [reference]; what holds the other is not beside it. */
     private fun swapped(placement: Placement, reference: Map<String, Float>): Int {
@@ -161,7 +169,6 @@ class SchemaLayout(private val options: LayoutOptions = LayoutOptions()) {
     }
 
     private companion object {
-        const val ATTEMPTS = 6
     }
 }
 
