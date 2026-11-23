@@ -72,11 +72,13 @@ Récrit le 2026-11-22, pas encore codé. L'app ne connaît ni Claude Code, ni so
 - **Un fournisseur comme les autres** : toute la mécanique (commandes, budget, masque, accords, historique) reste dans l'app. Le coût compté est 0 $, le budget du jour ne le bloque pas.
 - **Dans la recette de session de l'utilisateur, pas dans l'app** : le modèle, le jeton et sa date d'expiration, la traduction vers `claude --input-format stream-json`, les erreurs propres à Claude.
 
+- **Le job parle à la commande de la recette par un objet JSON par ligne** (décidé le 2026-11-23). Sur son entrée, un tour `{"message": …}`, la première ligne portant aussi `"system"` : le prompt système ne passe pas en argument, Linux limitant un argument à 128 Kio. Sur sa sortie, une ligne par tour, la réponse ou `{"failure": …, "message": …}`. Une ligne illisible est un échec explicite. Sa sortie d'erreur ne va jamais dans les journaux GitHub.
+- **`recipe.json` déclare une recette de session par `"session": true`**, à côté de sa commande, de ses installations et de ses secrets, sans entrées ni valeurs d'API.
+
 ### À décider à la reprise
 
-1. Comment le workflow parle à la commande de la recette (un message par ligne sur son entrée, une réponse par ligne sur sa sortie ?), et comment `recipe.json` déclare une recette de session.
-2. Le délai d'attente du job, à choisir entre le coût en minutes et la reprise sans redémarrage.
-3. Comment le job surveille la branche sans dépasser les limites de l'API GitHub (`git fetch` plutôt que l'API, point 4 de « Ouvert »).
+1. Le délai d'attente du job, à choisir entre le coût en minutes et la reprise sans redémarrage.
+2. Comment le job surveille la branche sans dépasser les limites de l'API GitHub (`git fetch` plutôt que l'API, point 4 de « Ouvert »).
 
 ## L'API « Recette sur GitHub »
 
