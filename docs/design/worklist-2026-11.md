@@ -18,4 +18,4 @@ Les retours du téléphone et les items décidés, classés le 2026-11-22. « À
 - La migration unique 119 → 120 est écrite, essayée sur une base 119 reconstruite, jamais sur les vraies données.
 - Avant tout build de debug sur le téléphone : `app.treelune.debug` est en base 121, ses données sont à effacer, sur décision de l'utilisateur.
 
-Reste, dans l'ordre : lancer une fois `./run test` ; la passe sur le téléphone, où s'essaie le rangement par l'IA et où se décide aussi l'icône de la zone face à celles de ses outils.
+Reste : la passe sur le téléphone, où s'essaie le rangement par l'IA et où se décide aussi l'icône de la zone face à celles de ses outils.
