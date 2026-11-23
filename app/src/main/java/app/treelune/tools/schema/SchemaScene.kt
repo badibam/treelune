@@ -166,16 +166,15 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         placement.routes.forEach { route ->
             val edge = visible.edges[route.edges.first()]
             // The points run along the arrow as it was placed: turned back for a schema running upward
-            val points = if (upward) route.points.reversed() else route.points
+            val placed = if (upward) route.points.reversed() else route.points
+            val points = reachingOutlines(placed, byId[edge.from], byId[edge.to], placement.boxes)
             val strokeWidth = if (edge.line == SchemaLine.THICK) max(unit * 2, dp(3f)) else thin()
             val dash = if (edge.line == SchemaLine.DOTTED) listOf(dp(4f), dp(3f)) else null
             val ink = DrawColor.Ink(InkLevel.MEDIUM)
             val headSize = dp(8f)
             val line = if (edge.head) shortened(points, headSize * 0.7f) else points
-            shapes += DrawShape.Path(
-                line.mapIndexed { i, p -> if (i == 0) PathStep.MoveTo(p.draw()) else PathStep.LineTo(p.draw()) },
-                ink, 1f, strokeWidth, dash, false
-            )
+            val labelled = route.label.takeIf { labels[route.edges.first()] != null }
+            shapes += DrawShape.Path(steps(line, labelled), ink, 1f, strokeWidth, dash, false)
             if (edge.head && points.size >= 2) shapes += head(points[points.size - 2], points.last(), headSize, ink)
             val label = labels[route.edges.first()]
             if (label != null && route.label != null) {
@@ -300,6 +299,77 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         )
     }
 
+    /** The line's two ends brought from the rectangle around their box to the box's real outline. */
+    private fun reachingOutlines(points: List<PlacedPoint>, from: Measured?, to: Measured?, rects: Map<String, PlacedRect>): List<PlacedPoint> {
+        if (points.size < 2) return points
+        val first = from?.let { onOutline(points.first(), it.shape, rects.getValue(it.id)) } ?: points.first()
+        val last = to?.let { onOutline(points.last(), it.shape, rects.getValue(it.id)) } ?: points.last()
+        return listOf(first) + points.subList(1, points.size - 1) + last
+    }
+
+    /** [p], on the top, bottom or right side of [r], moved in to where [shape] really starts; any other point as it is. */
+    private fun onOutline(p: PlacedPoint, shape: SchemaShape, r: PlacedRect): PlacedPoint {
+        val halfW = r.width / 2
+        val halfH = r.height / 2
+        val dx = min(kotlin.math.abs(p.x - (r.left + halfW)), halfW)
+        val dy = min(kotlin.math.abs(p.y - (r.top + halfH)), halfH)
+        return when {
+            kotlin.math.abs(p.y - r.top) < ON_SIDE -> PlacedPoint(p.x, r.top + inset(shape, dx, halfW, halfH))
+            kotlin.math.abs(p.y - r.bottom) < ON_SIDE -> PlacedPoint(p.x, r.bottom - inset(shape, dx, halfW, halfH))
+            kotlin.math.abs(p.x - r.right) < ON_SIDE -> PlacedPoint(r.right - sideInset(shape, dy, halfW, halfH), p.y)
+            else -> p
+        }
+    }
+
+    /** How far below the rectangle's top the shape starts, [dx] from its middle. */
+    private fun inset(shape: SchemaShape, dx: Float, halfW: Float, halfH: Float): Float = when (shape) {
+        SchemaShape.RECT -> 0f
+        SchemaShape.DIAMOND -> halfH * dx / halfW
+        SchemaShape.CIRCLE -> halfH * (1 - kotlin.math.sqrt(1 - (dx / halfW) * (dx / halfW)))
+        SchemaShape.STADIUM -> corner(dx, halfW, halfH)
+        SchemaShape.ROUNDED -> corner(dx, halfW, min(dp(8f), halfH))
+    }
+
+    /** How far inside the rectangle's right side the shape starts, [dy] from its middle. */
+    private fun sideInset(shape: SchemaShape, dy: Float, halfW: Float, halfH: Float): Float = when (shape) {
+        SchemaShape.RECT -> 0f
+        SchemaShape.DIAMOND -> halfW * dy / halfH
+        SchemaShape.CIRCLE -> halfW * (1 - kotlin.math.sqrt(1 - (dy / halfH) * (dy / halfH)))
+        SchemaShape.STADIUM -> corner(dy, halfH, halfH)
+        SchemaShape.ROUNDED -> corner(dy, halfH, min(dp(8f), halfH))
+    }
+
+    /** The depth of a round corner of radius [radius], [distance] from the middle of a side [half] long. */
+    private fun corner(distance: Float, half: Float, radius: Float): Float {
+        val past = distance - (half - radius)
+        return if (past <= 0f) 0f else radius - kotlin.math.sqrt(max(0f, radius * radius - past * past))
+    }
+
+    /** The line as path steps, lifted over [label] so that it never runs through its text. */
+    private fun steps(points: List<PlacedPoint>, label: PlacedRect?): List<PathStep> {
+        val out = mutableListOf<PathStep>()
+        points.firstOrNull()?.let { out += PathStep.MoveTo(it.draw()) }
+        val margin = dp(2f)
+        points.zipWithNext { a, b ->
+            val vertical = a.x == b.x
+            val crosses = label != null && if (vertical) a.x in label.left..label.right && min(a.y, b.y) < label.top && max(a.y, b.y) > label.bottom
+                else a.y in label.top..label.bottom && min(a.x, b.x) < label.left && max(a.x, b.x) > label.right
+            if (crosses && label != null) {
+                val forward = if (vertical) b.y > a.y else b.x > a.x
+                val (enter, leave) = when {
+                    vertical && forward -> PlacedPoint(a.x, label.top - margin) to PlacedPoint(a.x, label.bottom + margin)
+                    vertical -> PlacedPoint(a.x, label.bottom + margin) to PlacedPoint(a.x, label.top - margin)
+                    forward -> PlacedPoint(label.left - margin, a.y) to PlacedPoint(label.right + margin, a.y)
+                    else -> PlacedPoint(label.right + margin, a.y) to PlacedPoint(label.left - margin, a.y)
+                }
+                out += PathStep.LineTo(enter.draw())
+                out += PathStep.MoveTo(leave.draw())
+            }
+            out += PathStep.LineTo(b.draw())
+        }
+        return out
+    }
+
     /** The line stopped short of its end, for its tip not to pass through the head. */
     private fun shortened(points: List<PlacedPoint>, by: Float): List<PlacedPoint> {
         if (points.size < 2) return points
@@ -331,6 +401,8 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
 
     private companion object {
         const val MAX_LINES = 3
+        // How close to a side of its box a line's end counts as standing on it, in pixels
+        const val ON_SIDE = 1f
         const val ELLIPSIS = "…"
         const val GROUP_PADDING = 8f
         const val SURFACE_OPACITY = 0.22f

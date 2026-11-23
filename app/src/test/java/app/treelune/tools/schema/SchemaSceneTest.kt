@@ -1,6 +1,8 @@
 package app.treelune.tools.schema
 
+import app.treelune.core.drawing.DrawPoint
 import app.treelune.core.drawing.DrawShape
+import app.treelune.core.drawing.PathStep
 import app.treelune.core.selection.Reference
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -113,6 +115,51 @@ class SchemaSceneTest {
         val json = """{"nodes": [{"id": "A", "thing": {"kind": "TOOL_INSTANCE", "id": "t"}}]}"""
         assertTrue("Weight" in scene(json, names = { "Weight" }).labels())
         assertTrue("deleted" in scene(json).labels())
+    }
+
+    @Test
+    fun `an arrow reaches the real outline of a diamond, beside its middle too`() {
+        val scene = scene("""{"nodes": [{"id": "A", "label": "left one"}, {"id": "B", "label": "right one"}, {"id": "D", "label": "a wide decision", "shape": "diamond"}],
+            "edges": [{"from": "A", "to": "D"}, {"from": "B", "to": "D"}]}""")
+        val diamond = scene.hits.first { (it.second as? SchemaTouch.Box)?.node?.id == "D" }.first
+        scene.heads().forEach { head ->
+            val middle = (diamond.left + diamond.right) / 2
+            val offCenter = kotlin.math.abs(head.at.x - middle) / ((diamond.right - diamond.left) / 2)
+            val outline = diamond.top + (diamond.bottom - diamond.top) / 2 * offCenter
+            assertEquals(outline, head.at.y + head.size / 2, 1f)
+        }
+    }
+
+    @Test
+    fun `a line never runs through the text of its arrow`() {
+        val scene = scene("""{"nodes": [{"id": "A", "label": "a"}, {"id": "B", "label": "b"}], "edges": [{"from": "A", "to": "B", "label": "feeds"}]}""")
+        val label = scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first { it.text == "feeds" }
+        val top = label.at.y - text.height / 2
+        val bottom = label.at.y + text.height / 2
+        val line = scene.drawing.shapes.filterIsInstance<DrawShape.Path>().first { path -> path.steps.count { it is PathStep.MoveTo } == 2 }
+        var from: DrawPoint? = null
+        line.steps.forEach { step ->
+            when (step) {
+                is PathStep.MoveTo -> from = step.to
+                is PathStep.LineTo -> {
+                    assertFalse(minOf(from!!.y, step.to.y) < bottom && maxOf(from!!.y, step.to.y) > top)
+                    from = step.to
+                }
+                else -> Unit
+            }
+        }
+    }
+
+    @Test
+    fun `a loop through a group starts at the box nothing reaches`() {
+        val scene = scene("""{
+            "nodes": [{"id": "end", "label": "last"}, {"id": "start", "label": "start"}, {"id": "next", "label": "next"}],
+            "edges": [{"from": "start", "to": "next"}, {"from": "next", "to": "end"}, {"from": "end", "to": "next"}],
+            "groups": [{"id": "G", "title": "Group", "members": ["start", "next"]}]
+        }""")
+        val y = { name: String -> scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first { it.text == name }.at.y }
+        assertTrue(y("start") < y("next"))
+        assertTrue(y("next") < y("last"))
     }
 
     @Test
