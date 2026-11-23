@@ -139,7 +139,7 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 - Plusieurs conditions sur un élément : toutes, ou N parmi M ?
 - « En cours » : un état qu'on écrit, ou simplement ce qui est ouvert et pas encore atteint ?
 - Un recul en chaîne (une rechute qui fait redescendre de deux niveaux) : un geste groupé, ou un `set` sur ce qui dépend de la brique.
-- Le passage, maintenant que `set` sait tout remettre à faire : ce qu'il lui reste en propre (délimiter un parcours, garder sa copie du plan, porter son bilan).
+- Supprimer un mouvement qui a déclenché un `set` : les mouvements écrits par ce `set` restent, ce qui contredit « une erreur se corrige en supprimant le mouvement ».
 - Les champs supplémentaires d'un élément dans le plan (sa consigne, sa séance).
 - Retirer un élément du plan : son identifiant ne doit pas être une option d'un champ Choix obligatoire, dont le retrait supprimerait ses mouvements (`EntryMigration`).
 - Toucher un élément : son texte et un lien vers un geste (lancer sa séance) ; à améliorer.
@@ -163,4 +163,4 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 
 ## Reprise
 
-Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception. Reprendre à ce que devient le passage maintenant que `set` existe, puis le choix exclusif (9). La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
+Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception. Le passage reste, à la racine seulement : il délimite un parcours, fige son plan et porte son bilan, là où `set` ne change que des états. Reprendre à la complexité de l'ensemble et à ce qu'une première version garderait, puis le choix exclusif (9). La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
