@@ -35,15 +35,15 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
     {"from": "A", "to": "B", "label": "nourrit", "line": "dotted"}
   ],
   "groups": [
-    {"id": "matin", "title": "Le matin", "nodes": ["A", "B"]}
+    {"id": "matin", "title": "Le matin", "members": ["A", "B"]}
   ]
 }
 ```
 
 - **Direction** : `TD` (de haut en bas) ou `BT` (de bas en haut). Pas de `LR` ni de `RL` : de gauche à droite, un schéma déborde en portrait.
-- **Formes** : rectangle, coins arrondis, pilule, cercle, losange, sous les noms de la syntaxe `@{ shape: … }` de Mermaid 11 (à vérifier).
+- **Formes** : rectangle, coins arrondis, pilule, cercle, losange, sous les noms de la syntaxe `@{ shape: … }` de Mermaid 11 : `rect`, `rounded`, `stadium`, `circle`, `diamond`.
 - **Flèches** : un trait normal, pointillé ou épais, avec ou sans pointe, un texte facultatif.
-- **Groupes** : imbriquables, un titre, `folded` pour s'ouvrir replié.
+- **Groupes** : imbriquables, un titre, `folded` pour s'ouvrir replié ; `members` liste leurs boîtes et leurs sous-groupes, un identifiant ne servant qu'une fois parmi les deux.
 - **Couleur et texture** : sur une boîte ou un groupe, au plus une couleur d'étiquette et une texture, par leurs noms enregistrés ; le thème les dessine, jamais une couleur écrite en dur. Dans le thème E-reader, où une couleur est un motif, couleur et texture vont sur deux surfaces différentes de la boîte, comme pour une icône colorée.
 - **Le lien d'une boîte** : la brique Chose (`Reference`, `{"kind", "id"}`), choisie par le navigateur des choses. Une boîte liée sans `label` porte le nom actuel de sa chose, « supprimée » si elle n'est plus ; avec `label`, le sien.
 - Une flèche ou un groupe qui nomme une boîte absente est refusé, le refus nommant l'id.
@@ -96,7 +96,17 @@ Jugé visuellement acceptable par l'utilisateur à ce stade.
 
 ## Reprise
 
-Le chantier vit dans le worktree `.claude/worktrees/schema`, branche `schema` (`local.properties` y est copié ; `TODO.md` n'y existe pas). Fait : le placement et son banc. Reste, à décider d'abord avec l'utilisateur : arrêter là sur le placement et passer à l'outil (config, vérification, dessin, écran, tuile), ou pousser encore les coudes des schémas à groupes.
+Le chantier vit dans le worktree `.claude/worktrees/schema`, branche `schema` (`local.properties` y est copié ; `TODO.md` n'y existe pas).
+
+Fait : le placement, la config et sa vérification (`SchemaSpec`), le formulaire tiré de la déclaration, le dessin (`SchemaScene`), l'écran avec le repli des groupes le temps de la visite, la tuile. Rien n'a été vu sur un téléphone.
+
+Reste, dans l'ordre :
+
+1. La texture d'une boîte ou d'un groupe : le réglage est enregistré et vérifié, mais pas dessiné, `core/drawing` n'ayant pas de forme pour elle.
+2. Trop large pour l'écran : le repli automatique des blocs et des groupes, avec sa phrase sous le schéma, puis la réduction jusqu'à 75 % ; aujourd'hui, le dessin défile directement de côté.
+3. Une tuile FULL dont la boîte liée ouvre sa chose : aujourd'hui, tout toucher ouvre l'outil.
+4. L'import et la copie Mermaid, qui demandent un nœud d'action au formulaire du core.
+5. L'entrée du Schéma dans `docs/TOOLS.md`, à l'élagage de cette conception.
 
 Les contraintes du chantier :
 
@@ -110,7 +120,6 @@ Le schéma écrit est conçu ; ce qui suit reste à trancher ou à vérifier.
 
 À vérifier avant ou pendant le code :
 
-- Les noms de forme de la syntaxe `@{ shape: … }` de Mermaid 11, repris pour `shape`.
 - La section de boutons d'action (« Importer du Mermaid », « Copier en Mermaid ») : `SettingNode` n'a aucun nœud d'action, et « Essayer » d'une API est écrit à la main dans `ApisScreen`, donc pas un précédent. Il faut un ajout au formulaire du core, à concevoir.
 
 À juger sur le téléphone :
