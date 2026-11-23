@@ -30,8 +30,11 @@ interface SchemaText {
 
 /** What a touch on a schema found. */
 sealed interface SchemaTouch {
-    /** A box: its [node], its whole [text], and whether the drawing [cut] it. */
-    data class Box(val node: SchemaNode, val text: String, val cut: Boolean) : SchemaTouch
+    /**
+     * A box: its [node], its whole [text], whether the drawing [cut] it, and the thing it can
+     * [open]: its link, unless what it designates no longer exists.
+     */
+    data class Box(val node: SchemaNode, val text: String, val cut: Boolean, val open: Reference?) : SchemaTouch
 
     /** A group's title, or the box a folded group is drawn as. */
     data class Group(val id: String) : SchemaTouch
@@ -107,6 +110,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         val color: TagColor?,
         val node: SchemaNode?,
         val group: SchemaGroup?,
+        val open: Reference?,
         val width: Float,
         val height: Float
     )
@@ -120,10 +124,10 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         val textLimit = min(width * 0.42f, dp(150f))
         val boxes = visible.nodes.map { node ->
             val whole = node.label ?: node.thing?.let(nameOf) ?: own("thing_deleted")
-            measure(node.id, whole, node.shape, node.color, node, null, textLimit)
+            measure(node.id, whole, node.shape, node.color, node, null, node.thing?.takeIf { nameOf(it) != null }, textLimit)
         } + visible.foldedGroups.map { group ->
             val whole = own("group_folded").format(group.title, visible.boxCount(group))
-            measure(group.id, whole, SchemaShape.RECT, group.color, null, group, textLimit)
+            measure(group.id, whole, SchemaShape.RECT, group.color, null, group, null, textLimit)
         }
         val byId = boxes.associateBy { it.id }
 
@@ -195,10 +199,8 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             shapes += DrawShape.Path(outline, stroke(box.color, InkLevel.MEDIUM), 1f, if (box.group != null) max(unit * 2, dp(2.5f)) else thin(), null, false)
             val centerX = (rect.left + rect.right) / 2
             val top = (rect.top + rect.bottom) / 2 - box.lines.size * text.height / 2
-            box.lines.forEachIndexed { i, line ->
-                shapes += DrawShape.Label(line, DrawPoint(centerX, top + i * text.height), TextAnchor.MIDDLE, TextBaseline.TOP, DrawColor.Ink(InkLevel.STRONG))
-            }
-            hits += rect to (box.group?.let { SchemaTouch.Group(it.id) } ?: SchemaTouch.Box(box.node!!, box.whole, box.cut))
+            writeLines(box, centerX, top, shapes)
+            hits += rect to (box.group?.let { SchemaTouch.Group(it.id) } ?: SchemaTouch.Box(box.node!!, box.whole, box.cut, box.open))
         }
         return SchemaScene(Drawing(placement.width, placement.height, shapes), hits)
     }
@@ -219,15 +221,43 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         SchemaShape.RECT, SchemaShape.ROUNDED, SchemaShape.STADIUM -> null
     }
 
+    /**
+     * A box's text. What is underlined can be touched: the whole text of a linked box, and the
+     * word that closes a cut text, which a touch shows whole.
+     */
+    private fun writeLines(box: Measured, centerX: Float, top: Float, shapes: MutableList<DrawShape>) {
+        val ink = DrawColor.Ink(InkLevel.STRONG)
+        val linked = box.open != null
+        fun underline(from: Float, to: Float, lineTop: Float) {
+            val y = lineTop + text.height - dp(1f)
+            shapes += DrawShape.Segment(DrawPoint(from, y), DrawPoint(to, y), ink, max(unit, dp(1f)), null)
+        }
+        box.lines.forEachIndexed { i, line ->
+            val lineTop = top + i * text.height
+            if (box.cut && i == box.lines.lastIndex) {
+                val more = own("cut_more")
+                val start = centerX - text.width("$line $more") / 2
+                val moreStart = start + text.width("$line ")
+                shapes += DrawShape.Label(line, DrawPoint(start, lineTop), TextAnchor.START, TextBaseline.TOP, ink)
+                shapes += DrawShape.Label(more, DrawPoint(moreStart, lineTop), TextAnchor.START, TextBaseline.TOP, ink)
+                if (linked) underline(start, start + text.width(line), lineTop)
+                underline(moreStart, moreStart + text.width(more), lineTop)
+            } else {
+                shapes += DrawShape.Label(line, DrawPoint(centerX, lineTop), TextAnchor.MIDDLE, TextBaseline.TOP, ink)
+                if (linked) text.width(line).let { underline(centerX - it / 2, centerX + it / 2, lineTop) }
+            }
+        }
+    }
+
     private fun thin() = max(unit, dp(1.5f))
 
     private fun fill(color: TagColor?): DrawColor = color?.let { DrawColor.Palette(it) } ?: DrawColor.Ink(InkLevel.FAINT)
 
     private fun stroke(color: TagColor?, level: InkLevel): DrawColor = color?.let { DrawColor.Palette(it) } ?: DrawColor.Ink(level)
 
-    private fun measure(id: String, whole: String, shape: SchemaShape, color: TagColor?, node: SchemaNode?, group: SchemaGroup?, limit: Float): Measured {
+    private fun measure(id: String, whole: String, shape: SchemaShape, color: TagColor?, node: SchemaNode?, group: SchemaGroup?, open: Reference?, limit: Float): Measured {
         val (lines, cut) = wrap(whole, limit)
-        val textWidth = lines.maxOfOrNull { text.width(it) } ?: 0f
+        val textWidth = lines.mapIndexed { i, line -> text.width(if (cut && i == lines.lastIndex) "$line ${own("cut_more")}" else line) }.maxOrNull() ?: 0f
         val w = textWidth + 2 * dp(10f)
         val h = lines.size * text.height + 2 * dp(6f)
         val (width, height) = when (shape) {
@@ -236,7 +266,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             SchemaShape.CIRCLE -> max(w, h).let { it * 1.1f to it * 1.1f }
             SchemaShape.DIAMOND -> w * 1.6f to h * 1.7f
         }
-        return Measured(id, lines, whole, cut, shape, color, node, group, width, height)
+        return Measured(id, lines, whole, cut, shape, color, node, group, open, width, height)
     }
 
     /** [whole] on three lines at most, cut with an ellipsis beyond; whether it was cut. */
@@ -254,7 +284,8 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         if (current.isNotEmpty()) lines += current
         if (lines.size <= MAX_LINES) return lines to false
         val kept = lines.take(MAX_LINES)
-        return kept.dropLast(1) + ellipsize(kept.last() + ELLIPSIS, limit) to true
+        // The last line leaves room for the word that says there is more
+        return kept.dropLast(1) + ellipsize(kept.last() + ELLIPSIS, limit - text.width(" ${own("cut_more")}")) to true
     }
 
     /** A word wider than a line, in pieces that fit. */

@@ -3,8 +3,10 @@ package app.treelune.tools.schema.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -15,11 +17,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.strings.Strings
 import app.treelune.core.tools.ToolConfigSettings
 import app.treelune.core.ui.ButtonAction
-import app.treelune.core.ui.CardType
+import app.treelune.core.ui.ButtonType
+import app.treelune.core.ui.DialogType
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
 import app.treelune.core.ui.pageScroll
@@ -49,7 +53,8 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
     var version by remember { mutableIntStateOf(0) }
     // Groups folded for this visit, starting from what the config says; a config changed starts over
     var folded by remember { mutableStateOf<Set<String>?>(null) }
-    var shownText by remember { mutableStateOf<String?>(null) }
+    // The box whose whole text is open in a window
+    var opened by remember { mutableStateOf<SchemaTouch.Box?>(null) }
     val pageScrollState = rememberScrollState()
 
     LaunchedEffect(toolInstanceId, version) {
@@ -66,7 +71,7 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
         reading = read
         if (changed || folded == null) {
             folded = (read as? SchemaReading.Drawn)?.spec?.groups.orEmpty().filter { it.folded }.map { it.id }.toSet()
-            shownText = null
+            opened = null
         }
     }
     LaunchedEffect(toolInstanceId) {
@@ -95,24 +100,32 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
                 val shownFolded = folded.orEmpty()
                 SchemaView(read, shownFolded, onTouch = { touch ->
                     when (touch) {
-                        is SchemaTouch.Group -> {
-                            folded = if (touch.id in shownFolded) shownFolded - touch.id else shownFolded + touch.id
-                            shownText = null
-                        }
+                        is SchemaTouch.Group -> folded = if (touch.id in shownFolded) shownFolded - touch.id else shownFolded + touch.id
                         is SchemaTouch.Box -> {
-                            val thing = touch.node.thing
-                            shownText = when {
-                                thing != null -> { scope.launch { openThing(thing, context) }; null }
-                                touch.cut -> touch.text
-                                else -> null
+                            val thing = touch.open
+                            when {
+                                touch.cut -> opened = touch
+                                thing != null -> scope.launch { openThing(thing, context) }
                             }
                         }
                     }
                 }, pageScroll = pageScrollState)
-                shownText?.let { whole ->
-                    UI.Card(type = CardType.DEFAULT) {
-                        Column(modifier = Modifier.padding(UI.Space.M)) { UI.Text(whole, TextType.BODY) }
-                    }
+            }
+        }
+    }
+
+    opened?.let { box ->
+        UI.Dialog(type = DialogType.INFO, onConfirm = { opened = null }, onCancel = { opened = null }) {
+            Column(
+                modifier = Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(UI.Space.M)
+            ) {
+                UI.Text(box.text, TextType.BODY)
+                box.open?.let { thing ->
+                    UI.Button(type = ButtonType.DEFAULT, onClick = {
+                        opened = null
+                        scope.launch { openThing(thing, context) }
+                    }) { UI.Text(s.tool("open_thing"), TextType.LABEL) }
                 }
             }
         }

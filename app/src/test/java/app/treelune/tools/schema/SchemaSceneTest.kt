@@ -23,6 +23,7 @@ class SchemaSceneTest {
         when (key) {
             "group_folded" -> "%1\$s (%2\$d)"
             "thing_deleted" -> "deleted"
+            "cut_more" -> "more"
             else -> key
         }
     }
@@ -101,8 +102,10 @@ class SchemaSceneTest {
     fun `a long text is cut on three lines, and the touch gives it whole`() {
         val long = List(40) { "word" }.joinToString(" ")
         val scene = scene("""{"nodes": [{"id": "A", "label": "$long"}]}""")
-        assertEquals(3, scene.labels().size)
-        assertTrue(scene.labels().last().endsWith("…"))
+        assertEquals(listOf("more"), scene.labels().takeLast(1))
+        assertEquals(4, scene.labels().size)
+        assertTrue(scene.labels()[2].endsWith("…"))
+        assertEquals(1, scene.drawing.shapes.filterIsInstance<DrawShape.Segment>().size)
         val line = scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first()
         val touch = scene.hitAt(line.at.x, line.at.y + 2f) as? SchemaTouch.Box
         assertNotNull(touch)
@@ -183,6 +186,16 @@ class SchemaSceneTest {
         scene.drawing.shapes.filterIsInstance<DrawShape.Path>().filter { !it.filled }.mapNotNull { it.steps.firstOrNull() as? PathStep.MoveTo }
             .filter { kotlin.math.abs(it.to.y - (diamond.top + diamond.bottom) / 2) < (diamond.bottom - diamond.top) / 2 + 1f && it.to.y > (diamond.top + diamond.bottom) / 2 }
             .forEach { assertTrue(kotlin.math.abs(it.to.x - middle) <= reach) }
+    }
+
+    @Test
+    fun `only what a touch acts on is underlined`() {
+        val plain = scene("""{"nodes": [{"id": "A", "label": "plain"}]}""")
+        assertTrue(plain.drawing.shapes.none { it is DrawShape.Segment })
+        val linked = scene("""{"nodes": [{"id": "A", "label": "linked", "thing": {"kind": "ZONE", "id": "z"}}]}""")
+        assertTrue(linked.drawing.shapes.none { it is DrawShape.Segment })
+        val found = scene("""{"nodes": [{"id": "A", "label": "linked", "thing": {"kind": "ZONE", "id": "z"}}]}""", names = { "Zone" })
+        assertEquals(1, found.drawing.shapes.count { it is DrawShape.Segment })
     }
 
     @Test
