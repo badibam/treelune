@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 121
+        const val VERSION = 120
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2364,22 +2364,17 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
-         * A zone no longer names an identity: a conversation routine with one does what its card
-         * did. The column goes, the history's copies without it; what the zones named is not kept.
-         */
-        private val MIGRATION_120_121 = object : ConnectionMigration(120, 121) {
-            override fun migrate(database: MigrationDatabase) {
-                database.execSQL("ALTER TABLE zones DROP COLUMN identity_id")
-                app.treelune.core.versioning.HistoryCopies.rewrite(database, "zones") { copy -> copy.apply { remove("identity_id") } }
-                LogManager.database("MIGRATION 120->121: zones.identity_id dropped", "INFO")
-            }
-        }
-
-        /**
          * A readout reaches its zone's tile only as a piece of the tile: each readout that ticked
          * the place `zone_tile` joins its zone's `tile_pieces`, the place leaving its settings, the
          * history's copies with them: see ReadoutTilePiecesAtV120. A zone's tile draws its pieces in
          * text or in icons: its column `tile_pieces_icons`, in text for every zone.
+         *
+         * A zone no longer names an identity: a conversation routine with one does what its card
+         * did. The column goes, the history's copies without it; what the zones named is not kept.
+         *
+         * A file says whether it is a link (`linked`), a link's address being optional: every row
+         * with a `uri` is one. The history's copies say it too, since a copy holding a `uri`
+         * without it would be put back as a kept file with an address, which FileEntity refuses.
          */
         private val MIGRATION_119_120 = object : ConnectionMigration(119, 120) {
             override fun migrate(database: MigrationDatabase) {
@@ -2416,7 +2411,14 @@ abstract class AppDatabase : RoomDatabase() {
                     }
                     copy
                 }
-                LogManager.database("MIGRATION 119->120: ${moved.size} readout(s) moved into their zone's tile pieces", "INFO")
+                database.execSQL("ALTER TABLE zones DROP COLUMN identity_id")
+                app.treelune.core.versioning.HistoryCopies.rewrite(database, "zones") { copy -> copy.apply { remove("identity_id") } }
+                database.execSQL("ALTER TABLE files ADD COLUMN linked INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("UPDATE files SET linked = 1 WHERE uri IS NOT NULL")
+                app.treelune.core.versioning.HistoryCopies.rewrite(database, "files") { copy ->
+                    copy.put("linked", if (copy.has("uri") && !copy.isNull("uri")) 1 else 0)
+                }
+                LogManager.database("MIGRATION 119->120: ${moved.size} readout(s) moved into their zone's tile pieces, zones.identity_id dropped, files.linked added", "INFO")
             }
         }
 
@@ -3716,8 +3718,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_116_117,
                     MIGRATION_117_118,
                     MIGRATION_118_119,
-                    MIGRATION_119_120,
-                    MIGRATION_120_121
+                    MIGRATION_119_120
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the
