@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,6 +50,7 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
     // Groups folded for this visit, starting from what the config says; a config changed starts over
     var folded by remember { mutableStateOf<Set<String>?>(null) }
     var shownText by remember { mutableStateOf<String?>(null) }
+    val pageScrollState = rememberScrollState()
 
     LaunchedEffect(toolInstanceId, version) {
         val tool = coordinator.processUserAction("tools.get", mapOf("tool_instance_id" to toolInstanceId))
@@ -72,7 +74,7 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(vertical = UI.Space.L).pageScroll(),
+        modifier = Modifier.fillMaxSize().padding(vertical = UI.Space.L).pageScroll(pageScrollState),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         val settings = config?.let { ToolConfigSettings.read(SchemaToolType, it, context) }
@@ -106,7 +108,7 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
                             }
                         }
                     }
-                })
+                }, pageScroll = pageScrollState)
                 shownText?.let { whole ->
                     UI.Card(type = CardType.DEFAULT) {
                         Column(modifier = Modifier.padding(UI.Space.M)) { UI.Text(whole, TextType.BODY) }
