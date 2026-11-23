@@ -1022,6 +1022,8 @@ private fun Summary(summary: List<String>, nodes: List<SettingNode>, element: JS
             // Values side by side would read as one phrase ("Weighed on Date and time")
             if (i > 0) UI.Text(Strings.`for`(context = context).shared("list_item_summary_separator"), TextType.BODY)
             if (isList && value is List<*>) value.forEach { FieldValue(definition, it, context) }
+            // A closed line stays a line: a long text is read by opening the element
+            else if (definition.type == app.treelune.core.fields.FieldType.TEXT) UI.Text(value.toString(), TextType.BODY, maxLines = 2, fillMaxWidth = false)
             else FieldValue(definition, value, context)
         }
     }
