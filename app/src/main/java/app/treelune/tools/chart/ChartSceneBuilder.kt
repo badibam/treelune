@@ -274,7 +274,9 @@ class ChartSceneBuilder(
         private fun place(): List<Placed> {
             val used = layer.encoding.values.mapNotNull { it.field }.toSet()
             val placed = table.rows.map { row ->
-                val failure = used.firstNotNullOfOrNull { row.failure(it) }
+                // A real failure before an absence of entries, which a line would pass over
+                val failures = used.mapNotNull { row.failure(it) }
+                val failure = failures.firstOrNull { !it.noEntry } ?: failures.firstOrNull()
                 val x2 = layer.channel(Channel.X2)?.field?.let { f -> table.columns[f]?.let { ChartValues.number(it, row.value(f), calendar) } }
                     ?: xField?.let { ChartValues.end(it, xDef?.field?.let(row::value)) }
                 val y2 = layer.channel(Channel.Y2)?.field?.let { f -> table.columns[f]?.let { ChartValues.number(it, row.value(f), calendar) } }
@@ -667,7 +669,11 @@ class ChartSceneBuilder(
         hits.add(Hit(r.row, p.table.columns, point = at))
     }
 
-    /** Lines and areas: a series per color, detail and dash, in the order of the horizontal axis, broken where a value is missing. */
+    /**
+     * Lines and areas: a series per color, detail and dash, in the order of the horizontal axis. A
+     * step without any entry is passed over, its neighbours joined; a value that failed otherwise
+     * or an empty one breaks the series.
+     */
     private fun drawSeries(p: Prepared, xAxis: Axis, yAxis: Axis, plot: DrawRect) {
         val bySeries = p.rows.groupBy { colors.seriesKey(p.layer, it.row) }
         bySeries.values.sortedBy { rows -> colors.rank(p.layer, rows.first().row) }.forEach { rows ->
@@ -681,6 +687,7 @@ class ChartSceneBuilder(
                 current = mutableListOf(); baseline = mutableListOf()
             }
             sorted.forEach { r ->
+                if (r.failure?.noEntry == true) return@forEach
                 val x = xAxis.position(r.x)
                 val value = r.to ?: (r.y as? Pos.Num)?.value
                 if (r.failure != null || x == null || value == null) { cut(); return@forEach }

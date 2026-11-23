@@ -168,6 +168,23 @@ class ChartSceneBuilderTest {
     }
 
     @Test
+    fun `a line passes over a step without entries, and breaks on a value that failed otherwise`() {
+        fun scene(failed: Cell.Failed): ChartLayout {
+            val table = ChartTable(mapOf("timestamp" to timestamp, "w" to numeric("w")), (1..5).map { d ->
+                Row(mapOf("timestamp" to Cell.Value(day(d)), "w" to if (d == 3) failed else Cell.Value(70.0 + d)))
+            })
+            val layer = """{"source": "grid", "step": "day", "columns": [{"name": "w", "term": {"variable": "v"}}], "mark": {"type": "line", "point": true},
+                "encoding": {"x": {"field": "timestamp"}, "y": {"field": "w", "scale": {"zero": false}}}}"""
+            return builder().build(spec(layer), listOf(table), day(1) to day(5), 400f)
+        }
+        val joined = marks(scene(Cell.Failed("no entry", emptyList(), noEntry = true)))
+        assertEquals(1, joined.filterIsInstance<DrawShape.Path>().size)
+        // No point stands on the step passed over
+        assertEquals(4, joined.filterIsInstance<DrawShape.Symbol>().size)
+        assertEquals(2, marks(scene(Cell.Failed("no value", listOf("e3")))).filterIsInstance<DrawShape.Path>().size)
+    }
+
+    @Test
     fun `a pie's slices share the circle in the colors' order`() {
         val table = ChartTable(mapOf("macro" to FieldDefinition("macro", "Macro", null, FieldType.TEXT, false, null), "g" to numeric("g")), listOf(
             Row(mapOf("macro" to Cell.Value("prot"), "g" to Cell.Value(100.0))),
