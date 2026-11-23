@@ -119,6 +119,8 @@ Liste à valider, pour vérifier que les scènes couvrent assez de combinaisons 
 
 - `set` n'est pas une Tâche : il ne touche que les briques de sa progression et n'écrit rien. Une date ou une donnée externe n'entre que par « quand la règle devient vraie », qui écrit un vrai mouvement. Pour agir ailleurs, la progression émet un événement qu'une Tâche écoute. Un plafond doit empêcher un effet d'en relancer un autre sans fin, et le coût du rejeu reste à mesurer.
 
+- Le choix exclusif (scène 9) tient : des options dans un groupe, chacune disponible si aucune de ses voisines (`self.siblings`) n'est commencée. Deux briques qui dépendent l'une de l'autre lisent `last_move`, un fait du journal, plutôt que `status`, qui formerait une boucle ; la vue expose cette colonne, et l'enregistrement refuse une règle circulaire.
+
 Exemple :
 
 ```text
@@ -135,7 +137,6 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 ## Ouvert
 
 - Le nom de la brique.
-- Le choix exclusif (la reconversion, scène 9). Piste : un lien « exclut », la brique n'étant disponible que si aucune brique visée n'est commencée.
 - Quelles scènes l'outil doit-il vraiment couvrir, et où s'arrête-t-il ?
 - Plusieurs conditions sur un élément : toutes, ou N parmi M ?
 - « En cours » : un état qu'on écrit, ou simplement ce qui est ouvert et pas encore atteint ?
@@ -163,4 +164,4 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 
 ## Reprise
 
-Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception. Le passage reste, à la racine seulement : il délimite un parcours, fige son plan et porte son bilan, là où `set` ne change que des états. Reprendre à la complexité de l'ensemble, jugée lourde et non tranchée, et à ce qu'une première version garderait. Piste en attente : un écran de config qui montre d'abord des cases à cocher et trois réglages (`opens_when`, `done_when`, `expires_after`), traduits en règles d'état. Puis le choix exclusif (9). La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
+Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception. Le passage reste, à la racine seulement : il délimite un parcours, fige son plan et porte son bilan, là où `set` ne change que des états. Reprendre à la complexité de l'ensemble, jugée lourde et non tranchée, et à ce qu'une première version garderait. Piste en attente : un écran de config qui montre d'abord des cases à cocher et trois réglages (`opens_when`, `done_when`, `expires_after`), traduits en règles d'état. Avant l'écran et les modèles, finir de tester les scènes en vraie syntaxe : la maison (12), puis le marathon (5). La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
