@@ -2,7 +2,6 @@ package app.treelune.tools.schema
 
 import app.treelune.core.fields.ReferenceTarget
 import app.treelune.core.selection.Reference
-import app.treelune.core.themes.Texture
 import app.treelune.core.validation.FieldLimits
 import org.json.JSONArray
 import org.json.JSONObject
@@ -33,7 +32,7 @@ data class MermaidImport(
  * Mermaid's flowchart text, in and out (docs/design/schema.md, « La saisie »). Never stored: the
  * config stays JSON. Reading takes what a schema can hold and says what it changes: a sideways
  * direction, a shape it does not have, a link end, an arrow to a group, the styling it ignores.
- * A box or a group whose id stays keeps what Mermaid cannot say: its link, color and texture.
+ * A box or a group whose id stays keeps what Mermaid cannot say: its link and color.
  *
  * @param own The schema tool's strings
  */
@@ -245,9 +244,7 @@ class SchemaMermaid(private val own: (String) -> String) {
     }
 
     private fun copyLook(from: JSONObject?, to: JSONObject) {
-        listOf(SchemaKeys.COLOR, Texture.KEY).forEach { key ->
-            from?.takeUnless { it.isNull(key) }?.opt(key)?.let { to.put(key, it) }
-        }
+        from?.takeUnless { it.isNull(SchemaKeys.COLOR) }?.opt(SchemaKeys.COLOR)?.let { to.put(SchemaKeys.COLOR, it) }
     }
 
     private fun checkLength(text: String, limit: Int, line: Int?) {

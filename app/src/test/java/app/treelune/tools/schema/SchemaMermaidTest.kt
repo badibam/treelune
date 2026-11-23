@@ -186,13 +186,12 @@ class SchemaMermaidTest {
     @Test
     fun `a box whose id stays keeps what Mermaid cannot say`() {
         val existing = JSONObject("""{
-            "nodes": [{"id": "A", "label": "old", "color": "RED", "texture": "WAVES", "thing": {"kind": "ZONE", "id": "z"}}],
+            "nodes": [{"id": "A", "label": "old", "color": "RED", "thing": {"kind": "ZONE", "id": "z"}}],
             "groups": [{"id": "G", "title": "old", "color": "BLUE", "folded": true, "members": ["A"]}]
         }""")
         val s = spec("flowchart TD\nsubgraph G [New]\nA[new]\nend", existing)
         assertEquals("new", s.nodes[0].label)
         assertEquals("RED", s.nodes[0].color?.name)
-        assertEquals("WAVES", s.nodes[0].texture?.name)
         assertEquals("z", s.nodes[0].thing?.id)
         assertEquals("BLUE", s.groups[0].color?.name)
         assertTrue(s.groups[0].folded)
@@ -229,7 +228,7 @@ class SchemaMermaidTest {
 
     private companion object {
         val COUNTS = mapOf(
-            "error_shape" to 2, "error_color" to 2, "error_texture" to 2, "error_group_unknown_member" to 2,
+            "error_shape" to 2, "error_color" to 2, "error_group_unknown_member" to 2,
             "error_line" to 3, "error_node_two_groups" to 3, "error_group_two_parents" to 3,
             "error_id_missing" to 0, "error_edge_end" to 0,
             "mermaid_error_syntax" to 2, "mermaid_error_unclosed" to 2, "mermaid_error_empty_group" to 2,

@@ -18,7 +18,7 @@ class SchemaSpecTest {
     /** How many values a refusal names, where it is not one. */
     private val valuesOf = mapOf(
         "error_id_missing" to 0, "error_edge_end" to 0,
-        "error_shape" to 2, "error_color" to 2, "error_texture" to 2,
+        "error_shape" to 2, "error_color" to 2,
         "error_group_unknown_member" to 2,
         "error_line" to 3, "error_node_two_groups" to 3, "error_group_two_parents" to 3
     )
@@ -38,7 +38,7 @@ class SchemaSpecTest {
         val spec = read("""{
             "direction": "BT",
             "nodes": [
-                {"id": "A", "shape": "diamond", "thing": {"kind": "TOOL_INSTANCE", "id": "t1"}, "color": "RED", "texture": "WAVES"},
+                {"id": "A", "shape": "diamond", "thing": {"kind": "TOOL_INSTANCE", "id": "t1"}, "color": "RED"},
                 {"id": "B", "label": "Ce qu'il me reste"}
             ],
             "edges": [{"from": "A", "to": "B", "label": "nourrit", "line": "dotted", "head": false}],

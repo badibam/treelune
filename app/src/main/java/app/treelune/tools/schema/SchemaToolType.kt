@@ -16,7 +16,6 @@ import app.treelune.core.selection.ReferenceKind
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.strings.Strings
 import app.treelune.core.themes.TagColor
-import app.treelune.core.themes.Texture
 import app.treelune.core.tools.EntryToOpen
 import app.treelune.core.tools.ToolTile
 import app.treelune.core.tools.ToolTypeContract
@@ -60,18 +59,14 @@ object SchemaToolType : ToolTypeContract {
     private fun choice(values: List<String>, labels: (String) -> String): Map<String, Any> =
         mapOf("options" to ChoiceSettings.storedOptions(values, values.associateWith(labels), emptyMap()))
 
-    /** At most one color of the palette and one texture, by their names: the theme draws them. */
+    /** At most one color of the palette, by its name: the theme draws it. */
     private fun look(context: Context): List<SettingNode> {
         val s = s(context)
         val shared = Strings.`for`(context = context)
         val colors = TagColor.entries.map { it.name }
-        // A box has no icon to make the ICON texture of
-        val textures = Texture.entries.filter { it.hasCell }.map { it.name }
         return listOf(
             SettingNode.Field(field(SchemaKeys.COLOR, s.tool("field_color"), FieldType.CHOICE, s.tool("schema_color"), mapOf("options" to ChoiceSettings.storedOptions(
-                colors, colors.associateWith { shared.shared("tag_color_${it.lowercase()}") }, TagColor.entries.associate { it.name to it })))),
-            SettingNode.Field(field(Texture.KEY, s.tool("field_texture"), FieldType.CHOICE, s.tool("schema_texture"),
-                choice(textures) { shared.shared("texture_${it.lowercase()}") }))
+                colors, colors.associateWith { shared.shared("tag_color_${it.lowercase()}") }, TagColor.entries.associate { it.name to it }))))
         )
     }
 

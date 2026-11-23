@@ -3,7 +3,7 @@
     <!-- Strings of the schema tooltype -->
     <string name="display_name">Schema</string>
     <string name="usage">For drawing boxes and arrows: an organisation, a loop, what feeds what.\n## What it does\n- Draws them at the phone\'s width, top to bottom or bottom to top\n- Groups boxes, one group inside another, folded with a touch\n- A box can link to a thing of the app, whose current name it shows, and open it\n## Not made for\n- A timeline (Agenda), a table (Records), figures (Chart)</string>
-    <string name="guide_config">## The schema\n- Direction: top to bottom, or bottom to top\n\n## Boxes\n- Id: the short name arrows and groups use\n- Text: what the box says\n- Link: a thing of the app, whose name the box shows when it has no text\n- Shape, Color, Texture\n\n## Arrows\n- From, To: two boxes\n- Text on the arrow, Line, Arrowhead\n\n## Groups\n- Id, Title\n- Contents: boxes and other groups\n- Starts folded\n\n## Mermaid\n- Import Mermaid: paste a flowchart; what it gives shows before it replaces the schema\n- Copy as Mermaid: the schema as text, without its links</string>
+    <string name="guide_config">## The schema\n- Direction: top to bottom, or bottom to top\n\n## Boxes\n- Id: the short name arrows and groups use\n- Text: what the box says\n- Link: a thing of the app, whose name the box shows when it has no text\n- Shape, Color\n\n## Arrows\n- From, To: two boxes\n- Text on the arrow, Line, Arrowhead\n\n## Groups\n- Id, Title\n- Contents: boxes and other groups\n- Starts folded\n\n## Mermaid\n- Import Mermaid: paste a flowchart; what it gives shows before it replaces the schema\n- Copy as Mermaid: the schema as text, without its links</string>
     <string name="guide_screen">## The schema\nTouch a linked box to open what it designates, a box whose text is cut to read it whole.\nTouch a group\'s title to fold or unfold it, for this visit: nothing is saved.\nTo change the schema, open its config.</string>
     <string name="ai_detail">A diagram in the vocabulary of Mermaid flowcharts, stored as JSON, never as Mermaid text; convert any Mermaid text you are given. Written for a phone held upright: direction TD or BT only, about ten boxes readable at a glance, short labels. When a box stands for a thing of the app, set its thing rather than a label, so that it follows its name. Arrows join boxes, never groups. Keeps no entries.</string>
     <string name="tagline">Boxes and arrows: an organisation, a loop, what feeds what</string>
@@ -22,7 +22,6 @@
     <string name="shape_circle">Circle</string>
     <string name="shape_diamond">Diamond</string>
     <string name="field_color">Color</string>
-    <string name="field_texture">Texture</string>
     <string name="field_edges">Arrows</string>
     <string name="field_from">From</string>
     <string name="field_to">To</string>
@@ -45,7 +44,6 @@
     <string name="schema_thing">The thing of the app it stands for and opens</string>
     <string name="schema_shape">Its shape, by its Mermaid 11 name</string>
     <string name="schema_color">A palette name, on a box or a group</string>
-    <string name="schema_texture">A texture name, on a box or a group</string>
     <string name="schema_edges">The arrows</string>
     <string name="schema_edge">One arrow between two boxes</string>
     <string name="schema_from">The id of the box it leaves</string>
@@ -105,7 +103,6 @@
     <string name="error_thing">Box “%1$s”: its link does not designate a thing of the app.</string>
     <string name="error_node_empty">Box “%1$s” has neither a text nor a link.</string>
     <string name="error_color">“%1$s”: unknown color “%2$s”.</string>
-    <string name="error_texture">“%1$s”: unknown texture “%2$s”.</string>
     <string name="error_edge_end">An arrow lacks its start or its end.</string>
     <string name="error_edge_unknown">An arrow names the box “%1$s”, which does not exist.</string>
     <string name="error_line">Arrow from “%1$s” to “%2$s”: unknown line “%3$s”.</string>

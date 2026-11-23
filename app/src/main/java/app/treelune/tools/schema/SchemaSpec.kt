@@ -3,7 +3,6 @@ package app.treelune.tools.schema
 import app.treelune.core.fields.ReferenceTarget
 import app.treelune.core.selection.Reference
 import app.treelune.core.themes.TagColor
-import app.treelune.core.themes.Texture
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -63,8 +62,7 @@ data class SchemaNode(
     val label: String?,
     val shape: SchemaShape,
     val thing: Reference?,
-    val color: TagColor?,
-    val texture: Texture?
+    val color: TagColor?
 )
 
 /** An arrow between two boxes; without [head], a plain line. */
@@ -80,8 +78,7 @@ data class SchemaGroup(
     val nodes: List<String>,
     val groups: List<String>,
     val folded: Boolean,
-    val color: TagColor?,
-    val texture: Texture?
+    val color: TagColor?
 )
 
 /**
@@ -128,11 +125,6 @@ data class SchemaSpec(
             TagColor.entries.firstOrNull { it.name == name } ?: refuse(own("error_color").format(id, name))
         }
 
-        private fun texture(json: JSONObject, id: String, own: (String) -> String): Texture? = json.text(Texture.KEY)?.let { name ->
-            // A box or a group has no icon of its own to make a texture of
-            Texture.entries.firstOrNull { it.name == name && it.hasCell } ?: refuse(own("error_texture").format(id, name))
-        }
-
         private fun node(json: JSONObject, own: (String) -> String): SchemaNode {
             val id = json.text(SchemaKeys.ID) ?: refuse(own("error_id_missing"))
             val shape = json.text(SchemaKeys.SHAPE)?.let { SchemaShape.of(it) ?: refuse(own("error_shape").format(id, it)) } ?: SchemaShape.ROUNDED
@@ -140,7 +132,7 @@ data class SchemaSpec(
                 else ReferenceTarget.referenceOf(json.opt(SchemaKeys.THING)) ?: refuse(own("error_thing").format(id))
             val label = json.text(SchemaKeys.LABEL)
             if (label == null && thing == null) refuse(own("error_node_empty").format(id))
-            return SchemaNode(id, label, shape, thing, color(json, id, own), texture(json, id, own))
+            return SchemaNode(id, label, shape, thing, color(json, id, own))
         }
 
         private fun edge(json: JSONObject, own: (String) -> String): SchemaEdge {
@@ -156,7 +148,7 @@ data class SchemaSpec(
             val members = json.strings(SchemaKeys.MEMBERS)
             members.firstOrNull { it !in boxIds && it !in groupIds }?.let { refuse(own("error_group_unknown_member").format(id, it)) }
             return SchemaGroup(id, title, members.filter { it in boxIds }, members.filter { it in groupIds },
-                json.optBoolean(SchemaKeys.FOLDED, false), color(json, id, own), texture(json, id, own))
+                json.optBoolean(SchemaKeys.FOLDED, false), color(json, id, own))
         }
     }
 
