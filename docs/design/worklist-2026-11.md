@@ -16,5 +16,5 @@ La 0.9.11 publiée et le téléphone sont en base 119. Les migrations 120 et 121
 
 ## 6. L'IA
 
-- Le fournisseur « Abonnement Claude », `docs/design/github-worker.md` (Claude Code lancé sur GitHub Actions dans le dépôt de Réglages › GitHub, le jeton de l'abonnement jamais dans l'app), ses vérifications d'abord (« Ouvert », le point 2). Décidé, à revérifier ensemble avant de le coder.
+- Le fournisseur « Recette sur GitHub », `docs/design/github-worker.md` : réécrit le 2026-11-22 sous forme générique (l'app ne sait rien de Claude, la session Claude est une recette du dépôt de l'utilisateur). Mesuré sur GitHub : le job éveillé entre deux tours et le cache de préfixe. Prochain morceau : les trois points de « À décider à la reprise », puis le code.
 - Que l'IA, sur demande, range visuellement une zone ou l'accueil de façon pertinente, sans deviner et sans placer des coordonnées à la main. Entièrement à discuter, sans certitude qu'on le fasse.
