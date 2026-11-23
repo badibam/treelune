@@ -751,5 +751,6 @@ private fun zoneFrom(map: Map<String, Any?>): Zone = Zone(
     group = map["group"] as? String,
     validate = map["validate"] as Boolean,
     readout_columns = app.treelune.core.readouts.ReadoutColumns.stored(map[app.treelune.core.readouts.ReadoutColumns.KEY] as? String),
-    tile_pieces = (map[app.treelune.core.look.TilePieces.KEY] as? List<*>)?.let { app.treelune.core.look.TilePieces.write(app.treelune.core.look.TilePieces.of(JsonUtils.toJSONArray(it))) }
+    tile_pieces = (map[app.treelune.core.look.TilePieces.KEY] as? List<*>)?.let { app.treelune.core.look.TilePieces.write(app.treelune.core.look.TilePieces.of(JsonUtils.toJSONArray(it))) },
+    tile_pieces_icons = map[app.treelune.core.look.TilePieces.ICONS] as Boolean
 )
