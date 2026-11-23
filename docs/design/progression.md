@@ -30,8 +30,8 @@ L'outil s'appelle Parcours (Path en anglais). « Progression » reste le nom de 
 
 Validé dans son principe le 2026-11-23. Rien n'est codé ni mesuré.
 
-- **Les entrées** : un Parcours a deux formes d'entrées (`form`). Une `brick` est un morceau du plan, propre à son passage (`run`), avec son parent et sa position ; un `move` est ce qui lui arrive (départ, état noté, fin). La config ne tient que la grammaire : les sortes, leurs états et leurs règles. Le vrai cycle de dessin l'impose : juillet seul fait 60 exercices et 48 901 caractères, trop pour une config que l'IA réécrirait à chaque exercice changé, et une brique doit pouvoir être visée par une Référence.
-- **Le journal** : les `move`. Leurs champs supplémentaires portent « palier 3 en 28 min, genou un peu raide » ; ceux de la fin, le bilan du passage.
+- **Les entrées** (retenu a priori) : une entrée = une brique, propre à son passage (`run`), avec son parent, sa position et son historique de mouvements dans `state.moves`. La config ne tient que la grammaire : les sortes, leurs états et leurs règles. Le vrai cycle de dessin l'impose : juillet seul fait 60 exercices et 48 901 caractères, trop pour une config que l'IA réécrirait à chaque exercice changé, et une brique doit pouvoir être visée par une Référence. Écartés : deux formes d'entrées dans le core (un seul outil s'en servirait), le plan dans une Fiche à part (trop fragile).
+- **Le journal** : un mouvement est fixe, `{"at", "state", "note"}`, sans champ configurable. Ce qu'on note une fois par passage est un champ de la brique ; le reste vit dans l'outil qui fait le travail (une Séance, un Suivi), qu'une règle peut lire. Deux vues calculées rendent tout lisible : `bricks`, une ligne par brique avec son état, et `moves`, une ligne par mouvement.
 - **La vue** : l'outil présente à la lecture des lignes calculées, jamais stockées, une par brique et par passage : brique, sorte, parent, passage, courant, état, depuis (la date du mouvement qui a donné l'état). Lue à une autre référence, elle ne rejoue que les mouvements d'avant cet instant.
 - **Qui répond à quoi** : la vue répond à « où en suis-je ? », le journal à « que s'est-il passé, et quand ? ». Une ligne de vue n'a qu'une date : « atteints en avril » posé à la vue manquerait un palier atteint en avril, perdu, puis réatteint en mai. Une sélection sur une vue refuse donc `period`, et un filtre sur `depuis` reste possible.
 - **Défaire** : une erreur se corrige en supprimant le mouvement ; un vrai recul écrit un mouvement « perdu ».
@@ -41,7 +41,6 @@ Validé dans son principe le 2026-11-23. Rien n'est codé ni mesuré.
 Ce que ça demande au core :
 
 - Une seule notion de lignes calculées, passant par la même porte que les entrées, dont la série d'une variable deviendrait un cas particulier, plutôt qu'un cas `view` de plus dans chaque lecteur. La sélection y gagne un paramètre, `view`.
-- Plusieurs formes d'entrées pour un même outil, par une colonne `form`. Un type d'outil déclare ses formes, chacune avec ses champs. Sur un outil à une forme, `form` est refusé et rien ne change ; sur un outil à plusieurs, elle est obligatoire à chaque écriture et chaque sélection (`form`, ou `view` pour les briques avec leur état), sans valeur par défaut, et ne change jamais. Seuls la sauvegarde et l'export d'une partie lisent toutes les lignes, en gardant `form`.
 - Le coût à mesurer : un Graphique recalculerait la vue à chaque point de temps.
 - Second usage pressenti : une vue `cards` des Flashcards (acquises, en retard, nouvelles), lisible par toute l'app.
 
@@ -50,7 +49,7 @@ Ce que ça demande au core :
 - À la création, un point de départ (Liste, Suite, Arbre) préremplit une sorte, sans aucune brique ; ce n'est pas une notion du modèle, et tout reste éditable. L'affichage (liste, chemin, branches) est un réglage à part. Le rythme dit quand un passage commence et quand il se termine, pour n'importe quel parcours.
 - L'écran de config montre les briques, puis les sortes, dont la liste de leurs états : chaque ligne dit si l'état se note à la main, sa règle et son `note_if`. Expiration, date, condition et validation sont de simples lignes de cette liste. Une sorte unique reste invisible.
 - Un cycle conduit par un maître (le projet `parcours`, que Treelune remplacera en grande partie) n'utilise ni règles ni verrous : le plan y est écrit par l'IA phase après phase, et tout se note à la main.
-- Une sorte a deux listes de champs : `fields`, ce qu'est la brique (sa vidéo, sa consigne), et `move_fields`, ce qu'on note quand son état change (« 28 min, genou raide », « sommeil : 7 h »). Le bilan d'un passage est fait des `move_fields` de la racine.
+- Les champs configurables sont listés par sorte, et nulle part ailleurs : Parcours n'a pas les champs supplémentaires classiques (`takesUserFields`). La racine a sa sorte, dont les champs sont ceux du passage (cap, bilan). À la fin d'un passage tout est figé, sauf les champs de la racine : un bilan peut s'écrire après coup sans changer aucun résultat.
 
 ## La fin d'un passage
 
@@ -73,13 +72,12 @@ L'Objectif s'écrit presque entièrement en briques : critère = brique à règl
 
 - Des passages planifiés (`run.schedule`, une durée), le planificateur écrivant départs et fins.
 - Plusieurs passages ouverts à la fois : un seul courant, les autres en attente de validation. Un état peut fermer son passage (réussi, raté, expiré).
-- Des valeurs saisies sur un mouvement (`"value": 7`), lues par une règle (`self.last_value`).
+- Des valeurs saisies : un champ de la brique critère (« sommeil : 7 h »), lu par sa règle.
 - Une vue des passages : une ligne par passage et son verdict.
 - Un passage ouvert se calcule, un passage fermé est figé : sa fin écrit les états sur ses briques, sinon corriger une donnée externe changerait un résultat clos.
 - Pas de reprise des données : les Objectifs existants ne servent qu'à l'utilisateur, qui les retire. Une migration retire le type, pour qu'une installation qui en a un ne casse pas.
 
-Condition : « Objectif » reste un vrai modèle, avec un écran aussi simple qu'aujourd'hui. Ordre : coder la progression, puis ce modèle, et ne retirer l'ancien outil qu'une fois le nouveau au moins aussi agréable. À repenser : une tentative n'étant plus une entrée, sa Référence et ses champs personnels.
-
+Condition : « Objectif » reste un vrai modèle, avec un écran aussi simple qu'aujourd'hui. Ordre : coder la progression, puis ce modèle, et ne retirer l'ancien outil qu'une fois le nouveau au moins aussi agréable.
 ## Les scènes
 
 De la forme la plus simple à la plus complexe :
