@@ -15,7 +15,8 @@ class AIProviderKinds(private val context: Context) {
         build("Claude") { ClaudeProvider(context) },
         build("OpenAI") { OpenAIProvider(context) },
         build("DeepSeek") { DeepSeekProvider(context) },
-        build("OpenAICompatible") { OpenAICompatibleProvider(context) }
+        build("OpenAICompatible") { OpenAICompatibleProvider(context) },
+        build("GitHubRecipe") { GitHubRecipeProvider(context) }
     )
 
     private fun build(name: String, make: () -> AIProviderKind): AIProviderKind? = try {

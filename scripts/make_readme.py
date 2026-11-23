@@ -115,8 +115,9 @@ def fill_listing(text, heading):
 
 
 def providers(suffix):
-    """The vendors' names, in one language: each kind the app knows, in its order, but the server of
-    the user's, which the README names apart; a kind's name is its string ai_provider_kind_<kind>."""
+    """The vendors' names, in one language: each kind the app knows, in its order, but the user's own
+    server, which the README names apart, and their GitHub recipe, which is no vendor; a kind's name
+    is its string ai_provider_kind_<kind>."""
     texts = (STRING_SOURCES / f"shared{suffix}.xml").read_text(encoding="utf-8")
     shared = {name: value.replace("\\'", "'") for name, value in STRING.findall(texts)}
     names = []
@@ -127,7 +128,7 @@ def providers(suffix):
             if start < 0:
                 continue
             kind = re.search(r'const val KIND = "([a-z]+)"', text[start:]).group(1)
-            if kind != "compatible":
+            if kind not in ("compatible", "github"):
                 names.append(shared[f"ai_provider_kind_{kind}"])
             break
         else:

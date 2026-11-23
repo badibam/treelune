@@ -45,12 +45,20 @@ class GitHubRepo(val repository: String, private val token: String) {
         return text to found.getString("sha")
     }
 
-    /** [text] written at [path] on the default branch, one commit, replacing the blob [sha] when one is there. */
-    suspend fun putFile(path: String, text: String, sha: String?, message: String) {
+    /** The names of the folders directly under [folder] on the default branch; none when it is absent. */
+    suspend fun folderNames(folder: String): List<String> {
+        val reply = send(get(contents(folder, null)), allow404 = true) ?: return emptyList()
+        val entries = JSONArray(reply.body)
+        return (0 until entries.length()).map { entries.getJSONObject(it) }.filter { it.getString("type") == "dir" }.map { it.getString("name") }
+    }
+
+    /** [text] written at [path] on [branch] (the default one when null), one commit, replacing the blob [sha] when one is there. */
+    suspend fun putFile(path: String, text: String, sha: String?, message: String, branch: String? = null) {
         val body = JSONObject()
             .put("message", message)
             .put("content", Base64.encodeToString(text.toByteArray(Charsets.UTF_8), Base64.NO_WRAP))
         sha?.let { body.put("sha", it) }
+        branch?.let { body.put("branch", it) }
         send(request("repos/$repository/contents/$path").put(body.toString().toRequestBody(JSON)).build())
     }
 

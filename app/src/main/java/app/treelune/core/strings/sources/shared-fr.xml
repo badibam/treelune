@@ -1247,6 +1247,15 @@
     <string name="ai_provider_kind_deepseek_description">Les modèles de DeepSeek, avec une clé d\'API de DeepSeek</string>
     <string name="ai_provider_kind_compatible">Autre serveur</string>
     <string name="ai_provider_kind_compatible_description">Ollama, LM Studio, OpenRouter : tout serveur qui parle l\'API Chat Completions, chez toi ou loué</string>
+    <string name="ai_provider_kind_github">Recette sur GitHub</string>
+    <string name="ai_provider_kind_github_description">Un programme à toi, lancé par une recette de ton dépôt GitHub</string>
+    <string name="ai_provider_github_recipe">Recette</string>
+    <string name="ai_provider_github_schema_recipe">La recette de session de ton dépôt qui répond</string>
+    <string name="ai_provider_github_help">Les réponses viennent d\'une recette du dépôt de Réglages › GitHub : un dossier recipes/&lt;nom&gt; dont le recipe.json dit \"session\": true et la commande à lancer. La commande lit un message JSON par ligne et écrit une réponse JSON par ligne. Chaque session tourne sur GitHub Actions et consomme tes minutes là-bas, jusqu\'à 5 minutes après son dernier message.</string>
+    <string name="ai_github_error_no_start">GitHub n\'a pas démarré le job de la session en 5 minutes</string>
+    <string name="ai_github_error_no_reply">La recette n\'a pas répondu en 15 minutes</string>
+    <string name="ai_github_error_job_ended">Le job de la session sur GitHub s\'est arrêté sans répondre</string>
+    <string name="ai_github_error_bad_reply">La réponse de la recette est illisible</string>
     <string name="ai_provider_compatible_prices">Prix</string>
     <string name="ai_provider_compatible_schema_prices">D\'où vient le coût de chaque appel : la liste publique de LiteLLM, ou des prix réglés à la main</string>
     <string name="ai_provider_compatible_prices_list">Liste LiteLLM</string>
