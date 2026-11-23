@@ -40,6 +40,19 @@ Ce que ça demande au core :
 - Le coût à mesurer : un Graphique recalculerait la vue à chaque point de temps.
 - Second usage pressenti : une vue `cards` des Flashcards (acquises, en retard, nouvelles), lisible par toute l'app.
 
+## La fusion avec l'Objectif (souhaitée, en exploration)
+
+L'Objectif s'écrit presque entièrement en briques : critère = brique à règle, sous-objectif = groupe, « au moins N » = quantificateur, tentative = passage. Ce que la fusion demande :
+
+- Des passages planifiés (`run.schedule`, une durée), le planificateur écrivant départs et fins.
+- Plusieurs passages ouverts à la fois : un seul courant, les autres en attente de validation. Un état peut fermer son passage (réussi, raté, expiré).
+- Des valeurs saisies sur un mouvement (`"value": 7`), lues par une règle (`self.last_value`).
+- Une vue des passages : une ligne par passage et son verdict.
+- Un passage ouvert se calcule, un passage fermé est figé : sa fin copie le plan **et les états**, sinon corriger une donnée externe changerait un verdict clos.
+- Pas de reprise des données : les Objectifs existants ne servent qu'à l'utilisateur, qui les retire. Une migration retire le type, pour qu'une installation qui en a un ne casse pas.
+
+Condition : « Objectif » reste un vrai modèle, avec un écran aussi simple qu'aujourd'hui. Ordre : coder la progression, puis ce modèle, et ne retirer l'ancien outil qu'une fois le nouveau au moins aussi agréable. À repenser : une tentative n'étant plus une entrée, sa Référence et ses champs personnels.
+
 ## Les scènes
 
 De la forme la plus simple à la plus complexe :
@@ -153,7 +166,7 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 - Les affichages : plusieurs rendus très différents, comme le Graphique (chemin, achievements, tableau de voyants qui s'éteignent).
 - Les notifications : quand est-on prévenu ?
 - La gamification : quels aspects la permettent ?
-- L'Objectif : le réduire à la mesure et au jugement, la progression consignant dans le temps ?
+- Le nom de l'outil. Proposition : Parcours (Path), le mot déjà employé pour les parcours d'hypnose.
 - Que peut faire l'IA sur une progression ?
 
 ## Faits relevés dans le code
