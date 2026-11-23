@@ -77,9 +77,7 @@ Récrit le 2026-11-22, pas encore codé. L'app ne connaît ni Claude Code, ni so
 
 - **Le job s'arrête après 5 minutes sans message** (décidé le 2026-11-23), une constante du workflow sans réglage dans l'app, et aussitôt à la fin de la session.
 
-### À décider à la reprise
-
-1. Comment le job surveille la branche sans dépasser les limites de l'API GitHub (`git fetch` plutôt que l'API, point 4 de « Ouvert »).
+- **Le job surveille sa branche par git** (décidé le 2026-11-23) : `git ls-remote` toutes les 2 s, puis `git fetch --depth=1` quand le dernier commit a changé. Non mesuré : un freinage de GitHub à ce rythme ; à ajuster s'il apparaît.
 
 ## L'API « Recette sur GitHub »
 
