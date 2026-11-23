@@ -16,5 +16,4 @@ La 0.9.11 publiée et le téléphone sont en base 119. Les migrations 120 et 121
 
 ## 6. L'IA
 
-- Le fournisseur « Recette sur GitHub », `docs/design/github-worker.md` : réécrit le 2026-11-22 sous forme générique (l'app ne sait rien de Claude, la session Claude est une recette du dépôt de l'utilisateur). Mesuré sur GitHub : le job éveillé entre deux tours et le cache de préfixe. Codé le 2026-11-23, jamais lancé sur GitHub. Prochain morceau : la recette de session personnelle, qui traduit ce contrat vers `claude`, dans le dépôt de l'utilisateur.
 - Que l'IA, sur demande, range visuellement une zone ou l'accueil de façon pertinente, sans deviner et sans placer des coordonnées à la main. Entièrement à discuter, sans certitude qu'on le fasse.
