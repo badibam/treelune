@@ -47,7 +47,7 @@ Relu le 2026-11-22, mêmes textes. D'où une seconde règle : **l'app publiée n
 - **Une recette qui demande Claude Code en installe la dernière version.** Une version trop vieille qui ne s'authentifierait plus bloquerait l'utilisateur jusqu'à la version suivante de Treelune ; une option qui change se voit et se dit.
 - **Une seule route, des fichiers sur une branche.** Une branche par session du fournisseur, une par appel d'une recette. L'app et le job y déposent leurs fichiers et les interrogent. La branche est supprimée à la fin de la session ; celle d'un appel de recette un jour après son départ, à l'appel suivant, ses fichiers étant lus par les étapes qui suivent dans la Tâche (l'heure de départ est dans son nom, `treelune/call-<millisecondes>-<16 hex>`).
 - **Les échecs** : la machine qui ne démarre pas en 5 minutes (fixes, à revoir sur les temps mesurés) est de l'app ; le reste (jeton expiré, limite d'abonnement, programme qui a changé) est dit par la recette, dans le champ `failure` de sa réponse, avec son message.
-- **Les données chez GitHub.** Pas de chiffrement : le job déchiffrerait sur la machine de GitHub, et celui qui choisit ce dépôt confie déjà ses données à Anthropic. Le job n'écrit aucun contenu dans ses journaux, seulement des états, et l'app règle leur conservation au minimum du dépôt (1 jour).
+- **Les données chez GitHub.** Pas de chiffrement : le job déchiffrerait sur la machine de GitHub, et celui qui choisit ce dépôt confie déjà ses données à Anthropic. Le job n'écrit aucun contenu dans ses journaux, seulement des états : leur durée de conservation reste celle du dépôt, la régler demanderait au jeton un droit d'administration.
 
 ## Le fournisseur « Recette sur GitHub »
 
