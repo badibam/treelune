@@ -163,6 +163,29 @@ class SchemaSceneTest {
     }
 
     @Test
+    fun `folding the group that holds the start keeps it at the top`() {
+        val scene = scene("""{
+            "nodes": [{"id": "end", "label": "last"}, {"id": "start", "label": "start"}, {"id": "next", "label": "next"}],
+            "edges": [{"from": "start", "to": "next"}, {"from": "next", "to": "end"}, {"from": "end", "to": "next"}],
+            "groups": [{"id": "G", "title": "Group", "members": ["start", "next"]}]
+        }""", folded = setOf("G"))
+        val y = { name: String -> scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first { it.text == name }.at.y }
+        assertTrue(y("Group (2)") < y("last"))
+    }
+
+    @Test
+    fun `lines leave a diamond near its point, not at its corners`() {
+        val scene = scene("""{"nodes": [{"id": "D", "label": "a rather wide decision", "shape": "diamond"}, {"id": "A", "label": "left answer"}, {"id": "B", "label": "right answer"}],
+            "edges": [{"from": "D", "to": "A"}, {"from": "D", "to": "B"}]}""")
+        val diamond = scene.hits.first { (it.second as? SchemaTouch.Box)?.node?.id == "D" }.first
+        val middle = (diamond.left + diamond.right) / 2
+        val reach = (diamond.right - diamond.left) * 0.35f / 2 + 0.5f
+        scene.drawing.shapes.filterIsInstance<DrawShape.Path>().filter { !it.filled }.mapNotNull { it.steps.firstOrNull() as? PathStep.MoveTo }
+            .filter { kotlin.math.abs(it.to.y - (diamond.top + diamond.bottom) / 2) < (diamond.bottom - diamond.top) / 2 + 1f && it.to.y > (diamond.top + diamond.bottom) / 2 }
+            .forEach { assertTrue(kotlin.math.abs(it.to.x - middle) <= reach) }
+    }
+
+    @Test
     fun `an empty schema draws nothing, without failing`() {
         assertTrue(scene("{}").drawing.shapes.isEmpty())
     }

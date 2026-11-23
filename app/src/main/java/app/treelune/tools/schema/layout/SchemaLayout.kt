@@ -21,8 +21,11 @@ import kotlin.random.Random
  *    rather than side by side, and so are the leaf children a box reaches by identical arrows.
  */
 
-/** A box to place, measured by whoever draws it. */
-data class LayoutBox(val id: String, val width: Float, val height: Float)
+/**
+ * A box to place, measured by whoever draws it. [portSpan] is the share of its width, around its
+ * middle, where lines may touch it: narrow for a shape whose top and bottom come to a point.
+ */
+data class LayoutBox(val id: String, val width: Float, val height: Float, val portSpan: Float = 0.7f)
 
 /**
  * An arrow. [look] says what makes two arrows identical besides their label (their line, their
@@ -45,11 +48,15 @@ data class LayoutGroup(
     val groups: List<String> = emptyList()
 )
 
-/** What to place. */
+/**
+ * What to place. [starts] orders the boxes by where a loop should be entered, first the best; empty,
+ * the boxes no arrow reaches, then the others as written.
+ */
 data class LayoutGraph(
     val boxes: List<LayoutBox>,
     val edges: List<LayoutEdge> = emptyList(),
-    val groups: List<LayoutGroup> = emptyList()
+    val groups: List<LayoutGroup> = emptyList(),
+    val starts: List<String> = emptyList()
 )
 
 /** Distances, in the unit of the boxes' measures. */
@@ -159,6 +166,12 @@ private class Node(val id: String, val kind: Kind, var width: Float = 0f, var he
     val isPort get() = kind == Kind.TOP_PORT || kind == Kind.BOTTOM_PORT
     val isThin get() = kind == Kind.DUMMY || isPort
     val center get() = x + width / 2
+    /** For a box, the share of its width around its middle where lines may touch it. */
+    var portSpan = 1f
+
+    /** The leftmost and rightmost places a line may touch it, off its corners. */
+    fun portLow(corner: Float) = max(x + min(corner, width / 2), center - width * portSpan / 2)
+    fun portHigh(corner: Float) = min(x + width - min(corner, width / 2), center + width * portSpan / 2)
 }
 
 /** One arrow's stretch inside one scope, between two of its nodes, in the arrow's own direction. */
@@ -219,8 +232,10 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
     private val topLinks = mutableListOf<Pair<Link, Scope>>()
     private val selfLoops = mutableListOf<Pair<Int, Node>>()
     private val blocks = mutableListOf<Pair<Node, Scope>>()
-    private val boxIndex = graph.boxes.withIndex().associate { (i, box) -> box.id to i }
-    private val reachedBoxes = graph.edges.filter { it.from != it.to }.map { it.to }.toSet()
+    private val startIndex: Map<String, Int> = graph.starts.ifEmpty {
+        val reached = graph.edges.filter { it.from != it.to }.map { it.to }.toSet()
+        graph.boxes.map { it.id }.sortedBy { it in reached }
+    }.withIndex().associate { (i, id) -> id to i }
 
     fun place(): Placement {
         buildScopes()
@@ -254,7 +269,7 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
         fun fill(scope: Scope, boxIds: List<String>, groupIds: List<String>) {
             boxIds.forEach { id ->
                 val box = boxes.getValue(id)
-                val node = Node(id, Kind.BOX, box.width, box.height)
+                val node = Node(id, Kind.BOX, box.width, box.height).also { it.portSpan = box.portSpan }
                 boxNodes[id] = node
                 scopeOfBox[id] = scope
                 scope.nodes += node
@@ -387,12 +402,10 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
     }
 
     /**
-     * Where a loop is entered, lowest first: what holds a box no arrow reaches, the schema's real
-     * start even when a loop passes through its group, then the box written first.
+     * Where a loop is entered, lowest first: by the best start a node holds, the schema's real
+     * start even when a loop passes through its group.
      */
-    private fun startRank(node: Node): Int = boxesIn(node).minOfOrNull { id ->
-        boxIndex.getValue(id) + if (id in reachedBoxes) graph.boxes.size else 0
-    } ?: Int.MAX_VALUE
+    private fun startRank(node: Node): Int = boxesIn(node).minOfOrNull { startIndex[it] ?: Int.MAX_VALUE } ?: Int.MAX_VALUE
 
     private fun boxesIn(node: Node): List<String> = when (node.kind) {
         Kind.BOX -> listOf(node.id)
@@ -835,6 +848,26 @@ private class Layered(val nodes: List<Node>, val links: List<Link>, val limit: F
             indices.forEach { l -> settleRow(rows[l], if (sweep < POSITION_SWEEPS - 2) null else down) }
         }
         holdWithinWidth()
+        alignLongLines()
+    }
+
+    /** A line running over several rows stands at one x, wherever its neighbours leave it the room. */
+    private fun alignLongLines() {
+        fun fits(node: Node, center: Float): Boolean {
+            val row = rows[node.layer]
+            val i = row.indexOf(node)
+            val x = center - node.width / 2
+            val left = row.getOrNull(i - 1)
+            val right = row.getOrNull(i + 1)
+            return (left == null || left.x + left.width + gap(left, node) <= x + 0.01f) &&
+                (right == null || x + node.width + gap(node, right) <= right.x + 0.01f)
+        }
+        links.forEach { link ->
+            val inner = segments.filter { it.link === link }.map { it.down }.filter { it.kind == Kind.DUMMY || it.kind == Kind.LABEL }
+            if (inner.size < 2) return@forEach
+            val center = inner.map { it.center }.sorted()[inner.size / 2]
+            if (inner.all { fits(it, center) }) inner.forEach { it.x = center - it.width / 2 }
+        }
     }
 
     /**
@@ -973,15 +1006,15 @@ private class Layered(val nodes: List<Node>, val links: List<Link>, val limit: F
      */
     private fun straighten() {
         fun slides(node: Node, count: Int) = (node.kind == Kind.BOX || node.kind == Kind.BLOCK) && count == 1
-        fun within(node: Node, x: Float) = x >= node.x + CORNER && x <= node.x + node.width - CORNER
+        fun within(node: Node, x: Float) = x >= node.portLow(CORNER) && x <= node.portHigh(CORNER)
         segments.forEach { s ->
             if (abs(s.upX - s.downX) <= 0.5f) return@forEach
             val upFree = slides(s.up, below[s.up]?.size ?: 0)
             val downFree = slides(s.down, above[s.down]?.size ?: 0)
             when {
                 upFree && downFree -> {
-                    val low = max(s.up.x, s.down.x) + CORNER
-                    val high = min(s.up.x + s.up.width, s.down.x + s.down.width) - CORNER
+                    val low = max(s.up.portLow(CORNER), s.down.portLow(CORNER))
+                    val high = min(s.up.portHigh(CORNER), s.down.portHigh(CORNER))
                     if (low <= high) { val x = (low + high) / 2; s.upX = x; s.downX = x }
                 }
                 downFree && within(s.down, s.upX) -> s.downX = s.upX
@@ -1004,8 +1037,8 @@ private class Layered(val nodes: List<Node>, val links: List<Link>, val limit: F
     private fun spread(node: Node, side: List<Segment>, otherX: (Segment) -> Float, set: (Segment, Float) -> Unit) {
         if (side.isEmpty()) return
         val sorted = side.sortedBy(otherX)
-        val low = node.x + min(CORNER, node.width / 2)
-        val high = node.x + node.width - min(CORNER, node.width / 2)
+        val low = node.portLow(CORNER)
+        val high = node.portHigh(CORNER)
         val pitch = if (sorted.size > 1) min(options.portGap, (high - low) / (sorted.size - 1)) else 0f
         val places = FloatArray(sorted.size) { otherX(sorted[it]).coerceIn(low, high) }
         for (i in 1 until places.size) places[i] = max(places[i], places[i - 1] + pitch)

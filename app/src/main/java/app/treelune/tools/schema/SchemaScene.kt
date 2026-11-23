@@ -40,6 +40,9 @@ sealed interface SchemaTouch {
 /** A schema laid out: the drawing the theme draws, and what a touch finds on it, the topmost last. */
 data class SchemaScene(val drawing: Drawing, val hits: List<Pair<DrawRect, SchemaTouch>>) {
     fun hitAt(x: Float, y: Float): SchemaTouch? = hits.lastOrNull { it.first.contains(x, y) }?.second
+
+    /** Where the group [id] stands, open by its title's band, folded by its box; null when a folded group hides it. */
+    fun groupArea(id: String): DrawRect? = hits.lastOrNull { it.second == SchemaTouch.Group(id) }?.first
 }
 
 /**
@@ -55,7 +58,8 @@ internal class SchemaVisible(spec: SchemaSpec, private val folded: Set<String>) 
     private fun outermostFolded(group: String?): String? =
         generateSequence(group) { parentOfGroup[it] }.filter { it in folded }.lastOrNull()
 
-    private fun shownAs(node: String): String = outermostFolded(groupOfNode[node]) ?: node
+    /** The id [node] is drawn under: its own, or the outermost folded group holding it. */
+    fun shownAs(node: String): String = outermostFolded(groupOfNode[node]) ?: node
 
     /** The groups drawn as one box. */
     val foldedGroups: List<SchemaGroup> = spec.groups.filter { it.id in folded && outermostFolded(it.id) == it.id }
@@ -130,7 +134,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             maxWidth = width, boxGap = dp(16f), rowGap = dp(24f), trackGap = dp(7f), portGap = dp(9f),
             groupPadding = GROUP_PADDING * density, blockPadding = dp(6f), blockGap = dp(6f), loopSize = dp(12f)
         )).place(LayoutGraph(
-            boxes = boxes.map { LayoutBox(it.id, it.width, it.height) },
+            boxes = boxes.map { box -> portSpan(box.shape)?.let { LayoutBox(box.id, box.width, box.height, it) } ?: LayoutBox(box.id, box.width, box.height) },
             edges = visible.edges.mapIndexed { i, edge ->
                 val label = labels[i]
                 LayoutEdge(
@@ -141,7 +145,8 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
                     look = "${edge.label.orEmpty()}|${edge.line.key}|${edge.head}"
                 )
             },
-            groups = visible.groups.map { LayoutGroup(it.id, text.width(titles.getValue(it.id)), text.height, it.nodes, it.groups) }
+            groups = visible.groups.map { LayoutGroup(it.id, text.width(titles.getValue(it.id)), text.height, it.nodes, it.groups) },
+            starts = starts(spec, visible, upward)
         ))
 
         val shapes = mutableListOf<DrawShape>()
@@ -196,6 +201,22 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             hits += rect to (box.group?.let { SchemaTouch.Group(it.id) } ?: SchemaTouch.Box(box.node!!, box.whole, box.cut))
         }
         return SchemaScene(Drawing(placement.width, placement.height, shapes), hits)
+    }
+
+    /**
+     * The boxes by where a loop should be entered, as the whole schema says it: folding a group
+     * never moves the schema's start. Placed upward, the arrows are turned, and so is what starts.
+     */
+    private fun starts(spec: SchemaSpec, visible: SchemaVisible, upward: Boolean): List<String> {
+        val reached = spec.edges.filter { it.from != it.to }.map { if (upward) it.from else it.to }.toSet()
+        return (spec.nodes.sortedBy { it.id in reached }.map { visible.shownAs(it.id) } + visible.foldedGroups.map { it.id }).distinct()
+    }
+
+    /** Where lines may touch a shape that narrows at its top and bottom; null for the usual width. */
+    private fun portSpan(shape: SchemaShape): Float? = when (shape) {
+        SchemaShape.DIAMOND -> 0.35f
+        SchemaShape.CIRCLE -> 0.5f
+        SchemaShape.RECT, SchemaShape.ROUNDED, SchemaShape.STADIUM -> null
     }
 
     private fun thin() = max(unit, dp(1.5f))
