@@ -52,7 +52,7 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
 
 - Le formulaire tiré de la config : les listes des boîtes, des flèches et des groupes.
 - L'IA, qui écrit le JSON.
-- **Importer du Mermaid**, dans une section « Mermaid » en tête de la config : un texte flowchart collé ou tapé, converti en une fois, son bilan montré avant (« 12 boîtes, 15 flèches, 2 groupes »), rien d'enregistré avant « Enregistrer » ; une erreur de syntaxe refusée en nommant sa ligne. La conversion dit ce qu'elle change ou laisse : `LR` et `RL` réécrits en `TD`, `style`, `classDef` et `linkStyle` ignorés. Sur un schéma existant, une boîte dont l'id reste garde sa chose, sa couleur et sa texture.
+- **Importer du Mermaid**, dans une section « Mermaid » en tête de la config (`ToolTypeContract.ConfigTools`, qui agit sur le brouillon du formulaire) : un texte flowchart collé ou tapé, converti en une fois, son bilan montré avant (« 12 boîtes, 15 flèches, 2 groupes »), rien d'enregistré avant « Enregistrer » ; une erreur de syntaxe refusée en nommant sa ligne. La conversion dit ce qu'elle change ou laisse : `LR` et `RL` réécrits en `TD`, `style`, `classDef` et `linkStyle` ignorés. Sur un schéma existant, une boîte dont l'id reste garde sa chose, sa couleur et sa texture.
 - **Copier en Mermaid**, dans la même section : le texte flowchart du schéma, sans les liens.
 - Pas d'éditeur textuel. Le geste sur le dessin (toucher une boîte pour la modifier, tirer une flèche) est à concevoir une fois le dessin là.
 
@@ -68,8 +68,6 @@ Par l'app, sans vue web, chaque thème à sa manière (`core/drawing`, comme le 
 ## L'écran
 
 Une page de lecture : le schéma sur toute la page, comme en FULL. Ce qui est souligné se touche : le texte d'une boîte dont le lien existe, qui ouvre sa chose ; le mot « suite » d'un texte coupé, qui ouvre une fenêtre avec le texte entier, et un bouton « Ouvrir » si la boîte a aussi un lien. Un groupe se replie et se déplie le temps de la visite, sans rien écrire. Ce qui modifie passe par la config, la roue dentée. Vide : « Ce schéma est vide. Ajoute ses boîtes dans sa config, importe un texte Mermaid, ou demande-le à l'IA. »
-
-Qu'un formulaire de config tiré de la déclaration accepte une section de boutons d'action est à vérifier (« Essayer » d'une API).
 
 ## Le placement
 
@@ -98,15 +96,15 @@ Jugé visuellement acceptable par l'utilisateur à ce stade.
 
 Le chantier vit dans le worktree `.claude/worktrees/schema`, branche `schema` (`local.properties` y est copié ; `TODO.md` n'y existe pas).
 
-Fait : le placement, la config et sa vérification (`SchemaSpec`), le formulaire tiré de la déclaration, le dessin (`SchemaScene`), l'écran avec le repli des groupes le temps de la visite, la tuile. Rien n'a été vu sur un téléphone.
+Fait : le placement, la config et sa vérification (`SchemaSpec`), le formulaire, le dessin (`SchemaScene`), l'écran (ce qui est souligné se touche, le repli le temps de la visite), la tuile, la mise à la largeur (resserrer, replier le groupe le plus large, réduire jusqu'à 75 %, défiler ; un groupe ouvert à la main n'est jamais refermé), l'import et la copie Mermaid (`SchemaMermaid`).
+
+Mesuré sur le téléphone en build debug, pour un schéma de 12 boîtes : un nouvel état se calcule en 135 à 343 ms, hors du fil de l'écran. Le repli automatique et la réduction n'ont tourné qu'en test, ce schéma n'en ayant pas besoin.
 
 Reste, dans l'ordre :
 
 1. La texture d'une boîte ou d'un groupe : le réglage est enregistré et vérifié, mais pas dessiné, `core/drawing` n'ayant pas de forme pour elle.
-2. Trop large pour l'écran : le repli automatique des blocs et des groupes, avec sa phrase sous le schéma, puis la réduction jusqu'à 75 % ; aujourd'hui, le dessin défile directement de côté.
-3. Une tuile FULL dont la boîte liée ouvre sa chose : aujourd'hui, tout toucher ouvre l'outil.
-4. L'import et la copie Mermaid, qui demandent un nœud d'action au formulaire du core.
-5. L'entrée du Schéma dans `docs/TOOLS.md`, à l'élagage de cette conception.
+2. Une tuile FULL dont la boîte liée ouvre sa chose : aujourd'hui, tout toucher ouvre l'outil.
+3. L'entrée du Schéma dans `docs/TOOLS.md`, à l'élagage de cette conception.
 
 Les contraintes du chantier :
 
@@ -120,7 +118,6 @@ Le schéma écrit est conçu ; ce qui suit reste à trancher ou à vérifier.
 
 À vérifier avant ou pendant le code :
 
-- La section de boutons d'action (« Importer du Mermaid », « Copier en Mermaid ») : `SettingNode` n'a aucun nœud d'action, et « Essayer » d'une API est écrit à la main dans `ApisScreen`, donc pas un précédent. Il faut un ajout au formulaire du core, à concevoir.
 
 À juger sur le téléphone :
 
