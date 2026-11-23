@@ -67,7 +67,7 @@ Par l'app, sans vue web, chaque thème à sa manière (`core/drawing`, comme le 
 
 ## L'écran
 
-Une page de lecture : le schéma sur toute la page, comme en FULL. Une boîte liée ouvre sa chose ; une boîte sans lien montre son texte entier s'il est coupé. Un groupe se replie et se déplie le temps de la visite, sans rien écrire. Ce qui modifie passe par la config, la roue dentée. Vide : « Ce schéma est vide. Ajoute ses boîtes dans sa config, importe un texte Mermaid, ou demande-le à l'IA. »
+Une page de lecture : le schéma sur toute la page, comme en FULL. Ce qui est souligné se touche : le texte d'une boîte dont le lien existe, qui ouvre sa chose ; le mot « suite » d'un texte coupé, qui ouvre une fenêtre avec le texte entier, et un bouton « Ouvrir » si la boîte a aussi un lien. Un groupe se replie et se déplie le temps de la visite, sans rien écrire. Ce qui modifie passe par la config, la roue dentée. Vide : « Ce schéma est vide. Ajoute ses boîtes dans sa config, importe un texte Mermaid, ou demande-le à l'IA. »
 
 Qu'un formulaire de config tiré de la déclaration accepte une section de boutons d'action est à vérifier (« Essayer » d'une API).
 
