@@ -219,6 +219,8 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
     private val topLinks = mutableListOf<Pair<Link, Scope>>()
     private val selfLoops = mutableListOf<Pair<Int, Node>>()
     private val blocks = mutableListOf<Pair<Node, Scope>>()
+    private val boxIndex = graph.boxes.withIndex().associate { (i, box) -> box.id to i }
+    private val reachedBoxes = graph.edges.filter { it.from != it.to }.map { it.to }.toSet()
 
     fun place(): Placement {
         buildScopes()
@@ -287,7 +289,7 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
             if (index in blocked) return@forEachIndexed
             if (edge.from == edge.to) {
                 val node = boxNodes.getValue(edge.from)
-                val text = if (edge.labelWidth > 0f) edge.labelWidth + LOOP_LABEL_GAP else 0f
+                val text = if (edge.labelWidth > 0f) edge.labelWidth + options.trackGap else 0f
                 node.rightExtra = max(node.rightExtra, options.loopSize + options.portGap + text)
                 selfLoops += index to node
                 return@forEachIndexed
@@ -371,7 +373,7 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
         val components = if (hasPorts) listOf(scope.nodes.toList()) else components(scope)
         components.forEach { nodes ->
             val set = nodes.toSet()
-            val part = Layered(nodes, scope.links.filter { it.from in set }, scope.limit, options, portsFollowInside)
+            val part = Layered(nodes, scope.links.filter { it.from in set }, scope.limit, options, portsFollowInside, ::startRank)
             part.assignRows()
             part.orderRows()
             scope.parts += part
@@ -382,6 +384,21 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
             (link.to.inner)?.let { inner -> link.toInner = continueInside(link, inner, link.to, leaving = false) }
         }
         scope.nodes.mapNotNull { it.inner }.forEach { plan(it) }
+    }
+
+    /**
+     * Where a loop is entered, lowest first: what holds a box no arrow reaches, the schema's real
+     * start even when a loop passes through its group, then the box written first.
+     */
+    private fun startRank(node: Node): Int = boxesIn(node).minOfOrNull { id ->
+        boxIndex.getValue(id) + if (id in reachedBoxes) graph.boxes.size else 0
+    } ?: Int.MAX_VALUE
+
+    private fun boxesIn(node: Node): List<String> = when (node.kind) {
+        Kind.BOX -> listOf(node.id)
+        Kind.GROUP -> node.inner?.nodes.orEmpty().flatMap { boxesIn(it) }
+        Kind.BLOCK -> node.members.flatMap { boxesIn(it.first) }
+        else -> emptyList()
     }
 
     private fun continueInside(link: Link, inner: Scope, group: Node, leaving: Boolean): Link {
@@ -517,8 +534,8 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
             val out = rect.right + options.loopSize
             val edge = graph.edges[index]
             val label = if (edge.labelWidth > 0f) PlacedRect(
-                out + LOOP_LABEL_GAP, mid - edge.labelHeight / 2,
-                out + LOOP_LABEL_GAP + edge.labelWidth, mid + edge.labelHeight / 2
+                out + options.trackGap, mid - edge.labelHeight / 2,
+                out + options.trackGap + edge.labelWidth, mid + edge.labelHeight / 2
             ) else null
             PlacedRoute(listOf(index), listOf(
                 PlacedPoint(rect.right, mid - half), PlacedPoint(out, mid - half),
@@ -540,7 +557,6 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
     private companion object {
         const val REFINEMENTS = 3
         const val ALIGNMENTS = 3
-        const val LOOP_LABEL_GAP = 3f
     }
 
     private fun simplify(points: List<PlacedPoint>): List<PlacedPoint> {
@@ -561,7 +577,7 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
 }
 
 /** The layered layout of one connected part of a scope. */
-private class Layered(val nodes: List<Node>, val links: List<Link>, val limit: Float, val options: LayoutOptions, val portsFollowInside: Boolean) {
+private class Layered(val nodes: List<Node>, val links: List<Link>, val limit: Float, val options: LayoutOptions, val portsFollowInside: Boolean, val startRank: (Node) -> Int) {
 
     private var rows: List<MutableList<Node>> = emptyList()
     private val segments = mutableListOf<Segment>()
@@ -657,7 +673,7 @@ private class Layered(val nodes: List<Node>, val links: List<Link>, val limit: F
             done += node
         }
         inner.filter { it !in hasInput }.forEach { if (it !in done) visit(it) }
-        inner.forEach { if (it !in done) visit(it) }
+        inner.sortedBy(startRank).forEach { if (it !in done) visit(it) }
         links.filter { it.from.isPort || it.to.isPort }.forEach { link ->
             val portOnTop = link.from.kind == Kind.TOP_PORT || link.to.kind == Kind.TOP_PORT
             val port = if (link.from.isPort) link.from else link.to
