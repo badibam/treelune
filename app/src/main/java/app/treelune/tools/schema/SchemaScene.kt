@@ -18,6 +18,7 @@ import app.treelune.tools.schema.layout.LayoutGroup
 import app.treelune.tools.schema.layout.LayoutOptions
 import app.treelune.tools.schema.layout.PlacedPoint
 import app.treelune.tools.schema.layout.PlacedRect
+import app.treelune.tools.schema.layout.Placement
 import app.treelune.tools.schema.layout.SchemaLayout
 import kotlin.math.max
 import kotlin.math.min
@@ -120,6 +121,26 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
      * @param folded The groups folded for this visit
      */
     fun build(spec: SchemaSpec, nameOf: (Reference) -> String?, folded: Set<String>, width: Float): SchemaScene {
+        // Every folding is placed against the schema all open, so that its parts keep their sides
+        val reference = if (folded.isEmpty()) emptyMap() else prepare(spec, nameOf, emptySet(), width, emptyMap()).placement.let { open ->
+            (open.boxes + open.groups).mapValues { (_, rect) -> (rect.left + rect.right) / 2 }
+        }
+        val (visible, boxes, byId, labels, titles, upward, placement) = prepare(spec, nameOf, folded, width, reference)
+        return draw(visible, boxes, byId, labels, titles, upward, placement)
+    }
+
+    private data class Prepared(
+        val visible: SchemaVisible,
+        val boxes: List<Measured>,
+        val byId: Map<String, Measured>,
+        val labels: List<String?>,
+        val titles: Map<String, String>,
+        val upward: Boolean,
+        val placement: Placement
+    )
+
+    /** The boxes of what stays visible, measured, and placed. */
+    private fun prepare(spec: SchemaSpec, nameOf: (Reference) -> String?, folded: Set<String>, width: Float, reference: Map<String, Float>): Prepared {
         val visible = SchemaVisible(spec, folded)
         val textLimit = min(width * 0.42f, dp(150f))
         val boxes = visible.nodes.map { node ->
@@ -150,9 +171,15 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
                 )
             },
             groups = visible.groups.map { LayoutGroup(it.id, text.width(titles.getValue(it.id)), text.height, it.nodes, it.groups) },
-            starts = starts(spec, visible, upward)
+            starts = starts(spec, visible, upward),
+            reference = reference
         ))
+        return Prepared(visible, boxes, byId, labels, titles, upward, placement)
+    }
 
+    /** The shapes the theme draws, and what a touch finds on them. */
+    private fun draw(visible: SchemaVisible, boxes: List<Measured>, byId: Map<String, Measured>, labels: List<String?>, titles: Map<String, String>,
+                     upward: Boolean, placement: Placement): SchemaScene {
         val shapes = mutableListOf<DrawShape>()
         val hits = mutableListOf<Pair<DrawRect, SchemaTouch>>()
 

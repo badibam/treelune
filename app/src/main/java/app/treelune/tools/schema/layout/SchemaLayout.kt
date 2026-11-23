@@ -53,13 +53,16 @@ data class LayoutGroup(
 
 /**
  * What to place. [starts] orders the boxes by where a loop should be entered, first the best; empty,
- * the boxes no arrow reaches, then the others as written.
+ * the boxes no arrow reaches, then the others as written. [reference] gives the x each box or group
+ * stands at in another drawing of the same schema: among equally clean drawings, the one that leaves
+ * neighbours on the same side is kept, so that folding a group does not swap what surrounds it.
  */
 data class LayoutGraph(
     val boxes: List<LayoutBox>,
     val edges: List<LayoutEdge> = emptyList(),
     val groups: List<LayoutGroup> = emptyList(),
-    val starts: List<String> = emptyList()
+    val starts: List<String> = emptyList(),
+    val reference: Map<String, Float> = emptyMap()
 )
 
 /** Distances, in the unit of the boxes' measures. */
@@ -108,8 +111,9 @@ class SchemaLayout(private val options: LayoutOptions = LayoutOptions()) {
      * drawing kept is the one that fits the width, then has the fewest crossings, bends and height.
      */
     fun place(graph: LayoutGraph): Placement {
+        val ranking = rankingFor(graph.reference)
         val first = Run(graph, options, portsFollowInside = false, start = 0, ranking).place()
-        if (graph.groups.isEmpty() && crossings(first) == 0 && first.width <= options.maxWidth) return first
+        if (graph.groups.isEmpty() && graph.reference.isEmpty() && crossings(first) == 0 && first.width <= options.maxWidth) return first
         val others = (0 until ATTEMPTS).flatMap { start ->
             listOfNotNull(
                 Run(graph, options, portsFollowInside = false, start = start, ranking).place().takeIf { start > 0 },
@@ -119,9 +123,23 @@ class SchemaLayout(private val options: LayoutOptions = LayoutOptions()) {
         return (listOf(first) + others).minWith(ranking)
     }
 
-    /** The better drawing: it fits the width, then has the fewest crossings, bends and height. */
-    private val ranking: Comparator<Placement> =
-        compareBy<Placement> { it.width > options.maxWidth }.thenBy { crossings(it) }.thenBy { bends(it) }.thenBy { it.height }
+    /** The better drawing: it fits the width, then has the fewest crossings, neighbours swapped from [reference], bends and height. */
+    private fun rankingFor(reference: Map<String, Float>): Comparator<Placement> =
+        compareBy<Placement> { it.width > options.maxWidth }.thenBy { crossings(it) }.thenBy { swapped(it, reference) }.thenBy { bends(it) }.thenBy { it.height }
+
+    /** How many pairs side by side stand in the opposite order in [reference]; what holds the other is not beside it. */
+    private fun swapped(placement: Placement, reference: Map<String, Float>): Int {
+        if (reference.isEmpty()) return 0
+        val items = (placement.boxes + placement.groups).entries.filter { it.key in reference }.map { it.key to it.value }
+        var total = 0
+        for (i in items.indices) for (j in i + 1 until items.size) {
+            val (idA, a) = items[i]
+            val (idB, b) = items[j]
+            val beside = a.top < b.bottom && b.top < a.bottom && a.right.coerceAtMost(b.right) - a.left.coerceAtLeast(b.left) < min(a.width, b.width)
+            if (beside && (a.left + a.right - b.left - b.right) * (reference.getValue(idA) - reference.getValue(idB)) < 0) total++
+        }
+        return total
+    }
 
     private fun bends(placement: Placement) = placement.routes.sumOf { max(0, it.points.size - 2) }
 

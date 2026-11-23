@@ -199,6 +199,21 @@ class SchemaSceneTest {
     }
 
     @Test
+    fun `folding a group leaves its neighbours on the same side`() {
+        val json = """{
+            "nodes": [{"id": "work", "label": "work"}, {"id": "lunch", "label": "lunch"}, {"id": "link", "label": "neighbour"},
+                {"id": "nap", "label": "a long nap here"}, {"id": "read", "label": "a long read here"}, {"id": "gone", "label": "after the neighbour"}, {"id": "end", "label": "end"}],
+            "edges": [{"from": "work", "to": "lunch"}, {"from": "work", "to": "link"}, {"from": "link", "to": "gone"},
+                {"from": "lunch", "to": "nap"}, {"from": "lunch", "to": "read"}, {"from": "nap", "to": "end"}, {"from": "read", "to": "end"}],
+            "groups": [{"id": "G", "title": "Group", "members": ["nap", "read"]}]
+        }"""
+        fun x(scene: SchemaScene, name: String) = scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first { it.text == name }.at.x
+        val open = scene(json)
+        val closed = scene(json, folded = setOf("G"))
+        assertEquals(x(open, "lunch") < x(open, "neighbour"), x(closed, "lunch") < x(closed, "neighbour"))
+    }
+
+    @Test
     fun `an empty schema draws nothing, without failing`() {
         assertTrue(scene("{}").drawing.shapes.isEmpty())
     }
