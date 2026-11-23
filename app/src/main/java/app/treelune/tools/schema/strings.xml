@@ -3,7 +3,7 @@
     <!-- Strings of the schema tooltype -->
     <string name="display_name">Schema</string>
     <string name="usage">For drawing boxes and arrows: an organisation, a loop, what feeds what.\n## What it does\n- Draws them at the phone\'s width, top to bottom or bottom to top\n- Groups boxes, one group inside another, folded with a touch\n- A box can link to a thing of the app, whose current name it shows, and open it\n## Not made for\n- A timeline (Agenda), a table (Records), figures (Chart)</string>
-    <string name="guide_config">## The schema\n- Direction: top to bottom, or bottom to top\n\n## Boxes\n- Id: the short name arrows and groups use\n- Text: what the box says\n- Link: a thing of the app, whose name the box shows when it has no text\n- Shape, Color, Texture\n\n## Arrows\n- From, To: two boxes\n- Text on the arrow, Line, Arrowhead\n\n## Groups\n- Id, Title\n- Contents: boxes and other groups\n- Starts folded</string>
+    <string name="guide_config">## The schema\n- Direction: top to bottom, or bottom to top\n\n## Boxes\n- Id: the short name arrows and groups use\n- Text: what the box says\n- Link: a thing of the app, whose name the box shows when it has no text\n- Shape, Color, Texture\n\n## Arrows\n- From, To: two boxes\n- Text on the arrow, Line, Arrowhead\n\n## Groups\n- Id, Title\n- Contents: boxes and other groups\n- Starts folded\n\n## Mermaid\n- Import Mermaid: paste a flowchart; what it gives shows before it replaces the schema\n- Copy as Mermaid: the schema as text, without its links</string>
     <string name="guide_screen">## The schema\nTouch a linked box to open what it designates, a box whose text is cut to read it whole.\nTouch a group\'s title to fold or unfold it, for this visit: nothing is saved.\nTo change the schema, open its config.</string>
     <string name="ai_detail">A diagram in the vocabulary of Mermaid flowcharts, stored as JSON, never as Mermaid text; convert any Mermaid text you are given. Written for a phone held upright: direction TD or BT only, about ten boxes readable at a glance, short labels. When a box stands for a thing of the app, set its thing rather than a label, so that it follows its name. Arrows join boxes, never groups. Keeps no entries.</string>
     <string name="tagline">Boxes and arrows: an organisation, a loop, what feeds what</string>
@@ -62,7 +62,7 @@
     <string name="schema_folded">Whether it opens folded</string>
     <string name="thing_deleted">deleted</string>
     <string name="group_folded">%1$s (%2$d)</string>
-    <string name="screen_empty">This schema is empty. Add its boxes in its config, or ask the AI.</string>
+    <string name="screen_empty">This schema is empty. Add its boxes in its config, import a Mermaid text, or ask the AI.</string>
     <string name="screen_problem">This schema cannot be drawn: %1$s</string>
     <string name="tile_problem">Cannot be drawn</string>
     <string name="tile_counts">%1$s · %2$s</string>
@@ -70,6 +70,27 @@
     <string name="count_boxes">%1$d boxes</string>
     <string name="count_arrow_one">1 arrow</string>
     <string name="count_arrows">%1$d arrows</string>
+    <!-- The Mermaid import and copy, at the head of the config -->
+    <string name="section_mermaid">Mermaid</string>
+    <string name="mermaid_import">Import Mermaid</string>
+    <string name="mermaid_copy">Copy as Mermaid</string>
+    <string name="mermaid_field">Mermaid text (flowchart)</string>
+    <string name="mermaid_hint">Replaces the boxes, arrows and groups of this schema. Nothing is stored until you save the config.</string>
+    <string name="mermaid_names_failed">The names of the linked things could not be read.</string>
+    <string name="mermaid_summary">%1$s, %2$s, %3$s</string>
+    <string name="count_group_one">1 group</string>
+    <string name="count_groups">%1$d groups</string>
+    <string name="mermaid_note_direction">Direction %1$s rewritten as %2$s.</string>
+    <string name="mermaid_note_shapes">Shapes drawn as rectangles: %1$d.</string>
+    <string name="mermaid_note_link_ends">Circle or cross ends drawn as plain arrows: %1$d.</string>
+    <string name="mermaid_note_group_arrows">Arrows to a group now reaching its first box: %1$d.</string>
+    <string name="mermaid_note_ignored">Styling lines ignored: %1$d.</string>
+    <string name="mermaid_error_header">Line %1$d: not a flowchart; it must start with flowchart or graph.</string>
+    <string name="mermaid_error_syntax">Line %1$d: cannot read “%2$s”.</string>
+    <string name="mermaid_error_unclosed">Line %1$d: the subgraph “%2$s” has no end.</string>
+    <string name="mermaid_error_empty_group">Line %1$d: the group “%2$s” holds no box for this arrow to reach.</string>
+    <string name="mermaid_error_long">“%1$s” is too long: %2$d characters at most.</string>
+    <string name="mermaid_error_long_line">Line %1$d: “%2$s” is too long: %3$d characters at most.</string>
     <!-- Said under a schema the app folded to fit -->
     <string name="auto_folded_one">1 group folded to fit the screen</string>
     <string name="auto_folded">%1$d groups folded to fit the screen</string>

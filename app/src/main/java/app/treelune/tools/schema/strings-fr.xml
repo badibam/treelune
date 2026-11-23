@@ -3,7 +3,7 @@
     <!-- Strings of the schema tooltype -->
     <string name="display_name">Schéma</string>
     <string name="usage">Pour dessiner des boîtes et des flèches : une organisation, une boucle, ce qui nourrit quoi.\n## Ce qu\'il fait\n- Il les dessine à la largeur du téléphone, de haut en bas ou de bas en haut\n- Il range les boîtes en groupes, l\'un dans l\'autre, repliés d\'un toucher\n- Une boîte peut désigner une chose de l\'app, dont elle montre le nom actuel, et l\'ouvrir\n## Pas fait pour\n- Une frise (Agenda), un tableau (Fiches), des chiffres (Graphique)</string>
-    <string name="guide_config">## Le schéma\n- Direction : de haut en bas, ou de bas en haut\n\n## Boîtes\n- Identifiant : le nom court dont se servent les flèches et les groupes\n- Texte : ce que dit la boîte\n- Lien : une chose de l\'app, dont la boîte montre le nom quand elle n\'a pas de texte\n- Forme, Couleur, Texture\n\n## Flèches\n- De, Vers : deux boîtes\n- Texte sur la flèche, Trait, Pointe\n\n## Groupes\n- Identifiant, Titre\n- Contenu : des boîtes et d\'autres groupes\n- Replié au départ</string>
+    <string name="guide_config">## Le schéma\n- Direction : de haut en bas, ou de bas en haut\n\n## Boîtes\n- Identifiant : le nom court dont se servent les flèches et les groupes\n- Texte : ce que dit la boîte\n- Lien : une chose de l\'app, dont la boîte montre le nom quand elle n\'a pas de texte\n- Forme, Couleur, Texture\n\n## Flèches\n- De, Vers : deux boîtes\n- Texte sur la flèche, Trait, Pointe\n\n## Groupes\n- Identifiant, Titre\n- Contenu : des boîtes et d\'autres groupes\n- Replié au départ\n\n## Mermaid\n- Importer du Mermaid : colle un flowchart ; ce qu\'il donne s\'affiche avant de remplacer le schéma\n- Copier en Mermaid : le schéma en texte, sans ses liens</string>
     <string name="guide_screen">## Le schéma\nTouche une boîte liée pour ouvrir ce qu\'elle désigne, une boîte au texte coupé pour le lire en entier.\nTouche le titre d\'un groupe pour le replier ou le déplier, le temps de la visite : rien n\'est enregistré.\nPour changer le schéma, ouvre sa config.</string>
     <string name="ai_detail">Un schéma au vocabulaire des flowcharts de Mermaid, enregistré en JSON, jamais en texte Mermaid ; convertis tout texte Mermaid reçu. Écrit pour un téléphone tenu droit : direction TD ou BT seulement, une dizaine de boîtes lisibles d\'un coup d\'œil, des textes courts. Quand une boîte représente une chose de l\'app, renseigne son lien (thing) plutôt qu\'un texte, pour qu\'elle suive son nom. Les flèches relient des boîtes, jamais des groupes. Ne garde aucune entrée.</string>
     <string name="tagline">Des boîtes et des flèches : une organisation, une boucle, ce qui nourrit quoi</string>
@@ -62,7 +62,7 @@
     <string name="schema_folded">S\'il s\'ouvre replié</string>
     <string name="thing_deleted">supprimée</string>
     <string name="group_folded">%1$s (%2$d)</string>
-    <string name="screen_empty">Ce schéma est vide. Ajoute ses boîtes dans sa config, ou demande-le à l\'IA.</string>
+    <string name="screen_empty">Ce schéma est vide. Ajoute ses boîtes dans sa config, importe un texte Mermaid, ou demande-le à l\'IA.</string>
     <string name="screen_problem">Ce schéma ne peut pas être dessiné : %1$s</string>
     <string name="tile_problem">Dessin impossible</string>
     <string name="tile_counts">%1$s · %2$s</string>
@@ -70,6 +70,27 @@
     <string name="count_boxes">%1$d boîtes</string>
     <string name="count_arrow_one">1 flèche</string>
     <string name="count_arrows">%1$d flèches</string>
+    <!-- The Mermaid import and copy, at the head of the config -->
+    <string name="section_mermaid">Mermaid</string>
+    <string name="mermaid_import">Importer du Mermaid</string>
+    <string name="mermaid_copy">Copier en Mermaid</string>
+    <string name="mermaid_field">Texte Mermaid (flowchart)</string>
+    <string name="mermaid_hint">Remplace les boîtes, flèches et groupes de ce schéma. Rien n\'est enregistré tant que tu n\'as pas validé la config.</string>
+    <string name="mermaid_names_failed">Les noms des choses liées n\'ont pas pu être lus.</string>
+    <string name="mermaid_summary">%1$s, %2$s, %3$s</string>
+    <string name="count_group_one">1 groupe</string>
+    <string name="count_groups">%1$d groupes</string>
+    <string name="mermaid_note_direction">Direction %1$s réécrite en %2$s.</string>
+    <string name="mermaid_note_shapes">Formes dessinées en rectangle : %1$d.</string>
+    <string name="mermaid_note_link_ends">Bouts en rond ou en croix dessinés en flèches simples : %1$d.</string>
+    <string name="mermaid_note_group_arrows">Flèches vers un groupe qui atteignent sa première boîte : %1$d.</string>
+    <string name="mermaid_note_ignored">Lignes de style ignorées : %1$d.</string>
+    <string name="mermaid_error_header">Ligne %1$d : ce n\'est pas un flowchart, il doit commencer par flowchart ou graph.</string>
+    <string name="mermaid_error_syntax">Ligne %1$d : impossible de lire « %2$s ».</string>
+    <string name="mermaid_error_unclosed">Ligne %1$d : le subgraph « %2$s » n\'a pas de end.</string>
+    <string name="mermaid_error_empty_group">Ligne %1$d : le groupe « %2$s » n\'a aucune boîte à faire atteindre par cette flèche.</string>
+    <string name="mermaid_error_long">« %1$s » est trop long : %2$d caractères au plus.</string>
+    <string name="mermaid_error_long_line">Ligne %1$d : « %2$s » est trop long : %3$d caractères au plus.</string>
     <!-- Said under a schema the app folded to fit -->
     <string name="auto_folded_one">1 groupe replié pour tenir dans l\'écran</string>
     <string name="auto_folded">%1$d groupes repliés pour tenir dans l\'écran</string>
