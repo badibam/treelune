@@ -31,6 +31,7 @@ Ce que ça demande au core :
 - Une seule notion de lignes calculées, passant par la même porte que les entrées, dont la série d'une variable deviendrait un cas particulier. La sélection gagne un paramètre, `view`. Usages : Parcours (`bricks`, `moves`), Flashcards (`cards` : acquises, en retard, nouvelles), Séance (`playable`).
 - Une Référence vers une ligne de vue, qui peut comme pour une entrée descendre jusqu'à un champ (`field`). Elle demande des identifiants de ligne stables (celui d'une entrée, d'un programme), jamais une position.
 - Le coût à mesurer : un Graphique recalculerait la vue à chaque point de temps.
+- L'ordre (décidé le 2026-11-24) : premier usage, la vue `cards` des Flashcards, qui existent et calculent déjà l'état d'une carte (`FlashcardsJournal`) : un repère « 12 cartes en retard », une jauge « acquises / toutes ». Dans le même chantier, la série d'une variable devient une vue de la variable, les sélections enregistrées qui la visent migrées, pour que la porte soit dessinée pour deux usages et qu'aucun mécanisme ancien ne reste à côté.
 
 ## Les briques
 
