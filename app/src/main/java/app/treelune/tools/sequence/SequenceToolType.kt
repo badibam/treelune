@@ -223,6 +223,9 @@ object SequenceToolType : ToolTypeContract {
     /** The name a step in a block is written under once, for the AI that reads the schema (SchemaNotation). */
     private const val BLOCK_STEP = "BlockStep"
 
+    /** The name an element of a session's course is written under once: a session of steps and each program have one (SchemaNotation). */
+    private const val COURSE_ELEMENT = "CourseElement"
+
     /** The steps of a session, as its config holds them under "steps"; [text] gives the tool's strings. */
     fun steps(text: (String) -> String): SettingNode.ListOf = stepList(text, depth = 0)
 
@@ -255,7 +258,11 @@ object SequenceToolType : ToolTypeContract {
             else -> "schema_block_element"
         }
         return SettingNode.ListOf(SequencePlan.STEPS, text("field_steps"),
-            SettingNode.Item.Of(item, description = text(element), definition = BLOCK_STEP.takeIf { depth == SequencePlan.MAX_DEPTH }), required = true, minItems = 1,
+            SettingNode.Item.Of(item, description = text(element), definition = when (depth) {
+                SequencePlan.MAX_DEPTH -> BLOCK_STEP
+                0 -> COURSE_ELEMENT
+                else -> null
+            }), required = true, minItems = 1,
             summary = listOf(SequencePlan.NAME), description = text(if (depth == 0) "schema_steps" else "schema_block_steps"))
     }
 
