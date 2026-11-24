@@ -2426,6 +2426,8 @@
     <string name="sort_direction_desc">Décroissant</string>
     <string name="selection_order">Ordre</string>
     <string name="selection_limit">Seulement les premières</string>
+    <string name="selection_read">Lire</string>
+    <string name="selection_read_entries">Ses entrées</string>
     <string name="selection_limit_hint">Combien d\'entrées de cet ordre sont gardées ; vide, toutes.</string>
     <string name="label_on">On</string>
     <string name="label_off">Off</string>

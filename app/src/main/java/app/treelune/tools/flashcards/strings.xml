@@ -7,7 +7,7 @@
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">For reviewing the lines of another tool by spaced repetition: a vocabulary, capitals, dates. Each card comes back just before it is forgotten, later and later with each right answer. A deck holds none of the words: it points at the entries of its source, and a word added to the source is one card more.\n## What it does\n- Several directions per line (Italian to French, and back), one direction a day\n- Groups drawn from a field of the source (a word\'s theme)\n- A number of new cards and of reviews a day\n## Not made for\n- Keeping the words themselves (Structured data)\n- A quiz scored once (Questionnaire)</string>
     <!-- What only the AI reads, after the usage -->
-    <string name="ai_detail">A card is a line of the source (source_entry, an entry id) in one of the deck\'s directions (its key). Ask flashcards.due for the cards to offer now, with their front and back values, flashcards.counts for the numbers of each group, and rate a card with flashcards.review (rating AGAIN, HARD, GOOD or EASY) once the person has said how well they remembered it: the person rates themself, never you. A review is written only by flashcards.review, never by an ordinary write, and never changes; deleting a card\'s last review undoes it. Changing the source deletes every review, removing a direction its own, which asks the person first.</string>
+    <string name="ai_detail">A card is a line of the source (source_entry, an entry id) in one of the deck\'s directions (its key). Ask flashcards.due for the cards to offer now, with their front and back values, flashcards.counts for the numbers of each group, and rate a card with flashcards.review (rating AGAIN, HARD, GOOD or EASY) once the person has said how well they remembered it: the person rates themself, never you. A review is written only by flashcards.review, never by an ordinary write, and never changes; deleting a card\'s last review undoes it. Changing the source deletes every review, removing a direction its own, which asks the person first. A reading reads its cards as rows with `"view": "cards"` beside the deck: one row per card, new ones included, with `data.line` (the source\'s entry), `data.direction`, `data.groups` (a text), `data.new`, `data.due` (to review today), `data.acquired` (a stability of 7 days or more), `data.due_at`, `data.started`, `data.last_rating`, `data.reviews`; no period. “Cards to review” is a COUNT filtered on `data.due`.</string>
     <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (Markup) -->
     <string name="guide_config">## Where the cards come from\n- Source: the tool whose lines make the cards, with filters to leave out what is not reviewed\n- Group by: a field of the source, each value of which makes a group to review on its own (a word\'s theme)\n\n## How they are asked\n- Directions: each way of asking a line, with its name, the fields of the front and those of the back. The first field of a face is the question or the answer, the next ones details\n- One direction after another: a line\'s next direction comes only once the one before is learnt, its memory holding a week\n\n## The day\n- New per day: how many cards never seen come in each day, for the whole deck\n- Reviews per day: how many cards already seen come back each day at most\n- Desired retention: the chance of remembering at which a card comes back, 0.9 by default. Higher, cards come back more often</string>
     <string name="guide_screen">## The deck\n- Everything: the day\'s cards, all groups together\n- A line per group, with its cards to review and its new ones. A line may be in several groups, so Everything is not their sum, and two groups may show the same new cards\nTouch a line to choose the direction, then start the session.\n\n## The session\nTouch the card to see the answer, then say how well you remembered it. A card you have never seen bears the mark New, and the session's end counts the new ones apart.\n- Missed: the card comes back later in the session\n- Hard, Good, Easy: it comes back later, the later the easier it was\n- Go back: undoes the last rating and shows the card again\n- {arrow-left} Stops the session: a failed card not passed again stays to review</string>
@@ -53,6 +53,17 @@
     <string name="rating_hard">Hard</string>
     <string name="rating_good">Good</string>
     <string name="rating_easy">Easy</string>
+    <string name="view_cards">Its cards</string>
+    <string name="card_line">Line</string>
+    <string name="card_direction">Direction</string>
+    <string name="card_groups">Groups</string>
+    <string name="card_new">New</string>
+    <string name="card_due">To review</string>
+    <string name="card_acquired">Acquired</string>
+    <string name="card_due_at">Comes back</string>
+    <string name="card_started">Started</string>
+    <string name="card_last_rating">Last rating</string>
+    <string name="card_reviews">Reviews</string>
     <string name="field_stability">Stability</string>
     <string name="schema_stability">How many days the card\'s memory holds after the review, with a 90% chance of remembering it</string>
     <string name="field_difficulty">Difficulty</string>

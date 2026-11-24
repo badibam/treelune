@@ -17,6 +17,8 @@ import org.json.JSONObject
  * A variable, where its context takes one (a reading), stands for its series, its view
  * (Views.SERIES): a period and conditions, as a tool.
  *
+ * @property view One of the tool's views read in place of its entries (core/views: a deck's
+ *   cards), where its context reads views (a reading); null for its entries
  * @property filters Conditions put on each entry (Conditions), the period apart
  * @property fields The fields kept, all of them when null
  * @property sort The order of a tool's or a series' entries, empty until the picker writes its default
@@ -31,7 +33,8 @@ data class SelectionDraft(
     val fields: List<String>? = null,
     val variable: Named? = null,
     val sort: List<app.treelune.core.fields.SortKey> = emptyList(),
-    val limit: Int? = null
+    val limit: Int? = null,
+    val view: String? = null
 ) {
     /** The kind of the deepest place reached: the app until a zone is chosen. */
     val level: ReferenceKind get() = when {
@@ -61,8 +64,11 @@ data class SelectionDraft(
     /** Into [zone]: the period stays, which a zone takes as well. */
     fun intoZone(zone: Named): SelectionDraft = SelectionDraft(zone = zone, period = period)
 
-    /** Into [tool]: the period stays; its conditions, fields and order, a tool's own, start empty. */
-    fun intoTool(tool: Named): SelectionDraft = copy(tool = tool, filters = JSONArray(), fields = null, sort = emptyList(), limit = null)
+    /** Into [tool]: the period stays; its conditions, fields, order and view, a tool's own, start empty. */
+    fun intoTool(tool: Named): SelectionDraft = copy(tool = tool, filters = JSONArray(), fields = null, sort = emptyList(), limit = null, view = null)
+
+    /** Reading [view] of its tool, or its entries: its conditions and order, on other fields, start empty, as its period, which a view may refuse. */
+    fun reading(view: String?): SelectionDraft = copy(view = view, filters = JSONArray(), fields = null, sort = emptyList(), limit = null, period = app.treelune.core.selection.EntryPeriod())
 
     /** Back up to the app, or to the zone: what the level left offered goes with it. */
     fun upTo(level: ReferenceKind): SelectionDraft = when (level) {
@@ -93,7 +99,8 @@ data class SelectionDraft(
             fields = fields.takeIf { isTool },
             // A zone is narrowed by its period alone
             sort = if (isTool) sort else emptyList(),
-            limit = limit.takeIf { isTool }
+            limit = limit.takeIf { isTool },
+            view = view.takeIf { isTool }
         )
     }
 
@@ -107,6 +114,7 @@ data class SelectionDraft(
         fields?.let { put("fields", JSONArray(it)) }
         put("sort", app.treelune.core.fields.EntrySort.toJson(sort))
         limit?.let { put("limit", it) }
+        view?.let { put("view", it) }
     }
 
     companion object {
@@ -120,7 +128,8 @@ data class SelectionDraft(
             fields = json.optJSONArray("fields")?.let { a -> (0 until a.length()).map { a.getString(it) } },
             variable = json.optJSONObject("variable")?.let { Named.fromJson(it) },
             sort = json.optJSONArray("sort")?.let { app.treelune.core.fields.EntrySort.read(it) { key -> key } } ?: emptyList(),
-            limit = json.optInt("limit", 0).takeIf { it > 0 }
+            limit = json.optInt("limit", 0).takeIf { it > 0 },
+            view = json.optString("view").takeIf { it.isNotEmpty() }
         )
 
         /** A stored [selection] to edit again, the places of [path] named as they are now. */
@@ -133,7 +142,9 @@ data class SelectionDraft(
             fields = selection.fields,
             variable = path.variable,
             sort = selection.sort,
-            limit = selection.limit
+            limit = selection.limit,
+            // A variable's series is its only view, said by the variable chosen
+            view = selection.view.takeIf { path.tool != null }
         )
     }
 }

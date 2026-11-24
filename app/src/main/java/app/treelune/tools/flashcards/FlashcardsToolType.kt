@@ -66,6 +66,9 @@ object FlashcardsToolType : ToolTypeContract {
     /** Its reviews are written by the app alone, from what the user does in a session: no fields of the user's. */
     override fun takesUserFields(): Boolean = false
 
+    /** Its cards, one row each (FlashcardsCards). */
+    override fun views(): List<app.treelune.core.views.ToolView> = listOf(FlashcardsCards)
+
     // -----------------------------------------------------------------------------------------
     // The config
     // -----------------------------------------------------------------------------------------

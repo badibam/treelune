@@ -90,6 +90,9 @@ fun SelectionPicker(
         // One entry is that entry: nothing narrows it
         if (!chosen || draft.level == ReferenceKind.ENTRY) return@Column
 
+        // Where views are read (a reading), a tool that has some offers them beside its entries
+        if (ReferenceKind.VARIABLE in target.kinds && draft.tool != null) ViewChoice(draft, onChange, s)
+
         // A period is read on the entries' date: a tool whose entries have none (a Records tool, a
         // chart) offers none, a period already set shown to be taken away rather than dropped in silence
         val undated = draft.tool != null && draft.variable == null && fields.isNotEmpty() && "timestamp" !in fields
@@ -111,7 +114,7 @@ fun SelectionPicker(
             PointerDescription.narrowing(draft.copy(period = app.treelune.core.selection.EntryPeriod()), fields, s).forEach {
                 UI.Text(text = it, type = TextType.CAPTION)
             }
-            if (offerOrder) OrderSetting(draft, onChange, tool.id.takeIf { draft.variable == null }, fields, s)
+            if (offerOrder) OrderSetting(draft, onChange, tool.id.takeIf { draft.variable == null && draft.view == null }, fields, s)
             if (editing) {
                 PointerFiltersDialog(
                     toolInstanceId = tool.id,
@@ -133,16 +136,17 @@ fun SelectionPicker(
 
 /**
  * The order and the count of [draft]'s entries: its sort (SortSetting) on the keys of the tool
- * [toolId] (a manual position included), or of the series' [fields]; then « The first N ».
- * A draft without a sort gets its default once the keys are read.
+ * [toolId] (a manual position included), or of a view's [fields]; then « The first N ».
+ * A draft without a sort gets its default once the keys are read (SelectionOrder).
  */
 @Composable
 private fun OrderSetting(draft: SelectionDraft, onChange: (SelectionDraft) -> Unit, toolId: String?, fields: Map<String, FieldDefinition>, s: app.treelune.core.strings.StringsContext) {
+    val context = LocalContext.current
     val keys = if (toolId != null) rememberToolFields(toolId, sortKeys = true) else fields
     androidx.compose.runtime.LaunchedEffect(keys, draft.sort.isEmpty()) {
         if (draft.sort.isEmpty() && keys.isNotEmpty()) {
-            onChange(draft.copy(sort = if (toolId == null) app.treelune.core.variables.VariableSeries.DEFAULT_SORT
-                else app.treelune.core.selection.SelectionOrder.defaultSort(dated = "timestamp" in keys)))
+            val selection = draft.selection()
+            app.treelune.core.selection.SelectionOrder.defaultFor(selection.target, selection.view, context)?.let { onChange(draft.copy(sort = it)) }
         }
     }
     if (draft.sort.isEmpty()) return
@@ -155,6 +159,33 @@ private fun OrderSetting(draft: SelectionDraft, onChange: (SelectionDraft) -> Un
         required = false
     )
     UI.Text(text = s.shared("selection_limit_hint"), type = TextType.CAPTION)
+}
+
+/**
+ * What a tool's selection reads, when its type has views (core/views): its entries, or one of its
+ * views (a deck's cards), each named by its type's strings (`view_<name>`). Nothing for a tool
+ * without views.
+ */
+@Composable
+private fun ViewChoice(draft: SelectionDraft, onChange: (SelectionDraft) -> Unit, s: app.treelune.core.strings.StringsContext) {
+    val context = LocalContext.current
+    val toolId = draft.tool?.id ?: return
+    var tooltype by remember(toolId) { mutableStateOf<String?>(null) }
+    androidx.compose.runtime.LaunchedEffect(toolId) {
+        tooltype = app.treelune.core.database.AppDatabase.getDatabase(context).toolInstanceDao().getToolInstanceById(toolId)?.tooltype
+    }
+    val type = tooltype ?: return
+    val views = app.treelune.core.views.Views.namesOf(type)
+    if (views.isEmpty()) return
+    val own = remember(type) { Strings.`for`(tool = type, context = context) }
+    val labels = listOf(s.shared("selection_read_entries")) + views.map { own.tool("view_$it") }
+    UI.FormSelection(
+        label = s.shared("selection_read"),
+        options = labels,
+        selected = labels[(views.indexOf(draft.view) + 1).coerceAtLeast(0)],
+        onSelect = { label -> labels.indexOf(label).let { i -> if (i >= 0) onChange(draft.reading(views.getOrNull(i - 1))) } },
+        required = true
+    )
 }
 
 /** The browser's place across a rotation, null while folded. */

@@ -2426,6 +2426,8 @@
     <string name="sort_direction_desc">Descending</string>
     <string name="selection_order">Order</string>
     <string name="selection_limit">Only the first</string>
+    <string name="selection_read">Read</string>
+    <string name="selection_read_entries">Its entries</string>
     <string name="selection_limit_hint">How many entries of that order are kept; empty, all of them.</string>
     <string name="label_on">On</string>
     <string name="label_off">Off</string>

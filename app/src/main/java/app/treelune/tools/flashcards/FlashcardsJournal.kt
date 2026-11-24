@@ -55,6 +55,15 @@ object FlashcardsJournal {
         }
     }
 
+    /** How many reviews each card of the deck [deckId] has had, by card. */
+    suspend fun reviewCounts(context: Context, deckId: String): Map<FlashcardsDue.CardKey, Int> =
+        AppDatabase.getDatabase(context).toolDataDao().getFiltered(SimpleSQLiteQuery(
+            """
+            SELECT * FROM tool_data WHERE tool_instance_id = ?
+            """.trimIndent(),
+            arrayOf(deckId)
+        )).groupingBy { key(it) }.eachCount()
+
     /** The last review of one card, null for a new card. */
     suspend fun last(context: Context, deckId: String, key: FlashcardsDue.CardKey): ToolDataEntity? =
         AppDatabase.getDatabase(context).toolDataDao().getFiltered(SimpleSQLiteQuery(
