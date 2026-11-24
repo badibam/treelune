@@ -20,7 +20,7 @@ Une série n'est juste dans le passé que si les termes de la variable se placen
 
 ## Comment on la lit
 
-Une Sélection peut viser une variable qui a une série (`{"kind": "VARIABLE", "id"}`), dans une Lecture seulement : une période, des filtres sur `data.value` ou `timestamp`, puis le champ, la réduction et le regroupement de toute Lecture. Le reste de la brique ne change pas.
+Une Sélection peut viser une variable qui a une série (`{"kind": "VARIABLE", "id"}` et `"view": "series"` à côté, la série étant une vue, `core/views`), dans une Lecture seulement : une période, des filtres sur `data.value` ou `timestamp`, puis le champ, la réduction et le regroupement de toute Lecture. Le reste de la brique ne change pas.
 
 - **Sa période doit avoir un début** : une variable n'a pas de première entrée, « tout l'historique » n'a pas de sens. Une période sans début est refusée en le disant. Sans fin, elle s'arrête à l'instant lu. Dans un critère d'Objectif, la période vide vaut la tentative, qui a un début.
 - **Ses filtres** sont ceux d'un outil, jugés par le même SQL (`EntryFilters`), les entrées fabriquées tenant lieu de la table (`WITH tool_data`), comme les déclencheurs jugent la copie d'une entrée.
@@ -33,7 +33,7 @@ Une Sélection peut viser une variable qui a une série (`{"kind": "VARIABLE", "
 
 ```json
 {"left": {"reading": {
-   "selection": {"target": {"kind": "VARIABLE", "id": "<jeune>"},
+   "selection": {"target": {"kind": "VARIABLE", "id": "<jeune>"}, "view": "series",
                  "filters": [{"left": {"field": "data.value"}, "op": ">=", "right": {"constant": 57600000}}]},
    "reduction": "COUNT"}},
  "op": ">=", "right": {"constant": 7}}
