@@ -121,16 +121,22 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
                 node.cases[chosen]?.let { walk(it, obj, root, path, label, visit) }
             }
             is SettingNode.Section -> walk(node.nodes, obj, root, path, label, visit)
+            // A combination (all, any) found comparison by comparison, kept around them
             is SettingNode.Condition -> {
                 val condition = obj.optJSONObject(node.name) ?: continue
                 val here = under(label, node.label)
+                Conditions.combinationProblem(condition, here, text)?.let { throw IllegalArgumentException(it) }
+                if (!node.combines && Conditions.isCombined(condition)) throw IllegalArgumentException(text("condition_error_not_combined").format(here))
                 if (node.onRow) {
                     val fields = sources.rowFields(root, path) ?: error("The condition '${node.name}' is put on each row, and its config's owner gives no RowFields")
-                    obj.put(node.name, visit(Found(here, condition, Kind.ON_ROW, fields)))
+                    obj.put(node.name, Conditions.mapComparisons(condition) { visit(Found(here, it, Kind.ON_ROW, fields)) })
                 } else {
-                    val turned = visit(Found(here, condition, Kind.ONCE, entered = entered(node, obj)))
+                    val turned = Conditions.mapComparisons(condition) { comparison ->
+                        visit(Found(here, comparison, Kind.ONCE, entered = entered(node, obj))).also { turned ->
+                            sidesOf(turned).forEach { side -> reading(side, here, visit) }
+                        }
+                    }
                     obj.put(node.name, turned)
-                    sidesOf(turned).forEach { side -> reading(side, here, visit) }
                 }
             }
             is SettingNode.Term -> obj.optJSONObject(node.name)?.let { reading(it, under(label, node.label), visit) }

@@ -131,9 +131,28 @@ object ConditionTriggers {
 
     /**
      * [condition] judged once at [at], its readings over their whole history when they have no
-     * period of their own.
+     * period of their own. A combination (all, any) is judged comparison by comparison: one that
+     * fails fails it, what was read is said part after part, and a run receives no `left` nor
+     * `right`, which belong to one comparison.
      */
     suspend fun judgeOnce(context: Context, condition: JSONObject, at: Long): Judged {
+        if (!app.treelune.core.conditions.Conditions.isCombined(condition)) return judgeComparison(context, condition, at)
+        val s = Strings.`for`(context = context)
+        app.treelune.core.conditions.Conditions.combinationProblem(condition, s.shared("trigger_condition")) { s.shared(it) }?.let { return Judged.Failed(it) }
+        val said = mutableListOf<String>()
+        var failure: Judged.Failed? = null
+        val holds = app.treelune.core.conditions.Conditions.holds(condition) { comparison ->
+            when (val judged = judgeComparison(context, comparison, at)) {
+                is Judged.Failed -> { failure = failure ?: judged; null }
+                is Judged.Answer -> { if (judged.said.isNotEmpty()) said += judged.said; judged.holds }
+            }
+        }
+        failure?.let { return it }
+        return Judged.Answer(holds, emptyMap(), said.joinToString(" · "))
+    }
+
+    /** One comparison judged once at [at] (judgeOnce). */
+    private suspend fun judgeComparison(context: Context, condition: JSONObject, at: Long): Judged {
         val s = Strings.`for`(context = context)
         val text = { key: String -> s.shared(key) }
         return try {
@@ -179,6 +198,8 @@ object ConditionTriggers {
     suspend fun values(context: Context, condition: JSONObject): Map<String, FieldDefinition> {
         val s = Strings.`for`(context = context)
         val sources = app.treelune.core.conditions.AppConditionSources(context, null)
+        // A combination gives no left nor right: they belong to one comparison
+        if (app.treelune.core.conditions.Conditions.isCombined(condition)) return emptyMap()
         return try {
             val read = Condition.fromJson(condition, "", { s.shared(it) })
             val field = (listOf(read.left) + read.right).filterIsInstance<Condition.Side.Of>().firstNotNullOfOrNull { side ->
@@ -251,12 +272,14 @@ object ConditionTriggers {
      * The terms on the sides of [condition], and those a grouped reading's groups are compared
      * with; none when it does not read, which the judging says.
      */
-    private fun terms(condition: JSONObject): List<Term> = try {
-        val read = Condition.fromJson(condition, "", { it })
-        val sides = (listOf(read.left) + read.right).mapNotNull { (it as? Condition.Side.Of)?.term }
-        sides + sides.filterIsInstance<Term.Reading>().flatMap { it.keepTerms() }
-    } catch (e: IllegalArgumentException) {
-        emptyList()
+    private fun terms(condition: JSONObject): List<Term> = app.treelune.core.conditions.Conditions.comparisons(condition).flatMap { comparison ->
+        try {
+            val read = Condition.fromJson(comparison, "", { it })
+            val sides = (listOf(read.left) + read.right).mapNotNull { (it as? Condition.Side.Of)?.term }
+            sides + sides.filterIsInstance<Term.Reading>().flatMap { it.keepTerms() }
+        } catch (e: IllegalArgumentException) {
+            emptyList()
+        }
     }
 
     /** What listening to [condition] reaches (AccessRules.reach): each reading and each variable, read. */

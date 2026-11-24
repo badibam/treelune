@@ -359,7 +359,11 @@ class ReadoutService(private val context: Context) : ExecutableService {
         var signal = false
         for (index in 0 until colors.length()) {
             val line = colors.getJSONObject(index)
-            if (holds(Condition.fromJson(line.getJSONObject(ReadoutSettings.WHEN), readout.name) { s.shared(it) }, read, resolver) != true) continue
+            // A combination (all, any) judged comparison by comparison
+            val holds = app.treelune.core.conditions.Conditions.holds(line.getJSONObject(ReadoutSettings.WHEN)) { comparison ->
+                holds(Condition.fromJson(comparison, readout.name) { s.shared(it) }, read, resolver)
+            }
+            if (holds != true) continue
             color = line.getString(ReadoutSettings.COLOR)
             signal = line.optBoolean(ReadoutSettings.SIGNAL, false)
             break

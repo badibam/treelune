@@ -196,6 +196,24 @@ class ReadoutsTest {
     }
 
     @Test
+    fun aColourCombiningComparisons_holdsAsItsCombinationSays(): Unit = runBlocking {
+        // Orange while some is drunk but not all: done > 0 and done < expected
+        val id = ok("readouts.create", water(mapOf("colors" to listOf(
+            mapOf("when" to mapOf("all" to listOf(
+                mapOf("left" to mapOf("field" to "done"), "op" to ">", "right" to mapOf("constant" to 0)),
+                mapOf("left" to mapOf("field" to "done"), "op" to "<", "right" to mapOf("field" to "expected"))
+            )), "color" to "ORANGE")
+        ))))["readout_id"] as String
+        assertEquals(null, read(id)["color"])
+        glass()
+        assertEquals("ORANGE", read(id)["color"])
+        glass()
+        assertEquals(null, read(id)["color"])
+        // A combination without parts is refused
+        refused("readouts.create", water(mapOf("colors" to listOf(mapOf("when" to mapOf("any" to emptyList<Any>()), "color" to "RED")))))
+    }
+
+    @Test
     fun withoutATarget_itIsRefused(): Unit = runBlocking {
         refused("readouts.create", water() - "target")
     }

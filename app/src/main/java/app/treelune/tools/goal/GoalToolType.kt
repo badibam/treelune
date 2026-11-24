@@ -113,7 +113,9 @@ object GoalToolType : ToolTypeContract {
             SettingNode.Group(Criterion.ENTERED, s.tool("field_field"), FieldTypeSettings.valueNodes(shared::shared, ENTERED_TYPES), description = s.tool("schema_entered")),
             SettingNode.Field(field("instructions", s.tool("field_instructions"), FieldType.TEXT, s.tool("schema_instructions"), mapOf("length" to TextLength.MEDIUM.name))),
             SettingNode.Condition(Criterion.CONDITION, s.tool("field_condition"), reference = s.tool("reference_attempt_end"),
-                emptyPeriod = s.tool("period_of_attempt"), required = true, enteredField = Criterion.ENTERED)
+                emptyPeriod = s.tool("period_of_attempt"), required = true, enteredField = Criterion.ENTERED,
+                // A criterion shows its value against its threshold: one comparison
+                combines = false)
         )
     }
 

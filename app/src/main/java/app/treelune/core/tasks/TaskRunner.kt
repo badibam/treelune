@@ -389,15 +389,19 @@ object TaskRunner {
         val values = TaskSteps.receivedValues(triggers, context)
         val given = TaskSteps.allOutputs((0 until index).map { steps.getJSONObject(it) }, context)
         val items = TaskSteps.itemFields(step, given, s)
-        conditions.forEachIndexed { i, condition ->
+        conditions.forEachIndexed { i, element ->
             val label = StepConditions.label(index + 1, i, s)
-            val inputs = (listOf(condition.left) + condition.right).map { TaskSteps.input(it, label) { key -> s.shared(key) } }
-            // Compared as the first side that has a type, a written value read in it
-            val field = inputs.firstNotNullOfOrNull { StepConditions.fieldOf(it, given, fields, values, items, context, s, label) }
-                ?: throw StepFailed(s.shared("condition_error_untyped").format(label))
-            val read = inputs.map { resolve(context, it, results, at, received, item) }
-            val holds = app.treelune.core.conditions.ConditionJudge.holds(field, condition.op, read.first(), read.drop(1),
-                app.treelune.core.selection.TimeResolver.at(at)) { key -> s.shared(key) }
+            // A combination judged comparison by comparison
+            val holds = app.treelune.core.conditions.Conditions.holds(element.json) { json ->
+                val condition = element.comparisons.getValue(json)
+                val inputs = (listOf(condition.left) + condition.right).map { TaskSteps.input(it, label) { key -> s.shared(key) } }
+                // Compared as the first side that has a type, a written value read in it
+                val field = inputs.firstNotNullOfOrNull { StepConditions.fieldOf(it, given, fields, values, items, context, s, label) }
+                    ?: throw StepFailed(s.shared("condition_error_untyped").format(label))
+                val read = inputs.map { resolve(context, it, results, at, received, item) }
+                app.treelune.core.conditions.ConditionJudge.holds(field, condition.op, read.first(), read.drop(1),
+                    app.treelune.core.selection.TimeResolver.at(at)) { key -> s.shared(key) }
+            }
             if (holds != true) return s.shared(if (holds == null) "task_run_skipped_unknown" else "task_run_skipped_false").format(i + 1)
         }
         return null

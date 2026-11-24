@@ -137,8 +137,8 @@ object TaskSchemas {
     private suspend fun whenConstants(step: JSONObject, index: Int, given: List<List<TaskSteps.Output>>, received: Map<String, FieldDefinition>?, values: Map<String, FieldDefinition>?,
                                       context: Context, s: app.treelune.core.strings.StringsContext, convert: (Any?, JSONObject) -> Any?) {
         val list = step.optJSONArray(StepConditions.WHEN) ?: return
-        for (i in 0 until list.length()) {
-            val condition = list.optJSONObject(i) ?: continue
+        // Each comparison of each element, a combination's parts in place (Conditions)
+        for (i in 0 until list.length()) for (condition in list.optJSONObject(i)?.let { app.treelune.core.conditions.Conditions.comparisons(it) }.orEmpty()) {
             val label = StepConditions.label(index + 1, i, s)
             val sides = listOfNotNull(condition.optJSONObject(app.treelune.core.conditions.Conditions.LEFT)) +
                 when (val right = condition.opt(app.treelune.core.conditions.Conditions.RIGHT)) {

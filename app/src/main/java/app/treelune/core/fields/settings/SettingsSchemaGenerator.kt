@@ -161,7 +161,8 @@ object SettingsSchemaGenerator {
 
     /**
      * A condition: its operator among the known ones, each side an object the service reads as a
-     * field or a term (Condition.fromJson), which the description spells out.
+     * field or a term (Condition.fromJson), which the description spells out; or a combination of
+     * conditions, `all` or `any`, each part checked by the service (Conditions.combinationProblem).
      */
     private fun conditionSchema(node: SettingNode.Condition, text: (String) -> String): JSONObject = JSONObject()
         .put("type", "object")
@@ -174,8 +175,13 @@ object SettingsSchemaGenerator {
         .put("properties", JSONObject()
             .put("left", JSONObject().put("type", "object"))
             .put("op", JSONObject().put("type", "string").put("enum", JSONArray(app.treelune.core.fields.FilterOperator.entries.map { it.key })))
-            .put("right", JSONObject().put("type", JSONArray().put("object").put("array"))))
-        .put("required", JSONArray().put("op"))
+            .put("right", JSONObject().put("type", JSONArray().put("object").put("array")))
+            .apply {
+                if (node.combines) {
+                    put(app.treelune.core.conditions.Conditions.ALL, JSONObject().put("type", "array").put("items", JSONObject().put("type", "object")))
+                    put(app.treelune.core.conditions.Conditions.ANY, JSONObject().put("type", "array").put("items", JSONObject().put("type", "object")))
+                }
+            })
         .put("additionalProperties", false)
 
     /**

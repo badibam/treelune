@@ -56,6 +56,18 @@ class GoalLaunchTest {
         return tool.data!!["tool_instance_id"] as String
     }
 
+    @Test
+    fun aCriterionCombiningComparisons_isRefused(): Unit = runBlocking {
+        val tool = coordinator.processUserAction("tools.create", mapOf(
+            "zone_id" to zoneId, "tooltype" to "goal",
+            "config" to mapOf("name" to "No sugar", "criteria" to listOf(mapOf(
+                "key" to "c_no_sugar", "name" to "No sugar", "field" to mapOf("type" to "BOOLEAN"),
+                "condition" to mapOf("any" to listOf(mapOf("op" to "=", "right" to mapOf("constant" to true))))
+            )))
+        ))
+        org.junit.Assert.assertFalse("a criterion shows one comparison", tool.isSuccess)
+    }
+
     private suspend fun launch(toolId: String): String {
         val result = coordinator.processUserAction("goal.launch", mapOf("tool_instance_id" to toolId))
         assertTrue(result.error, result.isSuccess)

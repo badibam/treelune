@@ -12,6 +12,11 @@ import org.json.JSONObject
  * `{"left": {"field": "data.duration"}, "op": "<", "right": {"constant": 21600000}}`.
  *
  * A written value has no type of its own: it is read as the field on the other side.
+ *
+ * Comparisons combine (docs/BRICKS.md, « Condition »): `{"all": […]}` holds when each of its
+ * parts holds, `{"any": […]}` when one does, each part a comparison or a combination in turn. A
+ * combination is judged once (a readout's colour, a trigger, a Task's « Only if », a goal's
+ * criterion); a selection's filters stay a list of comparisons, all of them holding.
  */
 object Conditions {
 
@@ -21,6 +26,76 @@ object Conditions {
     const val FIELD = "field"
     const val CONSTANT = "constant"
     const val BETWEEN = "between"
+    const val ALL = "all"
+    const val ANY = "any"
+
+    /** Whether [condition] combines others rather than compares. */
+    fun isCombined(condition: JSONObject): Boolean = condition.has(ALL) || condition.has(ANY)
+
+    /** The parts a combination joins; null for a comparison. */
+    fun parts(condition: JSONObject): List<JSONObject>? {
+        val array = condition.optJSONArray(ALL) ?: condition.optJSONArray(ANY) ?: return null
+        return (0 until array.length()).map { array.optJSONObject(it) ?: JSONObject() }
+    }
+
+    /** The comparisons of [condition], at any depth, in order: itself for a comparison. */
+    fun comparisons(condition: JSONObject): List<JSONObject> = parts(condition)?.flatMap { comparisons(it) } ?: listOf(condition)
+
+    /**
+     * [condition] with each of its comparisons, at any depth, replaced by what [transform]
+     * returns, the combinations kept around them.
+     */
+    suspend fun mapComparisons(condition: JSONObject, transform: suspend (JSONObject) -> JSONObject): JSONObject {
+        val parts = parts(condition) ?: return transform(condition)
+        val key = if (condition.has(ALL)) ALL else ANY
+        return JSONObject().put(key, JSONArray(parts.map { mapComparisons(it, transform) }))
+    }
+
+    /**
+     * Whether [condition] holds, each comparison judged by [judge], null for not knowing. All:
+     * false as soon as one part is false, true when every one is, not knowing otherwise; any: true
+     * as soon as one is, false when none is, not knowing otherwise. Not knowing is never failing.
+     */
+    suspend fun holds(condition: JSONObject, judge: suspend (JSONObject) -> Boolean?): Boolean? {
+        val parts = parts(condition) ?: return judge(condition)
+        val answers = mutableListOf<Boolean?>()
+        for (part in parts) {
+            val answer = holds(part, judge)
+            // Decided as soon as one part decides the whole
+            if (condition.has(ALL) && answer == false) return false
+            if (condition.has(ANY) && answer == true) return true
+            answers += answer
+        }
+        return if (answers.any { it == null }) null else condition.has(ALL)
+    }
+
+    /** [holds] for a judge that does not suspend (a chart's row, judged as it is drawn). */
+    fun holdsNow(condition: JSONObject, judge: (JSONObject) -> Boolean?): Boolean? {
+        val parts = parts(condition) ?: return judge(condition)
+        val answers = parts.map { holdsNow(it, judge) }
+        return when {
+            condition.has(ALL) && answers.any { it == false } -> false
+            condition.has(ANY) && answers.any { it == true } -> true
+            answers.any { it == null } -> null
+            else -> condition.has(ALL)
+        }
+    }
+
+    /**
+     * Why the combination [condition] is malformed, in words ([text]); null when it holds or is a
+     * comparison: one of `all` and `any` alone, a list of at least one part, each an object.
+     */
+    fun combinationProblem(condition: JSONObject, name: String, text: (String) -> String): String? {
+        if (!isCombined(condition)) return null
+        if (condition.has(ALL) && condition.has(ANY) || condition.length() != 1) return text("condition_error_combination").format(name)
+        val array = condition.optJSONArray(ALL) ?: condition.optJSONArray(ANY) ?: return text("condition_error_combination").format(name)
+        if (array.length() == 0) return text("condition_error_combination").format(name)
+        for (i in 0 until array.length()) {
+            val part = array.optJSONObject(i) ?: return text("condition_error_combination").format(name)
+            combinationProblem(part, name, text)?.let { return it }
+        }
+        return null
+    }
 
     /**
      * A condition on the field [path] of each entry, compared by [op] with written values:

@@ -174,6 +174,8 @@ sealed class SettingNode {
      * @property onRow Put on each row the config describes where it stands, not judged once: its
      *   sides are fields of the row (RowFields) or written values, `{"field": "kcal"}` and
      *   `{"constant": 2100}`; [reference] and [emptyPeriod] then say nothing
+     * @property combines Whether it may combine comparisons (`all`, `any`, Conditions): not where
+     *   what judges it shows the one comparison (a goal's criterion, its value against its threshold)
      */
     data class Condition(
         val name: String,
@@ -182,7 +184,8 @@ sealed class SettingNode {
         val emptyPeriod: String?,
         val required: Boolean = false,
         val enteredField: String? = null,
-        val onRow: Boolean = false
+        val onRow: Boolean = false,
+        val combines: Boolean = true
     ) : SettingNode()
 
     /**

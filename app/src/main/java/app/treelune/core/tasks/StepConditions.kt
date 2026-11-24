@@ -23,7 +23,8 @@ import org.json.JSONObject
  * each element, on a repeated step —, all of them holding, the step runs; otherwise it is
  * skipped and the run goes on. A value missing where the operator needs one (a question left
  * unanswered facing "= 3") is not knowing, and skips the step as a condition that does not hold.
- * A step reading what a skipped step gave is skipped too.
+ * A step reading what a skipped step gave is skipped too. An element of the list may combine
+ * comparisons (`{"all": […]}`, `{"any": […]}`, Conditions), each part's sides inputs as well.
  */
 object StepConditions {
 
@@ -33,16 +34,31 @@ object StepConditions {
     data class Condition(val left: JSONObject, val op: FilterOperator, val right: List<JSONObject>)
 
     /**
+     * One element of the list: a comparison, or a combination of them, as stored ([json]), and
+     * each of its comparisons read, by the very object it is stored as.
+     */
+    class Element(val json: JSONObject, val comparisons: java.util.IdentityHashMap<JSONObject, Condition>)
+
+    /**
      * The conditions of [step], number [number]; none when it has none.
      *
      * @throws IllegalArgumentException naming what does not read
      */
-    fun of(step: JSONObject, number: Int, s: StringsContext): List<Condition> {
+    fun of(step: JSONObject, number: Int, s: StringsContext): List<Element> {
         val list = step.opt(WHEN)?.takeIf { it != JSONObject.NULL } ?: return emptyList()
         if (list !is JSONArray) throw IllegalArgumentException(s.shared("task_error_when").format(number))
         return (0 until list.length()).map { index ->
             val label = label(number, index, s)
             val json = list.optJSONObject(index) ?: throw IllegalArgumentException(s.shared("condition_error_side").format(label, list.opt(index).toString()))
+            Conditions.combinationProblem(json, label, s::shared)?.let { throw IllegalArgumentException(it) }
+            Element(json, java.util.IdentityHashMap<JSONObject, Condition>().apply {
+                Conditions.comparisons(json).forEach { put(it, comparison(it, label, s)) }
+            })
+        }
+    }
+
+    /** One comparison of an element, named [label] in an error. */
+    private fun comparison(json: JSONObject, label: String, s: StringsContext): Condition {
             val op = FilterOperator.of(json.optString(Conditions.OP))
                 ?: throw IllegalArgumentException(s.shared("condition_error_op").format(label, json.optString(Conditions.OP)))
             fun side(raw: Any?): JSONObject = raw as? JSONObject ?: throw IllegalArgumentException(s.shared("condition_error_side").format(label, raw.toString()))
@@ -57,8 +73,7 @@ object StepConditions {
                 else -> 1
             }
             if (right.size != expected) throw IllegalArgumentException(s.shared("condition_error_right").format(label, op.key, expected))
-            Condition(side(json.opt(Conditions.LEFT)), op, right)
-        }
+            return Condition(side(json.opt(Conditions.LEFT)), op, right)
     }
 
     /** What condition [index] of step [number] is called in an error: « step 2 › condition 1 ». */
@@ -107,7 +122,7 @@ object StepConditions {
             return e.message
         }
         val check = ConditionCheck(AppConditionSources(context, null), s::shared)
-        conditions.forEachIndexed { index, condition ->
+        for ((index, element) in conditions.withIndex()) for (condition in element.comparisons.values) {
             val label = label(number, index, s)
             val sides = listOf(condition.left) + condition.right
             inputs(JSONObject().apply { sides.forEachIndexed { i, side -> put("$label › ${i + 1}", side) } }, null)?.let { return it }

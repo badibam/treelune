@@ -1057,16 +1057,17 @@ class ChartSceneBuilder(
      */
     private fun conditioned(p: Prepared, channel: Channel, row: Row): Any? {
         val condition = p.layer.channel(channel)?.condition ?: return null
-        val read = runCatching { Condition.fromJson(condition.test, channel.key, text::shared) }.getOrNull() ?: return null
         fun side(side: Condition.Side): Any? = when (side) {
             is Condition.Side.Field -> row.value(side.path)
             is Condition.Side.Of -> (side.term as? Term.Constant)?.value
         }
-        val left = read.left as? Condition.Side.Field ?: return null
-        val field = p.table.columns[left.path] ?: return null
-        val holds = runCatching {
-            ConditionJudge.holds(field, read.op, side(read.left), read.right.map { side(it) }, calendar, text::shared)
-        }.getOrNull()
+        // A combination (all, any) judged comparison by comparison
+        val holds = app.treelune.core.conditions.Conditions.holdsNow(condition.test) { comparison ->
+            val read = runCatching { Condition.fromJson(comparison, channel.key, text::shared) }.getOrNull() ?: return@holdsNow null
+            val left = read.left as? Condition.Side.Field ?: return@holdsNow null
+            val field = p.table.columns[left.path] ?: return@holdsNow null
+            runCatching { ConditionJudge.holds(field, read.op, side(read.left), read.right.map { side(it) }, calendar, text::shared) }.getOrNull()
+        }
         return if (holds == true) condition.value else null
     }
 
