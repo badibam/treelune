@@ -250,9 +250,10 @@ object UI {
      * A horizontal gauge, filled to where a value stands between two bounds.
      *
      * @param fraction From 0 (empty) to 1 (full); anything outside is clamped
+     * @param color A readout's colour, painting the whole gauge (ThemeContract.Gauge); null, the theme's own
      */
     @Composable
-    fun Gauge(fraction: Float) = CurrentTheme.current.Gauge(fraction.coerceIn(0f, 1f))
+    fun Gauge(fraction: Float, color: app.treelune.core.themes.TagColor? = null) = CurrentTheme.current.Gauge(fraction.coerceIn(0f, 1f), color)
 
     /** A drawing laid out by whoever made it, drawn by the theme (ThemeContract.Drawing). */
     @Composable

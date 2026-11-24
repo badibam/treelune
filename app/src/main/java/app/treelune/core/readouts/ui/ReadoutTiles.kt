@@ -81,8 +81,12 @@ data class ReadoutRow(
     }
 }
 
-/** What a readout says now: its core, its sentence, its colour, whether it signals. */
-data class ReadoutShown(val core: String, val text: String, val color: TagColor?, val signal: Boolean)
+/**
+ * What a readout says now: its core, its sentence, its colour, whether it signals, its gauge (0
+ * to 1, null without one) or why its gauge computes nothing.
+ */
+data class ReadoutShown(val core: String, val text: String, val color: TagColor?, val signal: Boolean,
+                        val gauge: Float? = null, val gaugeFailure: String? = null)
 
 /**
  * What [readout] says now, null while it is first read; read again when an entry of a tool it
@@ -105,7 +109,8 @@ fun rememberReadoutShown(readout: ReadoutRow): ReadoutShown? {
         val result = Coordinator(context).processUserAction("readouts.read", mapOf("readout_id" to readout.id))
         shown = if (!result.isSuccess) (result.error ?: s.shared("field_reference_unreadable")).let { ReadoutShown(it, it, null, false) }
         else ReadoutShown(result.data?.get("core") as? String ?: "", result.data?.get("text") as? String ?: "",
-            IconColor.of(result.data?.get("color") as? String), result.data?.get("signal") == true)
+            IconColor.of(result.data?.get("color") as? String), result.data?.get("signal") == true,
+            (result.data?.get("gauge") as? Number)?.toFloat(), result.data?.get("gauge_failure") as? String)
     }
     return shown
 }
@@ -127,15 +132,31 @@ fun openTarget(readout: ReadoutRow) {
 /** Opens [readout]'s config. */
 fun configure(readout: ReadoutRow) = Navigator.push(Place.ReadoutConfig(readout.zoneId, readout.id))
 
-/** A readout's sentence, or its core when [short], in its colour (UI.Tag), or plain without one. */
+/**
+ * A readout's sentence, or its core when [short], in its colour (UI.Tag), or plain without one;
+ * under it, its gauge across the width in the same colour (UI.Gauge), or « ? » where a gauge
+ * computes nothing, as a value that gave nothing shows in the sentence.
+ */
 @Composable
 fun ReadoutSentence(shown: ReadoutShown?, maxLines: Int = 2, short: Boolean = false) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
-    when {
-        shown == null -> UI.Text(s.shared("tools_loading"), TextType.BODY, maxLines = maxLines)
-        shown.color != null -> UI.Tag(if (short) shown.core else shown.text, shown.color, maxLines)
-        else -> UI.Text(if (short) shown.core else shown.text, TextType.BODY, maxLines = maxLines)
+    if (shown == null) {
+        UI.Text(s.shared("tools_loading"), TextType.BODY, maxLines = maxLines)
+        return
+    }
+    val written = if (short) shown.core else shown.text
+    val sentence: @Composable () -> Unit = {
+        if (shown.color != null) UI.Tag(written, shown.color, maxLines) else UI.Text(written, TextType.BODY, maxLines = maxLines)
+    }
+    if (shown.gauge == null && shown.gaugeFailure == null) {
+        sentence()
+        return
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
+        sentence()
+        if (shown.gauge != null) UI.Gauge(shown.gauge, shown.color)
+        else UI.Text(s.shared("readout_value_missing"), TextType.CAPTION, maxLines = 1)
     }
 }
 

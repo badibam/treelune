@@ -3347,6 +3347,8 @@
     <string name="readout_empty_period">Sans période, elle lit tout l\'historique</string>
     <string name="readout_schema_value">Une valeur, lue chaque fois que le Repère est montré : une constante, une variable, ou une lecture des entrées d\'un outil sur une période relative à ce moment</string>
     <string name="readout_schema_values">Les valeurs que nomment sa phrase et ses couleurs</string>
+    <string name="readout_gauge">Jauge</string>
+    <string name="readout_schema_gauge">Facultative : une formule sur ses valeurs qui donne où il en est, de 0 (vide) à 1 (pleine), dessinée en barre de sa couleur sous sa phrase : « fait / attendu », ou « 1 - mangé / budget » pour ce qui reste ; au-delà, elle reste pleine ou vide</string>
     <string name="readout_target">Ouvre</string>
     <string name="readout_schema_target">Ce qu\'ouvre un toucher : l\'app (l\'accueil), une zone ou un outil</string>
     <string name="readout_colors">Couleurs</string>
@@ -3371,6 +3373,10 @@
     <string name="readout_error_per_entry">La valeur « %1$s » calcule une formule dans chaque entrée, que seule une variable lit : fais-en une variable</string>
     <string name="readout_error_target">Un Repère ouvre quelque chose quand on le touche : donne sa cible</string>
     <string name="readout_error_target_gone">Ce qu\'ouvre le Repère n\'existe plus</string>
+    <string name="readout_error_gauge">La jauge ne se lit pas au caractère %1$d : %2$s %3$s</string>
+    <string name="readout_error_gauge_names">La jauge lit %1$s, qui n\'est aucune de ses valeurs (%2$s)</string>
+    <string name="readout_error_gauge_instant">Dans la jauge, « %1$s » calcule avec une date ou une heure, qui ne donne un nombre que comme le temps entre deux instants : maintenant() - dernier_repas</string>
+    <string name="readout_error_gauge_failed">La jauge ne calcule rien : %1$s</string>
     <string name="readout_value_missing">?</string>
     <string name="readout_verbalize_create">Création du Repère « %1$s »</string>
     <string name="readout_verbalize_update">Modification du Repère « %1$s »</string>

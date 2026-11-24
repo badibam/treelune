@@ -22,7 +22,8 @@ import org.json.JSONObject
  * group, as any tile's; its core, the short form every place shows where room is short, where
  * `{name}` stands for one of its values; its sentence, optional, placing its core with `{}` (without
  * one, its core shows everywhere); its values, each
- * a name and a term read when it is shown; the thing a touch opens; its colours, each a condition
+ * a name and a term read when it is shown; its gauge, optional, a formula over its values giving
+ * a ratio (`done / expected`), drawn as a bar in its colour; the thing a touch opens; its colours, each a condition
  * on its values put as on a row (`{"field": "done"}`, ReadoutRows), a colour, and whether it
  * signals; the places it rises to besides its own tile. Not its zone (its place).
  */
@@ -38,6 +39,7 @@ object ReadoutSettings {
     const val VALUES = "values"
     const val NAME = "name"
     const val VALUE = "value"
+    const val GAUGE = "gauge"
     const val TARGET = "target"
     const val COLORS = "colors"
     const val WHEN = "when"
@@ -90,6 +92,8 @@ object ReadoutSettings {
                 SettingNode.Term(VALUE, s.shared("readout_value_term"), setOf(app.treelune.core.terms.Term.Kind.CONSTANT, app.treelune.core.terms.Term.Kind.VARIABLE, app.treelune.core.terms.Term.Kind.READING),
                     s.shared("readout_reference"), s.shared("readout_empty_period"), required = true)
             ), description = s.shared("readout_schema_value")), summary = listOf(NAME), description = s.shared("readout_schema_values")),
+            SettingNode.Field(FieldDefinition(GAUGE, s.shared("readout_gauge"), s.shared("readout_schema_gauge"), FieldType.TEXT, false,
+                mapOf("length" to TextLength.SHORT.name))),
             SettingNode.Field(FieldDefinition(TARGET, s.shared("readout_target"), s.shared("readout_schema_target"), FieldType.REFERENCE, false,
                 mapOf(ReferenceTarget.TARGET to mapOf(ReferenceTarget.KINDS to listOf(ReferenceKind.APP.name, ReferenceKind.ZONE.name, ReferenceKind.TOOL_INSTANCE.name)))), required = true),
             SettingNode.ListOf(COLORS, s.shared("readout_colors"), SettingNode.Item.Of(listOf(
@@ -120,7 +124,7 @@ object ReadoutSettings {
     }
 
     /** The keys of the body, which settings_json stores; the others are columns. */
-    val BODY_KEYS = listOf(CORE, TEXT, VALUES, TARGET, COLORS, PLACES)
+    val BODY_KEYS = listOf(CORE, TEXT, VALUES, GAUGE, TARGET, COLORS, PLACES)
 
     /** The places [settings] names, in the order of the tree. */
     fun places(settings: JSONObject): Set<Place> {

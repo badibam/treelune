@@ -353,17 +353,21 @@ object InkTheme : ThemeContract {
         }
     }
 
-    /** A stroke of the brush tapering off over a track of pale wash; never red, even full. */
+    /**
+     * A stroke of the brush tapering off over a track of pale wash; never red of itself, even
+     * full. In a readout's colour, the stroke in its tag over a pale wash of it.
+     */
     @Composable
-    override fun Gauge(fraction: Float) {
+    override fun Gauge(fraction: Float, color: TagColor?) {
         val size = inkSize()
         val c = inkColors
         val f = fraction.coerceIn(0f, 1f)
+        val strong = color?.let { c.tag(it) }
         Box(
             modifier = Modifier.fillMaxWidth().height(size.dp(10f))
-                .drawBehind { drawSpread(c.trackWash, center) }
+                .drawBehind { drawSpread(strong?.copy(alpha = app.treelune.core.themes.GAUGE_PALE) ?: c.trackWash, center) }
         ) {
-            if (f > 0f) Box(modifier = Modifier.fillMaxWidth(f).fillMaxHeight().brushed(InkBrush.Shape.LINE, size.dp(6f), LocalInkInk.current ?: c.ink))
+            if (f > 0f) Box(modifier = Modifier.fillMaxWidth(f).fillMaxHeight().brushed(InkBrush.Shape.LINE, size.dp(6f), strong ?: LocalInkInk.current ?: c.ink))
         }
     }
 

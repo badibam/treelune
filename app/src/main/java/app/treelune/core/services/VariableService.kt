@@ -615,7 +615,7 @@ class VariableService(private val context: Context) : ExecutableService {
          * The fields a formula's name can read: a variable's types, and the instants it subtracts,
          * a day and a time of day kept for FormulaType to refuse.
          */
-        private val FORMULA_LEAF_TYPES = VariableDefinition.VALUE_TYPES + setOf(FieldType.DATETIME, FieldType.DATE, FieldType.TIME)
+        internal val FORMULA_LEAF_TYPES = VariableDefinition.VALUE_TYPES + setOf(FieldType.DATETIME, FieldType.DATE, FieldType.TIME)
 
         /** A name a formula can write: a letter or `_`, then letters, digits, `_`. */
         val NAME = Regex("^[\\p{L}_][\\p{L}\\p{N}_]*$")

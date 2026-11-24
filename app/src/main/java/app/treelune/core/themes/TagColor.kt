@@ -18,3 +18,10 @@ enum class TagColor {
     PINK,
     GREY
 }
+
+/**
+ * The share of a gauge's strong tone its empty part takes, laid over what is under it
+ * (ThemeContract.Gauge): pale enough that the filled part reads apart, strong enough that a
+ * gauge nearly empty still says its colour.
+ */
+const val GAUGE_PALE = 0.3f

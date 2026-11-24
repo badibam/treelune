@@ -388,11 +388,13 @@ object MetroTheme : ThemeContract {
      * ending on a stop; nothing done shows the rail alone.
      */
     @Composable
-    override fun Gauge(fraction: Float) {
+    override fun Gauge(fraction: Float, color: TagColor?) {
         val size = metroSize()
         val c = metroColors
-        val line = LocalMetroLine.current ?: c.ink.srgb
-        val rail = c.track.srgb
+        // In a readout's colour, its line on a pale rail of it
+        val strong = color?.let { c.line(it).srgb }
+        val line = strong ?: LocalMetroLine.current ?: c.ink.srgb
+        val rail = strong?.copy(alpha = app.treelune.core.themes.GAUGE_PALE) ?: c.track.srgb
         val panel = c.panel.srgb
         val thick = size.dp(6f)
         val stop = size.dp(14f)

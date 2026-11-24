@@ -3663,6 +3663,7 @@
           }
         }
       ],
+      "gauge": "done / expected",
       "target": {
         "kind": "TOOL_INSTANCE",
         "id": "demo-kitchen-water"

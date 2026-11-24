@@ -379,10 +379,12 @@ object BlueprintTheme : ThemeContract {
      * tile), closed by a line where it stops.
      */
     @Composable
-    override fun Gauge(fraction: Float) {
+    override fun Gauge(fraction: Float, color: TagColor?) {
         val size = blueprintSize()
         val c = blueprintColors
-        val crayon = LocalBlueprintCrayon.current ?: c.ink.srgb
+        // In a readout's colour, hatched in its crayon, the rail washed with a pale share of it
+        val strong = color?.let { c.crayon(it).srgb }
+        val crayon = strong ?: LocalBlueprintCrayon.current ?: c.ink.srgb
         val ink = c.ink.srgb
         val line = blueprintStroke(LINE)
         val hatch = blueprintStroke(HATCH_LINE)
@@ -390,6 +392,7 @@ object BlueprintTheme : ThemeContract {
         val done = fraction.coerceIn(0f, 1f)
         Box(modifier = Modifier.fillMaxWidth().height(size.dp(10f)).drawBehind {
             val w = line.toPx()
+            strong?.let { drawRect(it.copy(alpha = app.treelune.core.themes.GAUGE_PALE)) }
             if (done > 0f) {
                 val end = this.size.width * done
                 drawHatching(Offset.Zero, GeometrySize(end, this.size.height), crayon, hatch.toPx(), pitch.toPx())

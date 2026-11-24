@@ -357,19 +357,24 @@ object CosyTheme : ThemeContract {
         }
     }
 
-    /** A pill sunk in what holds it, filled with the main colour, stripes across the fill. */
+    /**
+     * A pill sunk in what holds it, filled with the main colour, stripes across the fill; in a
+     * colour, filled with a tag's ink tone, sunk in a pale wash of it.
+     */
     @Composable
-    override fun Gauge(fraction: Float) {
+    override fun Gauge(fraction: Float, color: TagColor?) {
         val size = cosySize()
         val c = cosyColors
-        Box(modifier = Modifier.fillMaxWidth().height(size.dp(14f)).clip(CircleShape).background(well())) {
+        val strong = color?.let { c.tagInk(it).srgb }
+        val track = Modifier.fillMaxWidth().height(size.dp(14f)).clip(CircleShape)
+        Box(modifier = if (strong == null) track.background(well()) else track.background(strong.copy(alpha = app.treelune.core.themes.GAUGE_PALE))) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth(fraction.coerceIn(0f, 1f))
                     .height(size.dp(14f))
                     .clip(CircleShape)
-                    .background(c.accent.srgb)
-                    .drawBehind { stripes(c.accentShadow.srgb.copy(alpha = STRIPE_ALPHA), size.dp(8f).toPx()) }
+                    .background(strong ?: c.accent.srgb)
+                    .drawBehind { stripes((if (strong == null) c.accentShadow.srgb else Color.Black).copy(alpha = STRIPE_ALPHA), size.dp(8f).toPx()) }
             )
         }
     }

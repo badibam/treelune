@@ -213,10 +213,14 @@ interface ThemeContract {
 
     /**
      * A horizontal gauge filled to [fraction] (0 to 1): where a value stands between two bounds,
-     * such as a SCALE field's value on its scale.
+     * such as a SCALE field's value on its scale, or a readout's gauge.
+     *
+     * [color], a readout's colour, paints the whole gauge: the part filled in the hue's strong
+     * tone, the rest in a pale one ([GAUGE_PALE] of it), so that a gauge nearly empty still
+     * says its colour as plainly as a full one. Null, the theme's own gauge.
      */
     @Composable
-    fun Gauge(fraction: Float)
+    fun Gauge(fraction: Float, color: TagColor?)
 
     /**
      * The style of a drawing's texts (DrawShape.Label): whoever lays a drawing out measures its

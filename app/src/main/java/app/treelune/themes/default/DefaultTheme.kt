@@ -765,15 +765,21 @@ object DefaultTheme : ThemeContract {
         }
     }
 
+    /**
+     * A rounded bar in the primary colour on the surface's variant; in a colour, the strong tone
+     * an item's icon takes of it (its deep tone in the light palette, the tag itself in the dark).
+     */
     @Composable
-    override fun Gauge(fraction: Float) {
+    override fun Gauge(fraction: Float, color: app.treelune.core.themes.TagColor?) {
+        val mode = app.treelune.core.themes.CurrentTheme.paletteMode
+        val strong = color?.let { if (mode == PaletteMode.DARK) getTagColor(it, mode) else itemIconDeepTone(it, mode) }
         LinearProgressIndicator(
             progress = { fraction },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(8.dp),
-            color = MaterialTheme.colorScheme.primary,
-            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            color = strong ?: MaterialTheme.colorScheme.primary,
+            trackColor = strong?.copy(alpha = app.treelune.core.themes.GAUGE_PALE) ?: MaterialTheme.colorScheme.surfaceVariant,
             strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
         )
     }

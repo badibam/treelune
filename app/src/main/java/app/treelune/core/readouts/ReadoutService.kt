@@ -30,6 +30,10 @@ import app.treelune.core.utils.DataChangeNotifier
 import app.treelune.core.utils.JsonNulls
 import app.treelune.core.utils.JsonUtils
 import app.treelune.core.utils.LogManager
+import app.treelune.core.variables.Cause
+import app.treelune.core.variables.Formula
+import app.treelune.core.variables.FormulaType
+import app.treelune.core.variables.Outcome
 import app.treelune.core.validation.SchemaValidator
 import org.json.JSONArray
 import org.json.JSONObject
@@ -46,11 +50,12 @@ import java.util.UUID
  *   out kept, one given null removed; `zone_id`); .delete (readout_id)
  * - .read (readout_id, `at`? — now when left out): its core and its sentence (`core`, `text`, the
  *   core alone without a sentence), each value written as its field shows it, the colour of the first condition that holds and whether that one signals,
- *   and the values that gave nothing, each with why
+ *   its gauge (`gauge`, 0 to 1) or why it computes nothing (`gauge_failure`), and the values that gave nothing, each with why
  *
  * A write is checked as the screen checks it: its settings against their schema, its look as
  * every look is, its group one of its zone's, its values each a name a sentence can write, unique,
- * and a term that reads, every `{name}` of its sentence one of them, its conditions comparing its
+ * and a term that reads, every `{name}` of its sentence one of them, its gauge a formula that reads
+ * its values alone, an instant only subtracted from another, its conditions comparing its
  * values (ConditionCheck, its values as a row's fields: ReadoutRows), its target a thing that is.
  */
 class ReadoutService(private val context: Context) : ExecutableService {
@@ -185,7 +190,8 @@ class ReadoutService(private val context: Context) : ExecutableService {
         val zone = database.zoneDao().getZoneById(readout.zoneId) ?: throw Refused(s.shared("service_error_zone_not_found"))
         Groups.refusal(group, ToolPositions.zoneGroups(zone.tool_groups), s)?.let { throw Refused(it) }
 
-        val names = checkValues(settings)
+        val fields = checkValues(settings)
+        val names = fields.keys.toList()
         // Every name its core and its sentence write is one of its values; its core does not place itself
         val core = settings.optString(ReadoutSettings.CORE)
         if (ReadoutSettings.CORE_PLACE in core) throw Refused(s.shared("readout_error_core_place"))
@@ -193,6 +199,7 @@ class ReadoutService(private val context: Context) : ExecutableService {
         written.firstOrNull { it !in names }?.let { throw Refused(s.shared("readout_error_text_name").format(it, names.joinToString(", "))) }
         ConditionCheck(AppConditionSources(context, ReadoutRows)) { s.shared(it) }.refuse(ReadoutSettings.nodes(context), settings)?.let { throw Refused(it) }
         checkTarget(settings)
+        checkGauge(settings, fields)
 
         val body = JSONObject().apply { ReadoutSettings.BODY_KEYS.forEach { key -> settings.opt(key)?.let { put(key, it) } } }
         return readout.copy(
@@ -207,11 +214,11 @@ class ReadoutService(private val context: Context) : ExecutableService {
         )
     }
 
-    /** Its values' names, each a name a sentence can write, given once, its term readable. */
-    private suspend fun checkValues(settings: JSONObject): List<String> {
+    /** Its values' names, each a name a sentence can write, given once, its term readable; each with its field, null when unknown. */
+    private suspend fun checkValues(settings: JSONObject): Map<String, FieldDefinition?> {
         val values = settings.optJSONArray(ReadoutSettings.VALUES) ?: JSONArray()
         val sources = AppConditionSources(context, null)
-        val names = mutableListOf<String>()
+        val names = linkedMapOf<String, FieldDefinition?>()
         for (index in 0 until values.length()) {
             val value = values.getJSONObject(index)
             val name = value.optString(ReadoutSettings.NAME).trim()
@@ -224,16 +231,49 @@ class ReadoutService(private val context: Context) : ExecutableService {
             }
             // A formula per entry is read in a variable only (TermReader)
             if (term is Term.Reading && term.perEntry != null) throw Refused(s.shared("readout_error_per_entry").format(name))
-            try {
+            val field = try {
                 TermFields.of(term, name, { s.shared(it) }, sources::targetFields, sources::variableField)
             } catch (e: IllegalArgumentException) {
                 throw Refused(e.message ?: "")
             }
             value.put(ReadoutSettings.NAME, name)
-            names += name
+            names[name] = field
         }
         return names
     }
+
+    /**
+     * Its gauge, when it has one: a formula that reads (Formula, a variable's), each name one of
+     * its values [fields], an instant only subtracted from another (FormulaType); stored with each
+     * function under its English name, as a variable's formula is. One left blank is removed.
+     */
+    private fun checkGauge(settings: JSONObject, fields: Map<String, FieldDefinition?>) {
+        val written = settings.optString(ReadoutSettings.GAUGE).trim()
+        if (written.isEmpty()) {
+            settings.remove(ReadoutSettings.GAUGE)
+            return
+        }
+        val formula = when (val parsed = Formula.parse(written, aliases)) {
+            is Formula.Parsed.Unreadable -> throw Refused(s.shared("readout_error_gauge").format(parsed.position + 1, s.shared("formula_problem_${parsed.problem.name.lowercase()}"), parsed.detail))
+            is Formula.Parsed.Read -> parsed.formula
+        }
+        // Its own values alone: a variable is read through a value that reads it
+        val unknown = formula.names().filter { it !in fields }.distinct() + formula.variableIds().map { "{var:$it}" }
+        if (unknown.isNotEmpty()) throw Refused(s.shared("readout_error_gauge_names").format(unknown.joinToString(", "), fields.keys.joinToString(", ")))
+        val leaf = { node: Formula -> (node as? Formula.Name)?.let { fields[it.name] }?.takeIf { it.type in VariableService.FORMULA_LEAF_TYPES } }
+        FormulaType.problem(formula, leaf)?.let { problem ->
+            val part = when (problem) {
+                is FormulaType.Problem.InstantMisused -> problem.part
+                is FormulaType.Problem.NotAnInstant -> problem.part
+                FormulaType.Problem.InstantResult -> formula
+            }
+            throw Refused(s.shared("readout_error_gauge_instant").format(part.text({ it }, { f -> s.shared("formula_function_${f.canonical}") })))
+        }
+        settings.put(ReadoutSettings.GAUGE, formula.text({ it }))
+    }
+
+    /** The functions under their names in the app's language, which a formula written on screen uses. */
+    private val aliases: Map<String, Formula.Function> by lazy { Formula.Function.localized { s.shared(it) } }
 
     /** Its target, a thing that is: the app, a zone or a tool. */
     private suspend fun checkTarget(settings: JSONObject) {
@@ -302,6 +342,9 @@ class ReadoutService(private val context: Context) : ExecutableService {
         val core = written(settings.optString(ReadoutSettings.CORE))
         val text = settings.optString(ReadoutSettings.TEXT).takeIf { it.isNotBlank() }?.let { written(it).replace(ReadoutSettings.CORE_PLACE, core) } ?: core
 
+        // Its gauge, the ratio its formula gives bounded full and empty; one that computes nothing says why
+        val gauge = settings.optString(ReadoutSettings.GAUGE).ifEmpty { null }?.let { gaugeOf(it, read, at) }
+
         // The first colour whose condition holds; one not knowing is not holding
         val colors = settings.optJSONArray(ReadoutSettings.COLORS) ?: JSONArray()
         val resolver = TimeResolver.at(at)
@@ -320,8 +363,35 @@ class ReadoutService(private val context: Context) : ExecutableService {
             put("text", text)
             color?.let { put("color", it) }
             put("signal", signal)
+            when (gauge) {
+                is Outcome.Value -> put("gauge", gauge.number.coerceIn(0.0, 1.0))
+                is Outcome.Failed -> put("gauge_failure", s.shared("readout_error_gauge_failed").format(gauge.causes.joinToString("; ") { cause ->
+                    val why = s.shared("variable_cause_${cause.reason.lowercase()}").format(cause.field ?: "", cause.entries.size)
+                    cause.term?.let { "$it: $why" } ?: why
+                }))
+                null -> {}
+            }
             put("failures", failures)
         })
+    }
+
+    /**
+     * The gauge [written] computes on the values [read] at [at]: a value that gave nothing, or is
+     * no number, fails it with its name, as a division by zero does (Formula.evaluate).
+     */
+    private fun gaugeOf(written: String, read: Map<String, Pair<Any?, FieldDefinition?>>, at: Long): Outcome {
+        val formula = (Formula.parse(written) as? Formula.Parsed.Read)?.formula ?: return Outcome.Failed(listOf(Cause(Cause.UNREADABLE)))
+        return formula.evaluate { leaf ->
+            when (leaf) {
+                is Formula.Now -> Outcome.Value(at.toDouble())
+                is Formula.Name -> when (val value = read[leaf.name]?.first) {
+                    null -> Outcome.Failed(listOf(Cause(Cause.UNREADABLE, term = leaf.name)))
+                    is Number -> Outcome.Value(value.toDouble())
+                    else -> Outcome.Failed(listOf(Cause(Cause.NOT_A_NUMBER, term = leaf.name)))
+                }
+                else -> Outcome.Failed(listOf(Cause(Cause.UNKNOWN_NAME)))
+            }
+        }
     }
 
     /** Whether [condition] holds on the values [read], each side a value by its name or a written one; null when one is missing. */

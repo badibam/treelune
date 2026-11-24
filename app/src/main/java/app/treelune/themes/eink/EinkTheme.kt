@@ -378,13 +378,19 @@ object EinkTheme : ThemeContract {
         }
     }
 
-    /** A frame of 2 dp, 14 dp high, filled with the ink to [fraction]. */
+    /**
+     * A frame of 2 dp, 14 dp high, filled with the ink to [fraction]. In a readout's colour, the
+     * fill its pattern and the rest the same pattern faded, the screen having no hue to pale.
+     */
     @Composable
-    override fun Gauge(fraction: Float) {
+    override fun Gauge(fraction: Float, color: TagColor?) {
         val size = einkSize()
         val c = einkColors
-        Box(modifier = Modifier.fillMaxWidth().height(size.dp(14f)).outline(einkStroke(FRAME), c.ink)) {
-            Box(modifier = Modifier.fillMaxWidth(fraction.coerceIn(0f, 1f)).height(size.dp(14f)).background(c.ink))
+        val dp = einkPatternDp()
+        val track = Modifier.fillMaxWidth().height(size.dp(14f))
+        Box(modifier = (if (color == null) track else track.background(EinkPatterns.of(color, c.ink, c.ground, dp, fade = 1f - app.treelune.core.themes.GAUGE_PALE))).outline(einkStroke(FRAME), c.ink)) {
+            val fill = Modifier.fillMaxWidth(fraction.coerceIn(0f, 1f)).height(size.dp(14f))
+            Box(modifier = if (color == null) fill.background(c.ink) else fill.background(EinkPatterns.of(color, c.ink, c.ground, dp)))
         }
     }
 

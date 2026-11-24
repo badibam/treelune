@@ -147,6 +147,46 @@ class ReadoutsTest {
     }
 
     @Test
+    fun itsGauge_isTheRatioOfItsValues_boundedFullAndEmpty() = runBlocking {
+        val id = ok("readouts.create", water(mapOf("gauge" to "done / expected")))["readout_id"] as String
+        assertEquals(0.0, read(id)["gauge"])
+        glass()
+        assertEquals(0.5, read(id)["gauge"])
+        glass(); glass()
+        assertEquals(1.0, read(id)["gauge"])
+        // What is left, emptying as it goes
+        ok("readouts.update", mapOf("readout_id" to id, "gauge" to "1 - done / expected"))
+        assertEquals(0.0, read(id)["gauge"])
+    }
+
+    @Test
+    fun withoutAGauge_itGivesNone() = runBlocking {
+        val id = ok("readouts.create", water())["readout_id"] as String
+        val shown = read(id)
+        assertFalse(shown.containsKey("gauge"))
+        assertFalse(shown.containsKey("gauge_failure"))
+    }
+
+    @Test
+    fun aGaugeDividingByZero_saysWhy_withoutAValue() = runBlocking {
+        val id = ok("readouts.create", water(mapOf("gauge" to "expected / done")))["readout_id"] as String
+        val shown = read(id)
+        assertFalse(shown.containsKey("gauge"))
+        assertTrue(shown["gauge_failure"].toString(), (shown["gauge_failure"] as String).isNotEmpty())
+    }
+
+    @Test
+    fun aGaugeNamingNoValue_isRefused() = runBlocking {
+        val error = refused("readouts.create", water(mapOf("gauge" to "drunk / expected")))
+        assertTrue(error, error.contains("drunk"))
+    }
+
+    @Test
+    fun aGaugeThatDoesNotRead_isRefused(): Unit = runBlocking {
+        refused("readouts.create", water(mapOf("gauge" to "done / (expected")))
+    }
+
+    @Test
     fun withoutATarget_itIsRefused(): Unit = runBlocking {
         refused("readouts.create", water() - "target")
     }

@@ -385,13 +385,20 @@ object PaperTheme : ThemeContract {
         }
     }
 
-    /** A night-blue strip 12 dp tall, the part done a strip of mustard cut across at a slant over it (the mockup). */
+    /**
+     * A night-blue strip 12 dp tall, the part done a strip of mustard cut across at a slant over
+     * it (the mockup); in a readout's colour, a strip of it over a pale one.
+     */
     @Composable
-    override fun Gauge(fraction: Float) {
+    override fun Gauge(fraction: Float, color: TagColor?) {
         val size = paperSize()
         val c = paperColors
         val done = fraction.coerceIn(0f, 1f)
-        Box(modifier = Modifier.fillMaxWidth().height(size.dp(12f))) { Strip(done, c.navy.srgb, c.colour(TagColor.YELLOW).srgb) }
+        val strong = color?.let { c.colour(it).srgb }
+        Box(modifier = Modifier.fillMaxWidth().height(size.dp(12f))) {
+            if (strong == null) Strip(done, c.navy.srgb, c.colour(TagColor.YELLOW).srgb)
+            else Strip(done, strong.copy(alpha = app.treelune.core.themes.GAUGE_PALE), strong)
+        }
     }
 
     @Composable

@@ -369,13 +369,17 @@ object SwissTheme : ThemeContract {
         }
     }
 
-    /** A bar of 6 dp: the track in grey, filled with the ink; never red, even full. */
+    /**
+     * A bar of 6 dp: the track in grey, filled with the ink; never red of itself, even full. In a
+     * readout's colour, filled with its tag, the track a pale share of it.
+     */
     @Composable
-    override fun Gauge(fraction: Float) {
+    override fun Gauge(fraction: Float, color: TagColor?) {
         val size = swissSize()
         val c = swissColors
-        Box(modifier = Modifier.fillMaxWidth().height(size.dp(6f)).background(c.track.srgb)) {
-            Box(modifier = Modifier.fillMaxWidth(fraction.coerceIn(0f, 1f)).height(size.dp(6f)).background(c.ink.srgb))
+        val strong = color?.let { c.tag(it).srgb }
+        Box(modifier = Modifier.fillMaxWidth().height(size.dp(6f)).background(strong?.copy(alpha = app.treelune.core.themes.GAUGE_PALE) ?: c.track.srgb)) {
+            Box(modifier = Modifier.fillMaxWidth(fraction.coerceIn(0f, 1f)).height(size.dp(6f)).background(strong ?: c.ink.srgb))
         }
     }
 

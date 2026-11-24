@@ -383,14 +383,19 @@ object RetroTheme : ThemeContract {
         }
     }
 
-    /** Gauge blocks on the grid: full cells filled, the last one by quarters, the rest the track. */
+    /**
+     * Gauge blocks on the grid: full cells filled, the last one by quarters, the rest the track.
+     * In a readout's colour, the blocks in its drawing tone, which reads in a frame, the track a
+     * pale share of it.
+     */
     @Composable
-    override fun Gauge(fraction: Float) {
+    override fun Gauge(fraction: Float, color: TagColor?) {
         val grid = retroGrid()
         val s = retroSurface
+        val strong = color?.let { retroColors.drawing(it).srgb }
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             val cells = (constraints.maxWidth / grid.cellPx).coerceAtLeast(1)
-            GaugeBlocks(cells, fraction, s.ink.srgb, s.borderInner.srgb)
+            GaugeBlocks(cells, fraction, strong ?: s.ink.srgb, strong?.copy(alpha = app.treelune.core.themes.GAUGE_PALE) ?: s.borderInner.srgb)
         }
     }
 

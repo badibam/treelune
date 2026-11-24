@@ -3347,6 +3347,8 @@
     <string name="readout_empty_period">Without a period, it reads the whole history</string>
     <string name="readout_schema_value">One value, read each time the readout is shown: a constant, a variable, or a reading of a tool\'s entries over a period relative to that moment</string>
     <string name="readout_schema_values">The values its sentence and its colours name</string>
+    <string name="readout_gauge">Gauge</string>
+    <string name="readout_schema_gauge">Optional: a formula over its values giving where it stands, from 0 (empty) to 1 (full), drawn as a bar in its colour under its sentence: \"done / expected\", or \"1 - eaten / budget\" for what is left; beyond, it stays full or empty</string>
     <string name="readout_target">Opens</string>
     <string name="readout_schema_target">What a touch on it opens: the app (the home screen), a zone or a tool</string>
     <string name="readout_colors">Colours</string>
@@ -3371,6 +3373,10 @@
     <string name="readout_error_per_entry">The value “%1$s” computes a formula in each entry, which a variable alone reads: make it a variable</string>
     <string name="readout_error_target">A readout opens something when touched: give its target</string>
     <string name="readout_error_target_gone">What the readout opens no longer exists</string>
+    <string name="readout_error_gauge">The gauge does not read at character %1$d: %2$s %3$s</string>
+    <string name="readout_error_gauge_names">The gauge reads %1$s, which is none of its values (%2$s)</string>
+    <string name="readout_error_gauge_instant">In the gauge, “%1$s” computes with a date or a time, which gives a number only as the time between two instants: now() - last_meal</string>
+    <string name="readout_error_gauge_failed">The gauge computes nothing: %1$s</string>
     <string name="readout_value_missing">?</string>
     <string name="readout_verbalize_create">Creation of the readout “%1$s”</string>
     <string name="readout_verbalize_update">Change of the readout “%1$s”</string>
