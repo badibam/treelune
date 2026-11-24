@@ -94,7 +94,7 @@ Jugé visuellement acceptable par l'utilisateur à ce stade.
 
 ## Reprise
 
-Le chantier vit dans le worktree `.claude/worktrees/schema`, branche `schema` (`local.properties` y est copié ; `TODO.md` n'y existe pas). Le téléphone a le build de cette branche dans l'app debug, avec une zone « Essai » et un schéma « Test » de 12 boîtes qui couvre les formes, les traits, les groupes et une boucle.
+Le Schéma est fusionné dans `develop` (2026-11-24), la suite verte avant la fusion ; la démo en a un au Balcon, « Le soin du balcon ». Le téléphone a encore le build de la branche dans l'app debug, en base 121, avec une zone « Essai » et un schéma « Test » de 12 boîtes qui couvre les formes, les traits, les groupes et une boucle.
 
 Fait : le placement, la config et sa vérification (`SchemaSpec`), le formulaire, le dessin (`SchemaScene`), l'écran (ce qui est souligné se touche, le repli le temps de la visite, le groupe touché qui reste en place), la tuile, la mise à la largeur, l'import et la copie Mermaid (`SchemaMermaid`).
 
@@ -119,11 +119,7 @@ Défauts vus, laissés :
 - Sur une tuile en thème rétro, le schéma réduit par crans entiers n'occupe qu'environ la moitié de la largeur.
 - Le champ de l'import Mermaid garde les boutons de liste et la majuscule automatique du clavier.
 
-Pour fusionner :
-
-- `develop` a avancé de 21 commits (relevé le 2026-11-23) : le fusionner dans `schema` d'abord. Conflit attendu sur `SettingDescriptionsTest`, corrigé des deux côtés ; possibles sur `ToolTypeScanner.kt`, les blocs générés des README et la fiche F-Droid, à régénérer par `scripts/make_readme.py`.
-- `develop` est passé à la base 120, avec sa migration unique ; cette branche est encore à 121. Après la fusion, l'app debug du téléphone, en 121, ne s'ouvrira plus : l'effacer avant d'installer (`adb shell pm clear app.treelune.debug`), ce qui perd le schéma « Test », à recopier d'abord par « Copier en Mermaid ».
-- Puis `./run test` une fois, sur l'arbre fusionné. Le Schéma ne touche ni à la base, ni aux migrations, ni à `FileEntity`.
+Avant d'installer `develop` sur le téléphone : recopier le schéma « Test » par « Copier en Mermaid », puis effacer l'app debug (`adb shell pm clear app.treelune.debug`), que la base 120 de `develop` n'ouvre plus.
 
 ## Ouvert
 
