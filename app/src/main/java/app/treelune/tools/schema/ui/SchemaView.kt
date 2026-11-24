@@ -235,7 +235,7 @@ private fun tileShown(spec: SchemaSpec, builder: SchemaSceneBuilder, nameOf: (Re
     } ?: levels.last()
     val tried = mutableListOf<String>()
     for (detail in levels.drop(levels.indexOf(expected))) {
-        val scene = builder.build(spec, nameOf, folded, width, fit = detail == SchemaDetail.TEXT, iconOf = iconOf, across = across, detail = detail)
+        val scene = builder.build(spec, nameOf, folded, width, fit = detail == SchemaDetail.TEXT, iconOf = iconOf, across = across, detail = detail, aspect = available / room)
         val scale = tileScale(scene, available, room, unit)
         tried += "$detail at ${"%.2f".format(scale)}"
         if (scale >= BOUNDS.getValue(detail)) return Shown(scene, "expected $expected, ${tried.joinToString()}")

@@ -68,8 +68,22 @@ internal class SchemaParts(spec: SchemaSpec, visible: SchemaVisible, upward: Boo
             else cutEdges += i
         }
         this.told = told
-        cut = cutEdges.withIndex().associate { (n, i) -> i to letter(n) }
+        // Lettered in reading order: by where each arrow starts, part after part down every stack
+        val readingOrder = Comparator<List<Int>> { x, y ->
+            x.zip(y).firstOrNull { (p, q) -> p != q }?.let { (p, q) -> p.compareTo(q) } ?: x.size.compareTo(y.size)
+        }
+        cut = cutEdges.sortedWith(compareBy(readingOrder) { i: Int -> place(placed[i].first) }.thenBy { it })
+            .withIndex().associate { (n, i) -> i to letter(n) }
     }
+
+    /**
+     * Where [id] stands in reading order, from the top: at each level, its place in its holder's
+     * stack, or the config's order where its holder is not in parts.
+     */
+    private fun place(id: String): List<Int> =
+        generateSequence(id) { parentOf[it] }.toList().reversed().map { step ->
+            stacks[parentOf[step]]?.indexOf(step)?.takeIf { it >= 0 } ?: (order[step] ?: 0)
+        }
 
     /** The part of [container]'s stack that [id] is or stands in; null when [id] is not inside it, or is the container itself. */
     private fun partIn(container: String?, id: String): String? {

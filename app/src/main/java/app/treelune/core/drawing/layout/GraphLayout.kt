@@ -96,7 +96,13 @@ data class LayoutOptions(
     val blockMinimum: Int = 3,
     val loopSize: Float = 12f,
     val attempts: Int = 2,
-    val across: Boolean = false
+    val across: Boolean = false,
+    /**
+     * For a drawing shown in a room of this width over height (a tile): the top level's stack is
+     * laid as a grid in reading order, of the number of columns that leaves the drawing biggest
+     * once fitted to the room, rather than one part under the other
+     */
+    val stackAspect: Float? = null
 )
 
 data class PlacedPoint(val x: Float, val y: Float)
@@ -134,12 +140,14 @@ class GraphLayout(private val options: LayoutOptions = LayoutOptions()) {
 
     private fun placeDown(graph: LayoutGraph): Placement {
         val ranking = rankingFor(graph.reference)
-        val first = Run(graph, options, portsFollowInside = false, start = 0, ranking).place()
+        // Placed down then turned, a drawing running across wants the room turned too
+        val down = if (options.across) options.copy(stackAspect = options.stackAspect?.let { 1f / it }) else options
+        val first = Run(graph, down, portsFollowInside = false, start = 0, ranking).place()
         if (graph.groups.isEmpty() && graph.reference.isEmpty() && crossings(first) == 0 && first.width <= options.maxWidth) return first
         val others = (0 until options.attempts).flatMap { start ->
             buildList {
-                if (start > 0) add(Run(graph, options, portsFollowInside = false, start = start, ranking).place())
-                if (graph.groups.isNotEmpty()) add(Run(graph, options, portsFollowInside = true, start = start, ranking).place())
+                if (start > 0) add(Run(graph, down, portsFollowInside = false, start = start, ranking).place())
+                if (graph.groups.isNotEmpty()) add(Run(graph, down, portsFollowInside = true, start = start, ranking).place())
             }
         }
         return (listOf(first) + others).minWith(ranking)
@@ -441,6 +449,31 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
         return Packed(width, max(0f, y - gap), places)
     }
 
+    /**
+     * Puts rectangles in a grid in reading order, each line centered under the widest: of the
+     * column counts, the one whose whole, fitted to a room [aspect] wide for 1 high, is shown biggest.
+     */
+    private fun gridParts(sizes: List<Pair<Float, Float>>, gap: Float, aspect: Float): Packed {
+        fun lay(columns: Int): Packed {
+            val lines = sizes.indices.chunked(columns)
+            val lineWidth = lines.map { line -> line.sumOf { sizes[it].first.toDouble() }.toFloat() + gap * (line.size - 1) }
+            val width = lineWidth.maxOrNull() ?: 0f
+            val places = arrayOfNulls<PlacedPoint>(sizes.size)
+            var y = 0f
+            lines.forEachIndexed { l, line ->
+                val lineHeight = line.maxOf { sizes[it].second }
+                var x = (width - lineWidth[l]) / 2
+                line.forEach { i ->
+                    places[i] = PlacedPoint(x, y + (lineHeight - sizes[i].second) / 2)
+                    x += sizes[i].first + gap
+                }
+                y += lineHeight + gap
+            }
+            return Packed(width, max(0f, y - gap), places.map { it!! })
+        }
+        return (1..max(1, sizes.size)).map { lay(it) }.maxBy { min(aspect / max(it.width, 1f), 1f / max(it.height, 1f)) }
+    }
+
     /** Puts rectangles in lines no wider than [limit], each line centered under the widest. */
     private fun packLines(sizes: List<Pair<Float, Float>>, limit: Float, gap: Float): Packed {
         val lines = mutableListOf<MutableList<Int>>()
@@ -581,7 +614,8 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
         val ordered = if (stack == null) scope.parts.sortedByDescending { it.nodes.size > 1 }
             else scope.parts.sortedBy { part -> part.nodes.minOf { node -> stack.indexOf(node.id).takeIf { it >= 0 } ?: Int.MAX_VALUE } }
         val packed = if (stack == null) packLines(ordered.map { it.width to it.height }, scope.limit - 2 * pad, options.boxGap)
-            else stackParts(ordered.map { it.width to it.height }, options.rowGap * PART_GAP)
+            else options.stackAspect?.takeIf { scope === root }?.let { gridParts(ordered.map { it.width to it.height }, options.rowGap * PART_GAP, it) }
+                ?: stackParts(ordered.map { it.width to it.height }, options.rowGap * PART_GAP)
         ordered.forEachIndexed { i, part -> part.translate(packed.places[i].x + pad, packed.places[i].y + pad + title) }
         val contentWidth = max(packed.width, scope.group?.titleWidth ?: 0f)
         scope.width = contentWidth + 2 * pad

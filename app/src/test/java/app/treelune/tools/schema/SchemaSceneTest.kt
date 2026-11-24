@@ -445,6 +445,31 @@ class SchemaSceneTest {
     }
 
     @Test
+    fun `letters follow reading order, by the part each arrow starts in, whatever the config's order`() {
+        // Crafting comes first on the page, though written last; its three arrows out take A, B, C
+        val scene = scene("""{"parts": true,
+            "nodes": [{"id": "magic", "label": "Magic"}, {"id": "focus", "label": "Focus", "parent": "magic"}, {"id": "bolt", "label": "Bolt", "parent": "magic"},
+                {"id": "craft", "label": "Crafting"}, {"id": "smith", "label": "Smithing", "parent": "craft"}, {"id": "potions", "label": "Potions", "parent": "craft"},
+                {"id": "sword", "label": "Sword"}],
+            "edges": [{"from": "focus", "to": "bolt"}, {"from": "bolt", "to": "sword"}, {"from": "smith", "to": "sword"}, {"from": "potions", "to": "focus"}]}""")
+        val outOf = { id: String ->
+            val box = scene.hits.first { (it.second as? SchemaTouch.Box)?.node?.id == id }.first
+            scene.hits.mapNotNull { it.second as? SchemaTouch.Ref }.filter { scene.refArea(it.id)!!.top > box.top }
+                .minBy { scene.refArea(it.id)!!.top - box.bottom + kotlin.math.abs(scene.refArea(it.id)!!.left - box.left) }.letter
+        }
+        assertEquals(listOf("A", "B", "C"), listOf(outOf("smith"), outOf("potions"), outOf("bolt")))
+    }
+
+    @Test
+    fun `on a wide tile a top level in parts fills it as a grid`() {
+        val builder = SchemaSceneBuilder(1f, 1f, text, own)
+        val column = builder.build(spec(house), { null }, emptySet(), 340f)
+        val grid = builder.build(spec(house), { null }, emptySet(), 340f, aspect = 2f)
+        assertTrue(grid.drawing.height < column.drawing.height)
+        assertTrue(grid.drawing.width > column.drawing.width)
+    }
+
+    @Test
     fun `an empty schema draws nothing, without failing`() {
         assertTrue(scene("{}").drawing.shapes.isEmpty())
     }

@@ -163,10 +163,12 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
      * @param across Whether the drawing runs sideways (a wide tile): a box's icon then stands
      *   beside its text, where height is short, and above it otherwise, where width is
      * @param detail How much each box says
+     * @param aspect The width over height of the room the drawing is fitted to (a tile): a schema
+     *   whose top level is in parts lays them as the grid that shows biggest there
      */
     fun build(spec: SchemaSpec, nameOf: (Reference) -> String?, folded: Set<String>, width: Float,
-              keptOpen: Set<String> = emptySet(), fit: Boolean = false, iconOf: (Reference) -> String? = { null }, across: Boolean = false, detail: SchemaDetail = SchemaDetail.TEXT): SchemaScene {
-        val mode = Mode(across, detail)
+              keptOpen: Set<String> = emptySet(), fit: Boolean = false, iconOf: (Reference) -> String? = { null }, across: Boolean = false, detail: SchemaDetail = SchemaDetail.TEXT, aspect: Float? = null): SchemaScene {
+        val mode = Mode(across, detail, aspect)
         // Every state, folded or tightened, is placed against one drawing, the schema all open at
         // its usual spacing, so that its parts keep their sides from one state to the other
         val allOpen by lazy { prepare(spec, nameOf, iconOf, mode, emptySet(), width, emptyMap(), Spacing.NORMAL) }
@@ -225,7 +227,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
     )
 
     /** Which way the drawing runs and how much its boxes say. */
-    private data class Mode(val across: Boolean, val detail: SchemaDetail) {
+    private data class Mode(val across: Boolean, val detail: SchemaDetail, val aspect: Float? = null) {
         /** Whether an arrow's text is written. */
         val written get() = detail == SchemaDetail.TEXT
         /** Whether a group's title is written: cut short when compact. */
@@ -305,7 +307,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         }
         val across = mode.across
         val placement = GraphLayout(LayoutOptions(
-            across = across, maxWidth = width, boxGap = dp(16f) * spacing.gap * mode.gap, rowGap = dp(24f) * mode.gap, trackGap = dp(7f) * mode.gap, portGap = dp(9f) * spacing.gap * mode.gap,
+            across = across, stackAspect = mode.aspect, maxWidth = width, boxGap = dp(16f) * spacing.gap * mode.gap, rowGap = dp(24f) * mode.gap, trackGap = dp(7f) * mode.gap, portGap = dp(9f) * spacing.gap * mode.gap,
             groupPadding = GROUP_PADDING * density, blockPadding = dp(6f), blockGap = dp(6f), loopSize = dp(12f)
         )).place(LayoutGraph(
             boxes = boxes.map { box -> portSpan(box.shape)?.let { LayoutBox(box.id, box.width, box.height, it) } ?: LayoutBox(box.id, box.width, box.height) },

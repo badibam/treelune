@@ -60,7 +60,9 @@ fun rememberSchemaTile(tool: ToolInstance): ToolTile {
                 // Sideways when the body has more columns than rows, a square one staying upright
                 // (docs/design/progression.md): read on the cells, never by placing both ways
                 if (room.rows == null) SchemaView(read, folded, onTouch = null)
-                else SchemaView(read, folded, onTouch = null, modifier = Modifier.fillMaxSize(), reduced = true, across = room.width > room.rows)
+                else SchemaView(read, folded, onTouch = null, modifier = Modifier.fillMaxSize(), reduced = true,
+                    // A top level in parts fills the tile as a grid of them, each running down
+                    across = room.width > room.rows && !read.spec.parts)
             }
         }
     }
