@@ -31,10 +31,11 @@ interface SchemaText {
 
 /**
  * How much a box says, from the richest to the poorest, for a tile short of room
- * (docs/design/progression.md): its text, its icon alone, its shape alone, a dot. Below its text,
- * nothing is written, an arrow's text and a group's title included.
+ * (docs/design/progression.md): its text; compact, its icon and one short line, an arrow's text
+ * left out and a group's title cut short; its icon alone, its shape alone, a dot, where nothing
+ * is written any more.
  */
-enum class SchemaDetail { TEXT, ICON, SHAPE, DOT }
+enum class SchemaDetail { TEXT, COMPACT, ICON, SHAPE, DOT }
 
 /** What a touch on a schema found. */
 sealed interface SchemaTouch {
@@ -207,9 +208,14 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
 
     /** Which way the drawing runs and how much its boxes say. */
     private data class Mode(val across: Boolean, val detail: SchemaDetail) {
+        /** Whether an arrow's text is written. */
         val written get() = detail == SchemaDetail.TEXT
+        /** Whether a group's title is written: cut short when compact. */
+        val titled get() = detail == SchemaDetail.TEXT || detail == SchemaDetail.COMPACT
         /** How close things stand: closer as boxes shrink. */
-        val gap get() = when (detail) { SchemaDetail.TEXT -> 1f; SchemaDetail.ICON -> 0.75f; SchemaDetail.SHAPE -> 0.5f; SchemaDetail.DOT -> 0.45f }
+        val gap get() = when (detail) {
+            SchemaDetail.TEXT -> 1f; SchemaDetail.COMPACT -> 0.85f; SchemaDetail.ICON -> 0.75f; SchemaDetail.SHAPE -> 0.5f; SchemaDetail.DOT -> 0.45f
+        }
     }
 
     /** The boxes of what stays visible with [folded] shut, measured as [mode] says. */
@@ -241,7 +247,13 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
 
         val upward = spec.direction == SchemaDirection.BOTTOM_UP
         val labels = visible.edges.map { edge -> edge.label?.takeIf { mode.written }?.let { ellipsize(it, dp(120f)) } }
-        val titles = visible.groups.associate { it.id to if (mode.written) ellipsize(it.title, width * 0.6f) else "" }
+        val titles = visible.groups.associate { group ->
+            group.id to when {
+                mode.written -> ellipsize(group.title, width * 0.6f)
+                mode.titled -> ellipsize(group.title, dp(COMPACT_LINE))
+                else -> ""
+            }
+        }
         val across = mode.across
         val placement = GraphLayout(LayoutOptions(
             across = across, maxWidth = width, boxGap = dp(16f) * spacing.gap * mode.gap, rowGap = dp(24f) * mode.gap, trackGap = dp(7f) * mode.gap, portGap = dp(9f) * spacing.gap * mode.gap,
@@ -285,7 +297,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
                 shapes += DrawShape.Path(outline, fill(group.color), SURFACE_OPACITY / 2, 0f, null, true)
                 shapes += DrawShape.Path(outline, stroke(group.color, InkLevel.FAINT), 1f, thin(), null, false)
                 val pad = GROUP_PADDING * density
-                if (mode.written) shapes += DrawShape.Label(titles.getValue(group.id), DrawPoint(rect.left + pad, rect.top + pad), TextAnchor.START, TextBaseline.TOP, DrawColor.Ink(InkLevel.MEDIUM))
+                if (mode.titled) shapes += DrawShape.Label(titles.getValue(group.id), DrawPoint(rect.left + pad, rect.top + pad), TextAnchor.START, TextBaseline.TOP, DrawColor.Ink(InkLevel.MEDIUM))
                 // Its title's band: on its top, or on its left side in a drawing running across
                 val band = if (across) DrawRect(rect.left, rect.top, rect.left + 2 * pad + text.width(titles.getValue(group.id)), rect.bottom)
                     else DrawRect(rect.left, rect.top, rect.right, rect.top + 2 * pad + text.height)
@@ -410,7 +422,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
 
     private fun measure(id: String, whole: String, shape: SchemaShape, color: TagColor?, node: SchemaNode?, group: SchemaGroup?, open: Reference?, icon: String?, mode: Mode, limit: Float): Measured {
         when (mode.detail) {
-            SchemaDetail.TEXT -> Unit
+            SchemaDetail.TEXT, SchemaDetail.COMPACT -> Unit
             // The icon alone in its shape, a box without one its shape alone
             SchemaDetail.ICON -> if (icon != null) {
                 val size = iconSize() * ICON_ALONE
@@ -433,7 +445,8 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             }
             SchemaDetail.DOT -> return Measured(id, emptyList(), whole, false, SchemaShape.CIRCLE, color, node, group, open, null, false, 0f, dp(8f), dp(8f))
         }
-        val (lines, cut) = wrap(whole, limit)
+        // Compact, one short line: nothing on a tile opens the whole text
+        val (lines, cut) = if (mode.detail == SchemaDetail.COMPACT) listOf(ellipsize(whole.trim(), dp(COMPACT_LINE))) to false else wrap(whole, limit)
         val across = mode.across
         val beside = icon != null && across
         val above = icon != null && !across
@@ -635,6 +648,8 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         const val MAX_LINES = 3
         // An icon drawn alone, against the size of one written before a text
         const val ICON_ALONE = 1.5f
+        // The longest line a compact box or group title writes, in dp
+        const val COMPACT_LINE = 80f
         // The smallest a drawing is shown at for its text to stay readable; to judge on the phone
         const val MIN_SCALE = 0.75f
         // How close to a side of its box a line's end counts as standing on it, in pixels

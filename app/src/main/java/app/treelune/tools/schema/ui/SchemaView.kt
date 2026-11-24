@@ -237,10 +237,14 @@ private fun tileShown(spec: SchemaSpec, builder: SchemaSceneBuilder, nameOf: (Re
  * The smallest a tile shows a drawing at, per level, against its full size; to judge on the phone.
  * Below the last, nothing is drawn.
  */
-private val BOUNDS = mapOf(SchemaDetail.TEXT to 0.6f, SchemaDetail.ICON to 0.5f, SchemaDetail.SHAPE to 0.5f, SchemaDetail.DOT to 0.5f)
+private val BOUNDS = mapOf(SchemaDetail.TEXT to 0.6f, SchemaDetail.COMPACT to 0.6f, SchemaDetail.ICON to 0.5f, SchemaDetail.SHAPE to 0.5f, SchemaDetail.DOT to 0.5f)
 
-/** How much more room a drawing takes than its boxes alone, its gaps, arrows and groups; to judge on the phone. */
-private const val SPREAD = 3f
+/**
+ * How much more room a drawing takes than its boxes alone, its gaps, arrows and groups. Set on the
+ * phone (2026-11-24): at 3, every tile expected a level too rich and was placed twice, its text
+ * coming out at about half the scale expected.
+ */
+private const val SPREAD = 8f
 
 /** Where a touched group stood: its left in the view, its top against the page's scroll. */
 private data class GroupAnchor(val id: String, val x: Float, val y: Float)

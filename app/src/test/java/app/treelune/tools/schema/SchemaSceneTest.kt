@@ -91,6 +91,16 @@ class SchemaSceneTest {
     }
 
     @Test
+    fun `compact, a box writes one short line and a group its title, an arrow nothing`() {
+        val labels = at(SchemaDetail.COMPACT).labels()
+        assertTrue(labels.containsAll(listOf("without", "a group")))
+        // A text longer than the short line is cut on it
+        assertTrue(labels.any { it.startsWith("with an") && it.endsWith("…") })
+        assertFalse("feeds" in labels)
+        assertEquals(listOf("leaf"), at(SchemaDetail.COMPACT).drawing.shapes.filterIsInstance<DrawShape.Icon>().map { it.name })
+    }
+
+    @Test
     fun `at the icon level a box shows its icon alone, a box without one its shape alone`() {
         val icons = at(SchemaDetail.ICON).drawing.shapes.filterIsInstance<DrawShape.Icon>()
         assertEquals(listOf("leaf"), icons.map { it.name })
