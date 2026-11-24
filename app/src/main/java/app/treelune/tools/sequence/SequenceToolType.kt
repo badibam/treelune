@@ -1,5 +1,6 @@
 package app.treelune.tools.sequence
 
+import app.treelune.core.fields.toFieldDefinitions
 import android.content.Context
 import androidx.compose.runtime.Composable
 import app.treelune.core.conditions.Conditions
@@ -208,7 +209,12 @@ object SequenceToolType : ToolTypeContract {
                     SettingNode.FieldValues(SequenceVariants.PROGRAM_VALUES, text("field_program_values"), SequenceVariants.PROGRAM_FIELDS, text("schema_program_values")),
                     steps(text)
                 ), description = text("schema_program_element")), required = true, minItems = 1,
-                    summary = listOf(SequenceVariants.PROGRAM_NAME), description = text("schema_programs"))
+                    summary = listOf(SequenceVariants.PROGRAM_NAME), description = text("schema_programs")),
+                SettingNode.Sort(SequenceVariants.PROGRAM_SORT, text("field_program_sort"), text("schema_program_sort"), elements = SequenceVariants.PROGRAM_ORDER),
+                SettingNode.ListOf(SequenceVariants.PROGRAM_SHOWN, text("field_program_shown"),
+                    SettingNode.Item.Value(field("program_shown_field", text("field_program_shown_field"), FieldType.TEXT, text("schema_program_shown_field"), mapOf("length" to TextLength.SHORT.name)),
+                        rowField = true),
+                    distinct = true, description = text("schema_program_shown"))
             )
         ),
         descriptions = SequenceVariants.ALL.associateWith { text("schema_variant_$it") }
@@ -383,10 +389,24 @@ object SequenceToolType : ToolTypeContract {
         SequenceVariants.STEPS -> SequencePlan.endless(config)?.let { s(context).tool("error_auto_next_without_length").format(it) }
         SequenceVariants.PROGRAMS -> SequenceVariants.programs(config).firstNotNullOfOrNull { program ->
             SequencePlan.endless(program)?.let { s(context).tool("error_program_auto_next_without_length").format(program.optString(SequenceVariants.PROGRAM_NAME), it) }
-        }
+        } ?: refusePrograms(config, context)
         SequenceVariants.MEDIA -> refuseMediaField(config, context)
         else -> null
     }
+
+    /** The programs' order naming their name or their fields, each with an order; the fields shown, fields of the programs. */
+    private fun refusePrograms(config: JSONObject, context: Context): String? {
+        val shared = Strings.`for`(context = context)
+        val fields = SequenceVariants.PROGRAM_ORDER.fields(config, shared.shared("label_name"))
+        config.optJSONArray(SequenceVariants.PROGRAM_SORT)?.let { sort ->
+            (app.treelune.core.fields.EntrySort.parse(sort, fields) { shared.shared(it) } as? app.treelune.core.fields.EntrySort.Parsed.Refused)?.let { return it.error }
+        }
+        val defined = SequenceProgramFields.of(config).keys
+        val shown = config.optJSONArray(SequenceVariants.PROGRAM_SHOWN) ?: return null
+        return (0 until shown.length()).map { shown.optString(it) }.firstOrNull { it !in defined }?.let { s(context).tool("error_program_shown").format(it) }
+    }
+
+    override fun getRowFields(): app.treelune.core.fields.settings.RowFields = SequenceProgramFields
 
     private suspend fun refuseMediaField(config: JSONObject, context: Context): String? {
         val s = s(context)
@@ -416,4 +436,16 @@ object SequenceToolType : ToolTypeContract {
 
     @Composable
     override fun rememberTile(tool: ToolInstance, open: (OpenAt) -> Unit): ToolTile = rememberSequenceTile(tool)
+}
+
+/** What the fields shown under each program choose among (SequenceVariants.PROGRAM_SHOWN): the program fields the config defines, by name. */
+object SequenceProgramFields : app.treelune.core.fields.settings.RowFields {
+
+    /** The program fields of [config], by name. */
+    fun of(config: JSONObject): Map<String, FieldDefinition> =
+        config.optJSONArray(SequenceVariants.PROGRAM_FIELDS)?.toFieldDefinitions().orEmpty().associateBy { it.name }
+
+    override suspend fun at(root: JSONObject, path: List<Any>, context: Context): Map<String, FieldDefinition> = of(root)
+
+    override fun dependsOn(root: JSONObject, path: List<Any>): Any = root.optJSONArray(SequenceVariants.PROGRAM_FIELDS).toString()
 }

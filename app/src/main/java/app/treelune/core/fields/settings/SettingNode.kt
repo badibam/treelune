@@ -1,6 +1,11 @@
 package app.treelune.core.fields.settings
 
 import app.treelune.core.fields.FieldDefinition
+import app.treelune.core.fields.FieldType
+import app.treelune.core.fields.EntrySort
+import app.treelune.core.fields.SortKey
+import app.treelune.core.fields.toFieldDefinitions
+import org.json.JSONObject
 
 /**
  * One node of a settings declaration: what a config holds, described so that its schema, its
@@ -239,13 +244,35 @@ sealed class SettingNode {
      * The order of the tool's own entries stored under [name] (the Sort brick, docs/BRICKS.md):
      * `[{"field", "direction"}]`, each key a field of the tool being configured with an order
      * (EntryFilters.sortableFields), empty for its default order; drawn by SortSetting, which the
-     * config's screen gives it with the tool's fields (ToolConfigScreen).
+     * config's screen gives it with the tool's fields (ToolConfigScreen). With [elements], the
+     * order of the elements of a list of the config instead (a session's programs).
      */
     data class Sort(
         val name: String,
         val label: String,
-        val description: String
+        val description: String,
+        val elements: SortedElements? = null
     ) : SettingNode()
+
+    /**
+     * The elements of the config's list [list] a Sort orders, empty keeping the list's order: by
+     * their [named] text, or by their values, under [values], of the fields the config defines
+     * under [fields] — keys `name`, `values.level` (SortedElements.fields).
+     */
+    data class SortedElements(val list: String, val named: String, val fields: String, val values: String) {
+        /** The fields its keys name, by path, among those [config] defines; [nameLabel] the label of the elements' name. */
+        fun fields(config: JSONObject, nameLabel: String): Map<String, FieldDefinition> =
+            mapOf(named to FieldDefinition(named, nameLabel, null, FieldType.TEXT, false, null)) +
+                config.optJSONArray(fields)?.toFieldDefinitions().orEmpty().associateBy { "$values.${it.name}" }
+
+        /** The elements of [config]'s list in the order of [sort], their list's order kept where it leaves them equal. */
+        fun ordered(config: JSONObject, sort: List<SortKey>, nameLabel: String): List<JSONObject> {
+            val elements = ElementKeys.objects(config.optJSONArray(list))
+            val rows = elements.map { app.treelune.core.utils.JsonUtils.toMap(it) }
+            val order = EntrySort.ordered(rows, sort, fields(config, nameLabel))
+            return order.map { row -> elements[rows.indexOf(row)] }
+        }
+    }
 
     /**
      * A period stored under [name] (the Période brick, docs/BRICKS.md): `{"start", "end"}`, each

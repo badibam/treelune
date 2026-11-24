@@ -41,6 +41,29 @@ object SequenceVariants {
     const val PROGRAM_FIELDS = "program_fields"
     /** A program's values of those fields, by their names, as an entry's extra holds them (SettingNode.FieldValues) */
     const val PROGRAM_VALUES = "values"
+    /** The order the programs are offered in at start, by their name or their fields; empty, the config's own */
+    const val PROGRAM_SORT = "program_sort"
+    /** The program fields shown under each program at start, and before it starts, by their names, in their order */
+    const val PROGRAM_SHOWN = "program_shown"
+
+    /** What the programs' order sorts: their name, their values of the program fields. */
+    val PROGRAM_ORDER = app.treelune.core.fields.settings.SettingNode.SortedElements(PROGRAMS, PROGRAM_NAME, PROGRAM_FIELDS, PROGRAM_VALUES)
+
+    /**
+     * The programs of [config] in the order it offers them (PROGRAM_SORT), [nameLabel] the label of
+     * their name; in the config's order without one.
+     */
+    fun offeredPrograms(config: JSONObject, nameLabel: String): List<JSONObject> {
+        val sort = config.optJSONArray(PROGRAM_SORT)?.let { app.treelune.core.fields.EntrySort.read(it) { k -> k } }.orEmpty()
+        return PROGRAM_ORDER.ordered(config, sort, nameLabel)
+    }
+
+    /** The program fields of [config] [PROGRAM_SHOWN] names, in its order; one no longer defined left out. */
+    fun shownFields(config: JSONObject): List<app.treelune.core.fields.FieldDefinition> {
+        val defined = SequenceProgramFields.of(config)
+        val shown = config.optJSONArray(PROGRAM_SHOWN) ?: return emptyList()
+        return (0 until shown.length()).mapNotNull { defined[shown.optString(it)] }
+    }
 
     /** The timer's length proposed at launch, and taken by `complete` without one. */
     const val TIMER_DURATION = "timer_duration"

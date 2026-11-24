@@ -356,7 +356,8 @@ internal fun groupEditor(groups: List<String>, label: String) = object : Setting
 /**
  * The editors of the config's sorts of the tool's own entries (SettingNode.Sort): SortSetting on
  * the fields of its entries as the config being edited declares them (its user's fields included),
- * the name A to Z shown while none is chosen.
+ * the name A to Z shown while none is chosen. A sort of a list's elements (SettingNode.SortedElements)
+ * offers their name and the fields the config defines for them, none chosen keeping the list's order.
  */
 private fun ownSortEditors(nodes: List<app.treelune.core.fields.settings.SettingNode>, toolType: app.treelune.core.tools.ToolTypeContract,
                            config: JSONObject, s: app.treelune.core.strings.StringsContext): Map<String, app.treelune.core.fields.settings.SettingEditor> {
@@ -364,6 +365,7 @@ private fun ownSortEditors(nodes: List<app.treelune.core.fields.settings.Setting
         when (node) {
             is app.treelune.core.fields.settings.SettingNode.Sort -> listOf(node)
             is app.treelune.core.fields.settings.SettingNode.Section -> sorts(node.nodes)
+            is app.treelune.core.fields.settings.SettingNode.Variant -> node.cases.values.flatMap { sorts(it) }
             else -> emptyList()
         }
     }
@@ -372,6 +374,12 @@ private fun ownSortEditors(nodes: List<app.treelune.core.fields.settings.Setting
             @androidx.compose.runtime.Composable
             override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
                 val context = androidx.compose.ui.platform.LocalContext.current
+                node.elements?.let { elements ->
+                    val fields = androidx.compose.runtime.remember(config.optString(elements.fields)) { elements.fields(config, s.shared("label_name")) }
+                    val keys = (value as? org.json.JSONArray)?.let { app.treelune.core.fields.EntrySort.read(it) { k -> s.shared(k) } }.orEmpty()
+                    app.treelune.core.ui.selectors.SortSetting(node.label, keys, fields) { onChange(app.treelune.core.fields.EntrySort.toJson(it)) }
+                    return
+                }
                 val fields = androidx.compose.runtime.remember(config.optString("extra_fields")) {
                     app.treelune.core.fields.EntryFilters.sortableFields(toolType.getEntryFields(config, context),
                         config.optJSONArray("extra_fields")?.let { it.toFieldDefinitions() } ?: emptyList()) { s.shared(it) }

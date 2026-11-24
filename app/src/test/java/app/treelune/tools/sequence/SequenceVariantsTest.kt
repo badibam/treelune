@@ -174,8 +174,24 @@ class SequenceVariantsTest {
         assertEquals(2, SequenceVariants.program(config(), "doux")!!.getJSONObject(SequenceVariants.PROGRAM_VALUES).getInt("niveau"))
         assertFalse(coordinator.processUserAction("tools.update", program(mapOf("niveau" to "haut"))).isSuccess)
 
+        // Offered by a field, highest first, then by name; a key or a field shown that is no program field refused
+        val ordered = config().put(SequenceVariants.PROGRAMS, JSONArray()
+                .put(JSONObject().put("id", "doux").put("name", "Doux").put("values", JSONObject().put("niveau", 2)).put("steps", JSONArray().put(JSONObject(step))))
+                .put(JSONObject().put("id", "b").put("name", "B").put("steps", JSONArray().put(JSONObject(step))))
+                .put(JSONObject().put("id", "a").put("name", "A").put("values", JSONObject().put("niveau", 2)).put("steps", JSONArray().put(JSONObject(step)))))
+            .put(SequenceVariants.PROGRAM_SORT, JSONArray().put(JSONObject().put("field", "values.niveau").put("direction", "desc")).put(JSONObject().put("field", "name").put("direction", "asc")))
+            .put(SequenceVariants.PROGRAM_SHOWN, JSONArray().put("niveau"))
+        val sorted = coordinator.processUserAction("tools.update", mapOf("tool_instance_id" to sequenceId, "config" to app.treelune.core.utils.JsonUtils.toMap(ordered)))
+        assertTrue(sorted.error, sorted.isSuccess)
+        assertEquals(listOf("a", "doux", "b"), SequenceVariants.offeredPrograms(config(), "Name").map { it.getString("id") })
+        assertEquals(listOf("niveau"), SequenceVariants.shownFields(config()).map { it.name })
+        assertFalse(coordinator.processUserAction("tools.update", mapOf("tool_instance_id" to sequenceId, "config" to app.treelune.core.utils.JsonUtils.toMap(
+            JSONObject(ordered.toString()).put(SequenceVariants.PROGRAM_SORT, JSONArray().put(JSONObject().put("field", "values.taille").put("direction", "asc")))))).isSuccess)
+        assertFalse(coordinator.processUserAction("tools.update", mapOf("tool_instance_id" to sequenceId, "config" to app.treelune.core.utils.JsonUtils.toMap(
+            JSONObject(ordered.toString()).put(SequenceVariants.PROGRAM_SHOWN, JSONArray().put("taille"))))).isSuccess)
+
         // The field taken out, its values leave the programs
-        val without = config().put(SequenceVariants.PROGRAM_FIELDS, JSONArray())
+        val without = config().put(SequenceVariants.PROGRAM_FIELDS, JSONArray()).put(SequenceVariants.PROGRAM_SORT, JSONArray()).put(SequenceVariants.PROGRAM_SHOWN, JSONArray())
         val removed = coordinator.processUserAction("tools.update", mapOf("tool_instance_id" to sequenceId, "config" to app.treelune.core.utils.JsonUtils.toMap(without)))
         assertTrue(removed.error, removed.isSuccess)
         assertFalse(SequenceVariants.program(config(), "doux")!!.optJSONObject(SequenceVariants.PROGRAM_VALUES)?.has("niveau") ?: false)
