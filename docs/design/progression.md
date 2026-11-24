@@ -37,7 +37,19 @@ Ce que ça demande au core :
 - Une brique est une chose qui a un état, qui change dans le temps. « Palier », « atteint », « ouvert », « verdict » ou « validation » ne sont pas des notions de l'outil.
 - Un Parcours déclare des sortes (Module, Année), chacune avec ses champs, ce qu'elle peut contenir (une ou plusieurs sortes, facultatif), ses états, ses `marks` et ses `effects`. Pas de frontière atome/groupe : toute brique peut être notée et contenir, si sa sorte le permet. La racine a sa sorte, dont les champs décrivent le cycle (son cap, ses besoins).
 - Les champs configurables n'existent que par sorte : Parcours n'a pas les champs supplémentaires classiques (`takesUserFields() = false`, comme les Flashcards).
-- Une brique peut avoir un champ « lien vers des briques », dont le sens vient de son nom et des règles qui le lisent (attend, exclut, couvert aussi par). Le système sait seulement le suivre, calculer dans le bon ordre et refuser les boucles. Une suite lit l'ordre des briques (`self.previous`), sans champ.
+- Une brique peut avoir un champ « lien vers des briques », dont le sens vient de son nom et des règles qui le lisent (attend, exclut, couvert aussi par). Le système sait seulement le suivre, calculer dans le bon ordre et refuser les boucles.
+
+### Ce qu'attend une brique
+
+- Liste, suite et arbre ne sont pas trois formes mais une seule mécanique (une brique est disponible quand ce qu'elle attend est fait) dont seule la source change. Une sorte de groupe porte donc un réglage unique, `waits`, pour les briques de son contenu : `nothing` (toujours disponibles), `previous` (la brique d'avant, par sa position dans le plan, sans rien écrire), `named` (ce que nomme un champ de lien, écrit à la main). Il épargne du travail (60 séances sans écrire un lien) ; c'est sa seule justification.
+- Comme `closing`, `waits` reste un réglage actif : il écrit et possède les états des sortes de son contenu (fait, disponible, fermé), affichés mais non éditables, et fixe l'affichage par défaut ; « Écrire les règles moi-même » le détache.
+- Chaque niveau a le sien et ils s'emboîtent (le cycle attend le précédent, un mois rien). Des sortes différentes se mêlent au même niveau, et le réglage s'applique à toutes. Une brique qui n'attend rien dans un groupe `named` est ouverte comme dans une liste : pas besoin de groupe à part.
+- Pas possible : un même niveau à moitié `previous`, à moitié `named` (écrire les liens à la main, ou faire un groupe) ; une brique dans deux groupes (un seul parent) ; des liens en boucle (refusé) ; une sorte gouvernée par deux réglages différents (refusé ; deux groupes du même réglage, oui).
+- Piste, seulement si un cas réel la demande : `waits` comme valeur par défaut que chaque brique peut changer, ce qui rendrait possible le niveau mixte.
+
+```json
+{ "key": "cycle", "contains": ["month"], "waits": "previous" }
+```
 
 ### Les états
 
@@ -107,14 +119,16 @@ Ce que ça demande au core :
 
 - Le plan est fait d'entrées, l'éditeur de plan ne touche jamais la config. Il s'ouvre par un bouton « Plan » de l'écran de l'outil, sur sa propre page : l'usage de l'écran reste « toucher pour noter ou lancer », et la règle de l'app tient (la config dans l'écran de config, les entrées depuis l'écran de l'outil). Un passage fermé montre son plan en lecture seule. Écarté : un bouton dans l'écran de config, qui aurait mêlé une config enregistrée d'un bloc et des briques écrites tout de suite.
 - L'écran de config montre les sortes et la liste de leurs états, chaque ligne disant si l'état se note à la main, sa règle et son `note_if`. Une sorte unique reste invisible, et une sorte n'apparaît sur une brique qu'à partir de deux.
-- À la création, un point de départ (Liste, Suite, Arbre) préremplit une sorte, sans aucune brique ; ce n'est pas une notion du modèle, et tout reste éditable. L'affichage (liste, chemin, branches) est un réglage à part ; avec plusieurs champs de lien, il dit lequel trace les branches.
+- À la création, le Parcours a une sorte, sans aucune brique ; le choix de `waits` pour son contenu remplace les « formes ».
+- Un seul dessin, de haut en bas (le portrait) : le graphe des liens. Les briques sans lien se rangent côte à côte sur autant de colonnes que la place permet (l'ancienne grille) ; une chaîne est une colonne avec son fil (l'ancien chemin) ; un graphe se dispose par niveaux (les anciennes branches). Avec plusieurs champs de lien, l'affichage dit lequel il trace. On ne voit qu'un niveau à la fois : toucher un groupe y entre, le fil d'Ariane remonte.
+- Ce dessin est celui de l'outil Schéma (boîtes, groupes, flèches, de haut en bas), dont la mise en page sort dans le core : le Schéma en est la traduction canonique en outil, le Parcours un autre utilisateur, ses couleurs venant des états. Un Parcours pourrait aussi être une source du Schéma, comme la carte de l'installation. Non vérifié : ce que la branche `schema` a déjà mis dans le core.
 - Un parcours conduit par un maître (le projet `parcours`, que Treelune remplacera en grande partie) n'utilise ni règles ni verrous : l'IA écrit le plan phase après phase, et tout se note à la main. L'IA est donc la principale autrice des configs riches.
 
 ## L'apparence d'une brique
 
 Ce que la maquette du 2026-11-24 écrivait en dur, et que le modèle doit dire, l'outil ne connaissant pas le sens des états :
 
-- Chaque état dit comment il se montre (`look` : une icône Lucide, estompé ou non). Un état sans `look` se montre neutre, avec son numéro dans un chemin. Ce n'est que de l'apparence : l'outil ne sait toujours pas qu'un état est une réussite.
+- Chaque état dit comment il se montre (`look` : une icône Lucide, estompé ou non). Un état sans `look` se montre neutre, avec son numéro dans une chaîne. Ce n'est que de l'apparence : l'outil ne sait toujours pas qu'un état est une réussite.
 - Chaque sorte peut porter un modèle de repère, calculé pour chaque brique avec `self` : la forme du repère du core (`core/readouts`), des valeurs lues à l'affichage, une forme courte qui les place, des couleurs selon des conditions. Il porte la progression (« {done} / {total} », « 3 / 5 séances » par une Lecture) et la couleur d'une brique. Nouveau : un repère lu une fois par brique, avec une brique jugée.
 
 ```json
@@ -127,7 +141,8 @@ Ce que la maquette du 2026-11-24 écrivait en dur, et que le modèle doit dire, 
 ```
 
 - Le quantificateur peut rendre un nombre (`"count": "number"`) au lieu de vrai ou faux.
-- Restent de la maquette, à traiter : la fiche d'une brique offre un bouton par état manuel que `note_if` autorise, avec son libellé, et annuler retire le dernier mouvement ; un groupe peut aussi être noté, donc avoir sa fiche (un bouton en tête du niveau, toucher un groupe y entrant) ; la sorte dit quel champ s'affiche en tête de son niveau ; « + » dans l'éditeur de plan propose les sortes que le groupe peut contenir ; un groupe n'a d'état que par ses règles, préremplies par le point de départ.
+- La fiche d'une brique offre un bouton par état manuel que `note_if` autorise, avec son libellé, dans l'ordre de la liste. Parmi les états manuels, cet ordre est l'échelle : un bouton vers un état plus bas est un retour (« ↓ Revenir à Déchiffré », en retrait), avec un libellé facultatif (`back_label` : « Oublié (→ Déchiffré) »). Revenir écrit un vrai recul ; « Annuler « Su » » efface le dernier mouvement, sans date dans le bouton. La fiche montre l'historique des états de la brique pour le passage en cours.
+- Restent de la maquette, à traiter : un groupe peut aussi être noté, donc avoir sa fiche (un bouton en tête du niveau, toucher un groupe y entrant) ; la sorte dit quel champ s'affiche en tête de son niveau ; « + » dans l'éditeur de plan propose les sortes que le groupe peut contenir.
 
 ## Lancer une Séance depuis une brique
 
@@ -162,7 +177,9 @@ Les scènes de test, toutes tenues sur le papier : badges, calendrier de l'Avent
 - Une rechute en chaîne : un geste groupé, ou un `set` sur ce qui dépend de la brique.
 - Supprimer une brique emporte son historique : refuser si elle a des mouvements, ou l'archiver.
 - Le toucher d'une brique sans Séance : sa fiche avec « Fait », une case à cocher sur la ligne, ou les deux.
-- Les affichages (chemin, liste, branches, voyants), les notifications, la gamification, ce que l'IA peut faire sur un Parcours.
+- Une brique qui attend une brique d'un autre groupe (une séance d'août qui attend une de juillet) : la règle sait le lire, le dessin ne trace que les liens d'un même niveau.
+- Une boîte du dessin montre moins de texte qu'une ligne de liste (nom complet, sorte, repère) : en une colonne, elle devrait s'élargir à toute la ligne ; à discuter.
+- Les notifications, la gamification, ce que l'IA peut faire sur un Parcours.
 
 ## Faits relevés dans le code
 
