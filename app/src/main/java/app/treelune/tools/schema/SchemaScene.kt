@@ -47,6 +47,9 @@ sealed interface SchemaTouch {
 
     /** A group's title, or the box a [folded] group is drawn as. */
     data class Group(val id: String, val folded: Boolean) : SchemaTouch
+
+    /** One end of an arrow cut between parts, its [letter] in a circle ([id]), whose other end is [pair]. */
+    data class Ref(val id: String, val letter: String, val pair: String) : SchemaTouch
 }
 
 /**
@@ -62,6 +65,9 @@ data class SchemaScene(
     val scale: Float = 1f
 ) {
     fun hitAt(x: Float, y: Float): SchemaTouch? = hits.lastOrNull { it.first.contains(x, y) }?.second
+
+    /** Where the end [id] of a cut arrow stands. */
+    fun refArea(id: String): DrawRect? = hits.lastOrNull { (it.second as? SchemaTouch.Ref)?.id == id }?.first
 
     /** Where the group [id] stands, open by its title's band, folded by its box; null when a folded group hides it. */
     fun groupArea(id: String): DrawRect? = hits.lastOrNull { (it.second as? SchemaTouch.Group)?.id == id }?.first
@@ -142,7 +148,9 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         val iconBeside: Boolean,
         val iconSize: Float,
         val width: Float,
-        val height: Float
+        val height: Float,
+        /** For one end of a cut arrow, the id of its other end */
+        val pair: String? = null
     )
 
     /**
@@ -205,6 +213,8 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         val visible: SchemaVisible,
         val boxes: List<Measured>,
         val byId: Map<String, Measured>,
+        /** The arrows drawn: the visible ones the parts leave whole, and the two halves of each they cut */
+        val lines: List<SchemaEdge>,
         val labels: List<String?>,
         val titles: Map<String, Title>,
         val upward: Boolean,
@@ -261,11 +271,27 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
     /** The boxes of what stays visible, measured, and placed. */
     private fun prepare(spec: SchemaSpec, nameOf: (Reference) -> String?, iconOf: (Reference) -> String?, mode: Mode, folded: Set<String>, width: Float, reference: Map<String, Float>, spacing: Spacing): Prepared {
         val visible = SchemaVisible(spec, folded)
-        val boxes = measured(spec, visible, nameOf, iconOf, mode, width, spacing)
-        val byId = boxes.associateBy { it.id }
-
         val upward = spec.direction == SchemaDirection.BOTTOM_UP
-        val labels = visible.edges.map { edge -> edge.label?.takeIf { mode.written }?.let { ellipsize(it, dp(120f)) } }
+        val parts = SchemaParts(spec, visible, upward)
+
+        // An arrow cut between parts: a letter beside each end, in the end's own group, joined to it
+        // by the arrow's first or last stretch, its text on the first
+        val refs = mutableListOf<Measured>()
+        val refParent = mutableMapOf<String, String>()
+        val lines = visible.edges.withIndex().flatMap { (i, edge) ->
+            if (i in parts.told) return@flatMap emptyList()
+            val letter = parts.cut[i] ?: return@flatMap listOf(edge)
+            val out = "$REF_OUT$i"
+            val into = "$REF_IN$i"
+            refs += measureRef(out, letter, into, mode)
+            refs += measureRef(into, letter, out, mode)
+            spec.nodes.firstOrNull { it.id == edge.from }?.parent?.let { refParent[out] = it }
+            spec.nodes.firstOrNull { it.id == edge.to }?.parent?.let { refParent[into] = it }
+            listOf(edge.copy(to = out), edge.copy(from = into, label = null))
+        }
+        val boxes = measured(spec, visible, nameOf, iconOf, mode, width, spacing) + refs
+        val byId = boxes.associateBy { it.id }
+        val labels = lines.map { edge -> edge.label?.takeIf { mode.written }?.let { ellipsize(it, dp(120f)) } }
         val titles = visible.frames.associate { frame ->
             val whole = wholeText(frame.node, nameOf)
             val open = opens(frame.node, nameOf)
@@ -281,7 +307,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             groupPadding = GROUP_PADDING * density, blockPadding = dp(6f), blockGap = dp(6f), loopSize = dp(12f)
         )).place(LayoutGraph(
             boxes = boxes.map { box -> portSpan(box.shape)?.let { LayoutBox(box.id, box.width, box.height, it) } ?: LayoutBox(box.id, box.width, box.height) },
-            edges = visible.edges.mapIndexed { i, edge ->
+            edges = lines.mapIndexed { i, edge ->
                 val label = labels[i]
                 LayoutEdge(
                     from = if (upward) edge.to else edge.from,
@@ -293,17 +319,19 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             },
             groups = visible.frames.map { frame ->
                 val title = titles.getValue(frame.id)
-                LayoutGroup(frame.id, titleWidth(title), if (title.text.isEmpty()) 0f else text.height, frame.boxes, frame.frames)
+                LayoutGroup(frame.id, titleWidth(title), if (title.text.isEmpty()) 0f else text.height,
+                    frame.boxes + refParent.filterValues { it == frame.id }.keys, frame.frames, parts.stacks[frame.id])
             },
             starts = starts(spec, visible, upward),
-            reference = reference
+            reference = reference,
+            stack = parts.stacks[null]
         ))
-        return Prepared(visible, boxes, byId, labels, titles, upward, mode, placement)
+        return Prepared(visible, boxes, byId, lines, labels, titles, upward, mode, placement)
     }
 
     /** The shapes the theme draws, and what a touch finds on them. */
     private fun draw(prepared: Prepared, autoFolded: Set<String> = emptySet(), scale: Float = 1f): SchemaScene {
-        val (visible, boxes, byId, labels, titles, upward, mode, placement) = prepared
+        val (visible, boxes, byId, lines, labels, titles, upward, mode, placement) = prepared
         val across = mode.across
         // Small shapes take their color whole, a faint fill vanishing at their size
         val solid = mode.detail == SchemaDetail.SHAPE || mode.detail == SchemaDetail.DOT
@@ -347,7 +375,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         }
 
         placement.routes.forEach { route ->
-            val edge = visible.edges[route.edges.first()]
+            val edge = lines[route.edges.first()]
             // The points run along the arrow as it was placed: turned back for a schema running upward
             val placed = if (upward) route.points.reversed() else route.points
             val points = reachingOutlines(placed, byId[edge.from], byId[edge.to], placement.boxes)
@@ -368,6 +396,11 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
 
         boxes.forEach { box ->
             val rect = placement.boxes.getValue(box.id).draw()
+            if (box.pair != null) {
+                drawRef(box, rect, solid, shapes)
+                hits += rect to SchemaTouch.Ref(box.id, box.whole, box.pair)
+                return@forEach
+            }
             val outline = outline(box.shape, rect)
             if (solid) shapes += DrawShape.Path(outline, box.color?.let { DrawColor.Palette(it) } ?: DrawColor.Ink(InkLevel.MEDIUM), 1f, 0f, null, true)
             else shapes += DrawShape.Path(outline, fill(box.color), SURFACE_OPACITY, 0f, null, true)
@@ -405,6 +438,27 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
     private fun starts(spec: SchemaSpec, visible: SchemaVisible, upward: Boolean): List<String> {
         val reached = spec.edges.filter { it.from != it.to }.map { if (upward) it.from else it.to }.toSet()
         return spec.nodes.filter { it.id !in spec.holders }.sortedBy { it.id in reached }.map { visible.shownAs(it.id) }.distinct()
+    }
+
+    /** One end of a cut arrow: a small circle with its letter, from the compact level up. */
+    private fun measureRef(id: String, letter: String, pair: String, mode: Mode): Measured {
+        val side = when (mode.detail) {
+            SchemaDetail.TEXT, SchemaDetail.COMPACT -> max(text.width(letter), text.height) + dp(6f)
+            SchemaDetail.ICON -> dp(12f)
+            SchemaDetail.SHAPE, SchemaDetail.DOT -> dp(8f)
+        }
+        val lines = if (mode.titled) listOf(letter) else emptyList()
+        val node = SchemaNode(id, letter, SchemaShape.CIRCLE, null, null)
+        return Measured(id, lines, letter, false, SchemaShape.CIRCLE, null, node, false, null, null, false, 0f, side, side, pair)
+    }
+
+    private fun drawRef(box: Measured, rect: DrawRect, solid: Boolean, shapes: MutableList<DrawShape>) {
+        val outline = outline(SchemaShape.CIRCLE, rect)
+        if (solid) shapes += DrawShape.Path(outline, DrawColor.Ink(InkLevel.MEDIUM), 1f, 0f, null, true)
+        else shapes += DrawShape.Path(outline, stroke(null, InkLevel.MEDIUM), 1f, thin(), null, false)
+        box.lines.firstOrNull()?.let { letter ->
+            shapes += DrawShape.Label(letter, DrawPoint((rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2 - text.height / 2), TextAnchor.MIDDLE, TextBaseline.TOP, DrawColor.Ink(InkLevel.STRONG))
+        }
     }
 
     /** Where lines may touch a shape that narrows at its top and bottom; null for the usual width. */
@@ -691,6 +745,9 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
 
     private companion object {
         const val MAX_LINES = 3
+        // The ids of a cut arrow's two ends, by the arrow's index: a control character, which no box's id can be typed with
+        const val REF_OUT = "\u0001out"
+        const val REF_IN = "\u0001in"
         // An icon drawn alone, against the size of one written before a text
         const val ICON_ALONE = 1.5f
         // The longest line a compact box or group title writes, in dp

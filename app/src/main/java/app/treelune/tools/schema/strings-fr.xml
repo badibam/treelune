@@ -33,6 +33,9 @@
     <string name="line_thick">Épais</string>
     <string name="field_head">Pointe</string>
     <string name="field_folded">Replié au départ</string>
+    <string name="field_parts">En parties</string>
+    <string name="schema_parts">Si ce que contient une boîte se lit en parties empilées l\'une sous l\'autre, dans l\'ordre des flèches, plutôt qu\'en un seul dessin ; une flèche d\'une partie à la suivante est dite par l\'ordre, toute autre entre parties par une paire de lettres</string>
+    <string name="schema_parts_top">Si les boîtes du haut du schéma se lisent en parties empilées l\'une sous l\'autre, dans l\'ordre des flèches, plutôt qu\'en un seul dessin</string>
     <string name="field_parent">Dans</string>
     <string name="schema_parent">L\'identifiant de la boîte qui contient celle-ci, dessinée en groupe autour d\'elle</string>
     <string name="error_parent_unknown">La boîte « %1$s » est dans « %2$s », qui n\'est pas une boîte.</string>

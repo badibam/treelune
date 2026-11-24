@@ -368,6 +368,71 @@ class SchemaSceneTest {
         assertEquals(SchemaTouch.Group("G", folded = false), scene.hitAt(band.right - 2f, title.at.y + 2f))
     }
 
+    /**
+     * The house (docs/design/progression.md): the top level in parts, written out of order; the
+     * phases told by the order, Walls to Joinery starting inside a part, Pause to Finishing skipping one.
+     */
+    private val house = """{
+        "parts": true,
+        "nodes": [
+            {"id": "end", "label": "Handover"},
+            {"id": "second", "label": "Second work"}, {"id": "joinery", "label": "Joinery", "parent": "second"}, {"id": "wiring", "label": "Wiring", "parent": "second"},
+            {"id": "shell", "label": "Shell"}, {"id": "base", "label": "Foundations", "parent": "shell"}, {"id": "walls", "label": "Walls", "parent": "shell"}, {"id": "roof", "label": "Roof", "parent": "shell"},
+            {"id": "pause", "label": "Winter pause"},
+            {"id": "finish", "label": "Finishing"}, {"id": "paint", "label": "Paint", "parent": "finish"}
+        ],
+        "edges": [
+            {"from": "base", "to": "walls"}, {"from": "walls", "to": "roof"}, {"from": "joinery", "to": "wiring"},
+            {"from": "shell", "to": "pause"}, {"from": "pause", "to": "second"}, {"from": "second", "to": "finish"}, {"from": "finish", "to": "end"},
+            {"from": "walls", "to": "joinery", "label": "openings"}, {"from": "pause", "to": "finish", "line": "dotted"}
+        ]
+    }"""
+
+    private fun SchemaScene.top(id: String) = hits.first { (it.second as? SchemaTouch.Box)?.node?.id == id || (it.second as? SchemaTouch.Group)?.id == id }.first.top
+
+    @Test
+    fun `parts stack in the arrows' order, the next part told by the order alone`() {
+        val scene = scene(house)
+        val tops = listOf("shell", "pause", "second", "finish", "end").map { scene.top(it) }
+        assertEquals(tops.sorted(), tops)
+        // Three arrows inside the phases, and each cut one drawn as two halves; the four told ones gone
+        assertEquals(3 + 2 * 2, scene.heads().size)
+    }
+
+    @Test
+    fun `an arrow the order does not tell becomes the same letter at both ends, each touch giving the other`() {
+        val scene = scene(house)
+        val refs = scene.hits.mapNotNull { it.second as? SchemaTouch.Ref }
+        assertEquals(listOf("A", "A", "B", "B"), refs.map { it.letter }.sorted())
+        refs.forEach { ref -> assertEquals(ref.id, refs.single { it.id == ref.pair }.pair) }
+        // The arrow's text stays on its first half, by Walls
+        assertTrue("openings" in scene.labels())
+        // Walls' letter inside the Shell's frame, Joinery's inside Second work's
+        val walls = refs.first { it.letter == refs.first { r -> scene.refArea(r.id)!!.top < scene.top("pause") }.letter }
+        assertTrue(scene.refArea(walls.id)!!.top < scene.top("pause"))
+        assertTrue(scene.refArea(walls.pair)!!.top > scene.top("second"))
+    }
+
+    @Test
+    fun `an arrow from outside into a part is cut, one to the stacked box itself is drawn`() {
+        val scene = scene("""{
+            "nodes": [{"id": "A", "label": "outside"}, {"id": "S", "label": "Stack", "parts": true},
+                {"id": "P", "label": "first", "parent": "S"}, {"id": "Q", "label": "second", "parent": "S"}],
+            "edges": [{"from": "A", "to": "S"}, {"from": "A", "to": "Q"}, {"from": "P", "to": "Q"}]
+        }""")
+        assertEquals(2, scene.hits.count { it.second is SchemaTouch.Ref })
+        // A to the stack's frame, and the cut arrow's two halves; P to Q told by the order
+        assertEquals(3, scene.heads().size)
+        assertTrue(scene.top("P") < scene.top("Q"))
+    }
+
+    @Test
+    fun `parts folded away leave their arrows to the folded box`() {
+        val scene = scene(house, folded = setOf("shell", "second"))
+        // Walls to Joinery now runs from the folded Shell to the folded Second work, skipping the pause: still cut
+        assertEquals(4, scene.hits.count { it.second is SchemaTouch.Ref })
+    }
+
     @Test
     fun `an empty schema draws nothing, without failing`() {
         assertTrue(scene("{}").drawing.shapes.isEmpty())

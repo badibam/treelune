@@ -44,6 +44,7 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
 - **Formes** : rectangle, coins arrondis, pilule, cercle, losange, sous les noms de la syntaxe `@{ shape: … }` de Mermaid 11 : `rect`, `rounded`, `stadium`, `circle`, `diamond`.
 - **Flèches** : un trait normal, pointillé ou épais, avec ou sans pointe, un texte facultatif.
 - **Une boîte qui contient** : une boîte nomme celle qui la contient par `parent`, une seule, sans boucle ; il n'y a pas d'autre notion de groupe (décidé le 2026-11-24, comme une brique du Parcours). Une boîte qui en contient d'autres se dessine en cadre arrondi, son texte en titre, son icône, sa couleur et son lien gardés ; sa forme ne sert que repliée, où elle redevient une boîte ordinaire (`folded` pour s'ouvrir repliée). Une flèche relie deux boîtes quelconques, un cadre compris, sauf une boîte et ce qu'elle contient (refusé).
+- **En parties** (`parts`) : sur une boîte qui contient, et sur le schéma pour son niveau du haut ; ce qu'elle contient se lit en parties empilées dans l'ordre des flèches plutôt qu'en un graphe (`SchemaParts`, la règle dans `docs/design/progression.md`, « La linéarisation »). Un renvoi est un petit cercle à lettre dans le groupe de son bout, relié à lui par la moitié de la flèche ; le toucher fait défiler la page jusqu'à son jumeau.
 - **Couleur** : sur une boîte, au plus une couleur d'étiquette, par son nom enregistré ; le thème la dessine, jamais une couleur écrite en dur. La texture, un temps prévue, n'est pas dans l'outil : la dessiner demande une forme de plus dans `core/drawing` et dans les 9 thèmes.
 - **Icône** : `icon` sur une boîte, un nom Lucide choisi avec le sélecteur de l'app (le drapeau `icon` d'un réglage), au-dessus de son texte (à côté sur une tuile où le dessin va de gauche à droite) ; sans `icon`, une boîte liée montre l'icône de sa chose. Un nom inconnu est refusé, l'id nommé ; un import Mermaid la garde à une boîte dont l'id reste, comme sa couleur.
 - **Le lien d'une boîte** : la brique Chose (`Reference`, `{"kind", "id"}`), choisie par le navigateur des choses. Une boîte liée sans `label` porte le nom actuel de sa chose, « supprimée » si elle n'est plus ; avec `label`, le sien.
@@ -108,6 +109,7 @@ Reste à coder :
 
 Jamais vu sur le téléphone :
 
+- Les parties (2026-11-24) : la maison et l'arbre de compétences écrits en vrai, les renvois et leur défilement, une tuile en parties, le dessin de gauche à droite d'une tuile large, où les parties se rangent côte à côte.
 - Le groupe devenu une boîte qui contient (2026-11-24) : le formulaire (« Dans », « Replié au départ »), une flèche vers un cadre et depuis lui, le titre d'un cadre avec son icône et, lié, souligné et ouvrant sa chose, un cadre replié dans sa propre forme ; la démo du Balcon, « Chaque semaine » devenu une boîte.
 - Le repli automatique et la réduction à 75 %, qui n'ont tourné qu'en test : il faut un schéma plus large que l'écran.
 - Un schéma importé en Mermaid puis enregistré (l'import dans le brouillon est vu, pas la sauvegarde).

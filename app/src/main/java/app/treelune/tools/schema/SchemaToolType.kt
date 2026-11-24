@@ -80,6 +80,7 @@ object SchemaToolType : ToolTypeContract {
             SettingNode.Section(s.tool("section_schema"), listOf(
                 SettingNode.Field(field(SchemaKeys.DIRECTION, s.tool("field_direction"), FieldType.CHOICE, s.tool("schema_direction"),
                     choice(SchemaDirection.entries.map { it.key }) { s.tool("direction_${it.lowercase()}") }), required = true, default = SchemaDirection.TOP_DOWN.key),
+                SettingNode.Field(field(SchemaKeys.PARTS, s.tool("field_parts"), FieldType.BOOLEAN, s.tool("schema_parts_top"))),
                 SettingNode.ListOf(SchemaKeys.NODES, s.tool("field_nodes"), SettingNode.Item.Of(listOf(
                     SettingNode.Field(field(SchemaKeys.ID, s.tool("field_id"), FieldType.TEXT, s.tool("schema_node_id"), short()), required = true),
                     SettingNode.Field(field(SchemaKeys.LABEL, s.tool("field_label"), FieldType.TEXT, s.tool("schema_node_label"), mapOf("length" to TextLength.MEDIUM.name))),
@@ -90,7 +91,8 @@ object SchemaToolType : ToolTypeContract {
                     SettingNode.Field(field(SchemaKeys.ICON, s.tool("field_icon"), FieldType.TEXT, s.tool("schema_icon"), short()), icon = true)
                 ) + look(context) + listOf(
                     SettingNode.Field(field(SchemaKeys.PARENT, s.tool("field_parent"), FieldType.TEXT, s.tool("schema_parent"), short()), rowField = true),
-                    SettingNode.Field(field(SchemaKeys.FOLDED, s.tool("field_folded"), FieldType.BOOLEAN, s.tool("schema_folded")))
+                    SettingNode.Field(field(SchemaKeys.FOLDED, s.tool("field_folded"), FieldType.BOOLEAN, s.tool("schema_folded"))),
+                    SettingNode.Field(field(SchemaKeys.PARTS, s.tool("field_parts"), FieldType.BOOLEAN, s.tool("schema_parts")))
                 ), description = s.tool("schema_node")), summary = listOf(SchemaKeys.LABEL, SchemaKeys.THING, SchemaKeys.ID), description = s.tool("schema_nodes")),
                 SettingNode.ListOf(SchemaKeys.EDGES, s.tool("field_edges"), SettingNode.Item.Of(listOf(
                     SettingNode.Field(field(SchemaKeys.FROM, s.tool("field_from"), FieldType.TEXT, s.tool("schema_from"), short()), required = true, rowField = true),

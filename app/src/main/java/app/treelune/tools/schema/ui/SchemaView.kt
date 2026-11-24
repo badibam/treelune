@@ -50,6 +50,9 @@ import app.treelune.tools.schema.SchemaSpec
 import app.treelune.tools.schema.SchemaText
 import app.treelune.tools.schema.SchemaTouch
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.foundation.gestures.animateScrollBy
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import kotlin.math.floor
@@ -120,6 +123,7 @@ fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((Schema
     }
     val s = remember { Strings.`for`(tool = "schema", context = context) }
     val sideScroll = rememberScrollState()
+    val scrolling = rememberCoroutineScope()
     // The drawing's left in the view once a group was held in place; null keeps it centered
     var heldLeft by remember(read.spec) { mutableStateOf<Float?>(null) }
     var anchor by remember { mutableStateOf<GroupAnchor?>(null) }
@@ -170,6 +174,12 @@ fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((Schema
                 val found = scene.hitAt(offset.x, offset.y) ?: return@detectTapGestures
                 (found as? SchemaTouch.Group)?.let { group ->
                     scene.groupArea(group.id)?.let { anchor = GroupAnchor(group.id, it.left * shownScale + left, it.top * shownScale - (pageScroll?.value ?: 0)) }
+                }
+                // One end of a cut arrow: the page scrolls until the other end stands where it was touched
+                (found as? SchemaTouch.Ref)?.let { ref ->
+                    val from = scene.refArea(ref.id)
+                    val to = scene.refArea(ref.pair)
+                    if (from != null && to != null && pageScroll != null) scrolling.launch { pageScroll.animateScrollBy((to.top - from.top) * shownScale) }
                 }
                 onTouch(found)
             }

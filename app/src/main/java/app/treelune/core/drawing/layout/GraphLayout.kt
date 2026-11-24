@@ -19,7 +19,9 @@ import kotlin.random.Random
  *  - in a scope: loops broken, nodes put in rows, each row ordered to limit crossings, positions
  *    computed, arrows drawn with right angles on tracks between the rows;
  *  - the parts of a scope that no arrow joins are packed in lines at the width of the screen
- *    rather than side by side, and so are the leaf children a box reaches by identical arrows.
+ *    rather than side by side, and so are the leaf children a box reaches by identical arrows;
+ *  - a scope may instead be stacked: its parts one under the other, in the order it gives, each
+ *    centered; whoever builds the graph leaves no arrow between them.
  */
 
 /** Where lines touch a box of straight sides, as a share of its width. */
@@ -44,13 +46,18 @@ data class LayoutEdge(
     val look: String = ""
 )
 
-/** A group, holding boxes and other groups; its title is measured by whoever draws it. */
+/**
+ * A group, holding boxes and other groups; its title is measured by whoever draws it. With a
+ * [stack], what it holds is placed one part under the other: a part is one of its ids with what
+ * an arrow joins to it, in the order [stack] gives; null, its parts are packed as usual.
+ */
 data class LayoutGroup(
     val id: String,
     val titleWidth: Float,
     val titleHeight: Float,
     val boxes: List<String>,
-    val groups: List<String> = emptyList()
+    val groups: List<String> = emptyList(),
+    val stack: List<String>? = null
 )
 
 /**
@@ -58,13 +65,15 @@ data class LayoutGroup(
  * the boxes no arrow reaches, then the others as written. [reference] gives the x each box or group
  * stands at in another drawing of the same graph: among equally clean drawings, the one that leaves
  * neighbours on the same side is kept, so that folding a group does not swap what surrounds it.
+ * [stack] stacks the drawing's top level as [LayoutGroup.stack] does a group's.
  */
 data class LayoutGraph(
     val boxes: List<LayoutBox>,
     val edges: List<LayoutEdge> = emptyList(),
     val groups: List<LayoutGroup> = emptyList(),
     val starts: List<String> = emptyList(),
-    val reference: Map<String, Float> = emptyMap()
+    val reference: Map<String, Float> = emptyMap(),
+    val stack: List<String>? = null
 )
 
 /**
@@ -275,7 +284,7 @@ private class Segment(val up: Node, val down: Node, val link: Link) {
     var track = 0
 }
 
-private class Scope(val group: LayoutGroup?, val limit: Float) {
+private class Scope(val group: LayoutGroup?, val limit: Float, val stack: List<String>? = group?.stack) {
     val nodes = mutableListOf<Node>()
     val links = mutableListOf<Link>()
     val parts = mutableListOf<Layered>()
@@ -287,7 +296,7 @@ private class Scope(val group: LayoutGroup?, val limit: Float) {
 
 private class Run(private val graph: LayoutGraph, private val options: LayoutOptions, private val portsFollowInside: Boolean, private val start: Int, private val ranking: Comparator<Placement>) {
 
-    private val root = Scope(null, options.maxWidth)
+    private val root = Scope(null, options.maxWidth, graph.stack)
     private val boxNodes = mutableMapOf<String, Node>()
     private val scopeOfBox = mutableMapOf<String, Scope>()
     private val parentOfScope = mutableMapOf<Scope, Scope>()
@@ -424,6 +433,14 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
 
     private class Packed(val width: Float, val height: Float, val places: List<PlacedPoint>)
 
+    /** Puts rectangles one under the other, each centered under the widest. */
+    private fun stackParts(sizes: List<Pair<Float, Float>>, gap: Float): Packed {
+        val width = sizes.maxOfOrNull { it.first } ?: 0f
+        var y = 0f
+        val places = sizes.map { (w, h) -> PlacedPoint((width - w) / 2, y).also { y += h + gap } }
+        return Packed(width, max(0f, y - gap), places)
+    }
+
     /** Puts rectangles in lines no wider than [limit], each line centered under the widest. */
     private fun packLines(sizes: List<Pair<Float, Float>>, limit: Float, gap: Float): Packed {
         val lines = mutableListOf<MutableList<Int>>()
@@ -455,7 +472,8 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
     private fun plan(scope: Scope) {
         if (start > 0) scope.nodes.shuffle(Random(start))
         val hasPorts = scope.nodes.any { it.isPort }
-        val components = if (hasPorts) listOf(scope.nodes.toList()) else components(scope)
+        // Stacked, a scope keeps its parts apart: no arrow enters it to join them
+        val components = if (hasPorts && scope.stack == null) listOf(scope.nodes.toList()) else components(scope)
         components.forEach { nodes ->
             val set = nodes.toSet()
             val part = Layered(nodes, scope.links.filter { it.from in set }, scope.limit, options, portsFollowInside, ::startRank)
@@ -558,9 +576,12 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
         val titleEnd = scope.group?.let { pad + it.titleWidth + options.portGap } ?: 0f
         scope.parts.forEach { it.place(titleEnd - pad) }
 
-        // The parts in lines at the scope's width
-        val ordered = scope.parts.sortedByDescending { it.nodes.size > 1 }
-        val packed = packLines(ordered.map { it.width to it.height }, scope.limit - 2 * pad, options.boxGap)
+        // The parts in lines at the scope's width, or stacked in the order asked
+        val stack = scope.stack
+        val ordered = if (stack == null) scope.parts.sortedByDescending { it.nodes.size > 1 }
+            else scope.parts.sortedBy { part -> part.nodes.minOf { node -> stack.indexOf(node.id).takeIf { it >= 0 } ?: Int.MAX_VALUE } }
+        val packed = if (stack == null) packLines(ordered.map { it.width to it.height }, scope.limit - 2 * pad, options.boxGap)
+            else stackParts(ordered.map { it.width to it.height }, options.rowGap)
         ordered.forEachIndexed { i, part -> part.translate(packed.places[i].x + pad, packed.places[i].y + pad + title) }
         val contentWidth = max(packed.width, scope.group?.titleWidth ?: 0f)
         scope.width = contentWidth + 2 * pad

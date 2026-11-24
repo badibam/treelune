@@ -110,6 +110,8 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
                             folded = shownFolded + touch.id
                             keptOpen = keptOpen - touch.id
                         }
+                        // The view scrolls to the other end itself
+                        is SchemaTouch.Ref -> Unit
                         is SchemaTouch.Box -> {
                             val thing = touch.open
                             when {

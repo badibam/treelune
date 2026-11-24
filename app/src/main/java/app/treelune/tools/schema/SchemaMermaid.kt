@@ -34,7 +34,8 @@ data class MermaidImport(
  * config stays JSON. Reading takes what a schema can hold and says what it changes: a sideways
  * direction, a shape it does not have, a link end, the styling it ignores. A subgraph is a box
  * that holds others, which an arrow may reach. A box whose id stays keeps what Mermaid cannot say:
- * its link, color and icon, and for one that holds others its shape and whether it starts folded.
+ * its link, color and icon, and for one that holds others its shape, whether it starts folded and
+ * whether it reads in parts.
  *
  * @param own The schema tool's strings
  */
@@ -196,6 +197,7 @@ class SchemaMermaid(private val own: (String) -> String) {
                 thing?.let { put(SchemaKeys.THING, it) }
                 box.parent?.let { put(SchemaKeys.PARENT, it) }
                 if (holds && before?.optBoolean(SchemaKeys.FOLDED) == true) put(SchemaKeys.FOLDED, true)
+                if (holds && before?.optBoolean(SchemaKeys.PARTS) == true) put(SchemaKeys.PARTS, true)
                 copyLook(before, this)
             }
         })

@@ -22,6 +22,7 @@ object SchemaKeys {
     const val HEAD = "head"
     const val PARENT = "parent"
     const val FOLDED = "folded"
+    const val PARTS = "parts"
 }
 
 /** Which way the arrows run; never sideways, which a phone held upright could not show. */
@@ -58,7 +59,8 @@ enum class SchemaLine(val key: String) {
  *
  * A box may stand inside another, its [parent]. One that holds others is drawn as a frame, its
  * text as its title; its [shape] then serves only when it is folded, drawn as a box again, as it
- * is at first when [folded].
+ * is at first when [folded]. In [parts], what it holds is read as parts stacked one under the
+ * other rather than as one graph (docs/design/progression.md, « La linéarisation »).
  */
 data class SchemaNode(
     val id: String,
@@ -68,7 +70,8 @@ data class SchemaNode(
     val color: TagColor?,
     val icon: String? = null,
     val parent: String? = null,
-    val folded: Boolean = false
+    val folded: Boolean = false,
+    val parts: Boolean = false
 )
 
 /** An arrow between two boxes; without [head], a plain line. */
@@ -76,13 +79,14 @@ data class SchemaEdge(val from: String, val to: String, val label: String?, val 
 
 /**
  * What a schema draws, read from its config (docs/design/schema.md): boxes, some inside others, and
- * arrows between any two of them. Reading it refuses what its placement could not draw, naming the
- * id at fault.
+ * arrows between any two of them; its top level in [parts], as a box's content can be. Reading it
+ * refuses what its placement could not draw, naming the id at fault.
  */
 data class SchemaSpec(
     val direction: SchemaDirection,
     val nodes: List<SchemaNode>,
-    val edges: List<SchemaEdge>
+    val edges: List<SchemaEdge>,
+    val parts: Boolean = false
 ) {
     /** The boxes that hold others, drawn as frames unless folded. */
     val holders: Set<String> by lazy { nodes.mapNotNull { it.parent }.toSet() }
@@ -108,7 +112,7 @@ data class SchemaSpec(
             }
             val nodes = config.objects(SchemaKeys.NODES).map { node(it, own) }
             val edges = config.objects(SchemaKeys.EDGES).map { edge(it, own) }
-            return SchemaSpec(direction, nodes, edges).also { it.check(own) }
+            return SchemaSpec(direction, nodes, edges, config.optBoolean(SchemaKeys.PARTS, false)).also { it.check(own) }
         }
 
         private fun refuse(message: String): Nothing = throw IllegalArgumentException(message)
@@ -131,7 +135,7 @@ data class SchemaSpec(
             val label = json.text(SchemaKeys.LABEL)
             if (label == null && thing == null) refuse(own("error_node_empty").format(id))
             return SchemaNode(id, label, shape, thing, color(json, id, own), json.text(SchemaKeys.ICON),
-                json.text(SchemaKeys.PARENT), json.optBoolean(SchemaKeys.FOLDED, false))
+                json.text(SchemaKeys.PARENT), json.optBoolean(SchemaKeys.FOLDED, false), json.optBoolean(SchemaKeys.PARTS, false))
         }
 
         private fun edge(json: JSONObject, own: (String) -> String): SchemaEdge {

@@ -33,6 +33,9 @@
     <string name="line_thick">Thick</string>
     <string name="field_head">Arrowhead</string>
     <string name="field_folded">Starts folded</string>
+    <string name="field_parts">In parts</string>
+    <string name="schema_parts">Whether what a box holds is read as parts stacked one under the other, in the order of the arrows, rather than as one drawing; an arrow from one part to the next is said by the order, any other between parts by a pair of letters</string>
+    <string name="schema_parts_top">Whether the boxes at the top of the schema are read as parts stacked one under the other, in the order of the arrows, rather than as one drawing</string>
     <string name="field_parent">Inside</string>
     <string name="schema_parent">The id of the box that holds this one, drawn as a group around it</string>
     <string name="error_parent_unknown">Box “%1$s” is inside “%2$s”, which is not a box.</string>
