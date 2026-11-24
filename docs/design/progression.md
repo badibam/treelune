@@ -206,9 +206,12 @@ Les scènes de test, toutes tenues sur le papier : badges, calendrier de l'Avent
 
 La marche à suivre, chaque étape s'appuyant sur la précédente (les étapes 1 à 3 valent même si Parcours tardait) :
 
-1. Fusionner le Schéma : fait le 2026-11-24, la démo ayant gagné un Schéma au Balcon. Reste, sur le téléphone, le schéma « Test » recopié puis l'app debug effacée avant d'installer (`docs/design/schema.md`, « Reprise »).
+1. Fusionner le Schéma : fait le 2026-11-24, la démo ayant gagné un Schéma au Balcon ; l'app debug du téléphone effacée et réinstallée depuis `develop`.
 2. Sortir le placement dans le core : fait le 2026-11-24, `core/drawing/layout/GraphLayout.kt`, le code de calcul inchangé, les tests du Schéma verts.
-3. Les améliorations communes, essayées sur le Schéma : niveaux de détail sur une tuile, linéarisation et renvois, marque et repère dans une boîte.
+3. Les améliorations communes, essayées sur le Schéma :
+   - Fait le 2026-11-24, vu sur le téléphone : l'icône dans une boîte (forme `DrawShape.Icon` dessinée par chaque thème, clé `icon` du Schéma, icône de la chose par défaut) ; le dessin de gauche à droite sur une tuile plus large que haute (`LayoutOptions.across`) ; les niveaux de détail sur une tuile (texte, compact, icône, forme, pastilles), jugés à l'échelle réellement montrée, crans du rétro compris ; la tuile du Schéma sans résumé (`ToolTypeContract.tileSummary`), sa miniature en 2×2 et 4×1. Pas vu : le réglage « Icône » d'une boîte dans sa config.
+   - Prochaine étape, en contexte frais : coder la linéarisation sur le Schéma, telle que décrite dans « Les écrans » (le réglage « en parties » sur un groupe et sur le schéma entier, les parties empilées dans l'ordre des flèches, les renvois « (A) » pour les flèches que l'ordre ne dit pas). Essai : la maison (Gros œuvre, Pause hivernale, Second œuvre, Finitions, Fin de chantier, l'exception Murs → Menuiseries), qui couvre les trois cas de flèches entre parties ; puis l'arbre de compétences (Combat, Magie, Artisanat).
+   - Ensuite : la marque d'état et le repère dans une boîte.
 4. Les ajouts au core : vues calculées, Référence vers une ligne de vue, Condition avec ET, OU, `self` et quantificateur, `OpenAt`.
 5. La Séance : `playable`, mode programmes, ouverture sur une ligne, `launched_for`.
 6. L'outil Parcours.

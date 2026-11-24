@@ -95,7 +95,7 @@ Jugé visuellement acceptable par l'utilisateur à ce stade.
 
 ## Reprise
 
-Le Schéma est fusionné dans `develop` (2026-11-24), la suite verte avant la fusion ; la démo en a un au Balcon, « Le soin du balcon ». Le téléphone a encore le build de la branche dans l'app debug, en base 121, avec une zone « Essai » et un schéma « Test » de 12 boîtes qui couvre les formes, les traits, les groupes et une boucle.
+Le Schéma est fusionné dans `develop` (2026-11-24), la suite verte avant la fusion ; la démo en a un au Balcon, « Le soin du balcon ». L'app debug du téléphone a été effacée et réinstallée depuis `develop` : le schéma « Test » de la branche n'y est plus. La suite du travail commun avec le Parcours (icônes, tuiles, linéarisation) est suivie dans `docs/design/progression.md`, « Reprise ».
 
 Fait : le placement, la config et sa vérification (`SchemaSpec`), le formulaire, le dessin (`SchemaScene`), l'écran (ce qui est souligné se touche, le repli le temps de la visite, le groupe touché qui reste en place), la tuile, la mise à la largeur, l'import et la copie Mermaid (`SchemaMermaid`).
 
@@ -119,8 +119,6 @@ Défauts vus, laissés :
 - Replier un sous-groupe fait rétrécir le cadre du groupe parent, dont le bord gauche se déplace.
 - Sur une tuile en thème rétro, le schéma réduit par crans entiers n'occupe qu'environ la moitié de la largeur.
 - Le champ de l'import Mermaid garde les boutons de liste et la majuscule automatique du clavier.
-
-Avant d'installer `develop` sur le téléphone : recopier le schéma « Test » par « Copier en Mermaid », puis effacer l'app debug (`adb shell pm clear app.treelune.debug`), que la base 120 de `develop` n'ouvre plus.
 
 ## Ouvert
 
