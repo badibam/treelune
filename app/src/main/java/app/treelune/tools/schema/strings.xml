@@ -44,7 +44,7 @@
     <string name="schema_direction">Which way the arrows run: TD top to bottom, BT bottom to top; never sideways</string>
     <string name="schema_nodes">The boxes</string>
     <string name="schema_node">One box, with a label, a thing, or both</string>
-    <string name="schema_node_id">Short id, unique among boxes, used by arrows and by the boxes inside it</string>
+    <string name="schema_node_id">Short id, unique among boxes, used by arrows and by the boxes inside it. Give one to a new box that an arrow or a box of the same write designates; omitted, the app makes one from its text. Repeat an existing box's id as it is: changing it cuts what designates it</string>
     <string name="schema_node_label">The text shown; without it, the current name of its thing</string>
     <string name="schema_thing">The thing of the app it stands for and opens</string>
     <string name="schema_shape">Its shape, by its Mermaid 11 name</string>

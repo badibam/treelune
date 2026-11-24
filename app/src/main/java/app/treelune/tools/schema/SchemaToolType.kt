@@ -1,5 +1,6 @@
 package app.treelune.tools.schema
 
+import app.treelune.core.fields.settings.ElementKeys
 import android.content.Context
 import androidx.compose.runtime.Composable
 import app.treelune.core.database.entities.ToolInstance
@@ -85,7 +86,7 @@ object SchemaToolType : ToolTypeContract {
                     choice(SchemaDirection.entries.map { it.key }) { s.tool("direction_${it.lowercase()}") }), required = true, default = SchemaDirection.TOP_DOWN.key),
                 SettingNode.Field(field(SchemaKeys.PARTS, s.tool("field_parts"), FieldType.BOOLEAN, s.tool("schema_parts_top"))),
                 SettingNode.ListOf(SchemaKeys.NODES, s.tool("field_nodes"), SettingNode.Item.Of(listOf(
-                    SettingNode.Field(field(SchemaKeys.ID, s.tool("field_id"), FieldType.TEXT, s.tool("schema_node_id"), short()), required = true),
+                    SettingNode.Field(field(SchemaKeys.ID, s.tool("field_id"), FieldType.TEXT, s.tool("schema_node_id"), short()), systemWritten = true, newId = true),
                     SettingNode.Field(field(SchemaKeys.LABEL, s.tool("field_label"), FieldType.TEXT, s.tool("schema_node_label"), mapOf("length" to TextLength.MEDIUM.name))),
                     SettingNode.Field(field(SchemaKeys.THING, s.tool("field_thing"), FieldType.REFERENCE, s.tool("schema_thing"),
                         mapOf(ReferenceTarget.TARGET to mapOf(ReferenceTarget.KINDS to things)))),
@@ -96,7 +97,7 @@ object SchemaToolType : ToolTypeContract {
                     SettingNode.Field(field(SchemaKeys.PARENT, s.tool("field_parent"), FieldType.TEXT, s.tool("schema_parent"), short()), rowField = true),
                     SettingNode.Field(field(SchemaKeys.FOLDED, s.tool("field_folded"), FieldType.BOOLEAN, s.tool("schema_folded"))),
                     SettingNode.Field(field(SchemaKeys.PARTS, s.tool("field_parts"), FieldType.BOOLEAN, s.tool("schema_parts")))
-                ), description = s.tool("schema_node")), summary = listOf(SchemaKeys.LABEL, SchemaKeys.THING, SchemaKeys.ID), description = s.tool("schema_nodes")),
+                ), description = s.tool("schema_node")), summary = listOf(SchemaKeys.LABEL, SchemaKeys.THING), description = s.tool("schema_nodes")),
                 SettingNode.ListOf(SchemaKeys.EDGES, s.tool("field_edges"), SettingNode.Item.Of(listOf(
                     SettingNode.Field(field(SchemaKeys.FROM, s.tool("field_from"), FieldType.TEXT, s.tool("schema_from"), short()), required = true, rowField = true),
                     SettingNode.Field(field(SchemaKeys.TO, s.tool("field_to"), FieldType.TEXT, s.tool("schema_to"), short()), required = true, rowField = true),
@@ -111,6 +112,18 @@ object SchemaToolType : ToolTypeContract {
 
     override fun getRowFields(): RowFields = SchemaRowFields
 
+    /**
+     * A box without an id gets one from its text, fixed from then on: one the AI wrote without
+     * linking it. A box made in the form has its own already (SettingNode.Field.newId).
+     */
+    override fun completeConfig(config: JSONObject, previous: JSONObject?): JSONObject {
+        val completed = JSONObject(config.toString())
+        ElementKeys.complete(ElementKeys.objects(completed.optJSONArray(SchemaKeys.NODES)), SchemaKeys.ID) { box ->
+            ElementKeys.keyOf("", box.optString(SchemaKeys.LABEL)).ifEmpty { "box" }
+        }
+        return completed
+    }
+
     /** The Mermaid import and copy, at the head of the config. */
     @Composable
     override fun ConfigTools(config: JSONObject, onChange: (JSONObject) -> Unit) = app.treelune.tools.schema.ui.SchemaMermaidSection(config, onChange)
@@ -119,7 +132,7 @@ object SchemaToolType : ToolTypeContract {
         val spec = SchemaSpec.of(config) { s(context).tool(it) }
         // A box's icon is a name of the vocabulary, a former one included
         spec.nodes.firstOrNull { node -> node.icon?.let { app.treelune.core.icons.Icons.storedName(context, it) == null } == true }
-            ?.let { s(context).tool("error_icon").format(it.id, it.icon) }
+            ?.let { s(context).tool("error_icon").format(it.label ?: it.id, it.icon) }
     } catch (e: IllegalArgumentException) {
         e.message
     }

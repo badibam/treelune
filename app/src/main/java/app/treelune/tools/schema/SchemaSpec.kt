@@ -171,22 +171,25 @@ data class SchemaSpec(
      * box inside itself, and no arrow between a box and what it holds, which could not leave it.
      */
     private fun check(own: (String) -> String) {
+        // A box is said by its text, its id being one the form made up for a box drawn by hand
+        val texts = nodes.associate { it.id to (it.label ?: it.id) }
+        fun said(id: String) = texts[id] ?: id
         nodes.map { it.id }.groupingBy { it }.eachCount().entries.firstOrNull { it.value > 1 }?.let { refuse(own("error_id_twice").format(it.key)) }
 
         val boxes = nodes.map { it.id }.toSet()
         nodes.forEach { node ->
-            node.parent?.takeIf { it !in boxes }?.let { refuse(own("error_parent_unknown").format(node.id, it)) }
+            node.parent?.takeIf { it !in boxes }?.let { refuse(own("error_parent_unknown").format(said(node.id), it)) }
         }
         // A box inside itself would hang from nothing, and vanish from the drawing
         nodes.forEach { node ->
             val seen = mutableSetOf(node.id)
-            ancestors(node.id).forEach { if (!seen.add(it)) refuse(own("error_parent_loop").format(node.id)) }
+            ancestors(node.id).forEach { if (!seen.add(it)) refuse(own("error_parent_loop").format(said(node.id))) }
         }
         edges.forEach { edge ->
             listOf(edge.from, edge.to).firstOrNull { it !in boxes }?.let { refuse(own("error_edge_unknown").format(it)) }
             val inside = if (edge.from == edge.to) edge.from in holders
                 else edge.from in ancestors(edge.to) || edge.to in ancestors(edge.from)
-            if (inside) refuse(own("error_edge_inside").format(edge.from, edge.to))
+            if (inside) refuse(own("error_edge_inside").format(said(edge.from), said(edge.to)))
         }
     }
 }

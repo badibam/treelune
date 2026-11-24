@@ -44,7 +44,7 @@
     <string name="schema_direction">Le sens des flèches : TD de haut en bas, BT de bas en haut ; jamais de côté</string>
     <string name="schema_nodes">Les boîtes</string>
     <string name="schema_node">Une boîte, avec un texte, une chose de l\'app, ou les deux</string>
-    <string name="schema_node_id">Identifiant court, unique parmi les boîtes, dont se servent les flèches et les boîtes qu\'elle contient</string>
+    <string name="schema_node_id">Identifiant court, unique parmi les boîtes, dont se servent les flèches et les boîtes qu\'elle contient. À donner à une nouvelle boîte qu\'une flèche ou une boîte du même envoi désigne ; omis, l\'app le tire de son texte. Celui d\'une boîte existante se reprend tel quel : le changer coupe ce qui la désigne</string>
     <string name="schema_node_label">Le texte montré ; sans lui, le nom actuel de sa chose</string>
     <string name="schema_thing">La chose de l\'app qu\'elle représente et ouvre</string>
     <string name="schema_shape">Sa forme, sous son nom dans Mermaid 11</string>

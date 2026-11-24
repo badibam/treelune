@@ -93,21 +93,33 @@ class SchemaSpecTest {
     @Test
     fun `an arrow never joins a box and what it holds, at any depth, nor a holding box to itself`() {
         val nested = """{"id": "G", "label": "g"}, {"id": "H", "label": "h", "parent": "G"}, {"id": "A", "label": "a", "parent": "H"}"""
-        assertTrue(refusal("""{"nodes": [$nested], "edges": [{"from": "G", "to": "A"}]}""").startsWith("error_edge_inside G A"))
-        assertTrue(refusal("""{"nodes": [$nested], "edges": [{"from": "A", "to": "H"}]}""").startsWith("error_edge_inside A H"))
-        assertTrue(refusal("""{"nodes": [$nested], "edges": [{"from": "G", "to": "G"}]}""").startsWith("error_edge_inside G G"))
+        assertTrue(refusal("""{"nodes": [$nested], "edges": [{"from": "G", "to": "A"}]}""").startsWith("error_edge_inside g a"))
+        assertTrue(refusal("""{"nodes": [$nested], "edges": [{"from": "A", "to": "H"}]}""").startsWith("error_edge_inside a h"))
+        assertTrue(refusal("""{"nodes": [$nested], "edges": [{"from": "G", "to": "G"}]}""").startsWith("error_edge_inside g g"))
         read("""{"nodes": [$nested], "edges": [{"from": "A", "to": "A"}]}""")
     }
 
     @Test
     fun `a box stands inside a box that exists`() {
-        assertTrue(refusal("""{"nodes": [{"id": "A", "label": "a", "parent": "Z"}]}""").startsWith("error_parent_unknown A Z"))
+        assertTrue(refusal("""{"nodes": [{"id": "A", "label": "a", "parent": "Z"}]}""").startsWith("error_parent_unknown a Z"))
     }
 
     @Test
     fun `a box never ends up inside itself`() {
-        assertTrue(refusal("""{"nodes": [{"id": "G", "label": "g", "parent": "G"}]}""").startsWith("error_parent_loop G"))
+        assertTrue(refusal("""{"nodes": [{"id": "G", "label": "g", "parent": "G"}]}""").startsWith("error_parent_loop g"))
         assertTrue(refusal("""{"nodes": [{"id": "G", "label": "g", "parent": "H"}, {"id": "H", "label": "h", "parent": "G"}]}""")
             .startsWith("error_parent_loop"))
+    }
+
+    @Test
+    fun `a box gets an id from its text when it has none, one given kept, a new box of the form its own made up`() {
+        val completed = SchemaToolType.completeConfig(JSONObject("""{"nodes": [
+            {"label": "Ce qu'il me reste"}, {"label": "Ce qu’il me reste"}, {"thing": {"kind": "ZONE", "id": "z"}}, {"id": "A", "label": "a"}]}"""), null)
+        val ids = (0 until 4).map { completed.getJSONArray("nodes").getJSONObject(it).getString("id") }
+        assertEquals(listOf("ce_qu_il_me_reste", "ce_qu_il_me_reste_2", "box", "A"), ids)
+        read(completed.toString())
+        val made = { app.treelune.core.fields.settings.SettingDefaults.of(listOf(app.treelune.core.fields.settings.SettingNode.Field(
+            app.treelune.core.fields.FieldDefinition("id", "Id", null, app.treelune.core.fields.FieldType.TEXT, false, null), systemWritten = true, newId = true))).getString("id") }
+        assertTrue(made() != made())
     }
 }

@@ -5,15 +5,19 @@ import org.json.JSONObject
 /**
  * The config a declaration's defaults make: what a creation form prefills and a tool not created
  * yet is described by. A suggestion, never written by the service into a config it is given.
+ * An element's id (SettingNode.Field.newId) is a new one at each call.
  */
 object SettingDefaults {
+
+    /** A new element's id: short, unlike any the AI or an import gives, which are made of words. */
+    fun newId(): String = "n" + java.util.UUID.randomUUID().toString().replace("-", "").take(7)
 
     /** Every declared default of [nodes], groups nested, a variant's own under its default option. */
     fun of(nodes: List<SettingNode>): JSONObject {
         val config = JSONObject()
         SettingsSchemaGenerator.flatten(nodes).forEach { node ->
             when (node) {
-                is SettingNode.Field -> node.default?.let { config.put(node.definition.name, it) }
+                is SettingNode.Field -> (if (node.newId) newId() else node.default)?.let { config.put(node.definition.name, it) }
                 is SettingNode.Group -> of(node.nodes).takeIf { it.length() > 0 }?.let { config.put(node.name, it) }
                 is SettingNode.Variant -> node.selector.default?.let { option ->
                     config.put(node.selector.definition.name, option)

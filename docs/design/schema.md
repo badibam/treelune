@@ -50,6 +50,7 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
 - **Peinture** : `fill` sur une boîte, `outline` (par défaut, sa couleur pâle sous son bord, la boîte d'avant) ou `full` (un fond franc à 60 %, le texte restant dans l'encre du thème) ; `faded`, toute la boîte à 40 %, son texte et son icône dans l'encre moyenne. Aux niveaux forme et pastilles d'une tuile, plein est la forme pleine, contour un fond pâle à 40 % dans un bord épais. Un cadre suit, d'un cran plus pâle. La même peinture que l'état d'une brique du Parcours (`docs/design/progression.md`, « L'apparence d'une brique ») ; un import Mermaid la garde comme la couleur.
 - **Le lien d'une boîte** : la brique Chose (`Reference`, `{"kind", "id"}`), choisie par le navigateur des choses. Une boîte liée sans `label` porte le nom actuel de sa chose, « supprimée » si elle n'est plus ; avec `label`, le sien.
 - Une flèche ou un `parent` qui nomme une boîte absente est refusé, le refus nommant l'id.
+- L'id d'une boîte ne se tape pas : le formulaire en donne un court à une boîte qu'il crée (`newId`), une flèche pouvant la viser avant l'enregistrement ; l'IA en donne un à une boîte qu'elle relie dans le même envoi, l'app le tirant sinon du texte de la boîte (`completeConfig`). Un refus nomme une boîte par son texte.
 
 ## La saisie
 

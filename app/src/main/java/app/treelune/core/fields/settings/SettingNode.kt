@@ -36,6 +36,10 @@ sealed class SettingNode {
      *   are offered; empty, every field
      * @property rowField A field of the rows the config describes where the setting stands (a
      *   column of a chart's layer), by name: the form offers those its owner gives (RowFields)
+     * @property newId An element's id, which other elements of the same config designate (a
+     *   schema's arrow, its box): the form gives a new element a short one of its own as it
+     *   creates it (SettingDefaults), so that it can be designated before it is saved; written by
+     *   the app, it is [systemWritten] too, never shown
      */
     data class Field(
         val definition: FieldDefinition,
@@ -48,8 +52,13 @@ sealed class SettingNode {
         val valueOfDefined: Boolean = false,
         val fieldOf: String? = null,
         val fieldOfKinds: Set<app.treelune.core.files.FileKind> = emptySet(),
-        val rowField: Boolean = false
-    ) : SettingNode()
+        val rowField: Boolean = false,
+        val newId: Boolean = false
+    ) : SettingNode() {
+        init {
+            require(!newId || systemWritten) { "The id '${definition.name}' given by the form is written by the app: systemWritten" }
+        }
+    }
 
     /**
      * Settings stored together as one object under [name].
