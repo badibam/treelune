@@ -13,7 +13,7 @@ La version la plus simple, un bloc de texte à chasse fixe dans une Note, ne suf
 
 ## Ce qu'est un schéma
 
-Un graphe composé : des boîtes, des flèches orientées (avec ou sans texte), et des groupes qui contiennent des boîtes et d'autres groupes. Une boucle, un arbre, une séquence en sont des cas. Une frise, un tableau, un dessin libre n'en sont pas : l'Agenda, la Table et le Graphique les couvrent.
+Un graphe composé : des boîtes et des flèches orientées (avec ou sans texte) ; une boîte peut en contenir d'autres, et se dessine alors en cadre. Une boucle, un arbre, une séquence en sont des cas. Une frise, un tableau, un dessin libre n'en sont pas : l'Agenda, la Table et le Graphique les couvrent.
 
 ## L'ordre
 
@@ -28,14 +28,14 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
 {
   "direction": "TD",
   "nodes": [
-    {"id": "A", "shape": "rect", "thing": {"kind": "TOOL_INSTANCE", "id": "…"}, "color": "RED"},
-    {"id": "B", "label": "Ce qu'il me reste", "shape": "rounded"}
+    {"id": "matin", "label": "Le matin"},
+    {"id": "A", "parent": "matin", "shape": "rect", "thing": {"kind": "TOOL_INSTANCE", "id": "…"}, "color": "RED"},
+    {"id": "B", "parent": "matin", "label": "Ce qu'il me reste", "shape": "rounded"},
+    {"id": "C", "label": "Le soir"}
   ],
   "edges": [
-    {"from": "A", "to": "B", "label": "nourrit", "line": "dotted"}
-  ],
-  "groups": [
-    {"id": "matin", "title": "Le matin", "members": ["A", "B"]}
+    {"from": "A", "to": "B", "label": "nourrit", "line": "dotted"},
+    {"from": "matin", "to": "C"}
   ]
 }
 ```
@@ -43,17 +43,17 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
 - **Direction** : `TD` (de haut en bas) ou `BT` (de bas en haut). Pas de `LR` ni de `RL` : de gauche à droite, un schéma déborde en portrait. Seule une tuile plus large que haute (son corps, en cases) le dessine de gauche à droite, d'elle-même.
 - **Formes** : rectangle, coins arrondis, pilule, cercle, losange, sous les noms de la syntaxe `@{ shape: … }` de Mermaid 11 : `rect`, `rounded`, `stadium`, `circle`, `diamond`.
 - **Flèches** : un trait normal, pointillé ou épais, avec ou sans pointe, un texte facultatif.
-- **Groupes** : imbriquables, un titre, `folded` pour s'ouvrir replié ; `members` liste leurs boîtes et leurs sous-groupes, un identifiant ne servant qu'une fois parmi les deux.
-- **Couleur** : sur une boîte ou un groupe, au plus une couleur d'étiquette, par son nom enregistré ; le thème la dessine, jamais une couleur écrite en dur. La texture, un temps prévue, n'est pas dans l'outil : la dessiner demande une forme de plus dans `core/drawing` et dans les 9 thèmes.
+- **Une boîte qui contient** : une boîte nomme celle qui la contient par `parent`, une seule, sans boucle ; il n'y a pas d'autre notion de groupe (décidé le 2026-11-24, comme une brique du Parcours). Une boîte qui en contient d'autres se dessine en cadre arrondi, son texte en titre, son icône, sa couleur et son lien gardés ; sa forme ne sert que repliée, où elle redevient une boîte ordinaire (`folded` pour s'ouvrir repliée). Une flèche relie deux boîtes quelconques, un cadre compris, sauf une boîte et ce qu'elle contient (refusé).
+- **Couleur** : sur une boîte, au plus une couleur d'étiquette, par son nom enregistré ; le thème la dessine, jamais une couleur écrite en dur. La texture, un temps prévue, n'est pas dans l'outil : la dessiner demande une forme de plus dans `core/drawing` et dans les 9 thèmes.
 - **Icône** : `icon` sur une boîte, un nom Lucide choisi avec le sélecteur de l'app (le drapeau `icon` d'un réglage), au-dessus de son texte (à côté sur une tuile où le dessin va de gauche à droite) ; sans `icon`, une boîte liée montre l'icône de sa chose. Un nom inconnu est refusé, l'id nommé ; un import Mermaid la garde à une boîte dont l'id reste, comme sa couleur.
 - **Le lien d'une boîte** : la brique Chose (`Reference`, `{"kind", "id"}`), choisie par le navigateur des choses. Une boîte liée sans `label` porte le nom actuel de sa chose, « supprimée » si elle n'est plus ; avec `label`, le sien.
-- Une flèche ou un groupe qui nomme une boîte absente est refusé, le refus nommant l'id.
+- Une flèche ou un `parent` qui nomme une boîte absente est refusé, le refus nommant l'id.
 
 ## La saisie
 
-- Le formulaire tiré de la config : les listes des boîtes, des flèches et des groupes.
+- Le formulaire tiré de la config : les listes des boîtes (« Dans » choisit celle qui la contient) et des flèches.
 - L'IA, qui écrit le JSON.
-- **Importer du Mermaid**, dans une section « Mermaid » en tête de la config (`ToolTypeContract.ConfigTools`, qui agit sur le brouillon du formulaire) : un texte flowchart collé ou tapé, converti en une fois, son bilan montré avant (« 12 boîtes, 15 flèches, 2 groupes »), rien d'enregistré avant « Enregistrer » ; une erreur de syntaxe refusée en nommant sa ligne. La conversion dit ce qu'elle change ou laisse : `LR` et `RL` réécrits en `TD`, `style`, `classDef` et `linkStyle` ignorés. Sur un schéma existant, une boîte dont l'id reste garde sa chose et sa couleur.
+- **Importer du Mermaid**, dans une section « Mermaid » en tête de la config (`ToolTypeContract.ConfigTools`, qui agit sur le brouillon du formulaire) : un texte flowchart collé ou tapé, converti en une fois, son bilan montré avant (« 12 boîtes, 15 flèches, 2 groupes »), rien d'enregistré avant « Enregistrer » ; une erreur de syntaxe refusée en nommant sa ligne. La conversion dit ce qu'elle change ou laisse : `LR` et `RL` réécrits en `TD`, `style`, `classDef` et `linkStyle` ignorés ; un `subgraph` devient une boîte qui contient, et une flèche vers lui la vise telle quelle. Sur un schéma existant, une boîte dont l'id reste garde sa chose et sa couleur.
 - **Copier en Mermaid**, dans la même section : le texte flowchart du schéma, sans les liens.
 - Pas d'éditeur textuel. Le geste sur le dessin (toucher une boîte pour la modifier, tirer une flèche) est à concevoir une fois le dessin là.
 
