@@ -71,18 +71,24 @@ Ce que ça demande au core :
 
 ### Les règles
 
-- Ce sont des Conditions du core, étendues plutôt qu'un langage propre au Parcours : le ET et le OU (décidé le 2026-11-24 : une capacité de la brique Condition partout où elle sert, `{"all": […]}` et `{"any": […]}` imbriquables, la comparaison simple inchangée ; le juge et la vérification récursifs ; à l'écran, une liste de comparaisons toutes par ET ou toutes par OU, sans imbrication) ; une valeur `self`, lue sur la brique jugée ; un quantificateur, un ensemble, une condition sur chacun, une quantité (`"all"`, `"any"`, `"none"` ou un nombre pour « au moins N »), qui peut aussi se lire sur la brique (`{"self": "waits_for_count"}`).
+- Ce sont des Conditions du core, étendues plutôt qu'un langage propre au Parcours : le ET et le OU (décidé le 2026-11-24 : une capacité de la brique Condition partout où elle sert, `{"all": […]}` et `{"any": […]}` imbriquables, la comparaison simple inchangée ; le juge et la vérification récursifs ; à l'écran, une liste de comparaisons toutes par ET ou toutes par OU, sans imbrication) ; une valeur `self`, lue sur la brique jugée.
+- Pas de quantificateur (décidé le 2026-11-24) : compter des briques est une Lecture du core, la réduction COUNT sur la vue `bricks` filtrée, comparée à un nombre. « Au moins N » se lit `>= N` ; « aucun », `= 0` ; « tous », deux comptes égaux, ceux qui le sont et tous (les deux côtés d'une Condition pouvant être des Lectures, sans opérateur « pas dans », que la Condition n'a pas), vrai de lui-même sur un ensemble vide (0 = 0) ; le nombre d'un repère (« 3 / 5 ») est la Lecture elle-même. Le seul ajout au core est `self` comme terme, une valeur dans le filtre d'une Lecture (`parent = self.id`, `position = self.position - 1`, `id in self.waits_for`, ce qui demande qu'un filtre prenne une liste venue de `self`).
 - Ce que `self` atteint : ses champs, `content`, `parent`, `siblings`, `previous`, `last_move`, `state`, et les références de date.
-- « Tous » sur un ensemble vide est vrai : juste pour une brique sans prérequis, faux pour un groupe sans contenu, dont la règle ajoute « au moins un existe ».
+- « Tous » sur un ensemble vide est vrai : juste pour une brique sans prérequis, faux pour un groupe sans contenu, dont la règle ajoute « au moins un existe » (un second compte, `> 0`).
 - Une règle de groupe nomme ce qu'elle compte (« au moins 2 parmi [Sorties, Événements] sont [Participée, Passé] ») : pas de case « compte comme acquis », et une sorte ajoutée ne compte qu'une fois nommée.
 - Deux briques qui dépendent l'une de l'autre lisent `last_move`, un fait, plutôt que `state`, qui formerait une boucle ; l'enregistrement refuse une règle circulaire.
 - Une date relative est un Instant du core (`{"relative": {"unit": "DAY", "offset": 15, "edge": "START"}}`) résolu contre une référence nommée : `run_start`, `run_end`, `opened_at` (l'ouverture de la brique), `since`. Sans référence nommée, c'est le moment de la lecture. L'outil ne suppose rien de ce qu'une date représente ; décaler un plan n'est pas une fonction, on modifie les briques à la main ou par l'IA.
 
 ```json
 {
-  "of": { "self": "waits_for" },
-  "where": { "left": { "field": "data.status" }, "op": "in", "right": { "constant": ["done"] } },
-  "count": "all"
+  "left": { "reading": { "selection": { "target": "ce Parcours", "view": "bricks", "filters": [
+      { "left": { "field": "id" }, "op": "in", "right": { "self": "waits_for" } },
+      { "left": { "field": "state" }, "op": "in", "right": { "constant": ["done"] } } ] },
+    "reduction": "COUNT" } },
+  "op": "=",
+  "right": { "reading": { "selection": { "target": "ce Parcours", "view": "bricks", "filters": [
+      { "left": { "field": "id" }, "op": "in", "right": { "self": "waits_for" } } ] },
+    "reduction": "COUNT" } }
 }
 ```
 
@@ -94,8 +100,8 @@ Ce que ça demande au core :
 
 ```json
 {
-  "on": { "of": { "self": "content" }, "where": { "left": { "field": "data.status" }, "op": "in", "right": { "constant": ["done"] } }, "count": "all" },
-  "set": { "of": { "self": "content" }, "state": "todo" }
+  "on": { "…": "COUNT de bricks où parent = self.id et state in [done] = COUNT de bricks où parent = self.id" },
+  "set": { "filters": [ { "left": { "field": "parent" }, "op": "=", "right": { "self": "id" } } ], "state": "todo" }
 }
 ```
 
@@ -152,13 +158,12 @@ Ce que la maquette du 2026-11-24 écrivait en dur, et que le modèle doit dire, 
 ```json
 { "key": "week", "readout": {
     "values": [
-      { "name": "done",  "term": { "of": { "self": "content" }, "where": { "…": "état in [faite]" }, "count": "number" } },
-      { "name": "total", "term": { "of": { "self": "content" }, "count": "number" } } ],
+      { "name": "done",  "value": { "…": "COUNT de bricks où parent = self.id et state in [faite]" } },
+      { "name": "total", "value": { "…": "COUNT de bricks où parent = self.id" } } ],
     "core": "{done} / {total}",
     "gauge": "done / total" } }
 ```
 
-- Le quantificateur peut rendre un nombre (`"count": "number"`) au lieu de vrai ou faux.
 - La fiche d'une brique offre un bouton par état manuel que `note_if` autorise, avec son libellé, dans l'ordre de la liste. Parmi les états manuels, cet ordre est l'échelle : un bouton vers un état plus bas est un retour (« ↓ Revenir à Déchiffré », en retrait), avec un libellé facultatif (`back_label` : « Oublié (→ Déchiffré) »). Revenir écrit un vrai recul ; « Annuler « Su » » efface le dernier mouvement, sans date dans le bouton. La fiche montre l'historique des états de la brique pour le passage en cours.
 - Restent de la maquette, à traiter : un groupe peut aussi être noté, donc avoir sa fiche (un bouton en tête du niveau, toucher un groupe y entrant) ; la sorte dit quel champ s'affiche en tête de son niveau ; « + » dans l'éditeur de plan propose les sortes que le groupe peut contenir.
 
@@ -185,7 +190,7 @@ Les scènes de test, toutes tenues sur le papier : badges, calendrier de l'Avent
 
 ## La fusion avec l'Objectif (souhaitée, en exploration)
 
-- L'Objectif s'écrit en briques : critère = brique à règle, sa valeur saisie un champ de la brique ; sous-objectif = groupe ; « au moins N » = quantificateur ; tentative = passage planifié ; « essentiel » = une règle. Ce n'est pas un point de départ : c'est N parmi M avec un rythme et une fin.
+- L'Objectif s'écrit en briques : critère = brique à règle, sa valeur saisie un champ de la brique ; sous-objectif = groupe ; « au moins N » = un compte `>= N` ; tentative = passage planifié ; « essentiel » = une règle. Ce n'est pas un point de départ : c'est N parmi M avec un rythme et une fin.
 - Elle demande des passages planifiés, plusieurs passages ouverts, une vue des passages (une ligne par passage et son état). Une lecture sans période y lit implicitement la tentative ; dans Parcours, ça s'écrit avec `run_start`.
 - Pas de reprise des données : les Objectifs existants ne servent qu'à l'utilisateur, qui les retire ; une migration retire le type. Condition : l'Objectif reste aussi simple à monter qu'aujourd'hui. Ordre : coder le Parcours, et ne retirer l'ancien outil qu'une fois le nouveau au moins aussi agréable.
 
@@ -222,7 +227,7 @@ La marche à suivre, chaque étape s'appuyant sur la précédente (les étapes 1
    - Fait le 2026-11-24, pas vu sur le téléphone : la jauge des repères du core (`gauge` de `ReadoutSettings`, `UI.Gauge` en couleur dans chaque thème), au repère Eau de la démo.
    - Décidé le 2026-11-24 : une boîte du Schéma gagne pour de bon `fill` et `faded`, réglés à la main, qui servent le Schéma (estompée : pas cette saison ; en contour : prévue) et font du dessin partagé une seule manière de peindre, que le Parcours remplira depuis l'état. Pas de repère dans une boîte du Schéma, faute de brique jugée et de cas : la jauge dans une boîte s'essaiera avec le Parcours. Codé le même jour, pas vu sur le téléphone (`SchemaFill`, `docs/design/schema.md`, « Peinture ») : contour = la boîte d'avant, plein = un fond à 60 %, estompée = tout à 40 % ; aux niveaux forme et pastilles, contour = un fond pâle dans un bord épais ; les boîtes colorées du Balcon en plein.
    - Ensuite : l'apparence d'un état et le repère dans une boîte, jauge comprise, essayés sur le Schéma par une couleur pleine, un contour et une estompe réglés à la main sur une boîte.
-4. Les ajouts au core : vues calculées, Référence vers une ligne de vue, Condition avec ET, OU, `self` et quantificateur, `OpenAt`.
+4. Les ajouts au core : vues calculées, Référence vers une ligne de vue, Condition avec ET et OU, `self` comme terme d'un filtre, `OpenAt`.
 5. La Séance : `playable`, mode programmes, ouverture sur une ligne, `launched_for`.
 6. L'outil Parcours.
 
