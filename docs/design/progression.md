@@ -110,6 +110,25 @@ Ce que ça demande au core :
 - À la création, un point de départ (Liste, Suite, Arbre) préremplit une sorte, sans aucune brique ; ce n'est pas une notion du modèle, et tout reste éditable. L'affichage (liste, chemin, branches) est un réglage à part ; avec plusieurs champs de lien, il dit lequel trace les branches.
 - Un parcours conduit par un maître (le projet `parcours`, que Treelune remplacera en grande partie) n'utilise ni règles ni verrous : l'IA écrit le plan phase après phase, et tout se note à la main. L'IA est donc la principale autrice des configs riches.
 
+## L'apparence d'une brique
+
+Ce que la maquette du 2026-11-24 écrivait en dur, et que le modèle doit dire, l'outil ne connaissant pas le sens des états :
+
+- Chaque état dit comment il se montre (`look` : une icône Lucide, estompé ou non). Un état sans `look` se montre neutre, avec son numéro dans un chemin. Ce n'est que de l'apparence : l'outil ne sait toujours pas qu'un état est une réussite.
+- Chaque sorte peut porter un modèle de repère, calculé pour chaque brique avec `self` : la forme du repère du core (`core/readouts`), des valeurs lues à l'affichage, une forme courte qui les place, des couleurs selon des conditions. Il porte la progression (« {done} / {total} », « 3 / 5 séances » par une Lecture) et la couleur d'une brique. Nouveau : un repère lu une fois par brique, avec une brique jugée.
+
+```json
+{ "key": "week", "readout": {
+    "values": [
+      { "name": "done",  "term": { "of": { "self": "content" }, "where": { "…": "état in [faite]" }, "count": "number" } },
+      { "name": "total", "term": { "of": { "self": "content" }, "count": "number" } } ],
+    "core": "{done} / {total}",
+    "colors": [ { "when": { "left": { "field": "done" }, "op": ">=", "right": { "field": "total" } }, "color": "green" } ] } }
+```
+
+- Le quantificateur peut rendre un nombre (`"count": "number"`) au lieu de vrai ou faux.
+- Restent de la maquette, à traiter : la fiche d'une brique offre un bouton par état manuel que `note_if` autorise, avec son libellé, et annuler retire le dernier mouvement ; un groupe peut aussi être noté, donc avoir sa fiche (un bouton en tête du niveau, toucher un groupe y entrant) ; la sorte dit quel champ s'affiche en tête de son niveau ; « + » dans l'éditeur de plan propose les sortes que le groupe peut contenir ; un groupe n'a d'état que par ses règles, préremplies par le point de départ.
+
 ## Lancer une Séance depuis une brique
 
 - Le détail d'une pratique (chaque exercice fait ou sauté, son temps) vit dans la Séance, qui le garde déjà. Une brique s'arrête à « Séance 3 » ; ses exercices ne sont pas des briques.
