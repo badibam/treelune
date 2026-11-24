@@ -210,7 +210,7 @@ object SequenceToolType : ToolTypeContract {
                     steps(text)
                 ), description = text("schema_program_element")), required = true, minItems = 1,
                     summary = listOf(SequenceVariants.PROGRAM_NAME), description = text("schema_programs")),
-                SettingNode.Sort(SequenceVariants.PROGRAM_SORT, text("field_program_sort"), text("schema_program_sort"), elements = SequenceVariants.PROGRAM_ORDER),
+                SettingNode.Sort(SequenceVariants.PROGRAM_SORT, text("field_program_sort"), text("schema_program_sort"), view = SequencePlayable.NAME),
                 SettingNode.ListOf(SequenceVariants.PROGRAM_SHOWN, text("field_program_shown"),
                     SettingNode.Item.Value(field("program_shown_field", text("field_program_shown_field"), FieldType.TEXT, text("schema_program_shown_field"), mapOf("length" to TextLength.SHORT.name)),
                         rowField = true),
@@ -372,6 +372,8 @@ object SequenceToolType : ToolTypeContract {
 
     override fun getService(context: Context): ExecutableService = SequenceService(context)
 
+    override fun views(): List<app.treelune.core.views.ToolView> = listOf(SequencePlayable)
+
     /**
      * A step without a length of its own that would pass by itself: nothing would ever end it. A
      * medium's field: a file field of its selection's tool that takes sounds or videos.
@@ -394,16 +396,15 @@ object SequenceToolType : ToolTypeContract {
         else -> null
     }
 
-    /** The programs' order naming their name or their fields, each with an order; the fields shown, fields of the programs. */
-    private fun refusePrograms(config: JSONObject, context: Context): String? {
+    /** The programs' order naming the columns of their rows, each with an order; the fields shown, columns of their rows. */
+    private suspend fun refusePrograms(config: JSONObject, context: Context): String? {
         val shared = Strings.`for`(context = context)
-        val fields = SequenceVariants.PROGRAM_ORDER.fields(config, shared.shared("label_name"))
+        val fields = try { SequencePlayable.fields(context, config, s(context)) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { return e.message }
         config.optJSONArray(SequenceVariants.PROGRAM_SORT)?.let { sort ->
             (app.treelune.core.fields.EntrySort.parse(sort, fields) { shared.shared(it) } as? app.treelune.core.fields.EntrySort.Parsed.Refused)?.let { return it.error }
         }
-        val defined = SequenceProgramFields.of(config).keys
         val shown = config.optJSONArray(SequenceVariants.PROGRAM_SHOWN) ?: return null
-        return (0 until shown.length()).map { shown.optString(it) }.firstOrNull { it !in defined }?.let { s(context).tool("error_program_shown").format(it) }
+        return (0 until shown.length()).map { shown.optString(it) }.firstOrNull { it !in fields.keys || it == "name" }?.let { s(context).tool("error_program_shown").format(it) }
     }
 
     override fun getRowFields(): app.treelune.core.fields.settings.RowFields = SequenceProgramFields
@@ -438,14 +439,16 @@ object SequenceToolType : ToolTypeContract {
     override fun rememberTile(tool: ToolInstance, open: (OpenAt) -> Unit): ToolTile = rememberSequenceTile(tool)
 }
 
-/** What the fields shown under each program choose among (SequenceVariants.PROGRAM_SHOWN): the program fields the config defines, by name. */
+/** What the fields shown under each program choose among (SequenceVariants.PROGRAM_SHOWN): the columns of the programs' rows (SequencePlayable), their name aside. */
 object SequenceProgramFields : app.treelune.core.fields.settings.RowFields {
 
-    /** The program fields of [config], by name. */
-    fun of(config: JSONObject): Map<String, FieldDefinition> =
-        config.optJSONArray(SequenceVariants.PROGRAM_FIELDS)?.toFieldDefinitions().orEmpty().associateBy { it.name }
-
-    override suspend fun at(root: JSONObject, path: List<Any>, context: Context): Map<String, FieldDefinition> = of(root)
+    override suspend fun at(root: JSONObject, path: List<Any>, context: Context): Map<String, FieldDefinition> = try {
+        SequencePlayable.fields(context, root, Strings.`for`(tool = "sequence", context = context)) - "name"
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        throw e
+    } catch (e: IllegalStateException) {
+        emptyMap()
+    }
 
     override fun dependsOn(root: JSONObject, path: List<Any>): Any = root.optJSONArray(SequenceVariants.PROGRAM_FIELDS).toString()
 }

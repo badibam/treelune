@@ -46,21 +46,21 @@ object SequenceVariants {
     /** The program fields shown under each program at start, and before it starts, by their names, in their order */
     const val PROGRAM_SHOWN = "program_shown"
 
-    /** What the programs' order sorts: their name, their values of the program fields. */
-    val PROGRAM_ORDER = app.treelune.core.fields.settings.SettingNode.SortedElements(PROGRAMS, PROGRAM_NAME, PROGRAM_FIELDS, PROGRAM_VALUES)
-
     /**
-     * The programs of [config] in the order it offers them (PROGRAM_SORT), [nameLabel] the label of
-     * their name; in the config's order without one.
+     * The programs of [config] in the order it offers them, by the columns of its view of what it
+     * plays (PROGRAM_SORT, SequencePlayable); in the config's order without one.
      */
-    fun offeredPrograms(config: JSONObject, nameLabel: String): List<JSONObject> {
-        val sort = config.optJSONArray(PROGRAM_SORT)?.let { app.treelune.core.fields.EntrySort.read(it) { k -> k } }.orEmpty()
-        return PROGRAM_ORDER.ordered(config, sort, nameLabel)
+    suspend fun offeredPrograms(context: Context, config: JSONObject, s: StringsContext): List<JSONObject> {
+        val sort = config.optJSONArray(PROGRAM_SORT)?.let { app.treelune.core.fields.EntrySort.read(it) { k -> s.shared(k) } }.orEmpty()
+        val fields = SequencePlayable.fields(context, config, s)
+        val rows = SequencePlayable.rows(context, "", config, s).map { app.treelune.core.services.ToolDataEntries.toMap(it) }
+        val byId = programs(config).associateBy { it.optString(PROGRAM_ID) }
+        return app.treelune.core.fields.EntrySort.ordered(rows, sort, fields).mapNotNull { byId[it["id"]] }
     }
 
-    /** The program fields of [config] [PROGRAM_SHOWN] names, in its order; one no longer defined left out. */
-    fun shownFields(config: JSONObject): List<app.treelune.core.fields.FieldDefinition> {
-        val defined = SequenceProgramFields.of(config)
+    /** The columns of the programs' rows [PROGRAM_SHOWN] names by their paths, in its order; one no longer defined left out. */
+    suspend fun shownFields(context: Context, config: JSONObject, s: StringsContext): List<app.treelune.core.fields.FieldDefinition> {
+        val defined = SequencePlayable.fields(context, config, s)
         val shown = config.optJSONArray(PROGRAM_SHOWN) ?: return emptyList()
         return (0 until shown.length()).mapNotNull { defined[shown.optString(it)] }
     }

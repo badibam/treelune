@@ -52,17 +52,22 @@ object FlashcardsCards : ToolView {
     override val defaultSort = listOf(SortKey("data.$DUE_AT", ascending = true))
 
     override suspend fun open(context: Context, toolInstanceId: String, config: JSONObject, s: StringsContext): View {
-        val own = Strings.`for`(tool = "flashcards", context = context)
-        val deck = try {
-            FlashcardsDeck.of(config) { s.shared(it) }
-        } catch (e: IllegalArgumentException) {
-            throw IllegalStateException(e.message ?: "")
-        }
+        val deck = deckOf(config, s)
         return object : View {
-            override val fields = fields(deck, own)
+            override val fields = fields(deck, Strings.`for`(tool = "flashcards", context = context))
             override val period = ViewPeriod.NONE
             override suspend fun rows(start: Long?, end: Long?, at: Long): List<ToolDataEntity> = rows(context, toolInstanceId, deck, at)
         }
+    }
+
+    override suspend fun fields(context: Context, config: JSONObject, s: StringsContext): Map<String, FieldDefinition> =
+        fields(deckOf(config, s), Strings.`for`(tool = "flashcards", context = context))
+
+    /** The deck [config] makes. @throws IllegalStateException when it does not read */
+    private fun deckOf(config: JSONObject, s: StringsContext): FlashcardsDeck = try {
+        FlashcardsDeck.of(config) { s.shared(it) }
+    } catch (e: IllegalArgumentException) {
+        throw IllegalStateException(e.message ?: "")
     }
 
     /** The fields of a row, by path. */

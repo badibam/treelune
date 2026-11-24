@@ -179,16 +179,20 @@ class SequenceVariantsTest {
                 .put(JSONObject().put("id", "doux").put("name", "Doux").put("values", JSONObject().put("niveau", 2)).put("steps", JSONArray().put(JSONObject(step))))
                 .put(JSONObject().put("id", "b").put("name", "B").put("steps", JSONArray().put(JSONObject(step))))
                 .put(JSONObject().put("id", "a").put("name", "A").put("values", JSONObject().put("niveau", 2)).put("steps", JSONArray().put(JSONObject(step)))))
-            .put(SequenceVariants.PROGRAM_SORT, JSONArray().put(JSONObject().put("field", "values.niveau").put("direction", "desc")).put(JSONObject().put("field", "name").put("direction", "asc")))
-            .put(SequenceVariants.PROGRAM_SHOWN, JSONArray().put("niveau"))
+            .put(SequenceVariants.PROGRAM_SORT, JSONArray().put(JSONObject().put("field", "data.niveau").put("direction", "desc")).put(JSONObject().put("field", "name").put("direction", "asc")))
+            .put(SequenceVariants.PROGRAM_SHOWN, JSONArray().put("data.niveau"))
         val sorted = coordinator.processUserAction("tools.update", mapOf("tool_instance_id" to sequenceId, "config" to app.treelune.core.utils.JsonUtils.toMap(ordered)))
         assertTrue(sorted.error, sorted.isSuccess)
-        assertEquals(listOf("a", "doux", "b"), SequenceVariants.offeredPrograms(config(), "Name").map { it.getString("id") })
-        assertEquals(listOf("niveau"), SequenceVariants.shownFields(config()).map { it.name })
+        assertEquals(listOf("a", "doux", "b"), SequenceVariants.offeredPrograms(context, config(), s).map { it.getString("id") })
+        assertEquals(listOf("niveau"), SequenceVariants.shownFields(context, config(), s).map { it.name })
+        // The same rows, by the same columns, for whatever reads the view: a program named by its name
+        val rows = app.treelune.core.views.Views.of(app.treelune.core.selection.Reference(ReferenceKind.TOOL_INSTANCE, sequenceId), SequencePlayable.NAME, context, s).rows(null, null, 0L)
+        assertEquals(listOf("Doux", "B", "A"), rows.map { it.name })
+        assertEquals(2, JSONObject(rows.first().data!!).getInt("niveau"))
         assertFalse(coordinator.processUserAction("tools.update", mapOf("tool_instance_id" to sequenceId, "config" to app.treelune.core.utils.JsonUtils.toMap(
-            JSONObject(ordered.toString()).put(SequenceVariants.PROGRAM_SORT, JSONArray().put(JSONObject().put("field", "values.taille").put("direction", "asc")))))).isSuccess)
+            JSONObject(ordered.toString()).put(SequenceVariants.PROGRAM_SORT, JSONArray().put(JSONObject().put("field", "data.taille").put("direction", "asc")))))).isSuccess)
         assertFalse(coordinator.processUserAction("tools.update", mapOf("tool_instance_id" to sequenceId, "config" to app.treelune.core.utils.JsonUtils.toMap(
-            JSONObject(ordered.toString()).put(SequenceVariants.PROGRAM_SHOWN, JSONArray().put("taille"))))).isSuccess)
+            JSONObject(ordered.toString()).put(SequenceVariants.PROGRAM_SHOWN, JSONArray().put("data.taille"))))).isSuccess)
 
         // The field taken out, its values leave the programs
         val without = config().put(SequenceVariants.PROGRAM_FIELDS, JSONArray()).put(SequenceVariants.PROGRAM_SORT, JSONArray()).put(SequenceVariants.PROGRAM_SHOWN, JSONArray())

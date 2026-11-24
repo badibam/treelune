@@ -237,8 +237,10 @@ private fun MediaPreview(config: JSONObject, entry: Map<String, Any?>, lastAt: L
 @Composable
 private fun ProgramsDialog(config: JSONObject, history: List<SequenceEntry>, s: StringsContext, background: @Composable () -> Unit, onAnswer: (Map<String, Any?>) -> Unit, onCancel: () -> Unit) {
     val context = LocalContext.current
-    val programs = remember(config.toString()) { SequenceVariants.offeredPrograms(config, s.shared("label_name")) }
-    val shown = remember(config.toString()) { SequenceVariants.shownFields(config) }
+    // Offered in the order the config sets by their rows' columns, each with the columns it shows
+    val offered by produceState<Pair<List<JSONObject>, List<app.treelune.core.fields.FieldDefinition>>?>(null, config.toString()) {
+        value = SequenceVariants.offeredPrograms(context, config, s) to SequenceVariants.shownFields(context, config, s)
+    }
     // When each program was played last, and how many times, by its id
     val played = remember(history) { history.filter { it.program != null && it.status != SequenceToolType.Status.PLANNED }.groupBy { it.program!! } }
     val lastPlayed = remember(played) { played.maxByOrNull { (_, sessions) -> sessions.maxOf { it.timestamp } }?.key }
@@ -247,6 +249,7 @@ private fun ProgramsDialog(config: JSONObject, history: List<SequenceEntry>, s: 
     UI.Dialog(type = DialogType.SELECTION, onConfirm = {}, onCancel = onCancel) {
         Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
             UI.Text(s.tool("launch_program"), TextType.SUBTITLE)
+            val (programs, shown) = offered ?: return@Column UI.LoadingIndicator()
             val start = programs.indexOfFirst { it.optString(SequenceVariants.PROGRAM_ID) == lastPlayed }.coerceAtLeast(0)
             val list = rememberLazyListState(initialFirstVisibleItemIndex = start)
             LazyColumn(state = list) {
@@ -266,19 +269,19 @@ private fun ProgramsDialog(config: JSONObject, history: List<SequenceEntry>, s: 
 
     previewed?.let { id -> SequenceVariants.program(config, id) }?.let { program ->
         val sessions = played[program.optString(SequenceVariants.PROGRAM_ID)].orEmpty()
-        ProgramPreview(program, config, sessions.maxOfOrNull { it.timestamp }, sessions.size, s, background,
+        ProgramPreview(program, offered?.second.orEmpty(), sessions.maxOfOrNull { it.timestamp }, sessions.size, s, background,
             onStart = { onAnswer(mapOf(SequenceToolType.PROGRAM to program.optString(SequenceVariants.PROGRAM_ID))) }, onBack = { previewed = null })
     }
 }
 
 /**
  * The program [program] touched, before it starts: its name, its description, when it was played
- * last and how many times, its values of the program fields [config] shows, each with its label, then
+ * last and how many times, its values of the fields [shown], each with its label, then
  * its steps as they will run, blocks unrolled, each with its length.
  * « Start » answers; back returns to the list.
  */
 @Composable
-private fun ProgramPreview(program: JSONObject, config: JSONObject, lastAt: Long?, count: Int, s: StringsContext, background: @Composable () -> Unit, onStart: () -> Unit, onBack: () -> Unit) {
+private fun ProgramPreview(program: JSONObject, shown: List<app.treelune.core.fields.FieldDefinition>, lastAt: Long?, count: Int, s: StringsContext, background: @Composable () -> Unit, onStart: () -> Unit, onBack: () -> Unit) {
     val context = LocalContext.current
     val steps = remember(program.toString()) { app.treelune.tools.sequence.SequencePlan.unroll(program) }
     UI.Dialog(type = DialogType.SELECTION, onConfirm = onBack, onCancel = onBack) {
@@ -288,7 +291,7 @@ private fun ProgramPreview(program: JSONObject, config: JSONObject, lastAt: Long
                 else s.tool("launch_media_last").format(DateTimeFormatter.formatForDisplay(lastAt, context)) + " · " + s.tool("launch_media_count").format(count), TextType.CAPTION)
             program.optString(SequenceVariants.PROGRAM_DESCRIPTION).takeIf { it.isNotBlank() }?.let { UI.Text(it, TextType.BODY) }
             val values = program.optJSONObject(SequenceVariants.PROGRAM_VALUES)
-            SequenceVariants.shownFields(config).forEach { field ->
+            shown.forEach { field ->
                 values?.opt(field.name)?.takeIf { it != JSONObject.NULL }?.let { value ->
                     UI.Text(field.displayName, TextType.LABEL)
                     FieldValue(field, app.treelune.core.utils.JsonUtils.toValue(value), context)

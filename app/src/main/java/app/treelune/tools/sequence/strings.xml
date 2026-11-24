@@ -279,10 +279,11 @@
     <string name="field_program_values">Its fields</string>
     <string name="schema_program_values">This program\'s values of the program fields, by their names</string>
     <string name="field_program_sort">Order of the programs</string>
-    <string name="schema_program_sort">The order the programs are offered in at start: by their name (`name`) or by a program field (`values.` then its name); empty, the order of the list</string>
+    <string name="schema_program_sort">The order the programs are offered in at start: by their name (`name`) or by a program field (`data.` then its name), the columns of the view `playable`; empty, the order of the list</string>
     <string name="field_program_shown">Fields shown</string>
-    <string name="schema_program_shown">The program fields shown under each program at start and before it starts, by their names, in their order</string>
+    <string name="schema_program_shown">The program fields shown under each program at start and before it starts, by their paths, in their order</string>
     <string name="field_program_shown_field">Field</string>
-    <string name="schema_program_shown_field">The name of a program field</string>
+    <string name="schema_program_shown_field">A program field, by its path: `data.` then its name</string>
     <string name="error_program_shown">“%1$s” is not a program field</string>
+    <string name="playable_entry">Entry</string>
 </resources>

@@ -62,4 +62,12 @@ interface ToolView {
      * @throws IllegalStateException when it cannot be opened, with what to say
      */
     suspend fun open(context: Context, toolInstanceId: String, config: JSONObject, s: StringsContext): View
+
+    /**
+     * Its rows' fields by path for a tool whose config is [config], as [open] gives them: what a
+     * config being written, without a tool yet, offers to sort its rows by (SettingNode.Sort.view).
+     *
+     * @throws IllegalStateException when the config does not read, with what to say
+     */
+    suspend fun fields(context: Context, config: JSONObject, s: StringsContext): Map<String, FieldDefinition>
 }

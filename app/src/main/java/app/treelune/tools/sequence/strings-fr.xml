@@ -279,10 +279,11 @@
     <string name="field_program_values">Ses champs</string>
     <string name="schema_program_values">Les valeurs de ce programme pour les champs des programmes, par leur nom</string>
     <string name="field_program_sort">Ordre des programmes</string>
-    <string name="schema_program_sort">L\'ordre dans lequel les programmes sont proposés au démarrage : par leur nom (`name`) ou par un champ des programmes (`values.` puis son nom) ; vide, l\'ordre de la liste</string>
+    <string name="schema_program_sort">L\'ordre dans lequel les programmes sont proposés au démarrage : par leur nom (`name`) ou par un champ des programmes (`data.` puis son nom), les colonnes de la vue `playable` ; vide, l\'ordre de la liste</string>
     <string name="field_program_shown">Champs montrés</string>
-    <string name="schema_program_shown">Les champs des programmes montrés sous chaque programme au démarrage et avant qu\'il démarre, par leur nom, dans leur ordre</string>
+    <string name="schema_program_shown">Les champs des programmes montrés sous chaque programme au démarrage et avant qu\'il démarre, par leur chemin, dans leur ordre</string>
     <string name="field_program_shown_field">Champ</string>
-    <string name="schema_program_shown_field">Le nom d\'un champ des programmes</string>
+    <string name="schema_program_shown_field">Un champ des programmes, par son chemin : `data.` puis son nom</string>
     <string name="error_program_shown">« %1$s » n\'est pas un champ des programmes</string>
+    <string name="playable_entry">Entrée</string>
 </resources>

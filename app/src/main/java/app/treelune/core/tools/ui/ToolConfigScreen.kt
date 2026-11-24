@@ -356,8 +356,9 @@ internal fun groupEditor(groups: List<String>, label: String) = object : Setting
 /**
  * The editors of the config's sorts of the tool's own entries (SettingNode.Sort): SortSetting on
  * the fields of its entries as the config being edited declares them (its user's fields included),
- * the name A to Z shown while none is chosen. A sort of a list's elements (SettingNode.SortedElements)
- * offers their name and the fields the config defines for them, none chosen keeping the list's order.
+ * the name A to Z shown while none is chosen. A sort of the rows of a view of the tool
+ * (SettingNode.Sort.view) offers its rows' fields as the config being edited makes them, none
+ * chosen keeping the view's own order.
  */
 private fun ownSortEditors(nodes: List<app.treelune.core.fields.settings.SettingNode>, toolType: app.treelune.core.tools.ToolTypeContract,
                            config: JSONObject, s: app.treelune.core.strings.StringsContext): Map<String, app.treelune.core.fields.settings.SettingEditor> {
@@ -374,8 +375,17 @@ private fun ownSortEditors(nodes: List<app.treelune.core.fields.settings.Setting
             @androidx.compose.runtime.Composable
             override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
                 val context = androidx.compose.ui.platform.LocalContext.current
-                node.elements?.let { elements ->
-                    val fields = androidx.compose.runtime.remember(config.optString(elements.fields)) { elements.fields(config, s.shared("label_name")) }
+                node.view?.let { name ->
+                    // Its rows' fields as this draft makes them; one that does not read yet offers none, the save naming why
+                    val fields by androidx.compose.runtime.produceState<Map<String, app.treelune.core.fields.FieldDefinition>>(emptyMap(), config.toString()) {
+                        this.value = try {
+                            toolType.views().firstOrNull { it.name == name }?.fields(context, config, s).orEmpty()
+                        } catch (e: kotlinx.coroutines.CancellationException) {
+                            throw e
+                        } catch (e: IllegalStateException) {
+                            emptyMap()
+                        }
+                    }
                     val keys = (value as? org.json.JSONArray)?.let { app.treelune.core.fields.EntrySort.read(it) { k -> s.shared(k) } }.orEmpty()
                     app.treelune.core.ui.selectors.SortSetting(node.label, keys, fields) { onChange(app.treelune.core.fields.EntrySort.toJson(it)) }
                     return
