@@ -581,7 +581,7 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
         val ordered = if (stack == null) scope.parts.sortedByDescending { it.nodes.size > 1 }
             else scope.parts.sortedBy { part -> part.nodes.minOf { node -> stack.indexOf(node.id).takeIf { it >= 0 } ?: Int.MAX_VALUE } }
         val packed = if (stack == null) packLines(ordered.map { it.width to it.height }, scope.limit - 2 * pad, options.boxGap)
-            else stackParts(ordered.map { it.width to it.height }, options.rowGap)
+            else stackParts(ordered.map { it.width to it.height }, options.rowGap * PART_GAP)
         ordered.forEachIndexed { i, part -> part.translate(packed.places[i].x + pad, packed.places[i].y + pad + title) }
         val contentWidth = max(packed.width, scope.group?.titleWidth ?: 0f)
         scope.width = contentWidth + 2 * pad
@@ -662,6 +662,8 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
 
     private companion object {
         const val REFINEMENTS = 3
+        // Between two stacked parts, against two rows: wide enough to tell the next part from the next row (seen on the phone)
+        const val PART_GAP = 1.5f
         const val ALIGNMENTS = 3
     }
 
