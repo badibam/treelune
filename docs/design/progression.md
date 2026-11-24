@@ -202,7 +202,7 @@ Les scènes de test, toutes tenues sur le papier : badges, calendrier de l'Avent
 
 La marche à suivre, chaque étape s'appuyant sur la précédente (les étapes 1 à 3 valent même si Parcours tardait) :
 
-1. Fusionner le Schéma : `develop` a été fusionné dans `schema` le 2026-11-24 (`d42bddb0d`), sans conflit, ni compilé ni testé. Reste `./run compile` puis `./run test` une fois dans le worktree, la fusion dans `develop`, et sur le téléphone la base de l'app debug à effacer, le schéma « Test » recopié d'abord par « Copier en Mermaid ».
+1. Fusionner le Schéma : fait le 2026-11-24, la démo ayant gagné un Schéma au Balcon. Reste, sur le téléphone, le schéma « Test » recopié puis l'app debug effacée avant d'installer (`docs/design/schema.md`, « Reprise »).
 2. Sortir le placement (`tools/schema/layout/SchemaLayout.kt`) dans le core, sans rien changer à ce qu'il dessine, et vérifier que le Schéma s'affiche à l'identique.
 3. Les améliorations communes, essayées sur le Schéma : niveaux de détail sur une tuile, linéarisation et renvois, marque et repère dans une boîte.
 4. Les ajouts au core : vues calculées, Référence vers une ligne de vue, Condition avec ET, OU, `self` et quantificateur, `OpenAt`.
