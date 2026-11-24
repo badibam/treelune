@@ -143,7 +143,7 @@ fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((Schema
                 val iconOf = { thing: Reference -> read.things[thing]?.icon }
                 if (!reduced) Shown(builder.build(read.spec, nameOf, folded, width, keptOpen, fit = true, iconOf = iconOf)
                     .also { app.treelune.core.utils.LogManager.ui("Schema laid out in ${System.currentTimeMillis() - start} ms (${it.autoFolded.size} folded to fit, scale ${it.scale})", "INFO") })
-                else tileShown(read.spec, builder, nameOf, iconOf, folded, width, available, room, across)
+                else tileShown(read.spec, builder, nameOf, iconOf, folded, width, available, room, across, unit)
                     .also { app.treelune.core.utils.LogManager.ui("Schema tile laid out in ${System.currentTimeMillis() - start} ms: ${it.log}", "INFO") }
             }.also { scenes[key] = it }
         }
@@ -175,9 +175,7 @@ fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((Schema
             }
         }
         if (reduced) {
-            val wanted = min(1f, min(available / scene.drawing.width, room / scene.drawing.height))
-            // A theme drawing in whole pixels keeps a whole number of screen pixels to each of its own
-            val scale = if (unit > 1f) max(1f, floor(wanted * unit)) / unit else wanted
+            val scale = tileScale(scene, available, room, unit)
             Box(modifier = Modifier.fillMaxSize().clipToBounds(), contentAlignment = Alignment.Center) {
                 UI.Drawing(scene.drawing, Modifier.wrapContentSize(unbounded = true).graphicsLayer { scaleX = scale; scaleY = scale })
             }
@@ -214,10 +212,12 @@ private data class Shown(val scene: SchemaScene?, val log: String = "")
  * A tile's drawing at the richest level of detail that holds (docs/design/progression.md): one
  * holds while the drawing, scaled down to the tile, keeps at least its bound of its size. The
  * level expected is read first from the room the boxes take, measured without placing them; the
- * drawing is placed there, and one level lower each time it does not hold.
+ * drawing is placed there, and one level lower each time it does not hold. A level is judged at
+ * the scale it will really be shown at, a pixel theme's whole steps included: in steps of a third,
+ * a drawing wanting 0.61 shows at 0.33, and the next level, at 0.67, fills the tile better.
  */
 private fun tileShown(spec: SchemaSpec, builder: SchemaSceneBuilder, nameOf: (Reference) -> String?, iconOf: (Reference) -> String?,
-                      folded: Set<String>, width: Float, available: Float, room: Float, across: Boolean): Shown {
+                      folded: Set<String>, width: Float, available: Float, room: Float, across: Boolean, unit: Float): Shown {
     val levels = SchemaDetail.entries
     val expected = levels.firstOrNull { detail ->
         val area = builder.boxesArea(spec, nameOf, folded, width, detail, iconOf, across) * SPREAD
@@ -226,11 +226,21 @@ private fun tileShown(spec: SchemaSpec, builder: SchemaSceneBuilder, nameOf: (Re
     val tried = mutableListOf<String>()
     for (detail in levels.drop(levels.indexOf(expected))) {
         val scene = builder.build(spec, nameOf, folded, width, fit = detail == SchemaDetail.TEXT, iconOf = iconOf, across = across, detail = detail)
-        val scale = min(1f, min(available / scene.drawing.width, room / scene.drawing.height))
+        val scale = tileScale(scene, available, room, unit)
         tried += "$detail at ${"%.2f".format(scale)}"
         if (scale >= BOUNDS.getValue(detail)) return Shown(scene, "expected $expected, ${tried.joinToString()}")
     }
     return Shown(null, "expected $expected, ${tried.joinToString()}, none holds")
+}
+
+/**
+ * What [scene] is shown at in a tile's room: as large as it fits, never above its size; for a theme
+ * drawing in whole pixels ([unit] screen pixels to one of its own), a whole number of screen pixels
+ * to each of its own, at least one.
+ */
+private fun tileScale(scene: SchemaScene, available: Float, room: Float, unit: Float): Float {
+    val wanted = min(1f, min(available / scene.drawing.width, room / scene.drawing.height))
+    return if (unit > 1f) max(1f, floor(wanted * unit)) / unit else wanted
 }
 
 /**
