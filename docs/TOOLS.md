@@ -226,6 +226,7 @@ The tools of a group's section are laid on a grid of four columns of square cell
 - 2×h from 3 rows: the header, the summary under it, the body on the h − 2 rows left
 - 4×h from 2 rows: the header and the summary side by side, the body on the h − 1 rows left
 - `4xcontent`: the header and the summary side by side, the body as high as its content
+- A tool type without a summary (`ToolTypeContract.tileSummary` false, the Schema): its tile is laid as a zone's, the header alone on its first row and the body on every row under it (`TileSize.bodyWithoutSummary`); 2×2, its body under the header; 4×1, its preview beside it.
 
 A fixed height is a fixed box: the tile fills its cells whatever its body shows. Only a tile that follows its content grows with it, alone on its rows. Two tiles 2 wide share a row of the grid, as two icons do. Nothing scrolls in a tile: what does not fit is the tool type's business. A touchable element of the tile does its action, a touch elsewhere opens the tool (or the entry that waits), a long press its config; in editing, a touch selects. The AI neither sees nor changes the positions; changing a tool's size through its config moves down what its tile covers.
 

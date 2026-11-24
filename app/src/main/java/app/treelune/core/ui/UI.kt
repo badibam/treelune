@@ -910,7 +910,7 @@ object UI {
             running = LocalRunning.current.tool(tool.id),
             onClick = onClick,
             onLongClick = onLongClick,
-            summary = { tile.Summary() },
+            summary = if (toolType.tileSummary) ({ tile.Summary() }) else null,
             glance = { tile.Glance() },
             body = { room ->
                 androidx.compose.runtime.CompositionLocalProvider(app.treelune.core.ui.components.LocalItemLayout provides items) { tile.Body(room) }
@@ -952,7 +952,7 @@ object UI {
         running: Boolean,
         onClick: () -> Unit,
         onLongClick: () -> Unit,
-        summary: @Composable () -> Unit,
+        summary: (@Composable () -> Unit)?,
         glance: @Composable () -> Unit,
         body: @Composable (app.treelune.core.look.TileSize.Room) -> Unit,
         frame: LookFrame = LookFrame.SECTION,
@@ -985,9 +985,14 @@ object UI {
         Frame {
             // In one column every tile is laid as a tile 2 wide across the whole width (Grid.oneColumnSize)
             val laid = if (CurrentTheme.oneColumn) size.inOneColumn() else size
-            // A zone's tile has no summary: its pieces start under its header (TileSize.zoneBody)
+            // A zone's tile has no summary: its pieces start under its header (TileSize.bodyWithoutSummary);
+            // nor has a tool whose type says so, its body starting there too
             val zone = frame == LookFrame.ZONE && inner == null
-            val room = if (zone) app.treelune.core.look.ZoneTileBody.room(laid, zonePiecesInIcons) else laid.body
+            val room = when {
+                zone -> app.treelune.core.look.ZoneTileBody.room(laid, zonePiecesInIcons)
+                summary == null -> laid.bodyWithoutSummary
+                else -> laid.body
+            }
             // In icons 4 wide, the pieces fill the whole tile around the header's place
             val beside = zone && app.treelune.core.look.ZoneTileBody.besideHeader(laid, zonePiecesInIcons)
 
@@ -1060,10 +1065,10 @@ object UI {
                     // height is a fixed box, filled whatever its body shows; a tile that follows its
                     // content is as tall as its body, which GridLayout measures
                     val row = app.treelune.core.ui.components.LocalGridRow.current
-                    val top = (if (zone || laid.summaryBeside) row else row * 2) - CurrentTheme.current.tileFrame(size)
+                    val top = (if (zone || summary == null || laid.summaryBeside) row else row * 2) - CurrentTheme.current.tileFrame(size)
                     @Composable
                     fun Top() = when {
-                        zone -> Box(modifier = Modifier.fillMaxWidth().height(top), contentAlignment = Alignment.CenterStart) { Header() }
+                        zone || summary == null -> Box(modifier = Modifier.fillMaxWidth().height(top), contentAlignment = Alignment.CenterStart) { Header() }
                         laid.summaryBeside -> SideBySide(Modifier.fillMaxWidth().height(top), { Header() }, summary)
                         else -> Stacked(Modifier.fillMaxWidth().height(top), { Header() }, summary)
                     }

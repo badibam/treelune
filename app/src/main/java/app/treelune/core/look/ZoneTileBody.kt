@@ -23,11 +23,11 @@ object ZoneTileBody {
 
     /**
      * The room the pieces of a zone's tile of [size] have, in text or in [icons]: the rows under its
-     * header ([TileSize.zoneBody]); in icons 4 wide, the whole tile, the header keeping its place
+     * header ([TileSize.bodyWithoutSummary]); in icons 4 wide, the whole tile, the header keeping its place
      * ([besideHeader]). Null when it has none.
      */
     fun room(size: TileSize, icons: Boolean): TileSize.Room? =
-        if (besideHeader(size, icons)) TileSize.Room(size.width, size.height) else size.zoneBody
+        if (besideHeader(size, icons)) TileSize.Room(size.width, size.height) else size.bodyWithoutSummary
 
     /** Whether the pieces start beside the header: in icons, on a tile 4 wide with text. */
     fun besideHeader(size: TileSize, icons: Boolean): Boolean = icons && !size.inIcons && size.width == TileSize.FULL

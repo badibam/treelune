@@ -18,11 +18,11 @@ import app.treelune.core.utils.DataChangeNotifier
 import org.json.JSONObject
 
 /**
- * A schema's tile (docs/design/schema.md, « La tuile »). The summary counts its boxes and arrows;
- * the body is the schema, scaled down to a fixed room, whole at its reading size in a tile that
- * follows its content. Where the tile has no body (4×1, 2×2), the schema stands in the summary's
- * place as in a body of 2×1, the summary staying when not even its dots hold there. A touch opens
- * the tool.
+ * A schema's tile (docs/design/schema.md, « La tuile »), without a summary
+ * (ToolTypeContract.tileSummary): the body is the schema, scaled down to a fixed room under the
+ * header, whole at its reading size in a tile that follows its content; 4×1, it stands beside the
+ * header as in a body of 2×1. A schema that cannot be drawn says so in its place. A touch opens the
+ * tool.
  */
 @Composable
 fun rememberSchemaTile(tool: ToolInstance): ToolTile {
@@ -39,42 +39,28 @@ fun rememberSchemaTile(tool: ToolInstance): ToolTile {
 
     return remember(tool.id, config.toString()) {
         object : ToolTile {
+            /** Never laid by the tile, which has none: what stands where the schema cannot be drawn. */
             @Composable
             override fun Summary() {
-                val text = when (val read = reading ?: return) {
-                    is SchemaReading.Problem -> s.tool("tile_problem")
-                    is SchemaReading.Drawn -> {
-                        val boxes = read.spec.nodes.size
-                        val arrows = read.spec.edges.size
-                        s.tool("tile_counts").format(
-                            if (boxes == 1) s.tool("count_box_one") else s.tool("count_boxes").format(boxes),
-                            if (arrows == 1) s.tool("count_arrow_one") else s.tool("count_arrows").format(arrows)
-                        )
-                    }
-                }
-                UI.Text(text, TextType.CAPTION, maxLines = 2)
+                if (reading is SchemaReading.Problem) UI.Text(s.tool("tile_problem"), TextType.CAPTION, maxLines = 2)
             }
 
             @Composable
-            override fun Body(room: app.treelune.core.look.TileSize.Room) = Drawn(room) {}
+            override fun Body(room: app.treelune.core.look.TileSize.Room) = Drawn(room)
 
             @Composable
-            override fun Glance() {
-                val read = reading as? SchemaReading.Drawn
-                if (read == null || (read.spec.nodes.isEmpty() && read.spec.groups.isEmpty())) Summary()
-                else Drawn(app.treelune.core.look.TileSize.Room(2, 1)) { Summary() }
-            }
+            override fun Glance() = Drawn(app.treelune.core.look.TileSize.Room(2, 1))
 
-            /** The schema in [room]; [orElse] where nothing of it holds there, even in dots. */
+            /** The schema in [room], nothing where not even its dots hold; why it cannot be drawn, in its place. */
             @Composable
-            private fun Drawn(room: app.treelune.core.look.TileSize.Room, orElse: @Composable () -> Unit) {
-                val read = reading as? SchemaReading.Drawn ?: return
+            private fun Drawn(room: app.treelune.core.look.TileSize.Room) {
+                val read = reading as? SchemaReading.Drawn ?: return Summary()
                 if (read.spec.nodes.isEmpty() && read.spec.groups.isEmpty()) return
                 val folded = read.spec.groups.filter { it.folded }.map { it.id }.toSet()
                 // Sideways when the body has more columns than rows, a square one staying upright
                 // (docs/design/progression.md): read on the cells, never by placing both ways
                 if (room.rows == null) SchemaView(read, folded, onTouch = null)
-                else SchemaView(read, folded, onTouch = null, modifier = Modifier.fillMaxSize(), reduced = true, across = room.width > room.rows, orElse = orElse)
+                else SchemaView(read, folded, onTouch = null, modifier = Modifier.fillMaxSize(), reduced = true, across = room.width > room.rows)
             }
         }
     }

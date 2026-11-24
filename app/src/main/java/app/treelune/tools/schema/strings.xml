@@ -65,7 +65,6 @@
     <string name="screen_empty">This schema is empty. Add its boxes in its config, import a Mermaid text, or ask the AI.</string>
     <string name="screen_problem">This schema cannot be drawn: %1$s</string>
     <string name="tile_problem">Cannot be drawn</string>
-    <string name="tile_counts">%1$s · %2$s</string>
     <string name="count_box_one">1 box</string>
     <string name="count_boxes">%1$d boxes</string>
     <string name="count_arrow_one">1 arrow</string>

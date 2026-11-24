@@ -124,6 +124,13 @@ interface ToolTypeContract {
     val tileSecond: IconSecond get() = IconSecond.NONE
 
     /**
+     * Whether its tile has a summary (ToolTile.Summary). Without one, its tile is laid as a zone's:
+     * its header alone on its first row, its body on every row under it (TileSize.bodyWithoutSummary),
+     * its glance still beside its header 4×1. For a tool whose body says it all (a schema).
+     */
+    val tileSummary: Boolean get() = true
+
+    /**
      * The tile of [tool] (ToolTile): its summary and its body, placed by UI.ToolCard as its
      * size lays them out (TileSize). Every tool type fills every size: there is no tile by default.
      * [open] opens the tool on one of its entries, as this tool type understands opening one

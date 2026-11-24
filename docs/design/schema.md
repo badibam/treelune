@@ -89,8 +89,7 @@ Jugé visuellement acceptable par l'utilisateur à ce stade.
 
 ## La tuile
 
-- **Résumé** : le nombre de boîtes et de flèches (« 7 boîtes · 9 flèches ») ; le même en LINE, CONDENSED et EXTENDED.
-- **Sans corps** (4×1, 2×2) : la miniature à la place du résumé, comme le Graphique (`Glance`), dessinée de gauche à droite ; le résumé y reste quand même les pastilles n'y tiennent pas.
+- **Pas de résumé** (`tileSummary`) : le nombre de boîtes ne disait rien d'utile. La tuile se range comme celle d'une zone, l'en-tête seul sur sa rangée, le schéma sur toutes les rangées dessous ; 2×2, sous l'en-tête ; 4×1, à côté, de gauche à droite (`Glance`). Un schéma qui ne peut être dessiné le dit à sa place ; un schéma dont même les pastilles ne tiennent pas ne montre rien.
 - **SQUARE** : le schéma réduit à la tuile ; un toucher ouvre l'outil.
 - **FULL** : le schéma entier à la taille de lecture ; une boîte liée ouvre sa chose, un toucher ailleurs ouvre l'outil.
 

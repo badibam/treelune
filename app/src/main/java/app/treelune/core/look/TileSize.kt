@@ -60,11 +60,12 @@ data class TileSize private constructor(val width: Int, val height: Int?, val in
     }
 
     /**
-     * The room a zone's tile with text gives its pieces: a zone's tile has no summary, its header
-     * alone on its first row, its pieces on the rows under it ([Room.rows] null when it follows its
-     * content); null in icons and on one row, the header alone.
+     * The room a tile without a summary gives its body — a zone's tile with text, its pieces; a
+     * tool whose type has none (ToolTypeContract.tileSummary) —: its header alone on its first
+     * row, its body on the rows under it ([Room.rows] null when it follows its content); null in
+     * icons and on one row.
      */
-    val zoneBody: Room? get() {
+    val bodyWithoutSummary: Room? get() {
         if (inIcons) return null
         val h = height ?: return Room(width, null)
         return if (h > 1) Room(width, h - 1) else null

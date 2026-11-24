@@ -47,6 +47,9 @@ object SchemaToolType : ToolTypeContract {
 
     override fun keepsEntries(): Boolean = false
 
+    /** Its tile has no summary: the schema says it all, under the header (rememberSchemaTile). */
+    override val tileSummary: Boolean get() = false
+
     /** No entry: neither name nor date nor field. */
     override fun getEntryFields(config: JSONObject, context: Context): EntryFields =
         EntryFields(name = CoreFieldUsage.ABSENT, timestamp = CoreFieldUsage.ABSENT)

@@ -65,7 +65,6 @@
     <string name="screen_empty">Ce schéma est vide. Ajoute ses boîtes dans sa config, importe un texte Mermaid, ou demande-le à l\'IA.</string>
     <string name="screen_problem">Ce schéma ne peut pas être dessiné : %1$s</string>
     <string name="tile_problem">Dessin impossible</string>
-    <string name="tile_counts">%1$s · %2$s</string>
     <string name="count_box_one">1 boîte</string>
     <string name="count_boxes">%1$d boîtes</string>
     <string name="count_arrow_one">1 flèche</string>
