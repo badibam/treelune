@@ -42,7 +42,8 @@ Ce que ça demande au core :
 
 - Une seule notion de lignes calculées, passant par la même porte que les entrées, dont la série d'une variable deviendrait un cas particulier, plutôt qu'un cas `view` de plus dans chaque lecteur. La sélection y gagne un paramètre, `view`.
 - Le coût à mesurer : un Graphique recalculerait la vue à chaque point de temps.
-- Second usage pressenti : une vue `cards` des Flashcards (acquises, en retard, nouvelles), lisible par toute l'app.
+- Second usage pressenti : une vue `cards` des Flashcards (acquises, en retard, nouvelles), lisible par toute l'app. Troisième : la vue `playable` de la Séance.
+- Une Référence vers une ligne de vue (acceptée) : une brique vise ce qu'elle lance sans connaître le mode de la Séance. Elle demande des identifiants de ligne stables (celui d'une entrée, d'une brique-groupe), jamais une position.
 
 ## Créer un parcours
 
@@ -51,6 +52,14 @@ Ce que ça demande au core :
 - Le plan est de la configuration par son sens, des entrées par son stockage. Il se gère depuis l'écran de config, par un bouton qui ouvre un éditeur de plan sur sa propre page : une brique s'écrit tout de suite, alors qu'une config s'enregistre d'un bloc, et les mélanger laisserait croire qu'« Annuler » annule aussi les briques. Ce geste différent est accepté comme un moindre mal. L'écran de l'outil ne crée pas de briques, il sert à les noter. Non vérifié : comment un formulaire de config ouvre une telle page.
 - Un cycle conduit par un maître (le projet `parcours`, que Treelune remplacera en grande partie) n'utilise ni règles ni verrous : le plan y est écrit par l'IA phase après phase, et tout se note à la main.
 - Les champs configurables sont listés par sorte, et nulle part ailleurs : Parcours n'a pas les champs supplémentaires classiques (`takesUserFields`). La racine a sa sorte, dont les champs décrivent le cycle (son cap, ses besoins). À la fin d'un passage, tout est figé, ces champs compris ; un bilan se remplit avant de conclure.
+
+## Lancer depuis une brique
+
+- Le détail d'une pratique (chaque exercice fait ou sauté, son temps, une note) vit dans la Séance, pas dans le Parcours. L'exercice n'est pas noté : la brique Séance l'est.
+- La Séance expose une vue `playable`, une ligne par chose qu'elle sait lancer, quel que soit son mode (une entrée en mode média, un groupe en mode `rows`). La liste « Que jouer ? » en devient l'affichage. Une brique garde une Référence vers une de ces lignes.
+- Deux gestes : `sequence.start` avec la ligne démarre tout de suite (IA, Tâche) ; toucher la brique navigue vers la Séance avec la ligne à lancer, qui s'ouvre directement sur sa fiche, puis « Démarrer » mène à la séance en cours. Une seule séance tourne à la fois : sinon, refus dit.
+- Le retour se fait sans écouter : `start` garde `data.launched_for`, la brique, et l'état « faite » est une règle qui lit la Séance (« une séance terminée lancée pour moi » ; le konnakol en compte 5).
+- Ce que ça change dans la Séance (retenu a priori) : la fenêtre de lancement qui part d'un élément déjà choisi ; l'écran qui reçoit une ligne à lancer (non vérifié : comment un outil en ouvre un autre avec ce paramètre, `Place.Tool` ne portant que l'outil et sa zone) ; `launched_for`. À rediscuter : le mode `rows`, chaque ligne d'une source étant une étape, groupées par un champ, pour qu'une Séance joue les étapes propres à chaque séance du dessin.
 
 ## La fin d'un passage
 
@@ -208,4 +217,4 @@ Risques : écrire ces règles revient un peu à programmer, d'où des modèles t
 
 ## Reprise
 
-Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception. Le passage reste, à la racine seulement : il délimite un parcours, fige son plan et porte son bilan, là où `set` ne change que des états. Reprendre à la complexité de l'ensemble, jugée lourde et non tranchée, et à ce qu'une première version garderait. Piste en attente : un écran de config qui montre d'abord des cases à cocher et trois réglages (`opens_when`, `done_when`, `expires_after`), traduits en règles d'état. Les scènes résistantes sont testées sur le papier en vraie syntaxe. Reprendre aux exemples réels de l'utilisateur : le cycle de dessin du projet `parcours` (trimestre, mois, semaine, séance, exercices), en commençant par ce qu'on note réellement ; le konnakol (une brique = une vidéo, 5 séances après son ouverture pour passer à la suivante). Puis l'écran de config, avec une maquette à manipuler plutôt que du JSON. La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
+Écrire les configs en vraie syntaxe, plus claire que le français pour cette conception. Le passage reste, à la racine seulement : il délimite un parcours, fige son plan et porte son bilan, là où `set` ne change que des états. Reprendre à la complexité de l'ensemble, jugée lourde et non tranchée, et à ce qu'une première version garderait. Piste en attente : un écran de config qui montre d'abord des cases à cocher et trois réglages (`opens_when`, `done_when`, `expires_after`), traduits en règles d'état. Les scènes résistantes sont testées sur le papier en vraie syntaxe. Reprendre au mode `rows` de la Séance (où vivent les étapes d'une séance de dessin : les briques-exercices du Parcours ou une Fiche), puis aux exemples réels de l'utilisateur : le cycle de dessin du projet `parcours` (trimestre, mois, semaine, séance, exercices) ; le konnakol (une brique = une vidéo, 5 séances après son ouverture pour passer à la suivante). Puis l'écran de config, avec une maquette à manipuler plutôt que du JSON. La liste des variables reste aussi à valider (proposition en attente : « qui a la main sur le passage » rangé dans la variable 3), puis à croiser avec les scènes.
