@@ -151,4 +151,33 @@ class SequenceVariantsTest {
         assertEquals("seance_2", data[SequenceToolType.PROGRAM])
         assertEquals(listOf("Vases"), SequenceSteps.read(data[SequenceToolType.KEPT_STEPS] as String)!!.map { it.name })
     }
+
+    @Test
+    fun `the programs' fields are named and checked as the user's fields, their values checked and gone with them`() = runBlocking {
+        val coordinator = Coordinator(context)
+        val zone = coordinator.processUserAction("zones.create", mapOf("name" to "Yoga"))
+        val step = mapOf("kind" to "step", "name" to "Posture", "length" to "fixed", "duration" to 60_000L, "auto_next" to false)
+        val created = coordinator.processUserAction("tools.create", mapOf("zone_id" to zone.data!!["zone_id"], "tooltype" to "sequence",
+            "config" to mapOf("name" to "Yoga", SequenceVariants.VARIANT to SequenceVariants.PROGRAMS,
+                SequenceVariants.PROGRAM_FIELDS to listOf(mapOf("display_name" to "Niveau", "type" to "NUMERIC", "always_visible" to false, "config" to mapOf("decimals" to 0))),
+                SequenceVariants.PROGRAMS to listOf(mapOf(SequenceVariants.PROGRAM_NAME to "Doux", "steps" to listOf(step))))))
+        assertTrue(created.error, created.isSuccess)
+        val sequenceId = created.data!!["tool_instance_id"] as String
+        suspend fun config() = JSONObject((coordinator.processUserAction("tools.get", mapOf("tool_instance_id" to sequenceId)).data!!["tool_instance"] as Map<*, *>)
+            .let { @Suppress("UNCHECKED_CAST") app.treelune.core.utils.JsonUtils.toJSONObject(it["config"] as Map<String, Any?>) }.toString())
+        assertEquals("niveau", config().getJSONArray(SequenceVariants.PROGRAM_FIELDS).getJSONObject(0).getString("name"))
+
+        fun program(values: Map<String, Any?>) = mapOf("tool_instance_id" to sequenceId, "element" to mapOf("list" to SequenceVariants.PROGRAMS, "id" to "doux",
+            "value" to mapOf(SequenceVariants.PROGRAM_NAME to "Doux", SequenceVariants.PROGRAM_VALUES to values, "steps" to listOf(step))))
+        val given = coordinator.processUserAction("tools.update", program(mapOf("niveau" to 2)))
+        assertTrue(given.error, given.isSuccess)
+        assertEquals(2, SequenceVariants.program(config(), "doux")!!.getJSONObject(SequenceVariants.PROGRAM_VALUES).getInt("niveau"))
+        assertFalse(coordinator.processUserAction("tools.update", program(mapOf("niveau" to "haut"))).isSuccess)
+
+        // The field taken out, its values leave the programs
+        val without = config().put(SequenceVariants.PROGRAM_FIELDS, JSONArray())
+        val removed = coordinator.processUserAction("tools.update", mapOf("tool_instance_id" to sequenceId, "config" to app.treelune.core.utils.JsonUtils.toMap(without)))
+        assertTrue(removed.error, removed.isSuccess)
+        assertFalse(SequenceVariants.program(config(), "doux")!!.optJSONObject(SequenceVariants.PROGRAM_VALUES)?.has("niveau") ?: false)
+    }
 }

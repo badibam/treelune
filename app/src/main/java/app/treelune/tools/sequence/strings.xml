@@ -274,4 +274,8 @@
     <string name="error_program_auto_next_without_length">Program “%1$s”: the step “%2$s” has no time of its own: nothing would end it by itself. Give it a time, or untick Next step by itself.</string>
     <string name="launch_program">Which program?</string>
     <string name="launch_program_steps">Steps: %1$d</string>
+    <string name="field_program_fields">Program fields</string>
+    <string name="schema_program_fields">The fields every program fills in, to choose among them at start: a level, a length, a part of the body</string>
+    <string name="field_program_values">Its fields</string>
+    <string name="schema_program_values">This program\'s values of the program fields, by their names</string>
 </resources>

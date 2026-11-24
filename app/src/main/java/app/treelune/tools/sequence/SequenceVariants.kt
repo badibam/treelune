@@ -37,6 +37,10 @@ object SequenceVariants {
     const val PROGRAM_ID = "id"
     const val PROGRAM_NAME = "name"
     const val PROGRAM_DESCRIPTION = "description"
+    /** The fields of the programs, field definitions the config holds as the user's fields are (ToolConfigSettings.fieldLists) */
+    const val PROGRAM_FIELDS = "program_fields"
+    /** A program's values of those fields, by their names, as an entry's extra holds them (SettingNode.FieldValues) */
+    const val PROGRAM_VALUES = "values"
 
     /** The timer's length proposed at launch, and taken by `complete` without one. */
     const val TIMER_DURATION = "timer_duration"

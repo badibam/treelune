@@ -142,7 +142,7 @@ object SequenceToolType : ToolTypeContract {
         val s = s(context)
         val shared = Strings.`for`(context = context)
         return listOf(
-            SettingNode.Section(s.tool("section_session"), listOf(variant(s::tool))),
+            SettingNode.Section(s.tool("section_session"), listOf(variant(s::tool, shared::shared))),
             SettingNode.Section(s.tool("section_background"), listOf(
                 SettingNode.Field(field(BACKGROUND_ENABLED, s.tool("field_background_enabled"), FieldType.BOOLEAN, s.tool("schema_background_enabled")), default = false)
             )),
@@ -175,7 +175,7 @@ object SequenceToolType : ToolTypeContract {
      * a medium, played from an entry chosen at launch among a selection's, from the file field
      * named, offered in the order of a sort; or programs, each its own steps, one chosen at launch.
      */
-    private fun variant(text: (String) -> String) = SettingNode.Variant(
+    private fun variant(text: (String) -> String, sharedText: (String) -> String) = SettingNode.Variant(
         selector = SettingNode.Field(field(SequenceVariants.VARIANT, text("field_variant"), FieldType.CHOICE, text("schema_variant"),
             choice(SequenceVariants.ALL) { text("variant_$it") }), required = true, default = SequenceVariants.STEPS),
         cases = mapOf(
@@ -196,11 +196,16 @@ object SequenceToolType : ToolTypeContract {
                     fieldOf = SequenceVariants.MEDIA_SOURCE, fieldOfKinds = setOf(FileKind.IMAGE))
             ),
             SequenceVariants.PROGRAMS to listOf(
+                // The fields every program fills in (a level, a length, a part of the body), to choose among them
+                SettingNode.ListOf(SequenceVariants.PROGRAM_FIELDS, text("field_program_fields"),
+                    SettingNode.Item.Of(app.treelune.core.fields.settings.FieldTypeSettings.definitionNodes(sharedText)), fieldDefinitions = true,
+                    summary = listOf("display_name", "type"), description = text("schema_program_fields")),
                 SettingNode.ListOf(SequenceVariants.PROGRAMS, text("field_programs"), SettingNode.Item.Of(listOf(
                     // Given from its name at the save, fixed from then on: what a played session and a reference keep
                     SettingNode.Field(field(SequenceVariants.PROGRAM_ID, text("field_program_id"), FieldType.TEXT, text("schema_program_id"), mapOf("length" to TextLength.SHORT.name)), systemWritten = true),
                     SettingNode.Field(field(SequenceVariants.PROGRAM_NAME, text("field_program_name"), FieldType.TEXT, text("schema_program_name"), mapOf("length" to TextLength.SHORT.name)), required = true),
                     SettingNode.Field(field(SequenceVariants.PROGRAM_DESCRIPTION, text("field_program_description"), FieldType.TEXT, text("schema_program_description"), mapOf("length" to TextLength.LONG.name))),
+                    SettingNode.FieldValues(SequenceVariants.PROGRAM_VALUES, text("field_program_values"), SequenceVariants.PROGRAM_FIELDS, text("schema_program_values")),
                     steps(text)
                 ), description = text("schema_program_element")), required = true, minItems = 1,
                     summary = listOf(SequenceVariants.PROGRAM_NAME), description = text("schema_programs"))

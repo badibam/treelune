@@ -274,4 +274,8 @@
     <string name="error_program_auto_next_without_length">Programme « %1$s » : l\'étape « %2$s » n\'a pas de durée à elle : rien ne la terminerait d\'elle-même. Donne-lui une durée, ou décoche Étape suivante d\'elle-même.</string>
     <string name="launch_program">Quel programme ?</string>
     <string name="launch_program_steps">Étapes : %1$d</string>
+    <string name="field_program_fields">Champs des programmes</string>
+    <string name="schema_program_fields">Les champs que chaque programme remplit, pour choisir parmi eux au démarrage : un niveau, une durée, une partie du corps</string>
+    <string name="field_program_values">Ses champs</string>
+    <string name="schema_program_values">Les valeurs de ce programme pour les champs des programmes, par leur nom</string>
 </resources>

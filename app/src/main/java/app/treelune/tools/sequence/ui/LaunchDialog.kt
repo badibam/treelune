@@ -35,6 +35,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import app.treelune.core.fields.FieldValue
+import app.treelune.core.fields.toFieldDefinitions
 import app.treelune.core.ui.ButtonAction
 import app.treelune.core.ui.ButtonType
 import app.treelune.core.ui.ComponentState
@@ -263,18 +264,19 @@ private fun ProgramsDialog(config: JSONObject, history: List<SequenceEntry>, s: 
 
     previewed?.let { id -> SequenceVariants.program(config, id) }?.let { program ->
         val sessions = played[program.optString(SequenceVariants.PROGRAM_ID)].orEmpty()
-        ProgramPreview(program, sessions.maxOfOrNull { it.timestamp }, sessions.size, s, background,
+        ProgramPreview(program, config, sessions.maxOfOrNull { it.timestamp }, sessions.size, s, background,
             onStart = { onAnswer(mapOf(SequenceToolType.PROGRAM to program.optString(SequenceVariants.PROGRAM_ID))) }, onBack = { previewed = null })
     }
 }
 
 /**
  * The program [program] touched, before it starts: its name, its description, when it was played
- * last and how many times, then its steps as they will run, blocks unrolled, each with its length.
+ * last and how many times, its values of the program fields of [config], each with its label, then
+ * its steps as they will run, blocks unrolled, each with its length.
  * « Start » answers; back returns to the list.
  */
 @Composable
-private fun ProgramPreview(program: JSONObject, lastAt: Long?, count: Int, s: StringsContext, background: @Composable () -> Unit, onStart: () -> Unit, onBack: () -> Unit) {
+private fun ProgramPreview(program: JSONObject, config: JSONObject, lastAt: Long?, count: Int, s: StringsContext, background: @Composable () -> Unit, onStart: () -> Unit, onBack: () -> Unit) {
     val context = LocalContext.current
     val steps = remember(program.toString()) { app.treelune.tools.sequence.SequencePlan.unroll(program) }
     UI.Dialog(type = DialogType.SELECTION, onConfirm = onBack, onCancel = onBack) {
@@ -283,6 +285,13 @@ private fun ProgramPreview(program: JSONObject, lastAt: Long?, count: Int, s: St
             UI.Text(if (lastAt == null) s.tool("launch_media_never")
                 else s.tool("launch_media_last").format(DateTimeFormatter.formatForDisplay(lastAt, context)) + " · " + s.tool("launch_media_count").format(count), TextType.CAPTION)
             program.optString(SequenceVariants.PROGRAM_DESCRIPTION).takeIf { it.isNotBlank() }?.let { UI.Text(it, TextType.BODY) }
+            val values = program.optJSONObject(SequenceVariants.PROGRAM_VALUES)
+            config.optJSONArray(SequenceVariants.PROGRAM_FIELDS)?.toFieldDefinitions().orEmpty().forEach { field ->
+                values?.opt(field.name)?.takeIf { it != JSONObject.NULL }?.let { value ->
+                    UI.Text(field.displayName, TextType.LABEL)
+                    FieldValue(field, app.treelune.core.utils.JsonUtils.toValue(value), context)
+                }
+            }
             UI.Text(s.tool("launch_program_steps").format(steps.size), TextType.LABEL)
             steps.forEach { step ->
                 Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
