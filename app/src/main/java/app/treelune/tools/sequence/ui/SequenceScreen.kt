@@ -156,7 +156,7 @@ internal fun roundsText(step: PlannedStep): String = SequenceSteps.roundsOf(step
  * under the user's fields.
  */
 @Composable
-fun SequenceScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureClick: () -> Unit) {
+fun SequenceScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureClick: () -> Unit, openAt: app.treelune.core.tools.OpenAt? = null) {
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "sequence", context = context) }
@@ -167,8 +167,10 @@ fun SequenceScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigu
     var version by remember { mutableIntStateOf(0) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val live by SequenceLive.running.collectAsState()
-    // A session of the history opened, to read and correct
-    var openId by rememberSaveable { mutableStateOf<String?>(null) }
+    // A session of the history opened, to read and correct: one the screen was opened on, first
+    var openId by rememberSaveable { mutableStateOf((openAt as? app.treelune.core.tools.OpenAt.Entry)?.id) }
+    // A row of what it plays the screen was opened on (SequencePlayable), its launch window opened on it once
+    var openRow by rememberSaveable { mutableStateOf((openAt as? app.treelune.core.tools.OpenAt.Row)?.takeIf { it.view == app.treelune.tools.sequence.SequencePlayable.NAME }?.row) }
 
     LaunchedEffect(toolInstanceId, version) {
         val tool = coordinator.processUserAction("tools.get", mapOf("tool_instance_id" to toolInstanceId))
@@ -228,7 +230,7 @@ fun SequenceScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigu
                 onResume = { call(SequenceService.RESUME_INTERRUPTED, mapOf("id" to running.id)) },
                 onStop = { call(SequenceService.STOP, mapOf("id" to running.id)) })
             toFinish != null -> Closing(toFinish, fields, s) { extra -> call(SequenceService.FINISH, mapOf("id" to toFinish.id, "extra" to extra)) }
-            else -> Idle(loadedConfig, loaded, s, ::call, onOpen = { openId = it })
+            else -> Idle(loadedConfig, loaded, s, ::call, onOpen = { openId = it }, openRow = openRow, onRowOpened = { openRow = null })
         }
     }
 }
@@ -365,7 +367,8 @@ private fun Interrupted(s: StringsContext, onResume: () -> Unit, onStop: () -> U
  * the history, a session of which opens to be corrected.
  */
 @Composable
-private fun Idle(config: JSONObject, entries: List<SequenceEntry>, s: StringsContext, call: (String, Map<String, Any?>, () -> Unit) -> Unit, onOpen: (String) -> Unit) {
+private fun Idle(config: JSONObject, entries: List<SequenceEntry>, s: StringsContext, call: (String, Map<String, Any?>, () -> Unit) -> Unit, onOpen: (String) -> Unit,
+                 openRow: String? = null, onRowOpened: () -> Unit = {}) {
     val context = LocalContext.current
     val planned = entries.filter { it.status == SequenceToolType.Status.PLANNED }.sortedByDescending { it.timestamp }
     val history = entries.filter { it.status != SequenceToolType.Status.PLANNED && it.status != SequenceToolType.Status.TO_FINISH }.sortedByDescending { it.timestamp }
@@ -378,11 +381,20 @@ private fun Idle(config: JSONObject, entries: List<SequenceEntry>, s: StringsCon
         val asks = if (operation == SequenceService.START) SequenceVariants.asksAtLaunch(config) else variant != SequenceVariants.STEPS
         if (!asks) call(operation, params) {} else asking = params["id"] as? String ?: SequenceService.START
     }
+    // Opened on a row of what it plays: its launch window, on that program or that entry; a session of
+    // steps, which asks nothing, never starts from a navigation and shows its page
+    var startAt by rememberSaveable { mutableStateOf<String?>(null) }
+    LaunchedEffect(openRow) {
+        if (openRow == null) return@LaunchedEffect
+        if (SequenceVariants.asksAtLaunch(config) && variant != SequenceVariants.STEPS) { startAt = openRow; asking = SequenceService.START }
+        onRowOpened()
+    }
     asking?.let { forWhat ->
-        LaunchDialog(config, history, s, withBackground = forWhat == SequenceService.START, onAnswer = { answer ->
+        LaunchDialog(config, history, s, withBackground = forWhat == SequenceService.START, opened = startAt.takeIf { forWhat == SequenceService.START }, onAnswer = { answer ->
+            startAt = null
             asking = null
             if (forWhat == SequenceService.START) call(SequenceService.START, answer) {} else call(SequenceService.COMPLETE, answer + ("id" to forWhat)) {}
-        }, onCancel = { asking = null })
+        }, onCancel = { asking = null; startAt = null })
     }
 
     planned.firstOrNull()?.let { UI.Text(s.tool("planned_waiting").format(FormatUtils.formatRelativeTimePast(it.timestamp, context)), TextType.CAPTION) }

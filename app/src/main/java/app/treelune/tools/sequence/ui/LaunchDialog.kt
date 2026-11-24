@@ -52,9 +52,13 @@ import org.json.JSONObject
  * @param history The tool's sessions, which tell the entry played last
  * @param withBackground Whether the window offers the config's background, `background` in the
  *   answer: for a session starting, not for one marked done without the app
+ * @param opened A row of what it plays (SequencePlayable) the window opens on: a program's, or an
+ *   entry's of a medium, its window shown at once, back leading to the list; one no longer offered
+ *   is said, and the list shown
  */
 @Composable
-internal fun LaunchDialog(config: JSONObject, history: List<SequenceEntry>, s: StringsContext, withBackground: Boolean = true, onAnswer: (Map<String, Any?>) -> Unit, onCancel: () -> Unit) {
+internal fun LaunchDialog(config: JSONObject, history: List<SequenceEntry>, s: StringsContext, withBackground: Boolean = true, opened: String? = null,
+                          onAnswer: (Map<String, Any?>) -> Unit, onCancel: () -> Unit) {
     val offers = withBackground && SequenceVariants.offersBackground(config)
     var chosen by rememberSaveable(stateSaver = app.treelune.core.ui.FieldValuesSaver) {
         mutableStateOf(app.treelune.tools.sequence.BackgroundChoice.ofConfig(config).toValues())
@@ -63,8 +67,8 @@ internal fun LaunchDialog(config: JSONObject, history: List<SequenceEntry>, s: S
     val background: @Composable () -> Unit = { if (offers) BackgroundInput(chosen, { chosen = it }, s) }
     when (SequenceVariants.of(config)) {
         SequenceVariants.TIMER -> TimerDialog(config, s, background, answer, onCancel)
-        SequenceVariants.MEDIA -> MediaDialog(config, history, s, background, answer, onCancel)
-        SequenceVariants.PROGRAMS -> ProgramsDialog(config, history, s, background, answer, onCancel)
+        SequenceVariants.MEDIA -> MediaDialog(config, history, s, background, opened, answer, onCancel)
+        SequenceVariants.PROGRAMS -> ProgramsDialog(config, history, s, background, opened, answer, onCancel)
         else -> if (offers) UI.Dialog(type = DialogType.CONFIRM, onConfirm = { answer(emptyMap()) }, onCancel = onCancel) {
             Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) { background() }
         } else LaunchedEffect(Unit) { onAnswer(emptyMap()) }
@@ -92,7 +96,7 @@ private fun TimerDialog(config: JSONObject, s: StringsContext, background: @Comp
  * A touch never starts: it opens the entry's window ([MediaPreview]), whose « Start » answers.
  */
 @Composable
-private fun MediaDialog(config: JSONObject, history: List<SequenceEntry>, s: StringsContext, background: @Composable () -> Unit, onAnswer: (Map<String, Any?>) -> Unit, onCancel: () -> Unit) {
+private fun MediaDialog(config: JSONObject, history: List<SequenceEntry>, s: StringsContext, background: @Composable () -> Unit, opened: String?, onAnswer: (Map<String, Any?>) -> Unit, onCancel: () -> Unit) {
     val context = LocalContext.current
     var offered by remember { mutableStateOf<List<Map<String, Any?>>?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -119,8 +123,14 @@ private fun MediaDialog(config: JSONObject, history: List<SequenceEntry>, s: Str
     val playCounts = remember(history) {
         history.flatMap { session -> session.steps.orEmpty().mapNotNull { it.sourceEntry?.id }.distinct() }.groupingBy { it }.eachCount()
     }
-    // The entry touched, shown before it starts
+    // The entry touched, shown before it starts: the one the window was opened on, once the entries are read
     var previewed by remember { mutableStateOf<Map<String, Any?>?>(null) }
+    LaunchedEffect(offered) {
+        val entries = offered ?: return@LaunchedEffect
+        if (opened == null) return@LaunchedEffect
+        previewed = entries.firstOrNull { it["id"] == opened }
+        if (previewed == null) UI.Toast(s.tool("launch_row_gone"), app.treelune.core.ui.Duration.LONG)
+    }
 
     UI.Dialog(type = DialogType.SELECTION, onConfirm = {}, onCancel = onCancel) {
         Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
@@ -235,7 +245,7 @@ private fun MediaPreview(config: JSONObject, entry: Map<String, Any?>, lastAt: L
  * whose « Start » answers.
  */
 @Composable
-private fun ProgramsDialog(config: JSONObject, history: List<SequenceEntry>, s: StringsContext, background: @Composable () -> Unit, onAnswer: (Map<String, Any?>) -> Unit, onCancel: () -> Unit) {
+private fun ProgramsDialog(config: JSONObject, history: List<SequenceEntry>, s: StringsContext, background: @Composable () -> Unit, opened: String?, onAnswer: (Map<String, Any?>) -> Unit, onCancel: () -> Unit) {
     val context = LocalContext.current
     // Offered in the order the config sets by their rows' columns, each with the columns it shows
     val offered by produceState<Pair<List<JSONObject>, List<app.treelune.core.fields.FieldDefinition>>?>(null, config.toString()) {
@@ -244,7 +254,14 @@ private fun ProgramsDialog(config: JSONObject, history: List<SequenceEntry>, s: 
     // When each program was played last, and how many times, by its id
     val played = remember(history) { history.filter { it.program != null && it.status != SequenceToolType.Status.PLANNED }.groupBy { it.program!! } }
     val lastPlayed = remember(played) { played.maxByOrNull { (_, sessions) -> sessions.maxOf { it.timestamp } }?.key }
-    var previewed by rememberSaveable { mutableStateOf<String?>(null) }
+    // The program touched, or the one the window was opened on
+    var previewed by rememberSaveable { mutableStateOf(opened) }
+    LaunchedEffect(Unit) {
+        if (opened != null && SequenceVariants.program(config, opened) == null) {
+            previewed = null
+            UI.Toast(s.tool("launch_row_gone"), app.treelune.core.ui.Duration.LONG)
+        }
+    }
 
     UI.Dialog(type = DialogType.SELECTION, onConfirm = {}, onCancel = onCancel) {
         Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {

@@ -430,7 +430,7 @@ object SequenceToolType : ToolTypeContract {
 
     @Composable
     override fun getUsageScreen(toolInstanceId: String, configJson: String, zoneName: String, onNavigateBack: () -> Unit, onLongClick: () -> Unit, openAt: OpenAt?) {
-        SequenceScreen(toolInstanceId = toolInstanceId, onNavigateBack = onNavigateBack, onConfigureClick = onLongClick)
+        SequenceScreen(toolInstanceId = toolInstanceId, onNavigateBack = onNavigateBack, onConfigureClick = onLongClick, openAt = openAt)
     }
 
     override val tileSecond = app.treelune.core.tools.IconSecond.GESTURE

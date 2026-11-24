@@ -286,4 +286,5 @@
     <string name="schema_program_shown_field">Un champ des programmes, par son chemin : `data.` puis son nom</string>
     <string name="error_program_shown">« %1$s » n\'est pas un champ des programmes</string>
     <string name="playable_entry">Entrée</string>
+    <string name="launch_row_gone">Ce qui devait être joué n\'est plus proposé ici</string>
 </resources>
