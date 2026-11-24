@@ -1022,6 +1022,8 @@ private fun Summary(summary: List<String>, nodes: List<SettingNode>, element: JS
             // Values side by side would read as one phrase ("Weighed on Date and time")
             if (i > 0) UI.Text(Strings.`for`(context = context).shared("list_item_summary_separator"), TextType.BODY)
             if (isList && value is List<*>) value.forEach { FieldValue(definition, it, context) }
+            // A closed line stays a line: a long text is read by opening the element
+            else if (definition.type == app.treelune.core.fields.FieldType.TEXT) UI.Text(value.toString(), TextType.BODY, maxLines = 2, fillMaxWidth = false)
             else FieldValue(definition, value, context)
         }
     }
@@ -1034,6 +1036,8 @@ private fun Summary(summary: List<String>, nodes: List<SettingNode>, element: JS
  */
 private fun summaryText(list: SettingNode.ListOf, nodes: List<SettingNode>, element: JSONObject, index: Int, context: Context): String {
     val shown = list.summary.mapNotNull { key ->
+        // A reference's name needs a read, which a path written at once does not have: the element's other values name it
+        if (nodes.storedField(key)?.type == app.treelune.core.fields.FieldType.REFERENCE) return@mapNotNull null
         when (val value = JsonUtils.toValue(element.opt(key)?.takeIf { it != JSONObject.NULL })) {
             null -> null
             // A list of values is written one element at a time by the field its elements share

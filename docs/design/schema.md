@@ -28,23 +28,23 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
 {
   "direction": "TD",
   "nodes": [
-    {"id": "A", "shape": "rect", "thing": {"kind": "TOOL_INSTANCE", "id": "…"}, "color": "red", "texture": "waves"},
+    {"id": "A", "shape": "rect", "thing": {"kind": "TOOL_INSTANCE", "id": "…"}, "color": "RED"},
     {"id": "B", "label": "Ce qu'il me reste", "shape": "rounded"}
   ],
   "edges": [
     {"from": "A", "to": "B", "label": "nourrit", "line": "dotted"}
   ],
   "groups": [
-    {"id": "matin", "title": "Le matin", "nodes": ["A", "B"]}
+    {"id": "matin", "title": "Le matin", "members": ["A", "B"]}
   ]
 }
 ```
 
 - **Direction** : `TD` (de haut en bas) ou `BT` (de bas en haut). Pas de `LR` ni de `RL` : de gauche à droite, un schéma déborde en portrait.
-- **Formes** : rectangle, coins arrondis, pilule, cercle, losange, sous les noms de la syntaxe `@{ shape: … }` de Mermaid 11 (à vérifier).
+- **Formes** : rectangle, coins arrondis, pilule, cercle, losange, sous les noms de la syntaxe `@{ shape: … }` de Mermaid 11 : `rect`, `rounded`, `stadium`, `circle`, `diamond`.
 - **Flèches** : un trait normal, pointillé ou épais, avec ou sans pointe, un texte facultatif.
-- **Groupes** : imbriquables, un titre, `folded` pour s'ouvrir replié.
-- **Couleur et texture** : sur une boîte ou un groupe, au plus une couleur d'étiquette et une texture, par leurs noms enregistrés ; le thème les dessine, jamais une couleur écrite en dur. Dans le thème E-reader, où une couleur est un motif, couleur et texture vont sur deux surfaces différentes de la boîte, comme pour une icône colorée.
+- **Groupes** : imbriquables, un titre, `folded` pour s'ouvrir replié ; `members` liste leurs boîtes et leurs sous-groupes, un identifiant ne servant qu'une fois parmi les deux.
+- **Couleur** : sur une boîte ou un groupe, au plus une couleur d'étiquette, par son nom enregistré ; le thème la dessine, jamais une couleur écrite en dur. La texture, un temps prévue, n'est pas dans l'outil : la dessiner demande une forme de plus dans `core/drawing` et dans les 9 thèmes.
 - **Le lien d'une boîte** : la brique Chose (`Reference`, `{"kind", "id"}`), choisie par le navigateur des choses. Une boîte liée sans `label` porte le nom actuel de sa chose, « supprimée » si elle n'est plus ; avec `label`, le sien.
 - Une flèche ou un groupe qui nomme une boîte absente est refusé, le refus nommant l'id.
 
@@ -52,7 +52,7 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
 
 - Le formulaire tiré de la config : les listes des boîtes, des flèches et des groupes.
 - L'IA, qui écrit le JSON.
-- **Importer du Mermaid**, dans une section « Mermaid » en tête de la config : un texte flowchart collé ou tapé, converti en une fois, son bilan montré avant (« 12 boîtes, 15 flèches, 2 groupes »), rien d'enregistré avant « Enregistrer » ; une erreur de syntaxe refusée en nommant sa ligne. La conversion dit ce qu'elle change ou laisse : `LR` et `RL` réécrits en `TD`, `style`, `classDef` et `linkStyle` ignorés. Sur un schéma existant, une boîte dont l'id reste garde sa chose, sa couleur et sa texture.
+- **Importer du Mermaid**, dans une section « Mermaid » en tête de la config (`ToolTypeContract.ConfigTools`, qui agit sur le brouillon du formulaire) : un texte flowchart collé ou tapé, converti en une fois, son bilan montré avant (« 12 boîtes, 15 flèches, 2 groupes »), rien d'enregistré avant « Enregistrer » ; une erreur de syntaxe refusée en nommant sa ligne. La conversion dit ce qu'elle change ou laisse : `LR` et `RL` réécrits en `TD`, `style`, `classDef` et `linkStyle` ignorés. Sur un schéma existant, une boîte dont l'id reste garde sa chose et sa couleur.
 - **Copier en Mermaid**, dans la même section : le texte flowchart du schéma, sans les liens.
 - Pas d'éditeur textuel. Le geste sur le dessin (toucher une boîte pour la modifier, tirer une flèche) est à concevoir une fois le dessin là.
 
@@ -61,25 +61,30 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
 Par l'app, sans vue web, chaque thème à sa manière (`core/drawing`, comme le Graphique).
 
 - Une dizaine de boîtes se lisent d'un coup d'œil en portrait, sans toucher ; au-delà, on défile verticalement.
-- Les enfants sans suite d'une même boîte, qu'elle atteint par des flèches identiques (même texte, même trait), forment un bloc rangé en lignes à la largeur de l'écran, à cadre discret, qu'une seule flèche atteint ; un groupe dont les boîtes n'ont aucune flèche entre elles, ni avec l'extérieur, se range de même (`rectpacking` d'ELK, qui refuse un groupe traversé par des flèches). Mesuré : l'arbre à 8 enfants passe de 721 à 534 dp, la carte de 30 choses de 1195 à 1179 dp ; un schéma fait de beaucoup de chaînes indépendantes reste large, quelle que soit la règle.
-- Encore trop large, dans l'ordre : l'app replie des blocs et des groupes, le plus large d'abord, chacun devenant une boîte (« + 6 autres », le titre du groupe) qu'on touche pour la déplier, et le dit sous le schéma (« 2 groupes repliés pour tenir dans l'écran ») ; puis le dessin rétrécit, jusqu'à un seuil où le texte reste lisible (75 %, à juger sur le téléphone) ; en dernier recours, il défile horizontalement.
+- Les enfants sans suite d'une même boîte, qu'elle atteint par des flèches identiques (même texte, même trait), forment un bloc rangé en lignes à la largeur de l'écran, à cadre discret, qu'une seule flèche atteint ; un groupe dont les boîtes n'ont aucune flèche entre elles, ni avec l'extérieur, se range de même, comme les parties d'un schéma qu'aucune flèche ne relie.
+- Encore trop large, dans l'ordre : l'app resserre les textes et les espaces ; replie les groupes, le plus large d'abord, chacun devenant une boîte qu'on touche pour la déplier, et le dit sous le schéma (« 1 groupe replié pour tenir dans l'écran »), sans jamais refermer un groupe ouvert à la main ; réduit le dessin jusqu'à 75 %, sauf dans un thème en pixels entiers ; en dernier recours, il défile horizontalement. Le repli des blocs en « + 6 autres » n'est pas fait.
 - Pas de zoom par pincement.
 
 ## L'écran
 
-Une page de lecture : le schéma sur toute la page, comme en FULL. Une boîte liée ouvre sa chose ; une boîte sans lien montre son texte entier s'il est coupé. Un groupe se replie et se déplie le temps de la visite, sans rien écrire. Ce qui modifie passe par la config, la roue dentée. Vide : « Ce schéma est vide. Ajoute ses boîtes dans sa config, importe un texte Mermaid, ou demande-le à l'IA. »
+Une page de lecture : le schéma sur toute la page, comme en FULL. Ce qui est souligné se touche : le texte d'une boîte dont le lien existe, qui ouvre sa chose ; le mot « suite » d'un texte coupé, qui ouvre une fenêtre avec le texte entier, et un bouton « Ouvrir » si la boîte a aussi un lien. Un groupe se replie et se déplie le temps de la visite, sans rien écrire. Ce qui modifie passe par la config, la roue dentée. Vide : « Ce schéma est vide. Ajoute ses boîtes dans sa config, importe un texte Mermaid, ou demande-le à l'IA. »
 
-Qu'un formulaire de config tiré de la déclaration accepte une section de boutons d'action est à vérifier (« Essayer » d'une API).
+## Le placement
 
-## Le placement : ELK
+`tools/schema/layout/SchemaLayout.kt`, en Kotlin sans type Android : l'app mesure les boîtes et leurs textes, le placement rend des positions et des traits à angles droits, le thème dessine. Méthode en couches, groupe par groupe : un groupe est une boîte opaque pour son parent, une flèche qui y entre est coupée à son bord.
 
-Le placement des boîtes et le tracé des flèches viennent d'ELK (Eclipse Layout Kernel, `org.eclipse.elk.alg.layered`, EPL-2.0), algorithme en couches, `HierarchyHandling.INCLUDE_CHILDREN` pour les groupes, traits à angles droits ; l'app mesure les boîtes et leurs textes, ELK rend des positions, le thème dessine. Mesuré le 2026-11-01 :
+ELK n'entre pas dans l'app. Relevé le 2026-11-22 dans les sources de Maven Central : les 500 fichiers d'ELK 0.12.1 autorisent la GPL-3.0, ceux d'EMF (`common`, `ecore`, `xmi`) et de `xtext.xbase.lib`, dont il dépend, non, en version tirée comme en dernière version. L'autre sortie, une exception ajoutée à la licence de Treelune, n'a pas été retenue.
 
-- l'APK : +2,76 Mo (37,40 → 40,16) ;
-- sous R8, sur le téléphone, sans règle de conservation : il tourne, 30 boîtes à deux groupes imbriqués et une boucle placées en 65 ms la première fois, 20 à 30 ms ensuite, 7 ms d'initialisation ;
-- sur l'ordinateur, cinq schémas types (une boucle, une chaîne Repas → Coach, un arbre à 8 enfants, des groupes imbriqués, la carte d'une zone de 30 choses) : les trois sans largeur sont nets et tiennent en 340 dp ; l'arbre (721 dp) et la carte (1195 dp) débordent, avec ou sans borne du nombre de boîtes par couche (Coffman-Graham), qui les étale en escalier.
+Le banc compare le placement à ELK sur 11 schémas : `tmp/schema-bench` du worktree `schema`, ignoré par git (`../../gradlew run` depuis ce dossier, page `report.html`). Mesuré au commit du placement, nous face à ELK :
 
-Son intégration demande : les fichiers propres à Eclipse en double laissés à un seul (`pickFirsts` : `plugin.xml`, `about.*`…) et `META-INF/services/org.eclipse.elk.core.data.ILayoutMetaDataProvider` fusionné (`merges`) ; `org.eclipse.xtext.xbase.lib`, qu'ELK utilise sans le déclarer ; `-dontwarn org.eclipse.**`, qui cacherait aussi un autre manque, sur un chemin non essayé : chaque option employée se vérifie dans la release sur le téléphone.
+- croisements : jamais plus (Groupes traversés 2 / 3, Losange dense 18 / 18, zéro ailleurs) ;
+- flèche sur une boîte, un groupe étranger ou un texte : 0 / 0 ; sur un titre de groupe : 0 / 12 ;
+- largeur : arbre à 8 enfants 313 / 678 dp, carte de 30 choses 353 / 671 dp, seule à dépasser 340 dp ;
+- coudes : plus qu'ELK sur 6 schémas, dont les trois à groupes (Groupes imbriqués 16 / 6, Groupes traversés 46 / 28, Boucles entre groupes 38 / 16) : la règle « pas plus de coudes qu'ELK sur les schémas à groupes » n'est pas tenue ;
+- hauteur : plus haut sur 9 schémas (carte de 30 choses 1138 / 655 dp) ;
+- temps : 40 ms au plus sur l'ordinateur, moins de 10 ms pour ELK ; non mesuré sur le téléphone.
+
+Jugé visuellement acceptable par l'utilisateur à ce stade.
 
 ## La tuile
 
@@ -87,21 +92,46 @@ Son intégration demande : les fichiers propres à Eclipse en double laissés à
 - **SQUARE** : le schéma réduit à la tuile ; un toucher ouvre l'outil.
 - **FULL** : le schéma entier à la taille de lecture ; une boîte liée ouvre sa chose, un toucher ailleurs ouvre l'outil.
 
+## Reprise
+
+Le Schéma est fusionné dans `develop` (2026-11-24), la suite verte avant la fusion ; la démo en a un au Balcon, « Le soin du balcon ». Le téléphone a encore le build de la branche dans l'app debug, en base 121, avec une zone « Essai » et un schéma « Test » de 12 boîtes qui couvre les formes, les traits, les groupes et une boucle.
+
+Fait : le placement, la config et sa vérification (`SchemaSpec`), le formulaire, le dessin (`SchemaScene`), l'écran (ce qui est souligné se touche, le repli le temps de la visite, le groupe touché qui reste en place), la tuile, la mise à la largeur, l'import et la copie Mermaid (`SchemaMermaid`).
+
+Mesuré sur le téléphone en build debug, pour ce schéma de 12 boîtes : un nouvel état se calcule en 135 à 343 ms, hors du fil de l'écran. Non mesuré : la release, un schéma plus grand.
+
+Reste à coder :
+
+1. Une tuile FULL dont la boîte liée ouvre sa chose : aujourd'hui, tout toucher ouvre l'outil.
+2. L'entrée du Schéma dans `docs/TOOLS.md`, à l'élagage de cette conception.
+
+Jamais vu sur le téléphone :
+
+- Le repli automatique et la réduction à 75 %, qui n'ont tourné qu'en test : il faut un schéma plus large que l'écran.
+- Un schéma importé en Mermaid puis enregistré (l'import dans le brouillon est vu, pas la sauvegarde).
+- Le bouton « Ouvrir » de la fenêtre d'une boîte liée au texte coupé.
+- La coupe à deux lignes du résumé d'une boîte dans le formulaire.
+
+Défauts vus, laissés :
+
+- La longue flèche « ajuste » garde de petits décrochements près de ses extrémités.
+- Replier un sous-groupe fait rétrécir le cadre du groupe parent, dont le bord gauche se déplace.
+- Sur une tuile en thème rétro, le schéma réduit par crans entiers n'occupe qu'environ la moitié de la largeur.
+- Le champ de l'import Mermaid garde les boutons de liste et la majuscule automatique du clavier.
+
+Avant d'installer `develop` sur le téléphone : recopier le schéma « Test » par « Copier en Mermaid », puis effacer l'app debug (`adb shell pm clear app.treelune.debug`), que la base 120 de `develop` n'ouvre plus.
+
 ## Ouvert
 
 Le schéma écrit est conçu ; ce qui suit reste à trancher ou à vérifier.
 
 À vérifier avant ou pendant le code :
 
-- Les noms de forme de la syntaxe `@{ shape: … }` de Mermaid 11, repris pour `shape`.
-- Qu'un formulaire de config tiré de la déclaration accepte une section de boutons d'action (« Importer du Mermaid », « Copier en Mermaid ») ; « Essayer » d'une API en est peut-être le précédent.
-- Les fichiers d'Eclipse qu'ELK et EMF embarquent (`model/*.ecore`, `*.xsd`, signatures, icônes) : ceux qui ne servent pas à l'exécution, retirés de l'APK.
-- Chaque option d'ELK employée, dans la release sur le téléphone (`-dontwarn org.eclipse.**` cache un manque jusqu'à l'appel).
 
 À juger sur le téléphone :
 
 - Le seuil de réduction (75 %).
-- Le dessin de chaque thème : les cinq formes, les traits, le texte des flèches, le bloc à cadre discret, un groupe replié ; dans l'E-reader, couleur et texture sur deux surfaces de la boîte.
+- Le dessin de chaque thème : vu en thème par défaut, rétro et encre ; les six autres restent à voir.
 
 À concevoir :
 

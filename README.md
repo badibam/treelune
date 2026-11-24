@@ -44,6 +44,7 @@ Each part of your life becomes a **zone**: training, a project, a vegetable patc
 - **Session** — Steps prepared ahead, then followed on screen with a timer and a signal at each change, such as a workout or a recipe
 - **Calendar** — Appointments and events at a time, which pass by themselves, with reminders
 - **Flashcards** — Cards to review drawn from another tool, each coming back just before it is forgotten
+- **Schema** — Boxes and arrows: an organisation, a loop, what feeds what
 <!-- /tools -->
 
 Each tool can be set up: its fields, its units, its reminders, how it shows on the zone.
