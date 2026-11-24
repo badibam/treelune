@@ -43,7 +43,7 @@ Ce que ça demande au core :
 - Une seule notion de lignes calculées, passant par la même porte que les entrées, dont la série d'une variable deviendrait un cas particulier, plutôt qu'un cas `view` de plus dans chaque lecteur. La sélection y gagne un paramètre, `view`.
 - Le coût à mesurer : un Graphique recalculerait la vue à chaque point de temps.
 - Second usage pressenti : une vue `cards` des Flashcards (acquises, en retard, nouvelles), lisible par toute l'app. Troisième : la vue `playable` de la Séance.
-- Une Référence vers une ligne de vue (acceptée) : une brique vise ce qu'elle lance sans connaître le mode de la Séance. Elle demande des identifiants de ligne stables (celui d'une entrée, d'une brique-groupe), jamais une position.
+- Une Référence vers une ligne de vue (acceptée) : une brique vise ce qu'elle lance sans connaître le mode de la Séance. Elle demande des identifiants de ligne stables (celui d'une entrée, d'une brique-groupe), jamais une position. Comme pour une entrée, elle peut descendre jusqu'à un champ de la ligne (`field`).
 
 ## Créer un parcours
 
@@ -61,6 +61,7 @@ Ce que ça demande au core :
 - Le retour se fait sans écouter : `start` garde `data.launched_for`, la brique, et l'état « faite » est une règle qui lit la Séance (« une séance terminée lancée pour moi » ; le konnakol en compte 5).
 - Ce que ça change dans la Séance (retenu a priori) : la fenêtre de lancement qui part d'un élément déjà choisi ; l'écran qui reçoit une ligne à lancer (non vérifié : comment un outil en ouvre un autre avec ce paramètre, `Place.Tool` ne portant que l'outil et sa zone) ; `launched_for`. 
 - Un mode « programmes » de la Séance (retenu) : elle garde plusieurs programmes en config, chacun avec ses étapes, écrits avec l'éditeur d'étapes existant. Les trois modes deviennent symétriques : plan (un programme), média (les entrées d'une source), programmes ; chacun donne ses lignes à la vue `playable`. Le Parcours dit où tu en es, la Séance ce que tu fais : la brique « Séance 3 » ne garde qu'une Référence vers son programme, et une séance jouée garde sa copie des étapes. Écartés : les étapes comme briques du Parcours (une Séance dépendrait d'un Parcours) et une Fiche d'étapes (plan dispersé).
+- La description d'une séance s'écrit une fois, dans son programme. Un champ de la brique la suit (un terme qui suit un champ ailleurs, comme une étape de Séance suit déjà le média d'une entrée, `ConfigTerms`), sans copie. Les étapes se voient dans la fiche de lancement de la Séance, que la brique ouvre ; pas de colonne résumé calculée, qui serait de la mise en forme déguisée en donnée.
 - Deux listes de champs dans la Séance : les champs des programmes, valeurs gardées en config comme les raccourcis du Suivi (`SettingNode.FieldValues`), exposés en colonnes de `playable` pour trier et filtrer « Que jouer ? » ; et les champs supplémentaires actuels, sur les séances jouées, dont seule la section est renommée « À remplir en fin de séance ».
 
 ## La fin d'un passage
