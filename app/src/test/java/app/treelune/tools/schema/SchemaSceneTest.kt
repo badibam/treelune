@@ -77,8 +77,8 @@ class SchemaSceneTest {
         assertTrue(scene.heads().isEmpty())
     }
 
-    private val levels = """{"nodes": [{"id": "A", "label": "with an icon", "icon": "leaf"}, {"id": "B", "label": "without", "shape": "diamond"}],
-        "edges": [{"from": "A", "to": "B", "label": "feeds"}], "groups": [{"id": "G", "title": "a group", "members": ["A", "B"]}]}"""
+    private val levels = """{"nodes": [{"id": "A", "label": "with an icon", "icon": "leaf", "parent": "G"}, {"id": "B", "label": "without", "shape": "diamond", "parent": "G"},
+        {"id": "G", "label": "a group"}], "edges": [{"from": "A", "to": "B", "label": "feeds"}]}"""
 
     private fun at(detail: SchemaDetail) = SchemaSceneBuilder(1f, 1f, text, own).build(spec(levels), { null }, emptySet(), 340f, detail = detail)
 
@@ -144,9 +144,8 @@ class SchemaSceneTest {
     }
 
     private val grouped = """{
-        "nodes": [{"id": "A", "label": "outside"}, {"id": "B", "label": "inner one"}, {"id": "C", "label": "inner two"}],
-        "edges": [{"from": "A", "to": "B"}, {"from": "A", "to": "C"}, {"from": "B", "to": "C"}],
-        "groups": [{"id": "G", "title": "Group", "members": ["B", "C"]}]
+        "nodes": [{"id": "A", "label": "outside"}, {"id": "B", "label": "inner one", "parent": "G"}, {"id": "C", "label": "inner two", "parent": "G"}, {"id": "G", "label": "Group"}],
+        "edges": [{"from": "A", "to": "B"}, {"from": "A", "to": "C"}, {"from": "B", "to": "C"}]
     }"""
 
     @Test
@@ -160,8 +159,7 @@ class SchemaSceneTest {
     @Test
     fun `a group inside a folded group goes with it, its boxes counted`() {
         val scene = scene("""{
-            "nodes": [{"id": "A", "label": "a"}, {"id": "B", "label": "b"}],
-            "groups": [{"id": "O", "title": "Out", "members": ["I"]}, {"id": "I", "title": "In", "members": ["A", "B"]}]
+            "nodes": [{"id": "A", "label": "a", "parent": "I"}, {"id": "B", "label": "b", "parent": "I"}, {"id": "O", "label": "Out"}, {"id": "I", "label": "In", "parent": "O"}]
         }""", folded = setOf("O", "I"))
         assertTrue("Out (2)" in scene.labels())
         assertFalse("In" in scene.labels())
@@ -232,9 +230,8 @@ class SchemaSceneTest {
     @Test
     fun `a loop through a group starts at the box nothing reaches`() {
         val scene = scene("""{
-            "nodes": [{"id": "end", "label": "last"}, {"id": "start", "label": "start"}, {"id": "next", "label": "next"}],
-            "edges": [{"from": "start", "to": "next"}, {"from": "next", "to": "end"}, {"from": "end", "to": "next"}],
-            "groups": [{"id": "G", "title": "Group", "members": ["start", "next"]}]
+            "nodes": [{"id": "end", "label": "last"}, {"id": "start", "label": "start", "parent": "G"}, {"id": "next", "label": "next", "parent": "G"}, {"id": "G", "label": "Group"}],
+            "edges": [{"from": "start", "to": "next"}, {"from": "next", "to": "end"}, {"from": "end", "to": "next"}]
         }""")
         val y = { name: String -> scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first { it.text == name }.at.y }
         assertTrue(y("start") < y("next"))
@@ -244,9 +241,8 @@ class SchemaSceneTest {
     @Test
     fun `folding the group that holds the start keeps it at the top`() {
         val scene = scene("""{
-            "nodes": [{"id": "end", "label": "last"}, {"id": "start", "label": "start"}, {"id": "next", "label": "next"}],
-            "edges": [{"from": "start", "to": "next"}, {"from": "next", "to": "end"}, {"from": "end", "to": "next"}],
-            "groups": [{"id": "G", "title": "Group", "members": ["start", "next"]}]
+            "nodes": [{"id": "end", "label": "last"}, {"id": "start", "label": "start", "parent": "G"}, {"id": "next", "label": "next", "parent": "G"}, {"id": "G", "label": "Group"}],
+            "edges": [{"from": "start", "to": "next"}, {"from": "next", "to": "end"}, {"from": "end", "to": "next"}]
         }""", folded = setOf("G"))
         val y = { name: String -> scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first { it.text == name }.at.y }
         assertTrue(y("Group (2)") < y("last"))
@@ -278,10 +274,10 @@ class SchemaSceneTest {
     fun `folding a group leaves its neighbours on the same side`() {
         val json = """{
             "nodes": [{"id": "work", "label": "work"}, {"id": "lunch", "label": "lunch"}, {"id": "link", "label": "neighbour"},
-                {"id": "nap", "label": "a long nap here"}, {"id": "read", "label": "a long read here"}, {"id": "gone", "label": "after the neighbour"}, {"id": "end", "label": "end"}],
+                {"id": "nap", "label": "a long nap here", "parent": "G"}, {"id": "read", "label": "a long read here", "parent": "G"}, {"id": "gone", "label": "after the neighbour"}, {"id": "end", "label": "end"},
+                {"id": "G", "label": "Group"}],
             "edges": [{"from": "work", "to": "lunch"}, {"from": "work", "to": "link"}, {"from": "link", "to": "gone"},
-                {"from": "lunch", "to": "nap"}, {"from": "lunch", "to": "read"}, {"from": "nap", "to": "end"}, {"from": "read", "to": "end"}],
-            "groups": [{"id": "G", "title": "Group", "members": ["nap", "read"]}]
+                {"from": "lunch", "to": "nap"}, {"from": "lunch", "to": "read"}, {"from": "nap", "to": "end"}, {"from": "read", "to": "end"}]
         }"""
         fun x(scene: SchemaScene, name: String) = scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first { it.text == name }.at.x
         val open = scene(json)
@@ -290,10 +286,9 @@ class SchemaSceneTest {
     }
 
     private val wide = """{
-        "nodes": [{"id": "P", "label": "parent"}, {"id": "A", "label": "member one"}, {"id": "B", "label": "member two"},
-            {"id": "C", "label": "member three"}, {"id": "D", "label": "member four"}],
-        "edges": [{"from": "P", "to": "A", "label": "a"}, {"from": "P", "to": "B", "label": "b"}, {"from": "P", "to": "C", "label": "c"}, {"from": "P", "to": "D", "label": "d"}],
-        "groups": [{"id": "G", "title": "Group", "members": ["A", "B", "C", "D"]}]
+        "nodes": [{"id": "P", "label": "parent"}, {"id": "A", "label": "member one", "parent": "G"}, {"id": "B", "label": "member two", "parent": "G"},
+            {"id": "C", "label": "member three", "parent": "G"}, {"id": "D", "label": "member four", "parent": "G"}, {"id": "G", "label": "Group"}],
+        "edges": [{"from": "P", "to": "A", "label": "a"}, {"from": "P", "to": "B", "label": "b"}, {"from": "P", "to": "C", "label": "c"}, {"from": "P", "to": "D", "label": "d"}]
     }"""
 
     private fun fitted(width: Float, keptOpen: Set<String> = emptySet(), unit: Float = 1f) =
@@ -326,6 +321,51 @@ class SchemaSceneTest {
     @Test
     fun `a theme in whole pixels is never shown between two sizes`() {
         assertEquals(1f, fitted(110f, keptOpen = setOf("G"), unit = 3f).scale)
+    }
+
+    private val frames = """{
+        "nodes": [{"id": "A", "label": "before"}, {"id": "G", "label": "Phase", "icon": "hammer", "shape": "diamond"},
+            {"id": "B", "label": "inner one", "parent": "G"}, {"id": "C", "label": "inner two", "parent": "G"}, {"id": "Z", "label": "after"}],
+        "edges": [{"from": "A", "to": "G"}, {"from": "B", "to": "C"}, {"from": "G", "to": "Z"}]
+    }"""
+
+    @Test
+    fun `an arrow to or from a group stops at its frame`() {
+        val scene = scene(frames)
+        val frame = scene.groupArea("G")!!
+        val heads = scene.heads()
+        assertEquals(3, heads.size)
+        // Onto the frame's top, not into it: one head on its border, the other inside on the second box
+        assertEquals(1, heads.count { kotlin.math.abs(it.at.y + it.size / 2 - frame.top) < 1f })
+        val after = scene.hits.first { (it.second as? SchemaTouch.Box)?.node?.id == "Z" }.first
+        assertTrue(after.top > frame.bottom)
+    }
+
+    @Test
+    fun `a group's title carries its icon, and folded the group takes its own shape`() {
+        val open = scene(frames)
+        assertTrue("Phase" in open.labels())
+        assertEquals(listOf("hammer"), open.drawing.shapes.filterIsInstance<DrawShape.Icon>().map { it.name })
+        val closed = scene(frames, folded = setOf("G"))
+        assertTrue("Phase (2)" in closed.labels())
+        val box = closed.hits.first { it.second == SchemaTouch.Group("G", folded = true) }.first
+        // A diamond's outline starts at the middle of its top
+        val outline = closed.drawing.shapes.filterIsInstance<DrawShape.Path>().first { path ->
+            (path.steps.firstOrNull() as? PathStep.MoveTo)?.to?.let { kotlin.math.abs(it.y - box.top) < 0.5f && kotlin.math.abs(it.x - (box.left + box.right) / 2) < 0.5f } == true
+        }
+        assertNotNull(outline)
+    }
+
+    @Test
+    fun `a linked group's title opens its thing, the rest of its band folds it`() {
+        val json = """{"nodes": [{"id": "G", "thing": {"kind": "ZONE", "id": "z"}}, {"id": "B", "label": "inside", "parent": "G"}]}"""
+        val scene = scene(json, names = { "Balcony" })
+        val title = scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first { it.text == "Balcony" }
+        val touch = scene.hitAt(title.at.x + 2f, title.at.y + 2f) as? SchemaTouch.Box
+        assertEquals("G", touch?.node?.id)
+        assertNotNull(touch?.open)
+        val band = scene.groupArea("G")!!
+        assertEquals(SchemaTouch.Group("G", folded = false), scene.hitAt(band.right - 2f, title.at.y + 2f))
     }
 
     @Test

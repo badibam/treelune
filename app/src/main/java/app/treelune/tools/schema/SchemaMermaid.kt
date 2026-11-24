@@ -17,7 +17,6 @@ data class MermaidImport(
     val direction: String,
     val nodes: JSONArray,
     val edges: JSONArray,
-    val groups: JSONArray,
     val notes: List<String>
 ) {
     /** [config] with this schema in place of its own, its other settings untouched. */
@@ -25,14 +24,17 @@ data class MermaidImport(
         .put(SchemaKeys.DIRECTION, direction)
         .put(SchemaKeys.NODES, JSONArray(nodes.toString()))
         .put(SchemaKeys.EDGES, JSONArray(edges.toString()))
-        .put(SchemaKeys.GROUPS, JSONArray(groups.toString()))
+
+    /** How many of its boxes hold others: its subgraphs. */
+    val holders: Int get() = (0 until nodes.length()).mapNotNull { nodes.optJSONObject(it)?.optString(SchemaKeys.PARENT)?.takeIf { p -> p.isNotEmpty() } }.toSet().size
 }
 
 /**
  * Mermaid's flowchart text, in and out (docs/design/schema.md, « La saisie »). Never stored: the
  * config stays JSON. Reading takes what a schema can hold and says what it changes: a sideways
- * direction, a shape it does not have, a link end, an arrow to a group, the styling it ignores.
- * A box or a group whose id stays keeps what Mermaid cannot say: its link, color and icon.
+ * direction, a shape it does not have, a link end, the styling it ignores. A subgraph is a box
+ * that holds others, which an arrow may reach. A box whose id stays keeps what Mermaid cannot say:
+ * its link, color and icon, and for one that holds others its shape and whether it starts folded.
  *
  * @param own The schema tool's strings
  */
@@ -42,13 +44,21 @@ class SchemaMermaid(private val own: (String) -> String) {
     // Writing
     // ---------------------------------------------------------------------------------------------
 
-    /** The flowchart text of [spec], a linked box by its text or the current name of its thing. */
+    /**
+     * The flowchart text of [spec], a linked box by its text or the current name of its thing, a box
+     * that holds others as a subgraph.
+     */
     fun write(spec: SchemaSpec, nameOf: (Reference) -> String?): String {
         val out = StringBuilder("flowchart ${spec.direction.key}\n")
-        val byId = spec.nodes.associateBy { it.id }
-        val groupsById = spec.groups.associateBy { it.id }
+        val children = spec.nodes.filter { it.parent != null }.groupBy { it.parent!! }
         fun box(node: SchemaNode, indent: String) {
             val text = quoted(node.label ?: node.thing?.let(nameOf) ?: node.id)
+            if (node.id in spec.holders) {
+                out.append(indent).append("subgraph ").append(node.id).append(" [").append(text).append("]\n")
+                children[node.id].orEmpty().forEach { box(it, "$indent    ") }
+                out.append(indent).append("end\n")
+                return
+            }
             val shape = when (node.shape) {
                 SchemaShape.RECT -> "[$text]"
                 SchemaShape.ROUNDED -> "($text)"
@@ -58,16 +68,7 @@ class SchemaMermaid(private val own: (String) -> String) {
             }
             out.append(indent).append(node.id).append(shape).append('\n')
         }
-        fun group(group: SchemaGroup, indent: String) {
-            out.append(indent).append("subgraph ").append(group.id).append(" [").append(quoted(group.title)).append("]\n")
-            group.nodes.forEach { id -> byId[id]?.let { box(it, "$indent    ") } }
-            group.groups.forEach { id -> groupsById[id]?.let { group(it, "$indent    ") } }
-            out.append(indent).append("end\n")
-        }
-        val grouped = spec.groups.flatMap { it.nodes }.toSet()
-        val nested = spec.groups.flatMap { it.groups }.toSet()
-        spec.nodes.filter { it.id !in grouped }.forEach { box(it, "    ") }
-        spec.groups.filter { it.id !in nested }.forEach { group(it, "    ") }
+        spec.nodes.filter { it.parent == null }.forEach { box(it, "    ") }
         spec.edges.forEach { edge ->
             val link = when (edge.line) {
                 SchemaLine.NORMAL -> if (edge.head) "-->" else "---"
@@ -88,12 +89,9 @@ class SchemaMermaid(private val own: (String) -> String) {
 
     private class ReadBox(val id: String) {
         var label: String? = null
-        var shape: SchemaShape = SchemaShape.RECT
-        var group: String? = null
-    }
-
-    private class ReadGroup(val id: String, val title: String, val parent: String?) {
-        val members = mutableListOf<String>()
+        var shape: SchemaShape? = null
+        var parent: String? = null
+        var subgraph = false
     }
 
     private class ReadEdge(val from: String, val to: String, val label: String?, val line: SchemaLine, val head: Boolean, val atLine: Int)
@@ -104,15 +102,14 @@ class SchemaMermaid(private val own: (String) -> String) {
     /**
      * [text] converted.
      *
-     * @param existing The config being edited, whose boxes and groups keep what Mermaid cannot say
+     * @param existing The config being edited, whose boxes keep what Mermaid cannot say
      * @param nameOf The current name of a thing: a box whose text is only that stays without a text of its own
      * @throws MermaidError naming the line at fault
      */
     fun read(text: String, existing: JSONObject, nameOf: (Reference) -> String?): MermaidImport {
         val boxes = LinkedHashMap<String, ReadBox>()
-        val groups = LinkedHashMap<String, ReadGroup>()
         val edges = mutableListOf<ReadEdge>()
-        val open = ArrayDeque<Pair<ReadGroup, Int>>()
+        val open = ArrayDeque<Pair<ReadBox, Int>>()
         var direction: String? = null
         var ignored = 0
         var approximated = 0
@@ -123,10 +120,8 @@ class SchemaMermaid(private val own: (String) -> String) {
             written.label?.let { box.label = it }
             written.shape?.let { box.shape = it }
             val inside = open.lastOrNull()?.first
-            if (box.group == null && inside != null) {
-                box.group = inside.id
-                inside.members += box.id
-            }
+            // A subgraph named by an arrow inside itself stays where it is
+            if (box.parent == null && inside != null && inside !== box) box.parent = inside.id
         }
 
         statements(text).forEach { (line, statement) ->
@@ -140,13 +135,15 @@ class SchemaMermaid(private val own: (String) -> String) {
             }
             when (word) {
                 "subgraph" -> {
-                    val (id, title) = subgraph(statement.substring(word.length).trim(), groups.size, line, statement)
-                    if (id in groups) throw MermaidError(own("error_id_twice").format(id))
-                    val parent = open.lastOrNull()?.first
-                    val group = ReadGroup(id, title, parent?.id)
-                    groups[id] = group
-                    parent?.members?.add(id)
-                    open.addLast(group to line)
+                    val (id, title) = subgraph(statement.substring(word.length).trim(), boxes.values.count { it.subgraph }, line, statement)
+                    val box = boxes.getOrPut(id) { ReadBox(id) }
+                    // A subgraph written twice, or over a box given its own text or shape
+                    if (box.subgraph || box.label != null || box.shape != null) throw MermaidError(own("error_id_twice").format(id))
+                    box.subgraph = true
+                    box.label = title
+                    val inside = open.lastOrNull()?.first
+                    if (box.parent == null && inside != null) box.parent = inside.id
+                    open.addLast(box to line)
                 }
                 "end" -> {
                     if (statement.lowercase() != "end" || open.isEmpty()) throw MermaidError(own("mermaid_error_syntax").format(line, statement))
@@ -165,25 +162,10 @@ class SchemaMermaid(private val own: (String) -> String) {
             }
         }
         val written = direction ?: throw MermaidError(own("mermaid_error_header").format(1))
-        open.lastOrNull()?.let { (group, line) -> throw MermaidError(own("mermaid_error_unclosed").format(line, group.id)) }
+        open.lastOrNull()?.let { (box, line) -> throw MermaidError(own("mermaid_error_unclosed").format(line, box.id)) }
 
-        // What was named only as the end of an arrow and is a group is not a box
-        val named = boxes.values.filter { it.id !in groups || it.label != null }
-        boxes.values.filter { it.id in groups && it.label == null }.forEach { box ->
-            box.group?.let { groups[it]?.members?.remove(box.id) }
-        }
-        val boxIds = named.map { it.id }.toSet()
-
-        fun firstBox(id: String): String? {
-            if (id in boxIds) return id
-            return groups[id]?.members?.firstNotNullOfOrNull { firstBox(it) }
-        }
-        var redirected = 0
         val arrows = edges.map { edge ->
-            val from = firstBox(edge.from) ?: throw MermaidError(own("mermaid_error_empty_group").format(edge.atLine, edge.from))
-            val to = firstBox(edge.to) ?: throw MermaidError(own("mermaid_error_empty_group").format(edge.atLine, edge.to))
-            if (from != edge.from || to != edge.to) redirected++
-            JSONObject().put(SchemaKeys.FROM, from).put(SchemaKeys.TO, to).put(SchemaKeys.LINE, edge.line.key).put(SchemaKeys.HEAD, edge.head).apply {
+            JSONObject().put(SchemaKeys.FROM, edge.from).put(SchemaKeys.TO, edge.to).put(SchemaKeys.LINE, edge.line.key).put(SchemaKeys.HEAD, edge.head).apply {
                 edge.label?.let {
                     checkLength(it, FieldLimits.SHORT_LENGTH, edge.atLine)
                     put(SchemaKeys.LABEL, it)
@@ -192,7 +174,8 @@ class SchemaMermaid(private val own: (String) -> String) {
         }
 
         val kept = existing.optJSONArray(SchemaKeys.NODES).byId()
-        val nodeArray = JSONArray(named.map { box ->
+        val holders = boxes.values.mapNotNull { it.parent }.toSet()
+        val nodeArray = JSONArray(boxes.values.map { box ->
             val before = kept[box.id]
             val thing = before?.takeUnless { it.isNull(SchemaKeys.THING) }?.opt(SchemaKeys.THING)
             val thingName = ReferenceTarget.referenceOf(thing)?.let(nameOf)
@@ -204,18 +187,15 @@ class SchemaMermaid(private val own: (String) -> String) {
                 else -> box.label
             }
             label?.let { checkLength(it, BOX_TEXT_LENGTH, null) }
-            JSONObject().put(SchemaKeys.ID, box.id).put(SchemaKeys.SHAPE, box.shape.key).apply {
+            // Mermaid gives a subgraph no shape: one that holds others keeps the one it had, shown when folded
+            val holds = box.id in holders
+            val shape = box.shape?.key ?: (if (holds) before?.optString(SchemaKeys.SHAPE)?.takeIf { it.isNotEmpty() } else null) ?: (if (holds) null else SchemaShape.RECT.key)
+            JSONObject().put(SchemaKeys.ID, box.id).apply {
+                shape?.let { put(SchemaKeys.SHAPE, it) }
                 label?.let { put(SchemaKeys.LABEL, it) }
                 thing?.let { put(SchemaKeys.THING, it) }
-                copyLook(before, this)
-            }
-        })
-        val keptGroups = existing.optJSONArray(SchemaKeys.GROUPS).byId()
-        val groupArray = JSONArray(groups.values.map { group ->
-            checkLength(group.title, FieldLimits.SHORT_LENGTH, null)
-            val before = keptGroups[group.id]
-            JSONObject().put(SchemaKeys.ID, group.id).put(SchemaKeys.TITLE, group.title).put(SchemaKeys.MEMBERS, JSONArray(group.members)).apply {
-                if (before?.optBoolean(SchemaKeys.FOLDED) == true) put(SchemaKeys.FOLDED, true)
+                box.parent?.let { put(SchemaKeys.PARENT, it) }
+                if (holds && before?.optBoolean(SchemaKeys.FOLDED) == true) put(SchemaKeys.FOLDED, true)
                 copyLook(before, this)
             }
         })
@@ -225,10 +205,9 @@ class SchemaMermaid(private val own: (String) -> String) {
             if (written == "LR" || written == "RL") add(own("mermaid_note_direction").format(written, target))
             if (approximated > 0) add(own("mermaid_note_shapes").format(approximated))
             if (linkEnds > 0) add(own("mermaid_note_link_ends").format(linkEnds))
-            if (redirected > 0) add(own("mermaid_note_group_arrows").format(redirected))
             if (ignored > 0) add(own("mermaid_note_ignored").format(ignored))
         }
-        val result = MermaidImport(target, nodeArray, JSONArray(arrows), groupArray, notes)
+        val result = MermaidImport(target, nodeArray, JSONArray(arrows), notes)
         // What the config's own check refuses is said now, not at the save
         try {
             SchemaSpec.of(result.applyTo(JSONObject()), own)

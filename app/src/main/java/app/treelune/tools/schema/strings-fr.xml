@@ -2,10 +2,10 @@
 <resources>
     <!-- Strings of the schema tooltype -->
     <string name="display_name">Schéma</string>
-    <string name="usage">Pour dessiner des boîtes et des flèches : une organisation, une boucle, ce qui nourrit quoi.\n## Ce qu\'il fait\n- Il les dessine à la largeur du téléphone, de haut en bas ou de bas en haut\n- Il range les boîtes en groupes, l\'un dans l\'autre, repliés d\'un toucher\n- Une boîte peut désigner une chose de l\'app, dont elle montre le nom actuel, et l\'ouvrir\n## Pas fait pour\n- Une frise (Agenda), un tableau (Fiches), des chiffres (Graphique)</string>
-    <string name="guide_config">## Le schéma\n- Direction : de haut en bas, ou de bas en haut\n\n## Boîtes\n- Identifiant : le nom court dont se servent les flèches et les groupes\n- Texte : ce que dit la boîte\n- Lien : une chose de l\'app, dont la boîte montre le nom quand elle n\'a pas de texte\n- Forme, Icône, Couleur\n\n## Flèches\n- De, Vers : deux boîtes\n- Texte sur la flèche, Trait, Pointe\n\n## Groupes\n- Identifiant, Titre\n- Contenu : des boîtes et d\'autres groupes\n- Replié au départ\n\n## Mermaid\n- Importer du Mermaid : colle un flowchart ; ce qu\'il donne s\'affiche avant de remplacer le schéma\n- Copier en Mermaid : le schéma en texte, sans ses liens</string>
-    <string name="guide_screen">## Le schéma\nTouche une boîte liée pour ouvrir ce qu\'elle désigne, une boîte au texte coupé pour le lire en entier.\nTouche le titre d\'un groupe pour le replier ou le déplier, le temps de la visite : rien n\'est enregistré.\nPour changer le schéma, ouvre sa config.</string>
-    <string name="ai_detail">Un schéma au vocabulaire des flowcharts de Mermaid, enregistré en JSON, jamais en texte Mermaid ; convertis tout texte Mermaid reçu. Écrit pour un téléphone tenu droit : direction TD ou BT seulement, une dizaine de boîtes lisibles d\'un coup d\'œil, des textes courts. Quand une boîte représente une chose de l\'app, renseigne son lien (thing) plutôt qu\'un texte, pour qu\'elle suive son nom. Les flèches relient des boîtes, jamais des groupes. Ne garde aucune entrée.</string>
+    <string name="usage">Pour dessiner des boîtes et des flèches : une organisation, une boucle, ce qui nourrit quoi.\n## Ce qu\'il fait\n- Il les dessine à la largeur du téléphone, de haut en bas ou de bas en haut\n- Il range des boîtes dans une boîte, qui devient un groupe, l\'un dans l\'autre, repliés d\'un toucher\n- Une boîte peut désigner une chose de l\'app, dont elle montre le nom actuel, et l\'ouvrir\n## Pas fait pour\n- Une frise (Agenda), un tableau (Fiches), des chiffres (Graphique)</string>
+    <string name="guide_config">## Le schéma\n- Direction : de haut en bas, ou de bas en haut\n\n## Boîtes\n- Identifiant : le nom court dont se servent les flèches\n- Texte : ce que dit la boîte\n- Lien : une chose de l\'app, dont la boîte montre le nom quand elle n\'a pas de texte\n- Forme, Icône, Couleur\n- Dans : la boîte qui la contient ; une boîte qui en contient d\'autres se dessine en groupe, son texte en titre\n- Replié au départ : un groupe dessiné en boîte jusqu\'à ce que tu le touches\n\n## Flèches\n- De, Vers : deux boîtes, groupes compris, jamais un groupe et ce qu\'il contient\n- Texte sur la flèche, Trait, Pointe\n\n## Mermaid\n- Importer du Mermaid : colle un flowchart ; ce qu\'il donne s\'affiche avant de remplacer le schéma\n- Copier en Mermaid : le schéma en texte, sans ses liens</string>
+    <string name="guide_screen">## Le schéma\nTouche une boîte liée pour ouvrir ce qu\'elle désigne, une boîte au texte coupé pour le lire en entier ; le titre souligné d\'un groupe fait de même.\nTouche le reste du titre d\'un groupe pour le replier ou le déplier, le temps de la visite : rien n\'est enregistré.\nPour changer le schéma, ouvre sa config.</string>
+    <string name="ai_detail">Un schéma au vocabulaire des flowcharts de Mermaid, enregistré en JSON, jamais en texte Mermaid ; convertis tout texte Mermaid reçu, un subgraph étant une boîte que les boîtes qu\'il contient nomment comme parent. Écrit pour un téléphone tenu droit : direction TD ou BT seulement, une dizaine de boîtes lisibles d\'un coup d\'œil, des textes courts. Quand une boîte représente une chose de l\'app, renseigne son lien (thing) plutôt qu\'un texte, pour qu\'elle suive son nom. Une boîte qui en contient d\'autres se dessine en groupe, son texte en titre ; les flèches relient deux boîtes quelconques, groupe compris, jamais un groupe et ce qu\'il contient. Ne garde aucune entrée.</string>
     <string name="tagline">Des boîtes et des flèches : une organisation, une boucle, ce qui nourrit quoi</string>
     <string name="section_schema">Schéma</string>
     <string name="field_direction">Direction</string>
@@ -32,19 +32,20 @@
     <string name="line_dotted">Pointillé</string>
     <string name="line_thick">Épais</string>
     <string name="field_head">Pointe</string>
-    <string name="field_groups">Groupes</string>
-    <string name="field_title">Titre</string>
-    <string name="field_members">Contenu</string>
-    <string name="field_member">Boîte ou groupe</string>
     <string name="field_folded">Replié au départ</string>
+    <string name="field_parent">Dans</string>
+    <string name="schema_parent">L\'identifiant de la boîte qui contient celle-ci, dessinée en groupe autour d\'elle</string>
+    <string name="error_parent_unknown">La boîte « %1$s » est dans « %2$s », qui n\'est pas une boîte.</string>
+    <string name="error_parent_loop">La boîte « %1$s » finit à l\'intérieur d\'elle-même.</string>
+    <string name="error_edge_inside">La flèche de « %1$s » vers « %2$s » relie un groupe et ce qu\'il contient.</string>
     <string name="schema_direction">Le sens des flèches : TD de haut en bas, BT de bas en haut ; jamais de côté</string>
     <string name="schema_nodes">Les boîtes</string>
     <string name="schema_node">Une boîte, avec un texte, une chose de l\'app, ou les deux</string>
-    <string name="schema_node_id">Identifiant court, unique parmi les boîtes et les groupes, dont se servent les flèches et les groupes</string>
+    <string name="schema_node_id">Identifiant court, unique parmi les boîtes, dont se servent les flèches et les boîtes qu\'elle contient</string>
     <string name="schema_node_label">Le texte montré ; sans lui, le nom actuel de sa chose</string>
     <string name="schema_thing">La chose de l\'app qu\'elle représente et ouvre</string>
     <string name="schema_shape">Sa forme, sous son nom dans Mermaid 11</string>
-    <string name="schema_color">Un nom de la palette, sur une boîte ou un groupe</string>
+    <string name="schema_color">Un nom de la palette</string>
     <string name="schema_icon">Un nom d'icône du vocabulaire (ICONS en trouve un), montré devant le texte de la boîte ; sans icône, une boîte liée montre celle de sa chose</string>
     <string name="schema_edges">Les flèches</string>
     <string name="schema_edge">Une flèche entre deux boîtes</string>
@@ -53,13 +54,7 @@
     <string name="schema_edge_label">Texte court sur la flèche</string>
     <string name="schema_line">Son trait</string>
     <string name="schema_head">Si elle finit par une pointe ; false pour un simple trait</string>
-    <string name="schema_groups">Les groupes, qui peuvent s\'imbriquer</string>
-    <string name="schema_group">Un groupe</string>
-    <string name="schema_group_id">Identifiant court, unique parmi les boîtes et les groupes</string>
-    <string name="schema_title">Son titre</string>
-    <string name="schema_members">Ce qu\'il contient : des identifiants de boîtes et d\'autres groupes, chacun dans un seul groupe au plus</string>
-    <string name="schema_member">L\'identifiant d\'une boîte ou d\'un groupe</string>
-    <string name="schema_folded">S\'il s\'ouvre replié</string>
+    <string name="schema_folded">Si une boîte qui en contient d\'autres s\'ouvre repliée, dessinée en boîte</string>
     <string name="thing_deleted">supprimée</string>
     <string name="group_folded">%1$s (%2$d)</string>
     <string name="screen_empty">Ce schéma est vide. Ajoute ses boîtes dans sa config, importe un texte Mermaid, ou demande-le à l\'IA.</string>
@@ -74,7 +69,7 @@
     <string name="mermaid_import">Importer du Mermaid</string>
     <string name="mermaid_copy">Copier en Mermaid</string>
     <string name="mermaid_field">Texte Mermaid (flowchart)</string>
-    <string name="mermaid_hint">Remplace les boîtes, flèches et groupes de ce schéma. Rien n\'est enregistré tant que tu n\'as pas validé la config.</string>
+    <string name="mermaid_hint">Remplace les boîtes et les flèches de ce schéma. Rien n\'est enregistré tant que tu n\'as pas validé la config.</string>
     <string name="mermaid_names_failed">Les noms des choses liées n\'ont pas pu être lus.</string>
     <string name="mermaid_summary">%1$s, %2$s, %3$s</string>
     <string name="count_group_one">1 groupe</string>
@@ -82,12 +77,10 @@
     <string name="mermaid_note_direction">Direction %1$s réécrite en %2$s.</string>
     <string name="mermaid_note_shapes">Formes dessinées en rectangle : %1$d.</string>
     <string name="mermaid_note_link_ends">Bouts en rond ou en croix dessinés en flèches simples : %1$d.</string>
-    <string name="mermaid_note_group_arrows">Flèches vers un groupe qui atteignent sa première boîte : %1$d.</string>
     <string name="mermaid_note_ignored">Lignes de style ignorées : %1$d.</string>
     <string name="mermaid_error_header">Ligne %1$d : ce n\'est pas un flowchart, il doit commencer par flowchart ou graph.</string>
     <string name="mermaid_error_syntax">Ligne %1$d : impossible de lire « %2$s ».</string>
     <string name="mermaid_error_unclosed">Ligne %1$d : le subgraph « %2$s » n\'a pas de end.</string>
-    <string name="mermaid_error_empty_group">Ligne %1$d : le groupe « %2$s » n\'a aucune boîte à faire atteindre par cette flèche.</string>
     <string name="mermaid_error_long">« %1$s » est trop long : %2$d caractères au plus.</string>
     <string name="mermaid_error_long_line">Ligne %1$d : « %2$s » est trop long : %3$d caractères au plus.</string>
     <!-- Said under a schema the app folded to fit -->
@@ -98,8 +91,8 @@
     <string name="open_thing">Ouvrir</string>
     <!-- Why a config is refused, naming the id at fault -->
     <string name="error_direction">Direction « %1$s » inconnue : TD (de haut en bas) ou BT (de bas en haut).</string>
-    <string name="error_id_missing">Une boîte ou un groupe n\'a pas d\'identifiant.</string>
-    <string name="error_id_twice">L\'identifiant « %1$s » sert deux fois parmi les boîtes et les groupes.</string>
+    <string name="error_id_missing">Une boîte n\'a pas d\'identifiant.</string>
+    <string name="error_id_twice">L\'identifiant « %1$s » sert deux fois parmi les boîtes.</string>
     <string name="error_shape">Boîte « %1$s » : forme « %2$s » inconnue.</string>
     <string name="error_thing">Boîte « %1$s » : son lien ne désigne pas une chose de l\'app.</string>
     <string name="error_node_empty">La boîte « %1$s » n\'a ni texte ni lien.</string>
@@ -108,9 +101,4 @@
     <string name="error_edge_end">Il manque à une flèche son départ ou son arrivée.</string>
     <string name="error_edge_unknown">Une flèche nomme la boîte « %1$s », qui n\'existe pas.</string>
     <string name="error_line">Flèche de « %1$s » à « %2$s » : trait « %3$s » inconnu.</string>
-    <string name="error_group_title">Le groupe « %1$s » n\'a pas de titre.</string>
-    <string name="error_group_unknown_member">Le groupe « %1$s » nomme « %2$s », ni une boîte ni un groupe.</string>
-    <string name="error_node_two_groups">La boîte « %1$s » est dans deux groupes : « %2$s » et « %3$s ».</string>
-    <string name="error_group_two_parents">Le groupe « %1$s » est dans deux groupes : « %2$s » et « %3$s ».</string>
-    <string name="error_group_loop">Le groupe « %1$s » finit à l\'intérieur de lui-même.</string>
 </resources>

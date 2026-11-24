@@ -72,7 +72,7 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
         config = loaded
         reading = read
         if (changed || folded == null) {
-            folded = (read as? SchemaReading.Drawn)?.spec?.groups.orEmpty().filter { it.folded }.map { it.id }.toSet()
+            folded = (read as? SchemaReading.Drawn)?.spec?.let { spec -> spec.nodes.filter { it.folded && it.id in spec.holders }.map { it.id }.toSet() }.orEmpty()
             keptOpen = emptySet()
             opened = null
         }
@@ -99,7 +99,7 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
         when (val read = reading) {
             null -> UI.LoadingIndicator()
             is SchemaReading.Problem -> UI.Text(s.tool("screen_problem").format(read.message), TextType.ERROR)
-            is SchemaReading.Drawn -> if (read.spec.nodes.isEmpty() && read.spec.groups.isEmpty()) UI.Text(s.tool("screen_empty"), TextType.CAPTION) else {
+            is SchemaReading.Drawn -> if (read.spec.nodes.isEmpty()) UI.Text(s.tool("screen_empty"), TextType.CAPTION) else {
                 val shownFolded = folded.orEmpty()
                 SchemaView(read, shownFolded, onTouch = { touch ->
                     when (touch) {

@@ -2,10 +2,10 @@
 <resources>
     <!-- Strings of the schema tooltype -->
     <string name="display_name">Schema</string>
-    <string name="usage">For drawing boxes and arrows: an organisation, a loop, what feeds what.\n## What it does\n- Draws them at the phone\'s width, top to bottom or bottom to top\n- Groups boxes, one group inside another, folded with a touch\n- A box can link to a thing of the app, whose current name it shows, and open it\n## Not made for\n- A timeline (Agenda), a table (Records), figures (Chart)</string>
-    <string name="guide_config">## The schema\n- Direction: top to bottom, or bottom to top\n\n## Boxes\n- Id: the short name arrows and groups use\n- Text: what the box says\n- Link: a thing of the app, whose name the box shows when it has no text\n- Shape, Icon, Color\n\n## Arrows\n- From, To: two boxes\n- Text on the arrow, Line, Arrowhead\n\n## Groups\n- Id, Title\n- Contents: boxes and other groups\n- Starts folded\n\n## Mermaid\n- Import Mermaid: paste a flowchart; what it gives shows before it replaces the schema\n- Copy as Mermaid: the schema as text, without its links</string>
-    <string name="guide_screen">## The schema\nTouch a linked box to open what it designates, a box whose text is cut to read it whole.\nTouch a group\'s title to fold or unfold it, for this visit: nothing is saved.\nTo change the schema, open its config.</string>
-    <string name="ai_detail">A diagram in the vocabulary of Mermaid flowcharts, stored as JSON, never as Mermaid text; convert any Mermaid text you are given. Written for a phone held upright: direction TD or BT only, about ten boxes readable at a glance, short labels. When a box stands for a thing of the app, set its thing rather than a label, so that it follows its name. Arrows join boxes, never groups. Keeps no entries.</string>
+    <string name="usage">For drawing boxes and arrows: an organisation, a loop, what feeds what.\n## What it does\n- Draws them at the phone\'s width, top to bottom or bottom to top\n- Puts boxes inside a box, which becomes a group, one inside another, folded with a touch\n- A box can link to a thing of the app, whose current name it shows, and open it\n## Not made for\n- A timeline (Agenda), a table (Records), figures (Chart)</string>
+    <string name="guide_config">## The schema\n- Direction: top to bottom, or bottom to top\n\n## Boxes\n- Id: the short name arrows use\n- Text: what the box says\n- Link: a thing of the app, whose name the box shows when it has no text\n- Shape, Icon, Color\n- Inside: the box that holds it; a box holding others is drawn as a group, its text as its title\n- Starts folded: a group drawn as a box until touched\n\n## Arrows\n- From, To: two boxes, groups included, never a group and what it holds\n- Text on the arrow, Line, Arrowhead\n\n## Mermaid\n- Import Mermaid: paste a flowchart; what it gives shows before it replaces the schema\n- Copy as Mermaid: the schema as text, without its links</string>
+    <string name="guide_screen">## The schema\nTouch a linked box to open what it designates, a box whose text is cut to read it whole; a group\'s underlined title does the same.\nTouch the rest of a group\'s title to fold or unfold it, for this visit: nothing is saved.\nTo change the schema, open its config.</string>
+    <string name="ai_detail">A diagram in the vocabulary of Mermaid flowcharts, stored as JSON, never as Mermaid text; convert any Mermaid text you are given, a subgraph being a box that the boxes inside it name as their parent. Written for a phone held upright: direction TD or BT only, about ten boxes readable at a glance, short labels. When a box stands for a thing of the app, set its thing rather than a label, so that it follows its name. A box that holds others is drawn as a group, its label as its title; arrows join any two boxes, a group included, never a group and what it holds. Keeps no entries.</string>
     <string name="tagline">Boxes and arrows: an organisation, a loop, what feeds what</string>
     <string name="section_schema">Schema</string>
     <string name="field_direction">Direction</string>
@@ -32,19 +32,20 @@
     <string name="line_dotted">Dotted</string>
     <string name="line_thick">Thick</string>
     <string name="field_head">Arrowhead</string>
-    <string name="field_groups">Groups</string>
-    <string name="field_title">Title</string>
-    <string name="field_members">Contents</string>
-    <string name="field_member">Box or group</string>
     <string name="field_folded">Starts folded</string>
+    <string name="field_parent">Inside</string>
+    <string name="schema_parent">The id of the box that holds this one, drawn as a group around it</string>
+    <string name="error_parent_unknown">Box “%1$s” is inside “%2$s”, which is not a box.</string>
+    <string name="error_parent_loop">Box “%1$s” ends up inside itself.</string>
+    <string name="error_edge_inside">The arrow from “%1$s” to “%2$s” joins a group and what it holds.</string>
     <string name="schema_direction">Which way the arrows run: TD top to bottom, BT bottom to top; never sideways</string>
     <string name="schema_nodes">The boxes</string>
     <string name="schema_node">One box, with a label, a thing, or both</string>
-    <string name="schema_node_id">Short id, unique among boxes and groups, used by arrows and groups</string>
+    <string name="schema_node_id">Short id, unique among boxes, used by arrows and by the boxes inside it</string>
     <string name="schema_node_label">The text shown; without it, the current name of its thing</string>
     <string name="schema_thing">The thing of the app it stands for and opens</string>
     <string name="schema_shape">Its shape, by its Mermaid 11 name</string>
-    <string name="schema_color">A palette name, on a box or a group</string>
+    <string name="schema_color">A palette name</string>
     <string name="schema_icon">An icon name of the vocabulary (ICONS finds one), shown before the box's text; without one, a linked box shows its thing's icon</string>
     <string name="schema_edges">The arrows</string>
     <string name="schema_edge">One arrow between two boxes</string>
@@ -53,13 +54,7 @@
     <string name="schema_edge_label">Short text on the arrow</string>
     <string name="schema_line">Its line</string>
     <string name="schema_head">Whether it ends in a head; false for a plain line</string>
-    <string name="schema_groups">The groups, which may nest</string>
-    <string name="schema_group">One group</string>
-    <string name="schema_group_id">Short id, unique among boxes and groups</string>
-    <string name="schema_title">Its title</string>
-    <string name="schema_members">What it holds: ids of boxes and of other groups, each in one group at most</string>
-    <string name="schema_member">The id of a box or of a group</string>
-    <string name="schema_folded">Whether it opens folded</string>
+    <string name="schema_folded">Whether a box holding others opens folded, drawn as a box</string>
     <string name="thing_deleted">deleted</string>
     <string name="group_folded">%1$s (%2$d)</string>
     <string name="screen_empty">This schema is empty. Add its boxes in its config, import a Mermaid text, or ask the AI.</string>
@@ -74,7 +69,7 @@
     <string name="mermaid_import">Import Mermaid</string>
     <string name="mermaid_copy">Copy as Mermaid</string>
     <string name="mermaid_field">Mermaid text (flowchart)</string>
-    <string name="mermaid_hint">Replaces the boxes, arrows and groups of this schema. Nothing is stored until you save the config.</string>
+    <string name="mermaid_hint">Replaces the boxes and arrows of this schema. Nothing is stored until you save the config.</string>
     <string name="mermaid_names_failed">The names of the linked things could not be read.</string>
     <string name="mermaid_summary">%1$s, %2$s, %3$s</string>
     <string name="count_group_one">1 group</string>
@@ -82,12 +77,10 @@
     <string name="mermaid_note_direction">Direction %1$s rewritten as %2$s.</string>
     <string name="mermaid_note_shapes">Shapes drawn as rectangles: %1$d.</string>
     <string name="mermaid_note_link_ends">Circle or cross ends drawn as plain arrows: %1$d.</string>
-    <string name="mermaid_note_group_arrows">Arrows to a group now reaching its first box: %1$d.</string>
     <string name="mermaid_note_ignored">Styling lines ignored: %1$d.</string>
     <string name="mermaid_error_header">Line %1$d: not a flowchart; it must start with flowchart or graph.</string>
     <string name="mermaid_error_syntax">Line %1$d: cannot read “%2$s”.</string>
     <string name="mermaid_error_unclosed">Line %1$d: the subgraph “%2$s” has no end.</string>
-    <string name="mermaid_error_empty_group">Line %1$d: the group “%2$s” holds no box for this arrow to reach.</string>
     <string name="mermaid_error_long">“%1$s” is too long: %2$d characters at most.</string>
     <string name="mermaid_error_long_line">Line %1$d: “%2$s” is too long: %3$d characters at most.</string>
     <!-- Said under a schema the app folded to fit -->
@@ -98,8 +91,8 @@
     <string name="open_thing">Open</string>
     <!-- Why a config is refused, naming the id at fault -->
     <string name="error_direction">Unknown direction “%1$s”: TD (top to bottom) or BT (bottom to top).</string>
-    <string name="error_id_missing">A box or a group has no id.</string>
-    <string name="error_id_twice">The id “%1$s” is used twice among the boxes and groups.</string>
+    <string name="error_id_missing">A box has no id.</string>
+    <string name="error_id_twice">The id “%1$s” is used twice among the boxes.</string>
     <string name="error_shape">Box “%1$s”: unknown shape “%2$s”.</string>
     <string name="error_thing">Box “%1$s”: its link does not designate a thing of the app.</string>
     <string name="error_node_empty">Box “%1$s” has neither a text nor a link.</string>
@@ -108,9 +101,4 @@
     <string name="error_edge_end">An arrow lacks its start or its end.</string>
     <string name="error_edge_unknown">An arrow names the box “%1$s”, which does not exist.</string>
     <string name="error_line">Arrow from “%1$s” to “%2$s”: unknown line “%3$s”.</string>
-    <string name="error_group_title">Group “%1$s” has no title.</string>
-    <string name="error_group_unknown_member">Group “%1$s” names “%2$s”, neither a box nor a group.</string>
-    <string name="error_node_two_groups">Box “%1$s” is in two groups: “%2$s” and “%3$s”.</string>
-    <string name="error_group_two_parents">Group “%1$s” is in two groups: “%2$s” and “%3$s”.</string>
-    <string name="error_group_loop">Group “%1$s” ends up inside itself.</string>
 </resources>

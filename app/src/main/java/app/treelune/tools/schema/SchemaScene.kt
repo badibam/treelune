@@ -67,44 +67,50 @@ data class SchemaScene(
     fun groupArea(id: String): DrawRect? = hits.lastOrNull { (it.second as? SchemaTouch.Group)?.id == id }?.first
 }
 
+/** A box that holds others, drawn open: the [boxes] it holds drawn as boxes, the [frames] as frames. */
+internal data class SchemaFrame(val node: SchemaNode, val boxes: List<String>, val frames: List<String>) {
+    val id get() = node.id
+}
+
 /**
- * What stays on screen with some groups folded: a folded group is one box, what it holds goes, and
- * the arrows that entered it reach that box. Arrows made identical by folding are drawn once.
+ * What stays on screen with some boxes folded: a folded box is drawn as a box again, what it holds
+ * goes, and the arrows that reached it reach that box. Arrows made identical by folding are drawn once.
  */
 internal class SchemaVisible(spec: SchemaSpec, private val folded: Set<String>) {
-    private val groupsById = spec.groups.associateBy { it.id }
-    private val parentOfGroup = spec.groups.flatMap { g -> g.groups.map { it to g.id } }.toMap()
-    private val groupOfNode = spec.groups.flatMap { g -> g.nodes.map { it to g.id } }.toMap()
+    private val holders = spec.holders
+    private val parentOf = spec.nodes.mapNotNull { node -> node.parent?.let { node.id to it } }.toMap()
+    private val childrenOf = spec.nodes.filter { it.parent != null }.groupBy({ it.parent!! }, { it.id })
 
-    /** The outermost folded group among [group] and those holding it; null when none is folded. */
-    private fun outermostFolded(group: String?): String? =
-        generateSequence(group) { parentOfGroup[it] }.filter { it in folded }.lastOrNull()
+    /** The outermost folded box among [id] and those holding it; null when none is folded. */
+    private fun outermostFolded(id: String): String? =
+        generateSequence(id) { parentOf[it] }.filter { it in folded && it in holders }.lastOrNull()
 
-    /** The id [node] is drawn under: its own, or the outermost folded group holding it. */
-    fun shownAs(node: String): String = outermostFolded(groupOfNode[node]) ?: node
+    /** The id [id] is drawn under: its own, or the outermost folded box holding it. */
+    fun shownAs(id: String): String = outermostFolded(id) ?: id
 
-    /** The groups drawn as one box. */
-    val foldedGroups: List<SchemaGroup> = spec.groups.filter { it.id in folded && outermostFolded(it.id) == it.id }
+    /** Whether [id] holds others and is drawn folded, as a box. */
+    fun isFolded(id: String): Boolean = id in holders && outermostFolded(id) == id
 
-    val nodes: List<SchemaNode> = spec.nodes.filter { outermostFolded(groupOfNode[it.id]) == null }
+    /** What is drawn as a box: the boxes that hold nothing, and the folded ones, nothing folded around them. */
+    val nodes: List<SchemaNode> = spec.nodes.filter { node -> if (node.id in holders) isFolded(node.id) else outermostFolded(node.id) == null }
 
-    /** The groups drawn open, holding what is still drawn, a folded group as a box. */
-    val groups: List<SchemaGroup> = spec.groups.filter { outermostFolded(it.id) == null }.map { group ->
-        group.copy(
-            nodes = group.nodes + group.groups.filter { it in folded },
-            groups = group.groups.filter { it !in folded }
-        )
+    private fun isOpen(id: String) = id in holders && outermostFolded(id) == null
+
+    /** The boxes drawn open, as frames. */
+    val frames: List<SchemaFrame> = spec.nodes.filter { isOpen(it.id) }.map { node ->
+        val children = childrenOf[node.id].orEmpty()
+        SchemaFrame(node, children.filter { !isOpen(it) }, children.filter { isOpen(it) })
     }
 
     val edges: List<SchemaEdge> = spec.edges.mapNotNull { edge ->
         val from = shownAs(edge.from)
         val to = shownAs(edge.to)
-        // An arrow inside a folded group goes with it; a box's arrow to itself stays
+        // An arrow inside a folded box goes with it; a box's arrow to itself stays
         if (from == to && edge.from != edge.to) null else edge.copy(from = from, to = to)
     }.distinct()
 
-    /** How many boxes [group] holds, those of the groups inside it included. */
-    fun boxCount(group: SchemaGroup): Int = group.nodes.size + group.groups.sumOf { id -> groupsById[id]?.let { boxCount(it) } ?: 0 }
+    /** How many boxes [id] holds that hold nothing themselves, at any depth: what folding hides. */
+    fun boxCount(id: String): Int = childrenOf[id].orEmpty().sumOf { if (it in holders) boxCount(it) else 1 }
 }
 
 /**
@@ -129,8 +135,8 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         val cut: Boolean,
         val shape: SchemaShape,
         val color: TagColor?,
-        val node: SchemaNode?,
-        val group: SchemaGroup?,
+        val node: SchemaNode,
+        val folded: Boolean,
         val open: Reference?,
         val icon: String?,
         val iconBeside: Boolean,
@@ -175,7 +181,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         var auto = emptySet<String>()
         val useless = mutableSetOf<String>()
         while (!best.fits()) {
-            val widest = best.visible.groups.filter { it.id !in keptOpen && it.id !in useless }
+            val widest = best.visible.frames.filter { it.id !in keptOpen && it.id !in useless }
                 .maxByOrNull { best.placement.groups[it.id]?.let { rect -> if (across) rect.height else rect.width } ?: 0f } ?: break
             val next = placed(folded + auto + widest.id, Spacing.TIGHT)
             if (next.extent() >= best.extent() - 0.5f) useless += widest.id
@@ -200,7 +206,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         val boxes: List<Measured>,
         val byId: Map<String, Measured>,
         val labels: List<String?>,
-        val titles: Map<String, String>,
+        val titles: Map<String, Title>,
         val upward: Boolean,
         val mode: Mode,
         val placement: Placement
@@ -218,16 +224,29 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         }
     }
 
+    /**
+     * A frame's title as written: its [text], cut to fit from the [whole] one, the [icon] before it,
+     * and the thing it can [open].
+     */
+    private data class Title(val text: String, val whole: String, val icon: String?, val open: Reference?) {
+        val cut get() = text != whole
+    }
+
+    /** What a box says: its own text, or its thing's current name. */
+    private fun wholeText(node: SchemaNode, nameOf: (Reference) -> String?): String = node.label ?: node.thing?.let(nameOf) ?: own("thing_deleted")
+
+    /** The thing a box can open: its link, unless what it designates no longer exists. */
+    private fun opens(node: SchemaNode, nameOf: (Reference) -> String?): Reference? = node.thing?.takeIf { nameOf(it) != null }
+
     /** The boxes of what stays visible with [folded] shut, measured as [mode] says. */
     private fun measured(spec: SchemaSpec, visible: SchemaVisible, nameOf: (Reference) -> String?, iconOf: (Reference) -> String?, mode: Mode, width: Float, spacing: Spacing): List<Measured> {
         val textLimit = max(min(width * 0.42f, dp(150f)) * spacing.text, dp(88f))
         return visible.nodes.map { node ->
-            val whole = node.label ?: node.thing?.let(nameOf) ?: own("thing_deleted")
-            val open = node.thing?.takeIf { nameOf(it) != null }
-            measure(node.id, whole, node.shape, node.color, node, null, open, node.icon ?: open?.let(iconOf), mode, textLimit)
-        } + visible.foldedGroups.map { group ->
-            val whole = own("group_folded").format(group.title, visible.boxCount(group))
-            measure(group.id, whole, SchemaShape.RECT, group.color, null, group, null, null, mode, textLimit)
+            val folded = visible.isFolded(node.id)
+            val text = wholeText(node, nameOf)
+            val whole = if (folded) own("group_folded").format(text, visible.boxCount(node.id)) else text
+            val open = opens(node, nameOf)
+            measure(node.id, whole, node.shape, node.color, node, folded, open, node.icon ?: open?.let(iconOf), mode, textLimit)
         }
     }
 
@@ -247,12 +266,14 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
 
         val upward = spec.direction == SchemaDirection.BOTTOM_UP
         val labels = visible.edges.map { edge -> edge.label?.takeIf { mode.written }?.let { ellipsize(it, dp(120f)) } }
-        val titles = visible.groups.associate { group ->
-            group.id to when {
-                mode.written -> ellipsize(group.title, width * 0.6f)
-                mode.titled -> ellipsize(group.title, dp(COMPACT_LINE))
+        val titles = visible.frames.associate { frame ->
+            val whole = wholeText(frame.node, nameOf)
+            val open = opens(frame.node, nameOf)
+            frame.id to Title(when {
+                mode.written -> ellipsize(whole, width * 0.6f)
+                mode.titled -> ellipsize(whole, dp(COMPACT_LINE))
                 else -> ""
-            }
+            }, whole, (frame.node.icon ?: open?.let(iconOf)).takeIf { mode.titled }, open)
         }
         val across = mode.across
         val placement = GraphLayout(LayoutOptions(
@@ -270,9 +291,9 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
                     look = "${edge.label.orEmpty()}|${edge.line.key}|${edge.head}"
                 )
             },
-            groups = visible.groups.map { group ->
-                val title = titles.getValue(group.id)
-                LayoutGroup(group.id, if (title.isEmpty()) 0f else text.width(title), if (title.isEmpty()) 0f else text.height, group.nodes, group.groups)
+            groups = visible.frames.map { frame ->
+                val title = titles.getValue(frame.id)
+                LayoutGroup(frame.id, titleWidth(title), if (title.text.isEmpty()) 0f else text.height, frame.boxes, frame.frames)
             },
             starts = starts(spec, visible, upward),
             reference = reference
@@ -289,19 +310,36 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         val shapes = mutableListOf<DrawShape>()
         val hits = mutableListOf<Pair<DrawRect, SchemaTouch>>()
 
-        // Groups first, the outer ones under the inner ones
-        visible.groups.mapNotNull { g -> placement.groups[g.id]?.let { g to it } }
+        // Frames first, the outer ones under the inner ones
+        visible.frames.mapNotNull { f -> placement.groups[f.id]?.let { f to it } }
             .sortedByDescending { (_, rect) -> rect.width * rect.height }
-            .forEach { (group, rect) ->
+            .forEach { (frame, rect) ->
+                val color = frame.node.color
                 val outline = rounded(rect.draw(), dp(8f), dp(8f))
-                shapes += DrawShape.Path(outline, fill(group.color), SURFACE_OPACITY / 2, 0f, null, true)
-                shapes += DrawShape.Path(outline, stroke(group.color, InkLevel.FAINT), 1f, thin(), null, false)
+                shapes += DrawShape.Path(outline, fill(color), SURFACE_OPACITY / 2, 0f, null, true)
+                shapes += DrawShape.Path(outline, stroke(color, InkLevel.FAINT), 1f, thin(), null, false)
                 val pad = GROUP_PADDING * density
-                if (mode.titled) shapes += DrawShape.Label(titles.getValue(group.id), DrawPoint(rect.left + pad, rect.top + pad), TextAnchor.START, TextBaseline.TOP, DrawColor.Ink(InkLevel.MEDIUM))
+                val title = titles.getValue(frame.id)
                 // Its title's band: on its top, or on its left side in a drawing running across
-                val band = if (across) DrawRect(rect.left, rect.top, rect.left + 2 * pad + text.width(titles.getValue(group.id)), rect.bottom)
+                val band = if (across) DrawRect(rect.left, rect.top, rect.left + 2 * pad + titleWidth(title), rect.bottom)
                     else DrawRect(rect.left, rect.top, rect.right, rect.top + 2 * pad + text.height)
-                hits += band to SchemaTouch.Group(group.id, folded = false)
+                hits += band to SchemaTouch.Group(frame.id, folded = false)
+                if (mode.titled) {
+                    val ink = DrawColor.Ink(InkLevel.MEDIUM)
+                    var x = rect.left + pad
+                    title.icon?.let { icon ->
+                        shapes += DrawShape.Icon(icon, DrawPoint(x + iconSize() / 2, rect.top + pad + text.height / 2), iconSize(), stroke(color, InkLevel.STRONG))
+                        x += iconRoom()
+                    }
+                    shapes += DrawShape.Label(title.text, DrawPoint(x, rect.top + pad), TextAnchor.START, TextBaseline.TOP, ink)
+                    // A linked or cut title is underlined, and its text opens what it says, the rest of its band folding
+                    if (title.open != null || title.cut) {
+                        val textRight = x + text.width(title.text)
+                        val y = rect.top + pad + text.height - dp(1f)
+                        shapes += DrawShape.Segment(DrawPoint(x, y), DrawPoint(textRight, y), ink, max(unit, dp(1f)), null)
+                        hits += DrawRect(x, rect.top, textRight, rect.top + 2 * pad + text.height) to SchemaTouch.Box(frame.node, title.whole, title.cut, title.open)
+                    }
+                }
             }
 
         placement.blocks.forEach { block ->
@@ -333,7 +371,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             val outline = outline(box.shape, rect)
             if (solid) shapes += DrawShape.Path(outline, box.color?.let { DrawColor.Palette(it) } ?: DrawColor.Ink(InkLevel.MEDIUM), 1f, 0f, null, true)
             else shapes += DrawShape.Path(outline, fill(box.color), SURFACE_OPACITY, 0f, null, true)
-            shapes += DrawShape.Path(outline, stroke(box.color, InkLevel.MEDIUM), 1f, if (box.group != null) max(unit * 2, dp(2.5f)) else thin(), null, false)
+            shapes += DrawShape.Path(outline, stroke(box.color, InkLevel.MEDIUM), 1f, if (box.folded) max(unit * 2, dp(2.5f)) else thin(), null, false)
             // The icon and the text centered together in the box, the icon above or beside
             val centerX = (rect.left + rect.right) / 2
             val middleY = (rect.top + rect.bottom) / 2
@@ -355,7 +393,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
                     writeLines(box, centerX, startY + iconRoom(), shapes)
                 }
             }
-            hits += rect to (box.group?.let { SchemaTouch.Group(it.id, folded = true) } ?: SchemaTouch.Box(box.node!!, box.whole, box.cut, box.open))
+            hits += rect to (if (box.folded) SchemaTouch.Group(box.id, folded = true) else SchemaTouch.Box(box.node, box.whole, box.cut, box.open))
         }
         return SchemaScene(Drawing(placement.width, placement.height, shapes), hits, autoFolded, scale)
     }
@@ -366,7 +404,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
      */
     private fun starts(spec: SchemaSpec, visible: SchemaVisible, upward: Boolean): List<String> {
         val reached = spec.edges.filter { it.from != it.to }.map { if (upward) it.from else it.to }.toSet()
-        return (spec.nodes.sortedBy { it.id in reached }.map { visible.shownAs(it.id) } + visible.foldedGroups.map { it.id }).distinct()
+        return spec.nodes.filter { it.id !in spec.holders }.sortedBy { it.id in reached }.map { visible.shownAs(it.id) }.distinct()
     }
 
     /** Where lines may touch a shape that narrows at its top and bottom; null for the usual width. */
@@ -410,6 +448,13 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
 
     private fun stroke(color: TagColor?, level: InkLevel): DrawColor = color?.let { DrawColor.Palette(it) } ?: DrawColor.Ink(level)
 
+    /** The width a frame's title takes, its icon included. */
+    private fun titleWidth(title: Title): Float = when {
+        title.text.isEmpty() -> 0f
+        title.icon != null -> iconRoom() + text.width(title.text)
+        else -> text.width(title.text)
+    }
+
     /** An icon before a box's text, as tall as a line of it. */
     private fun iconSize() = text.height
 
@@ -420,7 +465,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
     private fun textWidth(lines: List<String>, cut: Boolean): Float =
         lines.mapIndexed { i, line -> text.width(if (cut && i == lines.lastIndex) "$line ${own("cut_more")}" else line) }.maxOrNull() ?: 0f
 
-    private fun measure(id: String, whole: String, shape: SchemaShape, color: TagColor?, node: SchemaNode?, group: SchemaGroup?, open: Reference?, icon: String?, mode: Mode, limit: Float): Measured {
+    private fun measure(id: String, whole: String, shape: SchemaShape, color: TagColor?, node: SchemaNode, folded: Boolean, open: Reference?, icon: String?, mode: Mode, limit: Float): Measured {
         when (mode.detail) {
             SchemaDetail.TEXT, SchemaDetail.COMPACT -> Unit
             // The icon alone in its shape, a box without one its shape alone
@@ -432,8 +477,8 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
                     SchemaShape.STADIUM -> side * 1.4f to side
                     SchemaShape.DIAMOND -> side * 1.45f to side * 1.45f
                 }
-                return Measured(id, emptyList(), whole, false, shape, color, node, group, open, icon, false, size, width, height)
-            } else return measure(id, whole, shape, color, node, group, open, null, mode.copy(detail = SchemaDetail.SHAPE), limit)
+                return Measured(id, emptyList(), whole, false, shape, color, node, folded, open, icon, false, size, width, height)
+            } else return measure(id, whole, shape, color, node, folded, open, null, mode.copy(detail = SchemaDetail.SHAPE), limit)
             SchemaDetail.SHAPE -> {
                 val (width, height) = when (shape) {
                     SchemaShape.RECT, SchemaShape.ROUNDED -> dp(20f) to dp(13f)
@@ -441,9 +486,9 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
                     SchemaShape.CIRCLE -> dp(13f) to dp(13f)
                     SchemaShape.DIAMOND -> dp(17f) to dp(17f)
                 }
-                return Measured(id, emptyList(), whole, false, shape, color, node, group, open, null, false, 0f, width, height)
+                return Measured(id, emptyList(), whole, false, shape, color, node, folded, open, null, false, 0f, width, height)
             }
-            SchemaDetail.DOT -> return Measured(id, emptyList(), whole, false, SchemaShape.CIRCLE, color, node, group, open, null, false, 0f, dp(8f), dp(8f))
+            SchemaDetail.DOT -> return Measured(id, emptyList(), whole, false, SchemaShape.CIRCLE, color, node, folded, open, null, false, 0f, dp(8f), dp(8f))
         }
         // Compact, one short line: nothing on a tile opens the whole text
         val (lines, cut) = if (mode.detail == SchemaDetail.COMPACT) listOf(ellipsize(whole.trim(), dp(COMPACT_LINE))) to false else wrap(whole, limit)
@@ -458,7 +503,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             SchemaShape.CIRCLE -> max(w, h).let { it * 1.1f to it * 1.1f }
             SchemaShape.DIAMOND -> w * 1.6f to h * 1.7f
         }
-        return Measured(id, lines, whole, cut, shape, color, node, group, open, icon, across, iconSize(), width, height)
+        return Measured(id, lines, whole, cut, shape, color, node, folded, open, icon, across, iconSize(), width, height)
     }
 
     /** [whole] on three lines at most, cut with an ellipsis beyond; whether it was cut. */

@@ -55,8 +55,8 @@ fun rememberSchemaTile(tool: ToolInstance): ToolTile {
             @Composable
             private fun Drawn(room: app.treelune.core.look.TileSize.Room) {
                 val read = reading as? SchemaReading.Drawn ?: return Summary()
-                if (read.spec.nodes.isEmpty() && read.spec.groups.isEmpty()) return
-                val folded = read.spec.groups.filter { it.folded }.map { it.id }.toSet()
+                if (read.spec.nodes.isEmpty()) return
+                val folded = read.spec.nodes.filter { it.folded && it.id in read.spec.holders }.map { it.id }.toSet()
                 // Sideways when the body has more columns than rows, a square one staying upright
                 // (docs/design/progression.md): read on the cells, never by placing both ways
                 if (room.rows == null) SchemaView(read, folded, onTouch = null)

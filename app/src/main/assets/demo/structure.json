@@ -2431,18 +2431,24 @@
             "shape": "stadium"
           },
           {
+            "id": "weekly",
+            "label": "@schema_care_weekly"
+          },
+          {
             "id": "feed",
             "thing": {
               "kind": "TOOL_INSTANCE",
               "id": "demo-balcony-feeding"
-            }
+            },
+            "parent": "weekly"
           },
           {
             "id": "fed",
             "thing": {
               "kind": "TOOL_INSTANCE",
               "id": "demo-balcony-fed"
-            }
+            },
+            "parent": "weekly"
           }
         ],
         "edges": [
@@ -2482,16 +2488,6 @@
             "to": "weather",
             "label": "@schema_care_next_day",
             "line": "dotted"
-          }
-        ],
-        "groups": [
-          {
-            "id": "weekly",
-            "title": "@schema_care_weekly",
-            "members": [
-              "feed",
-              "fed"
-            ]
           }
         ]
       },

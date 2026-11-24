@@ -108,6 +108,7 @@ Reste à coder :
 
 Jamais vu sur le téléphone :
 
+- Le groupe devenu une boîte qui contient (2026-11-24) : le formulaire (« Dans », « Replié au départ »), une flèche vers un cadre et depuis lui, le titre d'un cadre avec son icône et, lié, souligné et ouvrant sa chose, un cadre replié dans sa propre forme ; la démo du Balcon, « Chaque semaine » devenu une boîte.
 - Le repli automatique et la réduction à 75 %, qui n'ont tourné qu'en test : il faut un schéma plus large que l'écran.
 - Un schéma importé en Mermaid puis enregistré (l'import dans le brouillon est vu, pas la sauvegarde).
 - Le bouton « Ouvrir » de la fenêtre d'une boîte liée au texte coupé.

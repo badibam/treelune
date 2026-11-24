@@ -14,7 +14,8 @@ import kotlin.random.Random
  *  - a scope is the whole drawing or one group; a child group is one opaque node of its
  *    parent, so that no foreign arrow can run through it;
  *  - an arrow that enters or leaves a group is cut at the group's border, at a port on its top or
- *    bottom side, and continues inside as an arrow of the group's own layout;
+ *    bottom side, and continues inside as an arrow of the group's own layout; an arrow whose end
+ *    is the group itself stops at its border;
  *  - in a scope: loops broken, nodes put in rows, each row ordered to limit crossings, positions
  *    computed, arrows drawn with right angles on tracks between the rows;
  *  - the parts of a scope that no arrow joins are packed in lines at the width of the screen
@@ -31,8 +32,9 @@ const val USUAL_PORT_SPAN = 0.7f
 data class LayoutBox(val id: String, val width: Float, val height: Float, val portSpan: Float = USUAL_PORT_SPAN)
 
 /**
- * An arrow. [look] says what makes two arrows identical besides their label (their line, their
- * head): identical arrows from one box to leaf children are drawn as a single one reaching a block.
+ * An arrow, from and to a box or a group, never between a group and what it holds. [look] says
+ * what makes two arrows identical besides their label (their line, their head): identical arrows
+ * from one box to leaf children are drawn as a single one reaching a block.
  */
 data class LayoutEdge(
     val from: String,
@@ -352,10 +354,16 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
 
     private fun chain(scope: Scope): List<Scope> = generateSequence(scope) { parentOfScope[it] }.toList()
 
-    /** The node of [scope] that holds the box: the box itself, or the child group it is inside. */
-    private fun representative(boxId: String, scope: Scope): Node {
-        var current = scopeOfBox.getValue(boxId)
-        if (current === scope) return boxNodes.getValue(boxId)
+    /** The scope whose node [id] is: a box's, or the one a group stands in. */
+    private fun home(id: String): Scope = scopeOfBox[id] ?: parentOfScope.getValue(scopes.getValue(id))
+
+    /** The node [id] is itself, a box or a group. */
+    private fun own(id: String): Node = boxNodes[id] ?: nodeOfScope.getValue(scopes.getValue(id))
+
+    /** The node of [scope] that holds [id], a box or a group: itself, or the child group it is inside. */
+    private fun representative(id: String, scope: Scope): Node {
+        var current = home(id)
+        if (current === scope) return own(id)
         while (parentOfScope[current] !== scope) current = parentOfScope.getValue(current)
         return nodeOfScope.getValue(current)
     }
@@ -371,8 +379,8 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
                 selfLoops += index to node
                 return@forEachIndexed
             }
-            val fromChain = chain(scopeOfBox.getValue(edge.from))
-            val common = chain(scopeOfBox.getValue(edge.to)).first { it in fromChain }
+            val fromChain = chain(home(edge.from))
+            val common = chain(home(edge.to)).first { it in fromChain }
             val link = Link(listOf(index), representative(edge.from, common), representative(edge.to, common), edge.labelWidth, edge.labelHeight)
             common.links += link
             topLinks += link to common
@@ -390,7 +398,7 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
             degree.merge(edge.to, 1, Int::plus)
         }
         val families = graph.edges.withIndex()
-            .filter { (_, e) -> e.from != e.to && degree[e.to] == 1 && scopeOfBox[e.from] === scopeOfBox[e.to] }
+            .filter { (_, e) -> e.from != e.to && degree[e.to] == 1 && e.from in boxNodes && e.to in boxNodes && scopeOfBox[e.from] === scopeOfBox[e.to] }
             .groupBy { (_, e) -> listOf(e.from, e.look, e.labelWidth, e.labelHeight) }
             .values.filter { it.size >= options.blockMinimum }
         val taken = mutableSetOf<Int>()
@@ -455,10 +463,12 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
             part.orderRows()
             scope.parts += part
         }
-        // Each arrow crossing a child group's border continues in the group, on the side it comes from
+        // Each arrow crossing a child group's border continues in the group, on the side it comes
+        // from; one that ends on the group itself stops there
         scope.links.forEach { link ->
-            (link.from.inner)?.let { inner -> link.fromInner = continueInside(link, inner, link.from, leaving = true) }
-            (link.to.inner)?.let { inner -> link.toInner = continueInside(link, inner, link.to, leaving = false) }
+            val edge = graph.edges[link.edges.first()]
+            link.from.inner?.takeIf { link.from.id != edge.from }?.let { inner -> link.fromInner = continueInside(link, inner, link.from, leaving = true) }
+            link.to.inner?.takeIf { link.to.id != edge.to }?.let { inner -> link.toInner = continueInside(link, inner, link.to, leaving = false) }
         }
         scope.nodes.mapNotNull { it.inner }.forEach { plan(it) }
     }

@@ -24,7 +24,7 @@ import app.treelune.tools.schema.ui.rememberSchemaTile
 import org.json.JSONObject
 
 /**
- * A schema (docs/design/schema.md): boxes, arrows and nested groups, written by the person or by
+ * A schema (docs/design/schema.md): boxes, some inside others, and arrows, written by the person or by
  * the AI, drawn by the app. Its config is in the vocabulary of Mermaid's flowcharts, declared
  * setting by setting so that its form and schema are generated like any other. It keeps no entries.
  */
@@ -88,7 +88,10 @@ object SchemaToolType : ToolTypeContract {
                     SettingNode.Field(field(SchemaKeys.SHAPE, s.tool("field_shape"), FieldType.CHOICE, s.tool("schema_shape"),
                         choice(SchemaShape.entries.map { it.key }) { s.tool("shape_$it") }), default = SchemaShape.ROUNDED.key),
                     SettingNode.Field(field(SchemaKeys.ICON, s.tool("field_icon"), FieldType.TEXT, s.tool("schema_icon"), short()), icon = true)
-                ) + look(context), description = s.tool("schema_node")), summary = listOf(SchemaKeys.LABEL, SchemaKeys.THING, SchemaKeys.ID), description = s.tool("schema_nodes")),
+                ) + look(context) + listOf(
+                    SettingNode.Field(field(SchemaKeys.PARENT, s.tool("field_parent"), FieldType.TEXT, s.tool("schema_parent"), short()), rowField = true),
+                    SettingNode.Field(field(SchemaKeys.FOLDED, s.tool("field_folded"), FieldType.BOOLEAN, s.tool("schema_folded")))
+                ), description = s.tool("schema_node")), summary = listOf(SchemaKeys.LABEL, SchemaKeys.THING, SchemaKeys.ID), description = s.tool("schema_nodes")),
                 SettingNode.ListOf(SchemaKeys.EDGES, s.tool("field_edges"), SettingNode.Item.Of(listOf(
                     SettingNode.Field(field(SchemaKeys.FROM, s.tool("field_from"), FieldType.TEXT, s.tool("schema_from"), short()), required = true, rowField = true),
                     SettingNode.Field(field(SchemaKeys.TO, s.tool("field_to"), FieldType.TEXT, s.tool("schema_to"), short()), required = true, rowField = true),
@@ -96,15 +99,7 @@ object SchemaToolType : ToolTypeContract {
                     SettingNode.Field(field(SchemaKeys.LINE, s.tool("field_line"), FieldType.CHOICE, s.tool("schema_line"),
                         choice(SchemaLine.entries.map { it.key }) { s.tool("line_$it") }), default = SchemaLine.NORMAL.key),
                     SettingNode.Field(field(SchemaKeys.HEAD, s.tool("field_head"), FieldType.BOOLEAN, s.tool("schema_head")), default = true)
-                ), description = s.tool("schema_edge")), summary = listOf(SchemaKeys.FROM, SchemaKeys.TO, SchemaKeys.LABEL), description = s.tool("schema_edges")),
-                SettingNode.ListOf(SchemaKeys.GROUPS, s.tool("field_groups"), SettingNode.Item.Of(listOf(
-                    SettingNode.Field(field(SchemaKeys.ID, s.tool("field_id"), FieldType.TEXT, s.tool("schema_group_id"), short()), required = true),
-                    SettingNode.Field(field(SchemaKeys.TITLE, s.tool("field_title"), FieldType.TEXT, s.tool("schema_title"), short()), required = true),
-                    SettingNode.ListOf(SchemaKeys.MEMBERS, s.tool("field_members"),
-                        SettingNode.Item.Value(field(SchemaKeys.MEMBERS, s.tool("field_member"), FieldType.TEXT, s.tool("schema_member"), short()), rowField = true),
-                        description = s.tool("schema_members")),
-                    SettingNode.Field(field(SchemaKeys.FOLDED, s.tool("field_folded"), FieldType.BOOLEAN, s.tool("schema_folded")))
-                ) + look(context), description = s.tool("schema_group")), summary = listOf(SchemaKeys.TITLE), description = s.tool("schema_groups"))
+                ), description = s.tool("schema_edge")), summary = listOf(SchemaKeys.FROM, SchemaKeys.TO, SchemaKeys.LABEL), description = s.tool("schema_edges"))
             ))
         )
     }
@@ -138,26 +133,25 @@ object SchemaToolType : ToolTypeContract {
 }
 
 /**
- * What an arrow's ends and a group's members choose among, offered by the form: the boxes, each by
- * its text, and in a group the other groups too. What no longer exists is named at the save.
+ * What an arrow's ends and a box's parent choose among, offered by the form: the boxes, each by its
+ * text, a box's own id left out of its parent. What no longer exists is named at the save.
  */
 object SchemaRowFields : RowFields {
 
     override suspend fun at(root: JSONObject, path: List<Any>, context: Context): Map<String, FieldDefinition> {
-        val boxes = items(root, SchemaKeys.NODES, SchemaKeys.LABEL)
-        if (path.firstOrNull() != SchemaKeys.GROUPS) return boxes
-        val self = (path.getOrNull(1) as? Int)?.let { root.optJSONArray(SchemaKeys.GROUPS)?.optJSONObject(it)?.optString(SchemaKeys.ID) }
-        return boxes + items(root, SchemaKeys.GROUPS, SchemaKeys.TITLE).filterKeys { it != self }
+        val boxes = boxes(root)
+        if (path.firstOrNull() != SchemaKeys.NODES) return boxes
+        val self = (path.getOrNull(1) as? Int)?.let { root.optJSONArray(SchemaKeys.NODES)?.optJSONObject(it)?.optString(SchemaKeys.ID) }
+        return boxes.filterKeys { it != self }
     }
 
-    override fun dependsOn(root: JSONObject, path: List<Any>): Any =
-        "${root.optJSONArray(SchemaKeys.NODES)}|${root.optJSONArray(SchemaKeys.GROUPS)}|${path.take(2)}"
+    override fun dependsOn(root: JSONObject, path: List<Any>): Any = "${root.optJSONArray(SchemaKeys.NODES)}|${path.take(2)}"
 
-    private fun items(root: JSONObject, list: String, labelKey: String): Map<String, FieldDefinition> {
-        val array = root.optJSONArray(list) ?: return emptyMap()
+    private fun boxes(root: JSONObject): Map<String, FieldDefinition> {
+        val array = root.optJSONArray(SchemaKeys.NODES) ?: return emptyMap()
         return (0 until array.length()).mapNotNull { array.optJSONObject(it) }.mapNotNull { item ->
             val id = item.optString(SchemaKeys.ID).trim().takeIf { it.isNotEmpty() } ?: return@mapNotNull null
-            val label = item.optString(labelKey).trim().ifEmpty { id }
+            val label = item.optString(SchemaKeys.LABEL).trim().ifEmpty { id }
             id to FieldDefinition(id, label, null, FieldType.TEXT, false, null)
         }.toMap()
     }

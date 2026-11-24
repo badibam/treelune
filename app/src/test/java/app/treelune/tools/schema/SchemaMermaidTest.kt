@@ -86,7 +86,7 @@ class SchemaMermaidTest {
     }
 
     @Test
-    fun `nested subgraphs become nested groups`() {
+    fun `nested subgraphs become boxes inside boxes`() {
         val s = spec("""
             flowchart TD
                 subgraph out [Outside]
@@ -97,11 +97,10 @@ class SchemaMermaidTest {
                 end
                 A --> B
         """.trimIndent())
-        val out = s.groups.first { it.id == "out" }
-        assertEquals("Outside", out.title)
-        assertEquals(listOf("A"), out.nodes)
-        assertEquals(listOf("in"), out.groups)
-        assertEquals(listOf("B", "C"), s.groups.first { it.id == "in" }.nodes)
+        val parent = s.nodes.associate { it.id to it.parent }
+        assertEquals("Outside", s.nodes.first { it.id == "out" }.label)
+        assertEquals("Inside", s.nodes.first { it.id == "in" }.label)
+        assertEquals(mapOf("out" to null, "A" to "out", "in" to "out", "B" to "in", "C" to "in"), parent)
     }
 
     @Test
@@ -138,18 +137,20 @@ class SchemaMermaidTest {
     }
 
     @Test
-    fun `an arrow to a group reaches its first box, and is said`() {
+    fun `an arrow to a subgraph reaches it as written`() {
         val read = read("""
             flowchart TD
+                A --> G
                 subgraph G [Group]
                     B --> C
                 end
-                A --> G
         """.trimIndent())
         val s = SchemaSpec.of(read.applyTo(JSONObject()), own)
-        assertEquals("B", s.edges.first { it.from == "A" }.to)
-        assertEquals(3, s.nodes.size)
-        assertTrue(read.notes.any { it.startsWith("mermaid_note_group_arrows 1") })
+        assertEquals("G", s.edges.first { it.from == "A" }.to)
+        assertEquals(4, s.nodes.size)
+        assertEquals(1, read.holders)
+        assertEquals(null, s.nodes.first { it.id == "G" }.parent)
+        assertTrue(read.notes.isEmpty())
     }
 
     @Test
@@ -186,16 +187,20 @@ class SchemaMermaidTest {
     @Test
     fun `a box whose id stays keeps what Mermaid cannot say`() {
         val existing = JSONObject("""{
-            "nodes": [{"id": "A", "label": "old", "color": "RED", "icon": "leaf", "thing": {"kind": "ZONE", "id": "z"}}],
-            "groups": [{"id": "G", "title": "old", "color": "BLUE", "folded": true, "members": ["A"]}]
+            "nodes": [{"id": "A", "label": "old", "color": "RED", "icon": "leaf", "thing": {"kind": "ZONE", "id": "z"}, "parent": "G"},
+                {"id": "G", "label": "old", "color": "BLUE", "folded": true, "shape": "diamond"}]
         }""")
         val s = spec("flowchart TD\nsubgraph G [New]\nA[new]\nend", existing)
-        assertEquals("new", s.nodes[0].label)
-        assertEquals("RED", s.nodes[0].color?.name)
-        assertEquals("leaf", s.nodes[0].icon)
-        assertEquals("z", s.nodes[0].thing?.id)
-        assertEquals("BLUE", s.groups[0].color?.name)
-        assertTrue(s.groups[0].folded)
+        val box = s.nodes.first { it.id == "A" }
+        assertEquals("new", box.label)
+        assertEquals("RED", box.color?.name)
+        assertEquals("leaf", box.icon)
+        assertEquals("z", box.thing?.id)
+        val group = s.nodes.first { it.id == "G" }
+        assertEquals("New", group.label)
+        assertEquals("BLUE", group.color?.name)
+        assertTrue(group.folded)
+        assertEquals(SchemaShape.DIAMOND, group.shape)
     }
 
     @Test
@@ -219,20 +224,20 @@ class SchemaMermaidTest {
                         C
                     end
                 end
+                A --> out
         """.trimIndent().replace("\\\"", "#quot;"))
         val again = spec(mermaid.write(original) { null })
         assertEquals(original.direction, again.direction)
         assertEquals(original.nodes.sortedBy { it.id }, again.nodes.sortedBy { it.id })
         assertEquals(original.edges.toSet(), again.edges.toSet())
-        assertEquals(original.groups.sortedBy { it.id }, again.groups.sortedBy { it.id })
     }
 
     private companion object {
         val COUNTS = mapOf(
-            "error_shape" to 2, "error_color" to 2, "error_group_unknown_member" to 2,
-            "error_line" to 3, "error_node_two_groups" to 3, "error_group_two_parents" to 3,
+            "error_shape" to 2, "error_color" to 2, "error_parent_unknown" to 2, "error_edge_inside" to 2,
+            "error_line" to 3,
             "error_id_missing" to 0, "error_edge_end" to 0,
-            "mermaid_error_syntax" to 2, "mermaid_error_unclosed" to 2, "mermaid_error_empty_group" to 2,
+            "mermaid_error_syntax" to 2, "mermaid_error_unclosed" to 2,
             "mermaid_error_long" to 2, "mermaid_error_long_line" to 3, "mermaid_note_direction" to 2
         )
     }

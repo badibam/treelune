@@ -3,7 +3,6 @@ package app.treelune.tools.schema
 import app.treelune.core.fields.ReferenceTarget
 import app.treelune.core.selection.Reference
 import app.treelune.core.themes.TagColor
-import org.json.JSONArray
 import org.json.JSONObject
 
 /** The keys of a schema's config, in the vocabulary of Mermaid's flowcharts. */
@@ -11,7 +10,6 @@ object SchemaKeys {
     const val DIRECTION = "direction"
     const val NODES = "nodes"
     const val EDGES = "edges"
-    const val GROUPS = "groups"
     const val ID = "id"
     const val LABEL = "label"
     const val SHAPE = "shape"
@@ -22,8 +20,7 @@ object SchemaKeys {
     const val TO = "to"
     const val LINE = "line"
     const val HEAD = "head"
-    const val TITLE = "title"
-    const val MEMBERS = "members"
+    const val PARENT = "parent"
     const val FOLDED = "folded"
 }
 
@@ -58,6 +55,10 @@ enum class SchemaLine(val key: String) {
  * A box. It says something by its own [label], or by the current name of the [thing] of the app
  * it designates; with both, its label is shown. Its [icon], a name of the vocabulary, stands
  * before its text; without one, a linked box shows its thing's icon.
+ *
+ * A box may stand inside another, its [parent]. One that holds others is drawn as a frame, its
+ * text as its title; its [shape] then serves only when it is folded, drawn as a box again, as it
+ * is at first when [folded].
  */
 data class SchemaNode(
     val id: String,
@@ -65,35 +66,35 @@ data class SchemaNode(
     val shape: SchemaShape,
     val thing: Reference?,
     val color: TagColor?,
-    val icon: String? = null
+    val icon: String? = null,
+    val parent: String? = null,
+    val folded: Boolean = false
 )
 
 /** An arrow between two boxes; without [head], a plain line. */
 data class SchemaEdge(val from: String, val to: String, val label: String?, val line: SchemaLine, val head: Boolean)
 
 /**
- * A group of boxes ([nodes]) and of other groups ([groups]), each in one group at most. Stored as
- * one list, `members`, an id naming one box or one group.
- */
-data class SchemaGroup(
-    val id: String,
-    val title: String,
-    val nodes: List<String>,
-    val groups: List<String>,
-    val folded: Boolean,
-    val color: TagColor?
-)
-
-/**
- * What a schema draws, read from its config (docs/design/schema.md): boxes, arrows and nested groups.
- * Reading it refuses what its placement could not draw, naming the id at fault.
+ * What a schema draws, read from its config (docs/design/schema.md): boxes, some inside others, and
+ * arrows between any two of them. Reading it refuses what its placement could not draw, naming the
+ * id at fault.
  */
 data class SchemaSpec(
     val direction: SchemaDirection,
     val nodes: List<SchemaNode>,
-    val edges: List<SchemaEdge>,
-    val groups: List<SchemaGroup>
+    val edges: List<SchemaEdge>
 ) {
+    /** The boxes that hold others, drawn as frames unless folded. */
+    val holders: Set<String> by lazy { nodes.mapNotNull { it.parent }.toSet() }
+
+    /** The boxes holding [id], the nearest first. */
+    fun ancestors(id: String): Sequence<String> {
+        val parentOf = parents
+        return generateSequence(parentOf[id]) { parentOf[it] }
+    }
+
+    private val parents: Map<String, String> by lazy { nodes.mapNotNull { node -> node.parent?.let { node.id to it } }.toMap() }
+
     companion object {
         /**
          * The schema [config] describes.
@@ -107,19 +108,13 @@ data class SchemaSpec(
             }
             val nodes = config.objects(SchemaKeys.NODES).map { node(it, own) }
             val edges = config.objects(SchemaKeys.EDGES).map { edge(it, own) }
-            val boxIds = nodes.map { it.id }.toSet()
-            val groupIds = config.objects(SchemaKeys.GROUPS).mapNotNull { it.text(SchemaKeys.ID) }.toSet()
-            val groups = config.objects(SchemaKeys.GROUPS).map { group(it, boxIds, groupIds, own) }
-            return SchemaSpec(direction, nodes, edges, groups).also { it.check(own) }
+            return SchemaSpec(direction, nodes, edges).also { it.check(own) }
         }
 
         private fun refuse(message: String): Nothing = throw IllegalArgumentException(message)
 
         private fun JSONObject.objects(key: String): List<JSONObject> =
             optJSONArray(key)?.let { array -> (0 until array.length()).mapNotNull { array.optJSONObject(it) } }.orEmpty()
-
-        private fun JSONObject.strings(key: String): List<String> =
-            (optJSONArray(key) ?: JSONArray()).let { array -> (0 until array.length()).map { array.getString(it) } }
 
         private fun JSONObject.text(key: String): String? =
             if (isNull(key)) null else optString(key).trim().takeIf { it.isNotEmpty() }
@@ -135,7 +130,8 @@ data class SchemaSpec(
                 else ReferenceTarget.referenceOf(json.opt(SchemaKeys.THING)) ?: refuse(own("error_thing").format(id))
             val label = json.text(SchemaKeys.LABEL)
             if (label == null && thing == null) refuse(own("error_node_empty").format(id))
-            return SchemaNode(id, label, shape, thing, color(json, id, own), json.text(SchemaKeys.ICON))
+            return SchemaNode(id, label, shape, thing, color(json, id, own), json.text(SchemaKeys.ICON),
+                json.text(SchemaKeys.PARENT), json.optBoolean(SchemaKeys.FOLDED, false))
         }
 
         private fun edge(json: JSONObject, own: (String) -> String): SchemaEdge {
@@ -144,46 +140,29 @@ data class SchemaSpec(
             val line = json.text(SchemaKeys.LINE)?.let { SchemaLine.of(it) ?: refuse(own("error_line").format(from, to, it)) } ?: SchemaLine.NORMAL
             return SchemaEdge(from, to, json.text(SchemaKeys.LABEL), line, json.optBoolean(SchemaKeys.HEAD, true))
         }
-
-        private fun group(json: JSONObject, boxIds: Set<String>, groupIds: Set<String>, own: (String) -> String): SchemaGroup {
-            val id = json.text(SchemaKeys.ID) ?: refuse(own("error_id_missing"))
-            val title = json.text(SchemaKeys.TITLE) ?: refuse(own("error_group_title").format(id))
-            val members = json.strings(SchemaKeys.MEMBERS)
-            members.firstOrNull { it !in boxIds && it !in groupIds }?.let { refuse(own("error_group_unknown_member").format(id, it)) }
-            return SchemaGroup(id, title, members.filter { it in boxIds }, members.filter { it in groupIds },
-                json.optBoolean(SchemaKeys.FOLDED, false), color(json, id, own))
-        }
     }
 
-    /** What the placement counts on: one id per thing, arrows and groups naming what exists, a tree of groups. */
+    /**
+     * What the placement counts on: one id per box, arrows and parents naming boxes that exist, no
+     * box inside itself, and no arrow between a box and what it holds, which could not leave it.
+     */
     private fun check(own: (String) -> String) {
-        val ids = nodes.map { it.id } + groups.map { it.id }
-        ids.groupingBy { it }.eachCount().entries.firstOrNull { it.value > 1 }?.let { refuse(own("error_id_twice").format(it.key)) }
+        nodes.map { it.id }.groupingBy { it }.eachCount().entries.firstOrNull { it.value > 1 }?.let { refuse(own("error_id_twice").format(it.key)) }
 
         val boxes = nodes.map { it.id }.toSet()
+        nodes.forEach { node ->
+            node.parent?.takeIf { it !in boxes }?.let { refuse(own("error_parent_unknown").format(node.id, it)) }
+        }
+        // A box inside itself would hang from nothing, and vanish from the drawing
+        nodes.forEach { node ->
+            val seen = mutableSetOf(node.id)
+            ancestors(node.id).forEach { if (!seen.add(it)) refuse(own("error_parent_loop").format(node.id)) }
+        }
         edges.forEach { edge ->
             listOf(edge.from, edge.to).firstOrNull { it !in boxes }?.let { refuse(own("error_edge_unknown").format(it)) }
-        }
-
-        val known = groups.map { it.id }.toSet()
-        val groupOfBox = mutableMapOf<String, String>()
-        val parent = mutableMapOf<String, String>()
-        groups.forEach { group ->
-            group.nodes.forEach { box ->
-                groupOfBox.put(box, group.id)?.let { refuse(own("error_node_two_groups").format(box, it, group.id)) }
-            }
-            group.groups.forEach { child ->
-                parent.put(child, group.id)?.let { refuse(own("error_group_two_parents").format(child, it, group.id)) }
-            }
-        }
-        // A group inside itself would hang from nothing, and vanish from the drawing
-        known.forEach { start ->
-            val seen = mutableSetOf(start)
-            var current = parent[start]
-            while (current != null) {
-                if (!seen.add(current)) refuse(own("error_group_loop").format(start))
-                current = parent[current]
-            }
+            val inside = if (edge.from == edge.to) edge.from in holders
+                else edge.from in ancestors(edge.to) || edge.to in ancestors(edge.from)
+            if (inside) refuse(own("error_edge_inside").format(edge.from, edge.to))
         }
     }
 }

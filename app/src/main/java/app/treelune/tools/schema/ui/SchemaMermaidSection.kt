@@ -139,12 +139,12 @@ private fun ImportDialog(config: JSONObject, s: StringsContext, onAccept: (Merma
     }
 }
 
-/** « 12 boîtes, 15 flèches, 2 groupes ». */
+/** « 12 boîtes, 15 flèches, 2 groupes », a group being a box that holds others, counted apart. */
 private fun summary(result: MermaidImport, s: StringsContext): String {
     fun count(n: Int, one: String, many: String) = if (n == 1) s.tool(one) else s.tool(many).format(n)
     return s.tool("mermaid_summary").format(
-        count(result.nodes.length(), "count_box_one", "count_boxes"),
+        count(result.nodes.length() - result.holders, "count_box_one", "count_boxes"),
         count(result.edges.length(), "count_arrow_one", "count_arrows"),
-        count(result.groups.length(), "count_group_one", "count_groups")
+        count(result.holders, "count_group_one", "count_groups")
     )
 }

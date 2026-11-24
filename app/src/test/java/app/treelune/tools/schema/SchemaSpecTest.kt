@@ -1,10 +1,5 @@
 package app.treelune.tools.schema
 
-import app.treelune.core.drawing.layout.GraphLayout
-import app.treelune.core.drawing.layout.LayoutBox
-import app.treelune.core.drawing.layout.LayoutEdge
-import app.treelune.core.drawing.layout.LayoutGraph
-import app.treelune.core.drawing.layout.LayoutGroup
 import app.treelune.core.selection.ReferenceKind
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -19,8 +14,8 @@ class SchemaSpecTest {
     private val valuesOf = mapOf(
         "error_id_missing" to 0, "error_edge_end" to 0,
         "error_shape" to 2, "error_color" to 2,
-        "error_group_unknown_member" to 2,
-        "error_line" to 3, "error_node_two_groups" to 3, "error_group_two_parents" to 3
+        "error_parent_unknown" to 2, "error_edge_inside" to 2,
+        "error_line" to 3
     )
 
     /** The key of the refusal, with its values, in place of its text. */
@@ -38,14 +33,12 @@ class SchemaSpecTest {
         val spec = read("""{
             "direction": "BT",
             "nodes": [
-                {"id": "A", "shape": "diamond", "thing": {"kind": "TOOL_INSTANCE", "id": "t1"}, "color": "RED"},
-                {"id": "B", "label": "Ce qu'il me reste"}
+                {"id": "A", "shape": "diamond", "thing": {"kind": "TOOL_INSTANCE", "id": "t1"}, "color": "RED", "parent": "in"},
+                {"id": "B", "label": "Ce qu'il me reste", "parent": "in"},
+                {"id": "out", "label": "Dehors", "folded": true},
+                {"id": "in", "label": "Dedans", "parent": "out"}
             ],
-            "edges": [{"from": "A", "to": "B", "label": "nourrit", "line": "dotted", "head": false}],
-            "groups": [
-                {"id": "out", "title": "Dehors", "members": ["in"], "folded": true},
-                {"id": "in", "title": "Dedans", "members": ["A", "B"]}
-            ]
+            "edges": [{"from": "A", "to": "B", "label": "nourrit", "line": "dotted", "head": false}]
         }""")
         assertEquals(SchemaDirection.BOTTOM_UP, spec.direction)
         assertEquals(SchemaShape.DIAMOND, spec.nodes[0].shape)
@@ -53,8 +46,9 @@ class SchemaSpecTest {
         assertEquals(SchemaShape.ROUNDED, spec.nodes[1].shape)
         assertEquals(SchemaLine.DOTTED, spec.edges[0].line)
         assertEquals(false, spec.edges[0].head)
-        assertEquals(listOf("in"), spec.groups[0].groups)
-        assertTrue(spec.groups[0].folded)
+        assertEquals(setOf("out", "in"), spec.holders)
+        assertEquals(listOf("in", "out"), spec.ancestors("A").toList())
+        assertTrue(spec.nodes[2].folded)
     }
 
     @Test
@@ -75,45 +69,34 @@ class SchemaSpecTest {
     }
 
     @Test
-    fun `an id serves once, among boxes and groups together`() {
-        assertTrue(refusal("""{"nodes": [{"id": "A", "label": "a"}], "groups": [{"id": "A", "title": "t"}]}""").startsWith("error_id_twice A"))
+    fun `an id serves once`() {
+        assertTrue(refusal("""{"nodes": [{"id": "A", "label": "a"}, {"id": "A", "label": "b"}]}""").startsWith("error_id_twice A"))
     }
 
     @Test
-    fun `an arrow names existing boxes, not a group`() {
+    fun `an arrow names existing boxes, a box holding others included`() {
         assertTrue(refusal("""{"nodes": [$twoBoxes], "edges": [{"from": "A", "to": "C"}]}""").startsWith("error_edge_unknown C"))
-        assertTrue(refusal("""{"nodes": [$twoBoxes], "groups": [{"id": "G", "title": "t"}], "edges": [{"from": "A", "to": "G"}]}""")
-            .startsWith("error_edge_unknown G"))
+        read("""{"nodes": [$twoBoxes, {"id": "G", "label": "g"}, {"id": "C", "label": "c", "parent": "G"}], "edges": [{"from": "A", "to": "G"}, {"from": "G", "to": "B"}]}""")
     }
 
     @Test
-    fun `a group names what exists`() {
-        assertTrue(refusal("""{"groups": [{"id": "G", "title": "t", "members": ["Z"]}]}""").startsWith("error_group_unknown_member G Z"))
+    fun `an arrow never joins a box and what it holds, at any depth, nor a holding box to itself`() {
+        val nested = """{"id": "G", "label": "g"}, {"id": "H", "label": "h", "parent": "G"}, {"id": "A", "label": "a", "parent": "H"}"""
+        assertTrue(refusal("""{"nodes": [$nested], "edges": [{"from": "G", "to": "A"}]}""").startsWith("error_edge_inside G A"))
+        assertTrue(refusal("""{"nodes": [$nested], "edges": [{"from": "A", "to": "H"}]}""").startsWith("error_edge_inside A H"))
+        assertTrue(refusal("""{"nodes": [$nested], "edges": [{"from": "G", "to": "G"}]}""").startsWith("error_edge_inside G G"))
+        read("""{"nodes": [$nested], "edges": [{"from": "A", "to": "A"}]}""")
     }
 
     @Test
-    fun `a box or a group stands in one group`() {
-        assertTrue(refusal("""{"nodes": [$twoBoxes], "groups": [{"id": "G", "title": "t", "members": ["A"]}, {"id": "H", "title": "t", "members": ["A"]}]}""")
-            .startsWith("error_node_two_groups A G H"))
-        assertTrue(refusal("""{"groups": [{"id": "G", "title": "t", "members": ["K"]}, {"id": "H", "title": "t", "members": ["K"]}, {"id": "K", "title": "t"}]}""")
-            .startsWith("error_group_two_parents K G H"))
+    fun `a box stands inside a box that exists`() {
+        assertTrue(refusal("""{"nodes": [{"id": "A", "label": "a", "parent": "Z"}]}""").startsWith("error_parent_unknown A Z"))
     }
 
     @Test
-    fun `a group never ends up inside itself`() {
-        assertTrue(refusal("""{"groups": [{"id": "G", "title": "t", "members": ["G"]}]}""").startsWith("error_group_loop G"))
-        assertTrue(refusal("""{"groups": [{"id": "G", "title": "t", "members": ["H"]}, {"id": "H", "title": "t", "members": ["G"]}]}""")
-            .startsWith("error_group_loop"))
-    }
-
-    @Test
-    fun `an empty group, which the config accepts, is placed`() {
-        val placement = GraphLayout().place(LayoutGraph(
-            boxes = listOf(LayoutBox("A", 80f, 40f), LayoutBox("B", 80f, 40f)),
-            edges = listOf(LayoutEdge("A", "B")),
-            groups = listOf(LayoutGroup("G", 40f, 16f, boxes = emptyList()))
-        ))
-        assertTrue("G" in placement.groups)
-        assertEquals(2, placement.boxes.size)
+    fun `a box never ends up inside itself`() {
+        assertTrue(refusal("""{"nodes": [{"id": "G", "label": "g", "parent": "G"}]}""").startsWith("error_parent_loop G"))
+        assertTrue(refusal("""{"nodes": [{"id": "G", "label": "g", "parent": "H"}, {"id": "H", "label": "h", "parent": "G"}]}""")
+            .startsWith("error_parent_loop"))
     }
 }
