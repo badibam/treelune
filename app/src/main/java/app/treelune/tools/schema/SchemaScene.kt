@@ -29,6 +29,13 @@ interface SchemaText {
     val height: Float
 }
 
+/**
+ * How much a box says, from the richest to the poorest, for a tile short of room
+ * (docs/design/progression.md): its text, its icon alone, its shape alone, a dot. Below its text,
+ * nothing is written, an arrow's text and a group's title included.
+ */
+enum class SchemaDetail { TEXT, ICON, SHAPE, DOT }
+
 /** What a touch on a schema found. */
 sealed interface SchemaTouch {
     /**
@@ -126,6 +133,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         val open: Reference?,
         val icon: String?,
         val iconBeside: Boolean,
+        val iconSize: Float,
         val width: Float,
         val height: Float
     )
@@ -139,16 +147,18 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
      * @param iconOf The icon of a thing, which a linked box without its own shows; null for none
      * @param across Whether the drawing runs sideways (a wide tile): a box's icon then stands
      *   beside its text, where height is short, and above it otherwise, where width is
+     * @param detail How much each box says
      */
     fun build(spec: SchemaSpec, nameOf: (Reference) -> String?, folded: Set<String>, width: Float,
-              keptOpen: Set<String> = emptySet(), fit: Boolean = false, iconOf: (Reference) -> String? = { null }, across: Boolean = false): SchemaScene {
+              keptOpen: Set<String> = emptySet(), fit: Boolean = false, iconOf: (Reference) -> String? = { null }, across: Boolean = false, detail: SchemaDetail = SchemaDetail.TEXT): SchemaScene {
+        val mode = Mode(across, detail)
         // Every state, folded or tightened, is placed against one drawing, the schema all open at
         // its usual spacing, so that its parts keep their sides from one state to the other
-        val allOpen by lazy { prepare(spec, nameOf, iconOf, across, emptySet(), width, emptyMap(), Spacing.NORMAL) }
+        val allOpen by lazy { prepare(spec, nameOf, iconOf, mode, emptySet(), width, emptyMap(), Spacing.NORMAL) }
         // Where each part stands across the arrows: its x in a drawing running down, its y across
         val reference by lazy { (allOpen.placement.boxes + allOpen.placement.groups).mapValues { (_, rect) -> if (across) (rect.top + rect.bottom) / 2 else (rect.left + rect.right) / 2 } }
         fun placed(shut: Set<String>, spacing: Spacing): Prepared =
-            if (shut.isEmpty() && spacing == Spacing.NORMAL) allOpen else prepare(spec, nameOf, iconOf, across, shut, width, reference, spacing)
+            if (shut.isEmpty() && spacing == Spacing.NORMAL) allOpen else prepare(spec, nameOf, iconOf, mode, shut, width, reference, spacing)
         // The limit bounds the drawing across its arrows: its width running down, its height across
         fun Prepared.extent() = if (across) placement.height else placement.width
         fun Prepared.fits() = extent() <= width + 0.5f
@@ -191,29 +201,50 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         val labels: List<String?>,
         val titles: Map<String, String>,
         val upward: Boolean,
-        val across: Boolean,
+        val mode: Mode,
         val placement: Placement
     )
 
-    /** The boxes of what stays visible, measured, and placed. */
-    private fun prepare(spec: SchemaSpec, nameOf: (Reference) -> String?, iconOf: (Reference) -> String?, across: Boolean, folded: Set<String>, width: Float, reference: Map<String, Float>, spacing: Spacing): Prepared {
-        val visible = SchemaVisible(spec, folded)
+    /** Which way the drawing runs and how much its boxes say. */
+    private data class Mode(val across: Boolean, val detail: SchemaDetail) {
+        val written get() = detail == SchemaDetail.TEXT
+        /** How close things stand: closer as boxes shrink. */
+        val gap get() = when (detail) { SchemaDetail.TEXT -> 1f; SchemaDetail.ICON -> 0.75f; SchemaDetail.SHAPE -> 0.5f; SchemaDetail.DOT -> 0.45f }
+    }
+
+    /** The boxes of what stays visible with [folded] shut, measured as [mode] says. */
+    private fun measured(spec: SchemaSpec, visible: SchemaVisible, nameOf: (Reference) -> String?, iconOf: (Reference) -> String?, mode: Mode, width: Float, spacing: Spacing): List<Measured> {
         val textLimit = max(min(width * 0.42f, dp(150f)) * spacing.text, dp(88f))
-        val boxes = visible.nodes.map { node ->
+        return visible.nodes.map { node ->
             val whole = node.label ?: node.thing?.let(nameOf) ?: own("thing_deleted")
             val open = node.thing?.takeIf { nameOf(it) != null }
-            measure(node.id, whole, node.shape, node.color, node, null, open, node.icon ?: open?.let(iconOf), across, textLimit)
+            measure(node.id, whole, node.shape, node.color, node, null, open, node.icon ?: open?.let(iconOf), mode, textLimit)
         } + visible.foldedGroups.map { group ->
             val whole = own("group_folded").format(group.title, visible.boxCount(group))
-            measure(group.id, whole, SchemaShape.RECT, group.color, null, group, null, null, across, textLimit)
+            measure(group.id, whole, SchemaShape.RECT, group.color, null, group, null, null, mode, textLimit)
         }
+    }
+
+    /**
+     * The room the boxes of [spec] take at [detail], placed nowhere: a measure alone, cheap, which
+     * tells beforehand at what level a tile's drawing should hold.
+     */
+    fun boxesArea(spec: SchemaSpec, nameOf: (Reference) -> String?, folded: Set<String>, width: Float, detail: SchemaDetail,
+                  iconOf: (Reference) -> String? = { null }, across: Boolean = false): Float =
+        measured(spec, SchemaVisible(spec, folded), nameOf, iconOf, Mode(across, detail), width, Spacing.NORMAL).sumOf { (it.width * it.height).toDouble() }.toFloat()
+
+    /** The boxes of what stays visible, measured, and placed. */
+    private fun prepare(spec: SchemaSpec, nameOf: (Reference) -> String?, iconOf: (Reference) -> String?, mode: Mode, folded: Set<String>, width: Float, reference: Map<String, Float>, spacing: Spacing): Prepared {
+        val visible = SchemaVisible(spec, folded)
+        val boxes = measured(spec, visible, nameOf, iconOf, mode, width, spacing)
         val byId = boxes.associateBy { it.id }
 
         val upward = spec.direction == SchemaDirection.BOTTOM_UP
-        val labels = visible.edges.map { edge -> edge.label?.let { ellipsize(it, dp(120f)) } }
-        val titles = visible.groups.associate { it.id to ellipsize(it.title, width * 0.6f) }
+        val labels = visible.edges.map { edge -> edge.label?.takeIf { mode.written }?.let { ellipsize(it, dp(120f)) } }
+        val titles = visible.groups.associate { it.id to if (mode.written) ellipsize(it.title, width * 0.6f) else "" }
+        val across = mode.across
         val placement = GraphLayout(LayoutOptions(
-            across = across, maxWidth = width, boxGap = dp(16f) * spacing.gap, rowGap = dp(24f), trackGap = dp(7f), portGap = dp(9f) * spacing.gap,
+            across = across, maxWidth = width, boxGap = dp(16f) * spacing.gap * mode.gap, rowGap = dp(24f) * mode.gap, trackGap = dp(7f) * mode.gap, portGap = dp(9f) * spacing.gap * mode.gap,
             groupPadding = GROUP_PADDING * density, blockPadding = dp(6f), blockGap = dp(6f), loopSize = dp(12f)
         )).place(LayoutGraph(
             boxes = boxes.map { box -> portSpan(box.shape)?.let { LayoutBox(box.id, box.width, box.height, it) } ?: LayoutBox(box.id, box.width, box.height) },
@@ -227,16 +258,22 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
                     look = "${edge.label.orEmpty()}|${edge.line.key}|${edge.head}"
                 )
             },
-            groups = visible.groups.map { LayoutGroup(it.id, text.width(titles.getValue(it.id)), text.height, it.nodes, it.groups) },
+            groups = visible.groups.map { group ->
+                val title = titles.getValue(group.id)
+                LayoutGroup(group.id, if (title.isEmpty()) 0f else text.width(title), if (title.isEmpty()) 0f else text.height, group.nodes, group.groups)
+            },
             starts = starts(spec, visible, upward),
             reference = reference
         ))
-        return Prepared(visible, boxes, byId, labels, titles, upward, across, placement)
+        return Prepared(visible, boxes, byId, labels, titles, upward, mode, placement)
     }
 
     /** The shapes the theme draws, and what a touch finds on them. */
     private fun draw(prepared: Prepared, autoFolded: Set<String> = emptySet(), scale: Float = 1f): SchemaScene {
-        val (visible, boxes, byId, labels, titles, upward, across, placement) = prepared
+        val (visible, boxes, byId, labels, titles, upward, mode, placement) = prepared
+        val across = mode.across
+        // Small shapes take their color whole, a faint fill vanishing at their size
+        val solid = mode.detail == SchemaDetail.SHAPE || mode.detail == SchemaDetail.DOT
         val shapes = mutableListOf<DrawShape>()
         val hits = mutableListOf<Pair<DrawRect, SchemaTouch>>()
 
@@ -248,7 +285,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
                 shapes += DrawShape.Path(outline, fill(group.color), SURFACE_OPACITY / 2, 0f, null, true)
                 shapes += DrawShape.Path(outline, stroke(group.color, InkLevel.FAINT), 1f, thin(), null, false)
                 val pad = GROUP_PADDING * density
-                shapes += DrawShape.Label(titles.getValue(group.id), DrawPoint(rect.left + pad, rect.top + pad), TextAnchor.START, TextBaseline.TOP, DrawColor.Ink(InkLevel.MEDIUM))
+                if (mode.written) shapes += DrawShape.Label(titles.getValue(group.id), DrawPoint(rect.left + pad, rect.top + pad), TextAnchor.START, TextBaseline.TOP, DrawColor.Ink(InkLevel.MEDIUM))
                 // Its title's band: on its top, or on its left side in a drawing running across
                 val band = if (across) DrawRect(rect.left, rect.top, rect.left + 2 * pad + text.width(titles.getValue(group.id)), rect.bottom)
                     else DrawRect(rect.left, rect.top, rect.right, rect.top + 2 * pad + text.height)
@@ -264,10 +301,10 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             // The points run along the arrow as it was placed: turned back for a schema running upward
             val placed = if (upward) route.points.reversed() else route.points
             val points = reachingOutlines(placed, byId[edge.from], byId[edge.to], placement.boxes)
-            val strokeWidth = if (edge.line == SchemaLine.THICK) max(unit * 2, dp(3f)) else thin()
+            val strokeWidth = (if (edge.line == SchemaLine.THICK) max(unit * 2, dp(3f)) else thin()).let { if (solid) max(unit, it * 0.7f) else it }
             val dash = if (edge.line == SchemaLine.DOTTED) listOf(dp(4f), dp(3f)) else null
             val ink = DrawColor.Ink(InkLevel.MEDIUM)
-            val headSize = dp(8f)
+            val headSize = if (solid) dp(5f) else dp(8f)
             val line = if (edge.head) shortened(points, headSize * 0.7f) else points
             val labelled = route.label.takeIf { labels[route.edges.first()] != null }
             shapes += DrawShape.Path(steps(line, labelled), ink, 1f, strokeWidth, dash, false)
@@ -282,7 +319,8 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         boxes.forEach { box ->
             val rect = placement.boxes.getValue(box.id).draw()
             val outline = outline(box.shape, rect)
-            shapes += DrawShape.Path(outline, fill(box.color), SURFACE_OPACITY, 0f, null, true)
+            if (solid) shapes += DrawShape.Path(outline, box.color?.let { DrawColor.Palette(it) } ?: DrawColor.Ink(InkLevel.MEDIUM), 1f, 0f, null, true)
+            else shapes += DrawShape.Path(outline, fill(box.color), SURFACE_OPACITY, 0f, null, true)
             shapes += DrawShape.Path(outline, stroke(box.color, InkLevel.MEDIUM), 1f, if (box.group != null) max(unit * 2, dp(2.5f)) else thin(), null, false)
             // The icon and the text centered together in the box, the icon above or beside
             val centerX = (rect.left + rect.right) / 2
@@ -291,6 +329,8 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             val iconColor = stroke(box.color, InkLevel.STRONG)
             when {
                 box.icon == null -> writeLines(box, centerX, middleY - textHeight / 2, shapes)
+                // The icon alone, at its own size
+                box.lines.isEmpty() -> shapes += DrawShape.Icon(box.icon, DrawPoint(centerX, middleY), box.iconSize, iconColor)
                 box.iconBeside -> {
                     val textWidth = textWidth(box.lines, box.cut)
                     val startX = centerX - (iconRoom() + textWidth) / 2
@@ -368,8 +408,33 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
     private fun textWidth(lines: List<String>, cut: Boolean): Float =
         lines.mapIndexed { i, line -> text.width(if (cut && i == lines.lastIndex) "$line ${own("cut_more")}" else line) }.maxOrNull() ?: 0f
 
-    private fun measure(id: String, whole: String, shape: SchemaShape, color: TagColor?, node: SchemaNode?, group: SchemaGroup?, open: Reference?, icon: String?, across: Boolean, limit: Float): Measured {
+    private fun measure(id: String, whole: String, shape: SchemaShape, color: TagColor?, node: SchemaNode?, group: SchemaGroup?, open: Reference?, icon: String?, mode: Mode, limit: Float): Measured {
+        when (mode.detail) {
+            SchemaDetail.TEXT -> Unit
+            // The icon alone in its shape, a box without one its shape alone
+            SchemaDetail.ICON -> if (icon != null) {
+                val size = iconSize() * ICON_ALONE
+                val side = size + 2 * dp(5f)
+                val (width, height) = when (shape) {
+                    SchemaShape.RECT, SchemaShape.ROUNDED, SchemaShape.CIRCLE -> side to side
+                    SchemaShape.STADIUM -> side * 1.4f to side
+                    SchemaShape.DIAMOND -> side * 1.45f to side * 1.45f
+                }
+                return Measured(id, emptyList(), whole, false, shape, color, node, group, open, icon, false, size, width, height)
+            } else return measure(id, whole, shape, color, node, group, open, null, mode.copy(detail = SchemaDetail.SHAPE), limit)
+            SchemaDetail.SHAPE -> {
+                val (width, height) = when (shape) {
+                    SchemaShape.RECT, SchemaShape.ROUNDED -> dp(20f) to dp(13f)
+                    SchemaShape.STADIUM -> dp(24f) to dp(13f)
+                    SchemaShape.CIRCLE -> dp(13f) to dp(13f)
+                    SchemaShape.DIAMOND -> dp(17f) to dp(17f)
+                }
+                return Measured(id, emptyList(), whole, false, shape, color, node, group, open, null, false, 0f, width, height)
+            }
+            SchemaDetail.DOT -> return Measured(id, emptyList(), whole, false, SchemaShape.CIRCLE, color, node, group, open, null, false, 0f, dp(8f), dp(8f))
+        }
         val (lines, cut) = wrap(whole, limit)
+        val across = mode.across
         val beside = icon != null && across
         val above = icon != null && !across
         val w = (if (above) max(textWidth(lines, cut), iconSize()) else textWidth(lines, cut)) + (if (beside) iconRoom() else 0f) + 2 * dp(10f)
@@ -380,7 +445,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             SchemaShape.CIRCLE -> max(w, h).let { it * 1.1f to it * 1.1f }
             SchemaShape.DIAMOND -> w * 1.6f to h * 1.7f
         }
-        return Measured(id, lines, whole, cut, shape, color, node, group, open, icon, across, width, height)
+        return Measured(id, lines, whole, cut, shape, color, node, group, open, icon, across, iconSize(), width, height)
     }
 
     /** [whole] on three lines at most, cut with an ellipsis beyond; whether it was cut. */
@@ -568,6 +633,8 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
 
     private companion object {
         const val MAX_LINES = 3
+        // An icon drawn alone, against the size of one written before a text
+        const val ICON_ALONE = 1.5f
         // The smallest a drawing is shown at for its text to stay readable; to judge on the phone
         const val MIN_SCALE = 0.75f
         // How close to a side of its box a line's end counts as standing on it, in pixels

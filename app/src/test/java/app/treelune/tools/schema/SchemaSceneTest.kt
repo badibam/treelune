@@ -77,6 +77,34 @@ class SchemaSceneTest {
         assertTrue(scene.heads().isEmpty())
     }
 
+    private val levels = """{"nodes": [{"id": "A", "label": "with an icon", "icon": "leaf"}, {"id": "B", "label": "without", "shape": "diamond"}],
+        "edges": [{"from": "A", "to": "B", "label": "feeds"}], "groups": [{"id": "G", "title": "a group", "members": ["A", "B"]}]}"""
+
+    private fun at(detail: SchemaDetail) = SchemaSceneBuilder(1f, 1f, text, own).build(spec(levels), { null }, emptySet(), 340f, detail = detail)
+
+    @Test
+    fun `below its text a drawing writes nothing, its arrows' texts and groups' titles included`() {
+        assertTrue(at(SchemaDetail.TEXT).labels().containsAll(listOf("with an icon", "without", "feeds", "a group")))
+        listOf(SchemaDetail.ICON, SchemaDetail.SHAPE, SchemaDetail.DOT).forEach { detail ->
+            assertTrue("$detail writes", at(detail).labels().isEmpty())
+        }
+    }
+
+    @Test
+    fun `at the icon level a box shows its icon alone, a box without one its shape alone`() {
+        val icons = at(SchemaDetail.ICON).drawing.shapes.filterIsInstance<DrawShape.Icon>()
+        assertEquals(listOf("leaf"), icons.map { it.name })
+        assertTrue(at(SchemaDetail.SHAPE).drawing.shapes.none { it is DrawShape.Icon })
+    }
+
+    @Test
+    fun `the room the boxes take shrinks from one level to the next`() {
+        val builder = SchemaSceneBuilder(1f, 1f, text, own)
+        val areas = SchemaDetail.entries.map { builder.boxesArea(spec(levels), { null }, emptySet(), 340f, it) }
+        assertEquals(areas.sortedDescending(), areas)
+        assertTrue(areas.first() > areas.last())
+    }
+
     @Test
     fun `an arrow points down in a schema running down`() {
         val scene = scene("""{"direction": "TD", $chain}""")

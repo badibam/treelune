@@ -43,6 +43,7 @@ import app.treelune.core.strings.Strings
 import app.treelune.core.tools.ToolRequests
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
+import app.treelune.tools.schema.SchemaDetail
 import app.treelune.tools.schema.SchemaScene
 import app.treelune.tools.schema.SchemaSceneBuilder
 import app.treelune.tools.schema.SchemaSpec
@@ -55,6 +56,7 @@ import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 /** A schema's config as read for display: drawn with the current names and icons of its things, or why it cannot be. */
 sealed interface SchemaReading {
@@ -128,17 +130,25 @@ fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((Schema
         val width = if (across) constraints.maxHeight.toFloat() * reading else available * reading
         // Placing takes a good part of a second on a phone: done aside, the last drawing staying on
         // screen meanwhile, and kept, so that going back to a folding already seen is immediate
-        val scenes = remember(read, width, text, density, unit, reduced, across) { HashMap<Pair<Set<String>, Set<String>>, SchemaScene>() }
-        var lastScene by remember { mutableStateOf<SchemaScene?>(null) }
+        val room = constraints.maxHeight.toFloat()
+        val scenes = remember(read, width, text, density, unit, reduced, across, available, room) { HashMap<Pair<Set<String>, Set<String>>, Shown>() }
+        var lastShown by remember { mutableStateOf<Shown?>(null) }
         LaunchedEffect(scenes, folded, keptOpen) {
             val key = folded to keptOpen
-            lastScene = scenes[key] ?: withContext(Dispatchers.Default) {
+            lastShown = scenes[key] ?: withContext(Dispatchers.Default) {
                 val start = System.currentTimeMillis()
-                SchemaSceneBuilder(density, unit, text) { s.tool(it) }.build(read.spec, { read.things[it]?.name }, folded, width, keptOpen, fit = !reduced, iconOf = { read.things[it]?.icon }, across = across)
-                    .also { app.treelune.core.utils.LogManager.ui("Schema laid out in ${System.currentTimeMillis() - start} ms (${it.autoFolded.size} folded to fit, scale ${it.scale})", "INFO") }
+                val builder = SchemaSceneBuilder(density, unit, text) { s.tool(it) }
+                val nameOf = { thing: Reference -> read.things[thing]?.name }
+                val iconOf = { thing: Reference -> read.things[thing]?.icon }
+                if (!reduced) Shown(builder.build(read.spec, nameOf, folded, width, keptOpen, fit = true, iconOf = iconOf)
+                    .also { app.treelune.core.utils.LogManager.ui("Schema laid out in ${System.currentTimeMillis() - start} ms (${it.autoFolded.size} folded to fit, scale ${it.scale})", "INFO") })
+                else tileShown(read.spec, builder, nameOf, iconOf, folded, width, available, room, across)
+                    .also { app.treelune.core.utils.LogManager.ui("Schema tile laid out in ${System.currentTimeMillis() - start} ms: ${it.log}", "INFO") }
             }.also { scenes[key] = it }
         }
-        val scene = lastScene ?: return@BoxWithConstraints UI.LoadingIndicator()
+        val shown = lastShown ?: return@BoxWithConstraints UI.LoadingIndicator()
+        // On a tile, a schema too dense even in dots shows nothing: its summary says it alone
+        val scene = shown.scene ?: return@BoxWithConstraints
         val shownScale = scene.scale
         val free = available - scene.drawing.width * shownScale
         // Computed while composing, for the first frame of the new drawing to stand right already
@@ -164,7 +174,6 @@ fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((Schema
             }
         }
         if (reduced) {
-            val room = constraints.maxHeight.toFloat()
             val wanted = min(1f, min(available / scene.drawing.width, room / scene.drawing.height))
             // A theme drawing in whole pixels keeps a whole number of screen pixels to each of its own
             val scale = if (unit > 1f) max(1f, floor(wanted * unit)) / unit else wanted
@@ -196,6 +205,41 @@ private fun Modifier.shownAt(scale: Float): Modifier = if (scale == 1f) this els
         }
     }
 }
+
+/** A schema laid out for where it shows: none on a tile it cannot fit even in dots; [log] says how it was chosen. */
+private data class Shown(val scene: SchemaScene?, val log: String = "")
+
+/**
+ * A tile's drawing at the richest level of detail that holds (docs/design/progression.md): one
+ * holds while the drawing, scaled down to the tile, keeps at least its bound of its size. The
+ * level expected is read first from the room the boxes take, measured without placing them; the
+ * drawing is placed there, and one level lower each time it does not hold.
+ */
+private fun tileShown(spec: SchemaSpec, builder: SchemaSceneBuilder, nameOf: (Reference) -> String?, iconOf: (Reference) -> String?,
+                      folded: Set<String>, width: Float, available: Float, room: Float, across: Boolean): Shown {
+    val levels = SchemaDetail.entries
+    val expected = levels.firstOrNull { detail ->
+        val area = builder.boxesArea(spec, nameOf, folded, width, detail, iconOf, across) * SPREAD
+        area <= 0f || sqrt(available * room / area) >= BOUNDS.getValue(detail)
+    } ?: levels.last()
+    val tried = mutableListOf<String>()
+    for (detail in levels.drop(levels.indexOf(expected))) {
+        val scene = builder.build(spec, nameOf, folded, width, fit = detail == SchemaDetail.TEXT, iconOf = iconOf, across = across, detail = detail)
+        val scale = min(1f, min(available / scene.drawing.width, room / scene.drawing.height))
+        tried += "$detail at ${"%.2f".format(scale)}"
+        if (scale >= BOUNDS.getValue(detail)) return Shown(scene, "expected $expected, ${tried.joinToString()}")
+    }
+    return Shown(null, "expected $expected, ${tried.joinToString()}, none holds")
+}
+
+/**
+ * The smallest a tile shows a drawing at, per level, against its full size; to judge on the phone.
+ * Below the last, nothing is drawn.
+ */
+private val BOUNDS = mapOf(SchemaDetail.TEXT to 0.6f, SchemaDetail.ICON to 0.5f, SchemaDetail.SHAPE to 0.5f, SchemaDetail.DOT to 0.5f)
+
+/** How much more room a drawing takes than its boxes alone, its gaps, arrows and groups; to judge on the phone. */
+private const val SPREAD = 3f
 
 /** Where a touched group stood: its left in the view, its top against the page's scroll. */
 private data class GroupAnchor(val id: String, val x: Float, val y: Float)
