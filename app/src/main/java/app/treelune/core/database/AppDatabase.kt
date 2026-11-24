@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 120
+        const val VERSION = 121
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2364,6 +2364,34 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
+         * A variable's series is a view of the variable, which a selection names: each selection of a
+         * variable gets `"view": "series"`, the history's copies with them: see SeriesViewAtV121.
+         */
+        private val MIGRATION_120_121 = object : ConnectionMigration(120, 121) {
+            override fun migrate(database: MigrationDatabase) {
+                val v = app.treelune.core.versioning.SeriesViewAtV121
+                var rewritten = 0
+                v.COLUMNS.forEach { (table, columns) ->
+                    database.query("SELECT id, ${columns.joinToString(", ")} FROM $table").use { cursor ->
+                        while (cursor.moveToNext()) {
+                            val id = cursor.getString(0)
+                            columns.forEachIndexed { i, column ->
+                                val json = if (cursor.isNull(i + 1)) return@forEachIndexed else cursor.getString(i + 1).takeIf { it.isNotEmpty() } ?: return@forEachIndexed
+                                try {
+                                    v.json(json)?.let { database.execSQL("UPDATE $table SET $column = ? WHERE id = ?", arrayOf<Any?>(it, id)); rewritten++ }
+                                } catch (e: Exception) {
+                                    LogManager.database("MIGRATION 120->121: $table $id $column left as it was: ${e.message}", "ERROR", e)
+                                }
+                            }
+                        }
+                    }
+                    app.treelune.core.versioning.HistoryCopies.rewrite(database, table) { v.row(table, it) }
+                }
+                LogManager.database("MIGRATION 120->121: $rewritten column(s) with their series named as a view", "INFO")
+            }
+        }
+
+        /**
          * A readout reaches its zone's tile only as a piece of the tile: each readout that ticked
          * the place `zone_tile` joins its zone's `tile_pieces`, the place leaving its settings, the
          * history's copies with them: see ReadoutTilePiecesAtV120. A zone's tile draws its pieces in
@@ -3718,7 +3746,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_116_117,
                     MIGRATION_117_118,
                     MIGRATION_118_119,
-                    MIGRATION_119_120
+                    MIGRATION_119_120,
+                    MIGRATION_120_121
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

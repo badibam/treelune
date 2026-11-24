@@ -14,8 +14,8 @@ import org.json.JSONObject
  * A zone takes a period, applied to each of its tools; a tool a period, conditions on its entries
  * and a choice of fields, which are a tool's own: they have no sense across the tools of a zone.
  * An entry, where its context takes one (a message's pointer), is that entry alone: nothing narrows it.
- * A variable, where its context takes one (a reading), stands for its series' entries
- * (VariableSeries): a period and conditions, as a tool.
+ * A variable, where its context takes one (a reading), stands for its series, its view
+ * (Views.SERIES): a period and conditions, as a tool.
  *
  * @property filters Conditions put on each entry (Conditions), the period apart
  * @property fields The fields kept, all of them when null
@@ -79,7 +79,7 @@ data class SelectionDraft(
      */
     fun selection(): EntrySelection {
         val isTool = level == ReferenceKind.TOOL_INSTANCE
-        if (level == ReferenceKind.VARIABLE) return EntrySelection(Reference(ReferenceKind.VARIABLE, variable!!.id), period, filters, sort = sort, limit = limit)
+        if (level == ReferenceKind.VARIABLE) return EntrySelection(Reference(ReferenceKind.VARIABLE, variable!!.id), period, filters, sort = sort, limit = limit, view = app.treelune.core.views.Views.SERIES)
         // One entry is that entry: no period, no condition, all its fields
         if (level == ReferenceKind.ENTRY) return EntrySelection(Reference(ReferenceKind.ENTRY, entry!!.id))
         return EntrySelection(

@@ -264,13 +264,13 @@ suspend fun toolPath(toolInstanceId: String, context: android.content.Context): 
  * series'), none while it is null or read; a read that fails is logged and said by a toast.
  */
 @Composable
-fun rememberSourceFields(source: app.treelune.core.selection.Reference?): Map<String, app.treelune.core.fields.FieldDefinition> {
+fun rememberSourceFields(source: app.treelune.core.selection.Reference?, view: String? = null): Map<String, app.treelune.core.fields.FieldDefinition> {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     var fields by remember { mutableStateOf<Map<String, app.treelune.core.fields.FieldDefinition>>(emptyMap()) }
-    LaunchedEffect(source) {
+    LaunchedEffect(source, view) {
         fields = if (source == null) emptyMap() else try {
-            app.treelune.core.fields.ToolFields.ofTarget(source, context, s)
+            app.treelune.core.fields.ToolFields.ofTarget(source, view, context, s)
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {

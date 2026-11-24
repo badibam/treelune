@@ -306,6 +306,12 @@ interface ToolTypeContract {
     fun takesUserFields(): Boolean = keepsEntries()
 
     /**
+     * The views a tool of this type computes besides its entries (core/views): rows read as
+     * entries, which a selection names by its `view` (a deck's cards). None by default.
+     */
+    fun views(): List<app.treelune.core.views.ToolView> = emptyList()
+
+    /**
      * The fields of the rows this tool type's config describes, where a setting chooses among
      * them (SettingNode.Field.rowField): a chart's columns, per layer. Null for a config without
      * rows, which then declares no such setting.

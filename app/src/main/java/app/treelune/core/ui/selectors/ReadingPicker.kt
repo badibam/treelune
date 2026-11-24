@@ -66,7 +66,8 @@ fun ReadingPicker(reading: JSONObject, s: StringsContext, where: ReadingContext,
             ?.let { SelectionDraft.of(stored, it) } ?: SelectionDraft()
     }
     val current = draft ?: return UI.LoadingIndicator()
-    val fields = rememberSourceFields(current.takeIf { it.level in READ.kinds }?.selection()?.target)
+    val read = current.takeIf { it.level in READ.kinds }?.selection()
+    val fields = rememberSourceFields(read?.target, read?.view)
 
     SelectionPicker(current, { next ->
         draft = next

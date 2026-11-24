@@ -36,7 +36,7 @@ object TermFields {
         term: Term,
         name: String,
         text: (String) -> String,
-        targetFields: suspend (app.treelune.core.selection.Reference) -> Map<String, FieldDefinition>,
+        targetFields: suspend (app.treelune.core.selection.Reference, String?) -> Map<String, FieldDefinition>,
         variableField: suspend (String) -> FieldDefinition?
     ): FieldDefinition? = when (term) {
         is Term.Constant -> null
@@ -44,18 +44,18 @@ object TermFields {
         is Term.Reading -> reading(term, name, text, targetFields)
     }
 
-    private suspend fun reading(term: Term.Reading, name: String, text: (String) -> String, targetFields: suspend (app.treelune.core.selection.Reference) -> Map<String, FieldDefinition>): FieldDefinition? {
-        // A variable's series reads as a tool's entries (VariableSeries), its fields given by targetFields
-        term.selection.problem(series = true, text = text)?.let { throw IllegalArgumentException(text("variable_error_term").format(name) + " " + it) }
+    private suspend fun reading(term: Term.Reading, name: String, text: (String) -> String, targetFields: suspend (app.treelune.core.selection.Reference, String?) -> Map<String, FieldDefinition>): FieldDefinition? {
+        // A view reads as a tool's entries (core/views), its fields given by targetFields
+        term.selection.problem(views = true, text = text)?.let { throw IllegalArgumentException(text("variable_error_term").format(name) + " " + it) }
         if (term.selection.target.kind !in SOURCES) {
             throw IllegalArgumentException(text("service_error_reading_source").format(term.selection.target.kind.name))
         }
-        // A formula in each entry reads an entry's fields, which a step of a series has not
-        if (term.perEntry != null && term.selection.target.kind == ReferenceKind.VARIABLE) {
-            throw IllegalArgumentException(text("variable_error_term").format(name) + " " + text("selection_problem_variable"))
+        // A formula in each entry reads an entry's fields, which a view's row has not
+        if (term.perEntry != null && term.selection.view != null) {
+            throw IllegalArgumentException(text("variable_error_term").format(name) + " " + text("selection_problem_view"))
         }
         val fields = try {
-            targetFields(term.selection.target)
+            targetFields(term.selection.target, term.selection.view)
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: IllegalStateException) {

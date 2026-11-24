@@ -37,11 +37,13 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
 
         /**
          * The fields of the entries a reading's [target] holds: a tool instance's, or for one
-         * entry, its tool's.
+         * entry, its tool's; or of the rows of its [view] (core/views), which only the app's own
+         * sources open.
          *
          * @throws IllegalStateException when they cannot be read
          */
-        suspend fun targetFields(target: app.treelune.core.selection.Reference): Map<String, FieldDefinition> = toolFields(target.id!!)
+        suspend fun targetFields(target: app.treelune.core.selection.Reference, view: String?): Map<String, FieldDefinition> =
+            if (view == null) toolFields(target.id!!) else throw IllegalStateException(view)
 
         /** The field of the variable [id] as its definition stores it; null when there is none. */
         suspend fun variableField(id: String): FieldDefinition?
@@ -174,8 +176,9 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
     private suspend fun groupValue(reading: JSONObject): FieldDefinition? {
         val reduction = Reduction.entries.firstOrNull { it.name == reading.optString("reduction") } ?: return null
         if (reduction == Reduction.COUNT) return FieldReading.COUNT_FIELD
-        val target = reading.optJSONObject("selection")?.optJSONObject("target")?.let { app.treelune.core.selection.Reference.fromJson(it) } ?: return null
-        val fields = try { sources.targetFields(target) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { return null } catch (e: IllegalArgumentException) { return null }
+        val selection = reading.optJSONObject("selection")
+        val target = selection?.optJSONObject("target")?.let { app.treelune.core.selection.Reference.fromJson(it) } ?: return null
+        val fields = try { sources.targetFields(target, selection.optString("view").takeIf { it.isNotEmpty() }) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { return null } catch (e: IllegalArgumentException) { return null }
         return fields[reading.optString("field")]
     }
 
@@ -183,13 +186,14 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
     private suspend fun selection(selection: JSONObject, label: String, visit: suspend (Found) -> JSONObject) {
         val filters = selection.optJSONArray("filters")?.takeIf { it.length() > 0 } ?: return
         val target = selection.optJSONObject("target")
-        // A tool's entries, or a variable's series (VariableSeries), whose steps' fields its filters name
-        val kind = target?.optString("kind")?.takeIf { it == ReferenceKind.TOOL_INSTANCE.name || it == ReferenceKind.VARIABLE.name }
+        // A tool's entries, or a view's rows (core/views: a variable's series), whose fields its filters name
+        val view = selection.optString("view").takeIf { it.isNotEmpty() }
+        val kind = target?.optString("kind")?.takeIf { it == ReferenceKind.TOOL_INSTANCE.name || (view != null && it == ReferenceKind.VARIABLE.name) }
         val id = target?.optString("id")?.takeIf { kind != null && it.isNotEmpty() }
         // Filters on anything else name no field it has: each is refused as such
         val fields = id?.let {
             try {
-                sources.targetFields(app.treelune.core.selection.Reference(ReferenceKind.valueOf(kind!!), it))
+                sources.targetFields(app.treelune.core.selection.Reference(ReferenceKind.valueOf(kind!!), it), view)
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: IllegalStateException) {

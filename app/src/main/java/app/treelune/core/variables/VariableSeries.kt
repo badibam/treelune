@@ -1,21 +1,16 @@
 package app.treelune.core.variables
 
 import android.content.Context
-import androidx.sqlite.db.SimpleSQLiteQuery
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.database.entities.ToolDataEntity
 import app.treelune.core.fields.CoreFields
-import app.treelune.core.fields.EntryFilters
 import app.treelune.core.fields.FieldDefinition
-import app.treelune.core.fields.FilterTerms
 import app.treelune.core.selection.PeriodType
 import app.treelune.core.selection.TimeResolver
 import app.treelune.core.selection.normalizeTimestampWithConfig
-import app.treelune.core.services.ToolDataEntries
 import app.treelune.core.strings.StringsContext
-import org.json.JSONArray
 import org.json.JSONObject
 import java.time.Instant
 
@@ -95,69 +90,39 @@ object VariableSeries {
         state = null
     )
 
+    /** The newest first, a series' default order: its steps' date (SelectionOrder). */
+    val DEFAULT_SORT: List<app.treelune.core.fields.SortKey> = listOf(app.treelune.core.fields.SortKey("timestamp", ascending = false))
+
     /**
-     * The entries of [variableId]'s series of [unit] in the period [start] to [end] read at [at],
-     * those [filters] keep (stored as a tool's are, EntrySelection.storedFilters), newest first as
-     * tool_data.get gives a tool's.
+     * The series of the variable [variableId] as a view (core/views, its name Views.SERIES): its
+     * steps' fields, a period needed with a start, its rows the steps of that period computed at
+     * the instant read, a step without a value having no row, as a day nothing was noted on.
      *
-     * @throws IllegalStateException when the variable cannot be computed, or its filters read
+     * @throws IllegalStateException when the variable is gone, does not read, or has no series
      */
-    suspend fun entries(
-        context: Context,
-        variableId: String,
-        unit: PeriodType,
-        fields: Map<String, FieldDefinition>,
-        start: Long,
-        end: Long?,
-        at: Long,
-        filters: JSONArray,
-        s: StringsContext
-    ): List<Map<String, Any?>> {
-        val instants = instants(start, end, at, unit, TimeResolver.at(at))
-        if (instants.isEmpty()) return emptyList()
-        val result = Coordinator(context).processUserAction("variables.evaluate", mapOf("variable_id" to variableId, "at" to instants))
-        if (!result.isSuccess) throw IllegalStateException(result.error ?: "")
-        // A step without a value has no entry, as a day nothing was noted on
-        val rows = (result.data?.get("values") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().mapNotNull { step ->
-            val value = step["value"] ?: return@mapNotNull null
-            entry(variableId, (step["at"] as Number).toLong(), value)
-        }.sortedByDescending { it.timestamp }
-        if (rows.isEmpty() || filters.length() == 0) return rows.map { ToolDataEntries.toMap(it) }
-        return filtered(context, variableId, rows, fields, filters, at, s).map { ToolDataEntries.toMap(it) }
-    }
-
-    /**
-     * [rows] [filters] keep, judged by the SQL that judges a tool's entries (EntryFilters), the
-     * rows standing for the table (`WITH tool_data`), as the triggers judge an entry's copy
-     * (EntryWrites.passes): a filter means the same on a series as on a tool.
-     */
-    private suspend fun filtered(
-        context: Context,
-        variableId: String,
-        rows: List<ToolDataEntity>,
-        fields: Map<String, FieldDefinition>,
-        filters: JSONArray,
-        at: Long,
-        s: StringsContext
-    ): List<ToolDataEntity> {
-        val given = FilterTerms.resolved(filters, at, context) { s.shared(it) }
-        val parsed = when (val read = EntryFilters.parse(given, fields) { s.shared(it) }) {
-            is EntryFilters.Parsed.Refused -> throw IllegalStateException(read.error)
-            is EntryFilters.Parsed.Ready -> read.filters
+    suspend fun view(context: Context, variableId: String, s: StringsContext): app.treelune.core.views.View {
+        val variable = AppDatabase.getDatabase(context).variableDao().getById(variableId)
+            ?: throw IllegalStateException(s.shared("variable_error_not_found").format(variableId))
+        val definition = try {
+            VariableDefinition.fromJson(JSONObject(variable.definitionJson), variable.name) { s.shared(it) }
+        } catch (e: IllegalArgumentException) {
+            throw IllegalStateException(e.message ?: "")
         }
-        val select = EntryFilters.select(variableId, parsed, fields, null, 0)
-        val dao = AppDatabase.getDatabase(context).toolDataDao()
-        // In slices, the arguments of one query being bounded
-        return rows.chunked(ROWS_PER_QUERY).flatMap { slice ->
-            val table = slice.joinToString(" UNION ALL ") { "SELECT ${COLUMNS.joinToString { column -> "? AS `$column`" }}" }
-            val args = slice.flatMap { listOf(it.id, it.toolInstanceId, it.tooltype, it.timestamp, it.name, it.data, it.createdAt, it.updatedAt, it.extra, it.state) } + select.args
-            dao.getFiltered(SimpleSQLiteQuery("WITH tool_data AS ($table) " + select.clause, args.toTypedArray()))
-        }.sortedByDescending { it.timestamp }
+        val unit = definition.series ?: throw IllegalStateException(s.shared("variable_error_no_series").format(variable.label))
+        val fields = fields(definition, variable.label) { s.shared(it) }
+        return object : app.treelune.core.views.View {
+            override val fields = fields
+            override val period = app.treelune.core.views.ViewPeriod.NEEDS_START
+            override suspend fun rows(start: Long?, end: Long?, at: Long): List<ToolDataEntity> {
+                val instants = instants(start!!, end, at, unit, TimeResolver.at(at))
+                if (instants.isEmpty()) return emptyList()
+                val result = Coordinator(context).processUserAction("variables.evaluate", mapOf("variable_id" to variableId, "at" to instants))
+                if (!result.isSuccess) throw IllegalStateException(result.error ?: "")
+                return (result.data?.get("values") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().mapNotNull { step ->
+                    val value = step["value"] ?: return@mapNotNull null
+                    entry(variableId, (step["at"] as Number).toLong(), value)
+                }
+            }
+        }
     }
-
-    /** The columns of tool_data an entry of a series fills, in the order [filtered] binds them. */
-    private val COLUMNS = listOf("id", "tool_instance_id", "tooltype", "timestamp", "name", "data", "created_at", "updated_at", "extra", "state")
-
-    /** Rows per query: ten arguments each, far under SQLite's bound. */
-    private const val ROWS_PER_QUERY = 500
 }

@@ -12,7 +12,7 @@ import org.json.JSONObject
 /**
  * The order a selection is written with when none is given (docs/BRICKS.md, « Entry selection »):
  * the newest first, by the entry's date (`timestamp`), or by its creation (`created_at`) for a
- * tool whose entries have no date; a variable's series by its steps' date. The one place this
+ * tool whose entries have no date; a view's by its own (a variable's series by its steps' date). The one place this
  * default is said: the selector writes it into a new selection, the migration into the stored
  * ones, and a selection written without a sort (by the AI, in the app or through the connector)
  * gets it once, at its writing, before it is stored — the sort is then explicit like any other.
@@ -32,16 +32,14 @@ object SelectionOrder {
     /** The newest first: by the entry's date when its entries have one ([dated]), by its creation otherwise. */
     fun defaultSort(dated: Boolean): List<SortKey> = listOf(SortKey(if (dated) "timestamp" else "created_at", ascending = false))
 
-    /** The newest first, for a variable's series: its steps' date. */
-    val SERIES_DEFAULT: List<SortKey> = listOf(SortKey("timestamp", ascending = false))
-
     /**
-     * The default sort of [target]'s entries; null where there is no order to read (one entry, a
-     * zone) or the tool is gone, whose selection the reading then refuses as it is.
+     * The default sort of [target]'s entries, or of its [view]'s rows; null where there is no
+     * order to read (one entry, a zone) or the tool or view is gone, whose selection the reading
+     * then refuses as it is.
      */
-    suspend fun defaultFor(target: Reference, context: Context): List<SortKey>? = when (target.kind) {
-        ReferenceKind.VARIABLE -> SERIES_DEFAULT
-        ReferenceKind.TOOL_INSTANCE -> {
+    suspend fun defaultFor(target: Reference, view: String?, context: Context): List<SortKey>? = when {
+        view != null -> app.treelune.core.views.Views.defaultSort(target, view, context)
+        target.kind == ReferenceKind.TOOL_INSTANCE -> {
             val tool = app.treelune.core.database.AppDatabase.getDatabase(context).toolInstanceDao().getToolInstanceById(target.id!!)
             val type = tool?.let { ToolTypeManager.getToolType(it.tooltype) }
             if (tool == null || type == null) null else defaultSort(type.getEntryFields(JSONObject(tool.config_json), context))
@@ -75,7 +73,7 @@ object SelectionOrder {
         if ((selection.optJSONArray("sort")?.length() ?: 0) > 0) return false
         // A target that does not read is left for the writing's own check to refuse
         val target = Reference.fromJson(selection.optJSONObject("target") ?: return false)
-        val sort = defaultFor(target, context) ?: return false
+        val sort = defaultFor(target, selection.optString("view").takeIf { it.isNotEmpty() }, context) ?: return false
         selection.put("sort", EntrySort.toJson(sort))
         return true
     }

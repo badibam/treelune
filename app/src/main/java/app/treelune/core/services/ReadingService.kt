@@ -31,8 +31,9 @@ import org.json.JSONObject
  *
  * - read, a variable: `variable` (its name) and `at`, the instants to read it at (milliseconds);
  *   a value or a failure per instant, in the same order (the variables service computes it).
- * - read, a field: `selection` (a tool instance, one entry, or a variable's series — one entry per
- *   step, VariableSeries, its period needing a start —, its period and filters, relative dates resolved against
+ * - read, a field: `selection` (a tool instance, one entry, or a view — a tool's own rows, a
+ *   variable's series, one row per step, its period needing a start: core/views —, its period
+ *   and filters, relative dates resolved against
  *   `reference`, milliseconds, which the reader gives: a goal's attempt end, the instant a
  *   variable is read at), `field` (a path, absent to count) and `reduction`. It gives `value` with
  *   `field`, the type and settings of the result, or `failure` with its causes as data: a reading
@@ -77,7 +78,7 @@ class ReadingService(private val context: Context) : ExecutableService {
         } catch (e: IllegalArgumentException) {
             return OperationResult.error(e.message ?: s.shared("service_error_reading_param").format("selection"))
         }
-        selection.problem(series = true) { s.shared(it) }?.let { return OperationResult.error(it) }
+        selection.problem(views = true) { s.shared(it) }?.let { return OperationResult.error(it) }
         selection.unordered { s.shared(it) }?.let { return OperationResult.error(it) }
         if (selection.target.kind !in app.treelune.core.terms.TermFields.SOURCES) {
             return OperationResult.error(s.shared("service_error_reading_source").format(selection.target.kind.name))
@@ -107,23 +108,24 @@ class ReadingService(private val context: Context) : ExecutableService {
                 ?.let { app.treelune.core.services.ToolDataEntries.toMap(it) }
                 ?: return OperationResult.error(s.shared("service_error_entry_not_found").format(selection.target.id))
         } else null
-        // A variable's series: its unit and its steps' fields, its entries computed at each read
-        val series = if (selection.target.kind == ReferenceKind.VARIABLE) {
-            try { ToolFields.series(selection.target.id!!, context, s) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { return OperationResult.error(e.message ?: "") }
-        } else null
-        // It has no first entry: « the whole history » means nothing
-        if (series != null && selection.period.start == null) return OperationResult.error(s.shared("reading_error_series_start"))
+        // A view: its fields, its rows computed at each read (core/views)
+        val view = selection.view?.let { name ->
+            try { app.treelune.core.views.Views.of(selection.target, name, context, s) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { return OperationResult.error(e.message ?: "") }
+        }
+        when (view?.period) {
+            // Rows without a date of their own: a period would keep none or all
+            app.treelune.core.views.ViewPeriod.NONE -> if (!selection.period.isEmpty) return OperationResult.error(s.shared("reading_error_view_period").format(selection.view))
+            // Its rows have no first one: « the whole history » means nothing
+            app.treelune.core.views.ViewPeriod.NEEDS_START -> if (selection.period.start == null) return OperationResult.error(s.shared("reading_error_series_start"))
+            else -> {}
+        }
         val toolInstanceId = entry?.get("tool_instance_id") as? String ?: selection.target.id!!
-        val fields = series?.second ?: ToolFields.filterable(toolInstanceId, context, s)
+        val fields = view?.fields ?: ToolFields.filterable(toolInstanceId, context, s)
         suspend fun entries(toolInstanceId: String, filters: org.json.JSONArray, at: Long): List<Map<String, Any?>> = when {
             entry != null -> listOf(entry)
-            series != null -> {
+            view != null -> {
                 val (start, end) = selection.period.instants(TimeResolver.at(at))
-                // A series is computed, its steps put in order and counted here (EntrySort.ordered)
-                app.treelune.core.fields.EntrySort.ordered(
-                    app.treelune.core.variables.VariableSeries.entries(context, toolInstanceId, series.first, fields, start!!, end, at, filters, s),
-                    selection.sort, fields
-                ).let { steps -> selection.limit?.let { steps.take(it) } ?: steps }
+                app.treelune.core.views.ViewRows.read(context, view, toolInstanceId, selection, start, end, filters, at, s)
             }
             else -> readEntries(toolInstanceId, filters, at, selection)
         }
@@ -187,9 +189,9 @@ class ReadingService(private val context: Context) : ExecutableService {
         // date, and the entries of every period are then read at once, each instant keeping those
         // its own period takes. Otherwise each instant reads its own
         val values = try {
-            // A series moves with the instant too: its last step is computed at it. A count is
-            // one of each instant's own period, never of the periods read together
-            if (selection.filtersMove || series != null || selection.limit != null) {
+            // A view moves with the instant too: its rows are computed at it (a series' last step).
+            // A count is one of each instant's own period, never of the periods read together
+            if (selection.filtersMove || view != null || selection.limit != null) {
                 instants.map { at -> at to reduced(entries(toolInstanceId, selection.storedFilters(fields, TimeResolver.at(at)) { s.shared(it) }, at), at) }
             } else {
                 val shared = app.treelune.core.selection.SharedRead.of(selection.period, instants)

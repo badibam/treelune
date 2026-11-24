@@ -1654,6 +1654,9 @@ class BackupService(private val context: Context) : ExecutableService {
                 // Every zone's tile drew its pieces in text
                 data.optJSONArray("zones")?.let { zones -> for (i in 0 until zones.length()) zones.getJSONObject(i).put(app.treelune.core.look.TilePieces.ICONS, false) }
             }
+            if (fromVersion < 121 && toVersion >= 121) {
+                app.treelune.core.versioning.SeriesViewAtV121.backup(data)
+            }
 
             // Transform app settings
             data.optJSONArray("app_settings_categories")?.let { array ->

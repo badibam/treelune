@@ -104,11 +104,12 @@ private fun constant() = JSONObject().put(Conditions.CONSTANT, JSONObject.NULL)
 fun rememberTermField(term: JSONObject): FieldDefinition? {
     val context = LocalContext.current
     val reading = term.optJSONObject("reading")
-    // A tool's entries, or a variable's series
-    val source = reading?.optJSONObject("selection")?.optJSONObject("target")?.takeIf { it.optString("id").isNotEmpty() }?.let {
+    // A tool's entries, or a view's rows (a variable's series)
+    val selection = reading?.optJSONObject("selection")
+    val source = selection?.optJSONObject("target")?.takeIf { it.optString("id").isNotEmpty() }?.let {
         try { app.treelune.core.selection.Reference.fromJson(it) } catch (e: Exception) { null }
     }
-    val fields = rememberSourceFields(source)
+    val fields = rememberSourceFields(source, selection?.optString("view")?.takeIf { it.isNotEmpty() })
     val variableId = term.optString("variable").takeIf { it.isNotEmpty() }
     var variableField by remember(variableId) { mutableStateOf<FieldDefinition?>(null) }
     LaunchedEffect(variableId) {

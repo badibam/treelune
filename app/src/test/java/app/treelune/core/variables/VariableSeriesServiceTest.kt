@@ -70,7 +70,7 @@ class VariableSeriesServiceTest {
     /** The days of 14 to 16 September the fast reached 16 hours, read on the 16th in the evening. */
     private suspend fun daysOf16(variable: String) = coordinator.processUserAction("readings.read", mapOf(
         "selection" to mapOf(
-            "target" to mapOf("kind" to "VARIABLE", "id" to variable), "sort" to listOf(mapOf("field" to "timestamp", "direction" to "desc")),
+            "target" to mapOf("kind" to "VARIABLE", "id" to variable), "view" to "series", "sort" to listOf(mapOf("field" to "timestamp", "direction" to "desc")),
             "period" to mapOf("start" to at(14, 12), "end" to at(16, 23)),
             "filters" to listOf(mapOf("left" to mapOf("field" to "data.value"), "op" to ">=", "right" to mapOf("constant" to 16 * hour)))
         ),
@@ -92,7 +92,7 @@ class VariableSeriesServiceTest {
 
     private suspend fun daysOf16Params(variable: String) = mapOf(
         "selection" to mapOf(
-            "target" to mapOf("kind" to "VARIABLE", "id" to variable), "sort" to listOf(mapOf("field" to "timestamp", "direction" to "desc")),
+            "target" to mapOf("kind" to "VARIABLE", "id" to variable), "view" to "series", "sort" to listOf(mapOf("field" to "timestamp", "direction" to "desc")),
             "period" to mapOf("start" to at(14, 12), "end" to at(16, 23)),
             "filters" to listOf(mapOf("left" to mapOf("field" to "data.value"), "op" to ">=", "right" to mapOf("constant" to 16 * hour)))
         ),
@@ -106,7 +106,7 @@ class VariableSeriesServiceTest {
         // Nothing on the 13th: the 14th has no day before to measure from
         listOf(at(14, 19), at(15, 9)).forEach { meal(meals, it) }
         val read = ok("readings.read", mapOf(
-            "selection" to mapOf("target" to mapOf("kind" to "VARIABLE", "id" to variable), "sort" to listOf(mapOf("field" to "timestamp", "direction" to "desc")), "period" to mapOf("start" to at(14, 12), "end" to at(15, 23))),
+            "selection" to mapOf("target" to mapOf("kind" to "VARIABLE", "id" to variable), "view" to "series", "sort" to listOf(mapOf("field" to "timestamp", "direction" to "desc")), "period" to mapOf("start" to at(14, 12), "end" to at(15, 23))),
             "field" to "data.value", "reduction" to "AVERAGE", "reference" to at(15, 23)
         ))
         assertEquals(14 * hour, (read["value"] as Number).toLong())
@@ -116,11 +116,22 @@ class VariableSeriesServiceTest {
     fun `a series read over a period without a start is refused, saying so`() = runBlocking {
         val (_, variable) = fast()
         val read = coordinator.processUserAction("readings.read", mapOf(
-            "selection" to mapOf("target" to mapOf("kind" to "VARIABLE", "id" to variable), "sort" to listOf(mapOf("field" to "timestamp", "direction" to "desc"))),
+            "selection" to mapOf("target" to mapOf("kind" to "VARIABLE", "id" to variable), "view" to "series", "sort" to listOf(mapOf("field" to "timestamp", "direction" to "desc"))),
             "reduction" to "COUNT", "reference" to at(16, 23)
         ))
         assertFalse(read.isSuccess)
         assertTrue(read.error, read.error!!.contains("start"))
+    }
+
+    @Test
+    fun `a variable selected without its view is refused, saying to read its series`() = runBlocking {
+        val (_, variable) = fast()
+        val read = coordinator.processUserAction("readings.read", mapOf(
+            "selection" to mapOf("target" to mapOf("kind" to "VARIABLE", "id" to variable), "sort" to listOf(mapOf("field" to "timestamp", "direction" to "desc")), "period" to mapOf("start" to at(14, 12))),
+            "reduction" to "COUNT", "reference" to at(16, 23)
+        ))
+        assertFalse(read.isSuccess)
+        assertTrue(read.error, read.error!!.contains("series"))
     }
 
     @Test
@@ -135,7 +146,7 @@ class VariableSeriesServiceTest {
         val changed = coordinator.processUserAction("variables.update", mapOf("variable_id" to variable, "definition" to mapOf(
             "kind" to "FORMULA", "formula" to "days",
             "terms" to mapOf("days" to mapOf("reading" to mapOf(
-                "selection" to mapOf("target" to mapOf("kind" to "VARIABLE", "id" to variable), "period" to mapOf("start" to mapOf("relative" to mapOf("unit" to "DAY", "offset" to -7, "edge" to "START")))),
+                "selection" to mapOf("target" to mapOf("kind" to "VARIABLE", "id" to variable), "view" to "series", "period" to mapOf("start" to mapOf("relative" to mapOf("unit" to "DAY", "offset" to -7, "edge" to "START")))),
                 "reduction" to "COUNT"
             ))),
             "series" to mapOf("unit" to "DAY")
@@ -154,7 +165,7 @@ class VariableSeriesServiceTest {
                 "condition" to mapOf(
                     "left" to mapOf("reading" to mapOf(
                         "selection" to mapOf(
-                            "target" to mapOf("kind" to "VARIABLE", "id" to variable),
+                            "target" to mapOf("kind" to "VARIABLE", "id" to variable), "view" to "series",
                             "filters" to listOf(mapOf("left" to mapOf("field" to "data.value"), "op" to ">=", "right" to mapOf("constant" to 16 * hour)))
                         ),
                         "reduction" to "COUNT"

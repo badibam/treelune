@@ -1658,7 +1658,11 @@
     <string name="selection_problem_period">A period narrows the entries of a tool instance or a zone, not of a %1$s.</string>
     <string name="variable_error_no_series">%1$s has no series (a value per hour, day…): it is read as a term, not selected.</string>
     <string name="reading_error_series_start">A variable's series is read over a period with a start: it has no first entry.</string>
-    <string name="selection_problem_variable">A variable is selected only in a reading, and only when it has a series (a value per hour, day…); elsewhere it is read as a term.</string>
+    <string name="reading_error_view_period">The view “%1$s” has no dates: read it without a period.</string>
+    <string name="selection_problem_variable">A variable is selected only in a reading, through its series, its view `series` (a value per hour, day…), when it has one; elsewhere it is read as a term.</string>
+    <string name="selection_problem_view">A view (a variable's series, a tool's own rows) is read by a reading alone, with all its fields.</string>
+    <string name="selection_problem_view_target">A %1$s has no view: a tool or a variable has.</string>
+    <string name="selection_problem_view_unknown">No view “%1$s” here. Its views: %2$s.</string>
     <string name="selection_problem_field">A selection takes a thing, without a field: the field read is said beside it.</string>
     <string name="selection_problem_sort_missing">A selection of a tool or a series says its order: \"sort\", a list of keys, [{\"field\": \"timestamp\", \"direction\": \"desc\"}] for the newest first.</string>
     <string name="selection_problem_order">An order and a count put the entries of a tool instance or a series in line, not of a %1$s.</string>

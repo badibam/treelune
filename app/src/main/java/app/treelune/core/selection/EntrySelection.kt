@@ -42,19 +42,22 @@ data class EntryPeriod(val start: TimePoint? = null, val end: TimePoint? = null)
 }
 
 /**
- * Entries of the app: which (a thing, the reference; the period their timestamp falls in; the
- * filters on their values), in which order, how many, and the fields kept. The core's own notion,
- * read the same wherever it serves: a message's pointer, a chart, a reading, a variable's term,
- * an API's list, a Session's media. Stored as
- * `{"target", "period", "filters", "fields", "sort", "limit"}`, those that narrow nothing absent.
+ * Entries of the app: which (a thing, the reference, or one of its views — rows it computes, read
+ * as entries, core/views —; the period their timestamp falls in; the filters on their values), in
+ * which order, how many, and the fields kept. The core's own notion, read the same wherever it
+ * serves: a message's pointer, a chart, a reading, a variable's term, an API's list, a Session's
+ * media. Stored as `{"target", "view", "period", "filters", "fields", "sort", "limit"}`, those that
+ * narrow nothing absent.
  *
  * Filters and fields are an instance's own; a period narrows an instance's entries, or a zone's,
  * applied to each of its tools. The sort (EntrySort) is never empty where entries are read in
- * order — a tool's, a variable's series —: it is written whole, its default by
+ * order — a tool's, a view's —: it is written whole, its default by
  * SelectionOrder.defaultSort, never left to the reader. The limit keeps the first entries of
  * that order, after the period and the filters, before any grouping. [problem] names what does
  * not fit its target.
  *
+ * @property view The name of one of the target's views (Views), whose rows are read in place of
+ *   its entries: a variable's `series`, a tool's own; null for a tool's entries
  * @property filters Conditions put on each entry (Conditions), a date's value being a TimePoint's stored form
  * @property fields The fields kept, all of them when null
  * @property sort The order of the entries, key after key; empty where there is no order to read
@@ -67,7 +70,8 @@ data class EntrySelection(
     val filters: JSONArray = JSONArray(),
     val fields: List<String>? = null,
     val sort: List<app.treelune.core.fields.SortKey> = emptyList(),
-    val limit: Int? = null
+    val limit: Int? = null,
+    val view: String? = null
 ) {
 
     /** Whether it says an order or a count: what a zone and a trigger refuse. */
@@ -77,20 +81,23 @@ data class EntrySelection(
     /**
      * What the target does not take, in words ([text], the shared strings); null when it all fits.
      *
-     * @param series Whether a variable may be the target: a Reading's selection, a variable's
-     * series standing for a tool's entries (VariableSeries), whose having one is checked where it
-     * is read; a pointer and an API's list select no variable
+     * @param views Whether a view may be read: a Reading's selection, a view standing for a tool's
+     * entries (core/views), whose existence is checked where it is read; a pointer and an API's
+     * list read entries only
      * @param trigger Whether it says which entry written a trigger hears: one entry judged alone,
      * with no order to put it in nor count to keep
      */
-    fun problem(series: Boolean = false, trigger: Boolean = false, text: (String) -> String): String? = when {
+    fun problem(views: Boolean = false, trigger: Boolean = false, text: (String) -> String): String? = when {
         // The field read is the reading's own, beside its selection
         target.field != null -> text("selection_problem_field")
         limit != null && limit < 1 -> text("selection_problem_limit").format(limit)
+        // A view is a tool's or a variable's, read by a reading alone, keeping all its fields
+        view != null && (!views || trigger || fields != null) -> text("selection_problem_view")
+        view != null && target.kind != ReferenceKind.TOOL_INSTANCE && target.kind != ReferenceKind.VARIABLE -> text("selection_problem_view_target").format(target.kind.name)
         trigger -> if (ordered) text("selection_problem_order_trigger") else null
         target.kind == ReferenceKind.TOOL_INSTANCE -> null
-        // A variable has entries only through its series, which a reading alone selects
-        target.kind == ReferenceKind.VARIABLE -> if (series && fields == null) null else text("selection_problem_variable")
+        // A variable has rows only through its series, a view
+        target.kind == ReferenceKind.VARIABLE -> if (view != null) null else text("selection_problem_variable")
         // A zone is read tool by tool: no field is common to put its entries in one order
         target.kind == ReferenceKind.ZONE && ordered -> text("selection_problem_order_zone")
         filters.length() > 0 || fields != null -> text("selection_problem_filters").format(target.kind.name)
@@ -100,13 +107,13 @@ data class EntrySelection(
     }
 
     /**
-     * Why it cannot be read in order; null when it can: a tool's or a series' entries are read in
+     * Why it cannot be read in order; null when it can: a tool's entries or a view's rows are read in
      * their sort, which the writing completes (SelectionOrder) and the migration wrote — one
      * without is never read in an order nobody chose. What its structure fits is [problem]'s, which
      * a selection being written passes before its sort is completed.
      */
     fun unordered(text: (String) -> String): String? =
-        if (sort.isEmpty() && (target.kind == ReferenceKind.TOOL_INSTANCE || target.kind == ReferenceKind.VARIABLE)) text("selection_problem_sort_missing") else null
+        if (sort.isEmpty() && (target.kind == ReferenceKind.TOOL_INSTANCE || view != null)) text("selection_problem_sort_missing") else null
 
     /**
      * Its order and its count as tool_data.get takes them: `sort` and, with a limit, `limit`
@@ -156,6 +163,7 @@ data class EntrySelection(
 
     fun toJson(): JSONObject = JSONObject().apply {
         put("target", target.toJson())
+        view?.let { put("view", it) }
         if (!period.isEmpty) put("period", period.toJson())
         if (filters.length() > 0) put("filters", filters)
         fields?.let { put("fields", JSONArray(it)) }
@@ -172,6 +180,7 @@ data class EntrySelection(
          */
         fun fromJson(json: JSONObject, text: (String) -> String): EntrySelection = EntrySelection(
             target = Reference.fromJson(json.getJSONObject("target")),
+            view = json.optString("view").takeIf { it.isNotEmpty() && !json.isNull("view") },
             period = json.optJSONObject("period")?.let { EntryPeriod.fromJson(it, text) } ?: EntryPeriod(),
             filters = json.optJSONArray("filters") ?: JSONArray(),
             fields = json.optJSONArray("fields")?.let { array -> (0 until array.length()).map { array.getString(it) } },

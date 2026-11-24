@@ -141,7 +141,7 @@ private fun OrderSetting(draft: SelectionDraft, onChange: (SelectionDraft) -> Un
     val keys = if (toolId != null) rememberToolFields(toolId, sortKeys = true) else fields
     androidx.compose.runtime.LaunchedEffect(keys, draft.sort.isEmpty()) {
         if (draft.sort.isEmpty() && keys.isNotEmpty()) {
-            onChange(draft.copy(sort = if (toolId == null) app.treelune.core.selection.SelectionOrder.SERIES_DEFAULT
+            onChange(draft.copy(sort = if (toolId == null) app.treelune.core.variables.VariableSeries.DEFAULT_SORT
                 else app.treelune.core.selection.SelectionOrder.defaultSort(dated = "timestamp" in keys)))
         }
     }
