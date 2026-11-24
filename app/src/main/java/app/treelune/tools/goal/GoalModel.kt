@@ -5,7 +5,6 @@ import app.treelune.core.fields.FieldType
 import app.treelune.core.fields.toFieldConfig
 import org.json.JSONArray
 import org.json.JSONObject
-import java.text.Normalizer
 
 /** Whether a node is met: yes, no, or not known yet (a value missing, a reading that failed). */
 enum class Met { YES, NO, UNKNOWN }
@@ -42,8 +41,7 @@ data class Criterion(
 
     companion object {
         /** A name as a new field's key: lowercase ASCII words joined by `_`, "c_" first. */
-        fun keyOf(name: String): String = "c_" + Normalizer.normalize(name, Normalizer.Form.NFD)
-            .replace(Regex("\\p{M}"), "").lowercase().replace(Regex("[^a-z0-9]+"), "_").trim('_')
+        fun keyOf(name: String): String = app.treelune.core.fields.settings.ElementKeys.keyOf("c_", name)
 
         /** The path of the value an entered criterion of [key] writes in its attempt. */
         fun enteredPath(key: String) = "data.$key"

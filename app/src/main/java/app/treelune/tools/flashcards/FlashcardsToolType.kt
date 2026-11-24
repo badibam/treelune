@@ -1,5 +1,6 @@
 package app.treelune.tools.flashcards
 
+import app.treelune.core.fields.settings.ElementKeys
 import android.content.Context
 import androidx.compose.runtime.Composable
 import app.treelune.core.coordinator.Coordinator
@@ -32,7 +33,6 @@ import app.treelune.core.utils.JsonUtils
 import app.treelune.tools.flashcards.ui.FlashcardsScreen
 import app.treelune.tools.flashcards.ui.rememberFlashcardsTile
 import org.json.JSONObject
-import java.text.Normalizer
 
 /**
  * A deck of flashcards (docs/TOOLS.md, « Flashcards »): the lines of another tool, its source, reviewed
@@ -112,16 +112,8 @@ object FlashcardsToolType : ToolTypeContract {
     /** Each direction gets its key at its creation, kept from then on: renaming it keeps its reviews. */
     override fun completeConfig(config: JSONObject, previous: JSONObject?): JSONObject {
         val completed = JSONObject(config.toString())
-        val all = FlashcardsDeck.objects(completed.optJSONArray(FlashcardsDeck.DIRECTIONS))
-        val taken = all.mapNotNull { it.optString(FlashcardsDeck.KEY).takeIf { k -> k.isNotEmpty() } }.toMutableSet()
-        all.filter { it.optString(FlashcardsDeck.KEY).isEmpty() }.forEach { direction ->
-            val base = "d_" + Normalizer.normalize(direction.optString(FlashcardsDeck.NAME), Normalizer.Form.NFD)
-                .replace(Regex("\\p{M}"), "").lowercase().replace(Regex("[^a-z0-9]+"), "_").trim('_')
-            var key = base
-            var n = 2
-            while (key in taken) key = "${base}_${n++}"
-            taken.add(key)
-            direction.put(FlashcardsDeck.KEY, key)
+        ElementKeys.complete(FlashcardsDeck.objects(completed.optJSONArray(FlashcardsDeck.DIRECTIONS)), FlashcardsDeck.KEY) {
+            ElementKeys.keyOf("d_", it.optString(FlashcardsDeck.NAME))
         }
         return completed
     }

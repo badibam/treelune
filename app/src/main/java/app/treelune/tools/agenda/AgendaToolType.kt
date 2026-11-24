@@ -1,5 +1,6 @@
 package app.treelune.tools.agenda
 
+import app.treelune.core.fields.settings.ElementKeys
 import android.content.Context
 import androidx.compose.runtime.Composable
 import app.treelune.core.database.entities.ToolDataEntity
@@ -25,7 +26,6 @@ import app.treelune.core.tools.ToolTypeContract
 import app.treelune.core.utils.AppConfigManager
 import app.treelune.tools.agenda.ui.AgendaScreen
 import org.json.JSONObject
-import java.text.Normalizer
 
 /**
  * A calendar (docs/TOOLS.md, « Agenda »): events that have a time and pass by themselves — an
@@ -120,18 +120,7 @@ object AgendaToolType : ToolTypeContract {
     /** A series without its key gets one, from its name, fixed from then on. */
     override fun completeConfig(config: JSONObject, previous: JSONObject?): JSONObject {
         val completed = JSONObject(config.toString())
-        val list = completed.optJSONArray(SERIES_LIST) ?: return completed
-        val all = (0 until list.length()).mapNotNull { list.optJSONObject(it) }
-        val taken = all.mapNotNull { it.optString("key").takeIf { k -> k.isNotEmpty() } }.toMutableSet()
-        all.filter { it.optString("key").isEmpty() }.forEach { series ->
-            val base = "s_" + Normalizer.normalize(series.optString("name"), Normalizer.Form.NFD)
-                .replace(Regex("\\p{M}"), "").lowercase().replace(Regex("[^a-z0-9]+"), "_").trim('_')
-            var key = base
-            var n = 2
-            while (key in taken) key = "${base}_${n++}"
-            taken.add(key)
-            series.put("key", key)
-        }
+        ElementKeys.complete(ElementKeys.objects(completed.optJSONArray(SERIES_LIST)), "key") { ElementKeys.keyOf("s_", it.optString("name")) }
         return completed
     }
 

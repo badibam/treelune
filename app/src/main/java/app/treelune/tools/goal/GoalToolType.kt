@@ -1,5 +1,6 @@
 package app.treelune.tools.goal
 
+import app.treelune.core.fields.settings.ElementKeys
 import app.treelune.core.conditions.Conditions
 import app.treelune.core.fields.settings.FieldTypeSettings
 import android.content.Context
@@ -212,15 +213,7 @@ object GoalToolType : ToolTypeContract {
         val criteria = listOfNotNull(completed.optJSONArray("criteria")) +
             (completed.optJSONArray("sub_goals")?.let { subs -> (0 until subs.length()).mapNotNull { subs.getJSONObject(it).optJSONArray("criteria") } } ?: emptyList())
         val all = criteria.flatMap { array -> (0 until array.length()).map { array.getJSONObject(it) } }
-        val taken = all.mapNotNull { it.optString("key").takeIf { k -> k.isNotEmpty() } }.toMutableSet()
-        all.filter { it.optString("key").isEmpty() }.forEach { criterion ->
-            val base = Criterion.keyOf(criterion.optString("name"))
-            var key = base
-            var n = 2
-            while (key in taken) key = "${base}_${n++}"
-            taken.add(key)
-            criterion.put("key", key)
-        }
+        ElementKeys.complete(all, "key") { Criterion.keyOf(it.optString("name")) }
         // An entered criterion's condition is put on its own value: its left side is written here
         all.filter { it.optJSONObject(Criterion.ENTERED)?.optString("type").isNullOrEmpty().not() }.forEach { criterion ->
             criterion.optJSONObject(Criterion.CONDITION)?.put(Conditions.LEFT, JSONObject().put(Conditions.FIELD, Criterion.enteredPath(criterion.getString("key"))))
