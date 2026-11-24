@@ -117,7 +117,8 @@ Ce que ça demande au core :
 - Un mode « programmes » de la Séance : plusieurs programmes en config, chacun avec ses étapes, écrits avec l'éditeur d'étapes existant. La brique ne garde qu'une Référence ; une séance jouée garde sa copie des étapes, donc modifier un programme ne réécrit pas l'historique. Écartés : les étapes comme briques du Parcours (une Séance dépendrait d'un Parcours), une Fiche d'étapes (plan dispersé).
 - Deux listes de champs dans la Séance : les champs des programmes, valeurs gardées en config comme les raccourcis du Suivi (`SettingNode.FieldValues`), colonnes de `playable` pour trier et filtrer ; les champs supplémentaires actuels, sur les séances jouées, dont seule la section est renommée « À remplir en fin de séance ».
 - La description d'une séance s'écrit une fois, dans son programme ; un champ de la brique la suit, sans copie, comme une étape de Séance suit déjà le média d'une entrée (`ConfigTerms`). Les étapes se voient dans la fiche de lancement, que la brique ouvre. Pas de colonne résumé calculée, qui serait de la mise en forme déguisée en donnée.
-- Une sorte dit quel champ elle lance (`launches`, un champ Référence vers une ligne de `playable`). Le Parcours n'affiche jamais lui-même un programme : chaque outil montre ce qui est à lui.
+- Une sorte dit quel champ son toucher ouvre (`opens`, un champ Référence vers une ligne de `playable`). Le Parcours n'affiche jamais lui-même un programme : chaque outil montre ce qui est à lui.
+- Ouvrir un outil sur une de ses lignes est une capacité du core, pas du Parcours : `EntryToOpen` devient `OpenAt` (rien, du neuf, une entrée, une ligne de vue), renommé dans le même geste (89 usages, 28 fichiers). Chaque outil décide ce qu'ouvrir une ligne veut dire : pour la Séance, la fiche du programme avant « Démarrer ». Une Tâche, un pointeur ou une notification pourront s'en servir.
 - Deux gestes : `sequence.start` avec la ligne démarre tout de suite (IA, Tâche) ; toucher la brique navigue vers la Séance avec la ligne à lancer, la fenêtre de lancement s'ouvrant directement sur sa fiche, puis « Démarrer » mène à la séance en cours. Lancée depuis son outil, la Séance garde sa liste. Une seule séance tourne à la fois : sinon, refus dit.
 - Le retour se fait sans rien écouter : `start` garde `data.launched_for`, la brique, et l'état « faite » est une règle qui lit la Séance (« une séance terminée lancée pour moi » ; le konnakol en compte 5 après l'ouverture de la brique).
 - Ce qui change dans la Séance : la fenêtre de lancement qui part d'un élément choisi ; l'écran qui reçoit une ligne à lancer ; `launched_for` ; le mode programmes ; les champs des programmes ; la vue `playable`.
@@ -143,7 +144,7 @@ Les scènes de test, toutes tenues sur le papier : badges, calendrier de l'Avent
 - Supprimer une brique emporte son historique : refuser si elle a des mouvements, ou l'archiver.
 - Le toucher d'une brique sans Séance : sa fiche avec « Fait », une case à cocher sur la ligne, ou les deux.
 - Les affichages (chemin, liste, branches, voyants), les notifications, la gamification, ce que l'IA peut faire sur un Parcours.
-- Non vérifié dans le code : comment un outil en ouvre un autre avec une ligne à lancer (`Place.Tool` ne porte que l'outil et sa zone).
+- Non vérifié dans le code : comment `OpenAt` passe d'un écran à un autre (`Place.Tool` ne porte que l'outil et sa zone ; les notifications passent aujourd'hui par `MainActivity`).
 
 ## Faits relevés dans le code
 
