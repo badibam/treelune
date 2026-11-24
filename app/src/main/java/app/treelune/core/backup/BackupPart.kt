@@ -47,7 +47,7 @@ data class PartSelection(
     fun within(tree: PartTree): PartSelection {
         val offered = tree.elements.map { it.id }.toSet()
         return PartSelection(zones.filter { id -> tree.zones.any { it.id == id } }.toSet(), tools.filterKeys { it in offered },
-            variables.filter { it in offered }.toSet(), routines.filter { it in offered }.toSet(), identities.filter { it in offered }.toSet(),
+            variables.filter { it in offered }.toSet(), routines.filter { it in offered }.toSet(), identities.filter { id -> tree.identities.any { it.id == id } }.toSet(),
             tasks.filter { it in offered }.toSet(), apis.filter { id -> tree.apis.any { it.id == id } }.toSet(),
             zoneDetails.filter { id -> tree.zones.any { it.id == id } }.toSet())
     }

@@ -201,7 +201,7 @@ fun ReadoutLine(readout: ReadoutRow, maxLines: Int = 2, short: Boolean = false) 
         horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        readout.look.iconName?.let { UI.ItemIcon(it, IconColor.of(readout.look.iconColor), 20.dp) }
+        readout.look.iconName?.let { UI.ItemIcon(it, IconColor.of(readout.look.iconColor), UI.ReadoutIcon, app.treelune.core.themes.SmallIcon.READOUT) }
         ReadoutSentence(shown, maxLines, short)
     }
 }

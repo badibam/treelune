@@ -392,14 +392,17 @@ object UI {
     
     /**
      * The icon a zone or a tool is shown by, in its colour (null for a neutral one), as the theme
-     * draws it (ThemeContract.ItemIcon); a name without a drawing shows its first two letters, as [Icon] does.
+     * draws it (ThemeContract.ItemIcon, or SmallItemIcon when [small] says which small one it is);
+     * a name without a drawing shows its first two letters, as [Icon] does.
      */
     @Composable
-    fun ItemIcon(iconName: String, color: TagColor?, size: Dp = 24.dp) {
+    fun ItemIcon(iconName: String, color: TagColor?, size: Dp = 24.dp, small: app.treelune.core.themes.SmallIcon? = null) {
         val context = androidx.compose.ui.platform.LocalContext.current
         val iconResource = app.treelune.core.icons.Icons.drawable(context, iconName)
-        if (iconResource != null) CurrentTheme.current.ItemIcon(iconResource, size, color)
-        else Text(text = iconName.take(2).uppercase(), type = TextType.CAPTION, fillMaxWidth = false)
+        if (iconResource != null) {
+            if (small != null) CurrentTheme.current.SmallItemIcon(iconResource, size, small, color)
+            else CurrentTheme.current.ItemIcon(iconResource, size, color)
+        } else Text(text = iconName.take(2).uppercase(), type = TextType.CAPTION, fillMaxWidth = false)
     }
 
     @Composable
@@ -726,16 +729,22 @@ object UI {
     @Composable
     fun RunningMark() = CurrentTheme.current.RunningMark()
 
+    /** A readout's icon, beside its text. */
+    val ReadoutIcon = 20.dp
+
     /**
      * A tile's icon with its two marks, square, the same size in every tile of every mode, one
      * column included: half of what an ICON tile holds, a row of the grid as the theme gives it (LocalGridIconRow) less its
-     * frame. Sized by the space it stands in, it would grow with each header.
+     * frame. Sized by the space it stands in, it would grow with each header. A piece of a zone's
+     * tile (LocalZonePiece) takes two thirds of it, which tells the zone's own icon from its pieces'.
      */
     @Composable
     fun TileIcon(iconName: String?, iconColor: TagColor?, waiting: Boolean, running: Boolean) {
-        val size = (app.treelune.core.ui.components.LocalGridIconRow.current - CurrentTheme.current.tileFrame(app.treelune.core.look.TileSize.Icon)) / 2
+        val full = (app.treelune.core.ui.components.LocalGridIconRow.current - CurrentTheme.current.tileFrame(app.treelune.core.look.TileSize.Icon)) / 2
+        val piece = app.treelune.core.ui.components.LocalZonePiece.current
         Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
-            MarkedIcon(iconName, iconColor, waiting, running, size)
+            MarkedIcon(iconName, iconColor, waiting, running, if (piece) full * 2f / 3 else full,
+                if (piece) app.treelune.core.themes.SmallIcon.PIECE else null)
         }
     }
 
@@ -766,9 +775,9 @@ object UI {
      * the size step, so neither do they, and they keep covering the same part of it.
      */
     @Composable
-    fun MarkedIcon(iconName: String?, iconColor: TagColor?, waiting: Boolean, running: Boolean, size: Dp = 24.dp) {
+    fun MarkedIcon(iconName: String?, iconColor: TagColor?, waiting: Boolean, running: Boolean, size: Dp = 24.dp, small: app.treelune.core.themes.SmallIcon? = null) {
         Box(modifier = Modifier.defaultMinSize(minWidth = size, minHeight = size)) {
-            if (!iconName.isNullOrBlank()) ItemIcon(iconName, iconColor, size)
+            if (!iconName.isNullOrBlank()) ItemIcon(iconName, iconColor, size, small)
             androidx.compose.runtime.CompositionLocalProvider(CurrentTheme.LocalOnTileIcon provides true) {
                 if (waiting) Box(modifier = Modifier.align(Alignment.TopEnd).offset(x = 4.dp, y = (-4).dp)) { WaitingMark() }
                 if (running) Box(modifier = Modifier.align(Alignment.BottomEnd).offset(x = 4.dp, y = 4.dp)) { RunningMark() }

@@ -15,5 +15,7 @@ data class PromptData(
     // For ROUTINE_RUN: the time this run was scheduled for, which may be well in the past when
     // the app reopens after an absence. Sent next to the current time so the AI can tell the
     // data it is reading (anchored on this) from what it does now (anchored on the clock).
-    val scheduledExecutionTime: Long? = null
+    val scheduledExecutionTime: Long? = null,
+    // The session this prompt is for: a provider that keeps a job per session finds it by this
+    val sessionId: String? = null
 )

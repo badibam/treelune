@@ -130,7 +130,7 @@ class DemoContentTest {
     fun `the routines are off, each with its instruction, a catch-up with a schedule only, in a group its zone has`() {
         for (language in languages) {
             val content = read(language)
-            assertEquals(5, content.routines.size)
+            assertEquals(6, content.routines.size)
             val groups = content.zones.associate { it.getString("id") to it.getJSONArray("tool_groups").strings() }
             content.routines.forEach { routine ->
                 assertFalse(routine.getBoolean("is_enabled"))

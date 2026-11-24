@@ -111,6 +111,20 @@ class RetroGrid(
         /** An icon's box, the register's second size: two cells. */
         const val ICON = 22
 
+        /**
+         * The screen pixels per pixel of a small icon's drawing, beside a tile's icon drawn at
+         * [zoneUnit] on a grid of [scale]. A readout takes the text's pixel, one under the tile's
+         * icon at least; a piece two thirds of the tile's icon, never under a readout. On a unit
+         * of 1 nothing is smaller: they all stay at 1.
+         */
+        fun smallIconUnit(kind: app.treelune.core.themes.SmallIcon, zoneUnit: Int, scale: Int): Int {
+            val readout = minOf(scale, zoneUnit - 1).coerceAtLeast(1)
+            return when (kind) {
+                app.treelune.core.themes.SmallIcon.READOUT -> readout
+                app.treelune.core.themes.SmallIcon.PIECE -> maxOf((zoneUnit * 2f / 3).roundToInt(), readout).coerceAtMost(zoneUnit)
+            }
+        }
+
         /** A finger's target, in dp. */
         const val TOUCH_DP = 48f
 

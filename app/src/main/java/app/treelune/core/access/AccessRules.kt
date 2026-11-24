@@ -134,6 +134,9 @@ object AccessRules {
                 "get" -> listOf(zoneAt("zone_id", AccessLevel.READ))
                 // A zone's contents read with it; every zone's, free, as the lists of tools and variables
                 "contents" -> listOf(if (text("zone_id").isNullOrEmpty()) Reach.Free else zoneAt("zone_id", AccessLevel.READ))
+                // A page's plan reads as its contents; arranged, it is written as the zone or the home screen is
+                "page_plan" -> listOf(if (text("zone_id").isNullOrEmpty()) Reach.Free else zoneAt("zone_id", AccessLevel.READ))
+                "arrange" -> listOf(if (text("zone_id").isNullOrEmpty()) Reach.App else zoneAt("zone_id", AccessLevel.FULL))
                 "create" -> listOf(Reach.App)
                 "update", "delete" -> listOf(zoneAt("zone_id", AccessLevel.FULL))
                 else -> listOf(Reach.Unknown("$resource.$operation"))

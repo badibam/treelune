@@ -11,7 +11,7 @@ Un dépôt d'essai, des workflows lancés à la main, avant toute ligne de Kotli
 
 1. Le démarrage d'un job, de l'appel qui le lance au fichier « prêt ». Mesuré une fois le 2026-11-08 (essai de la recette) : la machine tourne 9 s après l'appel, Claude Code s'installe en 20 s ; mesuré le 2026-11-22 (run 45072763822) : 4 s de l'appel au job, 15 s d'installation, 1,7 s pour le premier tour. Reste la file d'attente de GitHub à d'autres heures.
 2. `claude -p --input-format stream-json --output-format stream-json --verbose --tools "" --system-prompt …` : mesuré le 2026-11-22, sur le PC puis sur GitHub avec le jeton `setup-token`, trois tours dans un seul processus resté vivant, 20 s puis 90 s d'attente, aucun outil. Reste : une image dans un tour, une attente plus longue.
-3. Le cache : mesuré le 2026-11-22 sur GitHub (Haiku 5.5, prompt système d'environ 37 500 jetons) : tour 1, 37 526 écrits, 0 lu ; tour 2 après 20 s, 37 160 lus, 406 écrits ; tour 3 après 90 s, 37 541 lus, 65 écrits. Non mesuré : au-delà de 90 s d'attente, donc la durée de vie du cache.
+3. Le cache : mesuré le 2026-11-22 sur GitHub (Haiku 5.5, prompt système d'environ 37 500 jetons) : tour 1, 37 526 écrits, 0 lu ; tour 2 après 20 s, 37 160 lus, 406 écrits ; tour 3 après 90 s, 37 541 lus, 65 écrits. Non mesuré : au-delà de 90 s d'attente, donc la durée de vie du cache. Mesuré le 2026-11-23 par le workflow de session et la recette `claude-session` (run 45113543573, Sonnet 5.5, prompt système de 163 946 octets), un script jouant l'app : première réponse 27 s après le lancement, 53 405 jetons écrits ; tour 2 après 5 s, 5,8 s, 53 066 lus ; tour 3 après 60 s, 6,3 s, 53 422 lus ; job arrêté 10 s après la suppression de la branche, 2 minutes décomptées, aucun contenu dans son journal.
 4. Une requête conditionnelle (`If-None-Match`) qui répond 304 ne compte pas dans les limites de l'API GitHub, ni pour le jeton de l'utilisateur ni pour le `GITHUB_TOKEN` du job (environ 1 000 appels par heure et par dépôt).
 5. Les minutes d'un dépôt privé sur un compte gratuit (2 000 par mois, arrondies à la minute par job), la durée maximale d'un job (6 h). Mesuré le 2026-11-08 : une séance d'hypnose de 21 min 36 s, un job de 10 min 48 s, 11 minutes décomptées. Les limites de l'abonnement Claude, elles, ne sont pas mesurées.
 6. Réglé le 2026-11-08 : l'appel qui lance un workflow (`POST …/dispatches`) avec `return_run_details: true` répond 200 avec `workflow_run_id`.
@@ -45,16 +45,16 @@ Relu le 2026-11-22, mêmes textes. D'où une seconde règle : **l'app publiée n
   4. Les secrets que demande une recette (la clé Inworld pour hypnogen), rangés par l'utilisateur dans le même dépôt.
 - **L'app écrit les workflows.** Elle pose dans le dépôt, par l'API, `.github/workflows/treelune-session.yml` (le fournisseur, qui lance la recette de session sans rien savoir de ce qu'elle exécute) et `.github/workflows/treelune-recipe.yml` (les recettes), et les réécrit quand sa version en porte d'autres. Leur texte vit dans le code de Treelune : le protocole entre eux est toujours celui de l'app installée.
 - **Une recette qui demande Claude Code en installe la dernière version.** Une version trop vieille qui ne s'authentifierait plus bloquerait l'utilisateur jusqu'à la version suivante de Treelune ; une option qui change se voit et se dit.
-- **Une seule route, des fichiers sur une branche.** Une branche par session du fournisseur, une par appel d'une recette. L'app et le job y déposent leurs fichiers et les interrogent en requêtes conditionnelles. La branche est supprimée à la fin de la session ; celle d'un appel de recette un jour après son départ, à l'appel suivant, ses fichiers étant lus par les étapes qui suivent dans la Tâche (l'heure de départ est dans son nom, `treelune/call-<millisecondes>-<16 hex>`).
+- **Une seule route, des fichiers sur une branche.** Une branche par session du fournisseur, une par appel d'une recette. L'app et le job y déposent leurs fichiers et les interrogent. La branche est supprimée à la fin de la session ; celle d'un appel de recette un jour après son départ, à l'appel suivant, ses fichiers étant lus par les étapes qui suivent dans la Tâche (l'heure de départ est dans son nom, `treelune/call-<millisecondes>-<16 hex>`).
 - **Les échecs** : la machine qui ne démarre pas en 5 minutes (fixes, à revoir sur les temps mesurés) est de l'app ; le reste (jeton expiré, limite d'abonnement, programme qui a changé) est dit par la recette, dans le champ `failure` de sa réponse, avec son message.
-- **Les données chez GitHub.** Pas de chiffrement : le job déchiffrerait sur la machine de GitHub, et celui qui choisit ce dépôt confie déjà ses données à Anthropic. Le job n'écrit aucun contenu dans ses journaux, seulement des états, et l'app règle leur conservation au minimum du dépôt (1 jour).
+- **Les données chez GitHub.** Pas de chiffrement : le job déchiffrerait sur la machine de GitHub, et celui qui choisit ce dépôt confie déjà ses données à Anthropic. Le job n'écrit aucun contenu dans ses journaux, seulement des états : leur durée de conservation reste celle du dépôt, la régler demanderait au jeton un droit d'administration.
 
 ## Le fournisseur « Recette sur GitHub »
 
-Récrit le 2026-11-22, pas encore codé. L'app ne connaît ni Claude Code, ni son jeton, ni ses modèles.
+Récrit le 2026-11-22, codé le 2026-11-23 (`GitHubRecipeProvider`, `assets/github/treelune-session.yml`). Le workflow et la recette ont tourné sur GitHub ; le code de l'app, jamais. L'app ne connaît ni Claude Code, ni son jeton, ni ses modèles.
 
-- **Un job éveillé par session.** Le démarrage se paie une fois : le job tient le processus de la recette et le nourrit tour après tour, jusqu'à la fin de la session ou à un délai sans message. Une routine lance son job à son lancement, une conversation dès qu'elle s'ouvre.
-- **Chaque minute d'éveil est décomptée** des 2 000 minutes gratuites par mois : avec 10 minutes d'attente, une conversation en coûte une dizaine au moins. Le délai est à choisir.
+- **Un job éveillé par session.** Le démarrage se paie une fois : le job tient le processus de la recette et le nourrit tour après tour, jusqu'à la fin de la session ou à un délai sans message. Il part au premier message de la session, routine ou conversation (décidé le 2026-11-23) : ouvrir une conversation sans rien envoyer ne coûte aucune minute, sa première réponse attend le démarrage. Le fournisseur reçoit l'identifiant de la session avec le prompt, et un signal à sa fin, qui arrête le job.
+- **Chaque minute d'éveil est décomptée** des 2 000 minutes gratuites par mois : une conversation abandonnée en perd 5 à attendre.
 - **La langue du contrat : le format de message de l'API Messages, tour par tour**, que l'app sait déjà produire (texte et images). Le prompt système part une seule fois, dans le premier fichier.
 
 ```json
@@ -72,11 +72,13 @@ Récrit le 2026-11-22, pas encore codé. L'app ne connaît ni Claude Code, ni so
 - **Un fournisseur comme les autres** : toute la mécanique (commandes, budget, masque, accords, historique) reste dans l'app. Le coût compté est 0 $, le budget du jour ne le bloque pas.
 - **Dans la recette de session de l'utilisateur, pas dans l'app** : le modèle, le jeton et sa date d'expiration, la traduction vers `claude --input-format stream-json`, les erreurs propres à Claude.
 
-### À décider à la reprise
+- **Le job parle à la commande de la recette par un objet JSON par ligne** (décidé le 2026-11-23). Sur son entrée, un tour `{"message": …}`, la première ligne portant aussi `"system"` (le prompt système ne passe pas en argument, Linux limitant un argument à 128 Kio) et, pour un job qui reprend une session, `"history"`, ses messages précédents. Sur sa sortie, une ligne par tour, la réponse ou `{"failure": …, "message": …}`. Une ligne illisible est un échec explicite. Sa sortie d'erreur ne va jamais dans les journaux GitHub.
+- **`recipe.json` déclare une recette de session par `"session": true`**, à côté de sa commande, de ses installations et de ses secrets, sans entrées ni valeurs d'API ; `"reads_images"` y dit si elle lit les images. Le « modèle » du fournisseur est le nom de la recette, choisi dans la liste des recettes de session du dépôt.
+- **La fin d'un job** : la branche supprimée est le signal d'arrêt. Un historique qui n'est plus ce que le programme tient (un message retiré, un tour interrompu) donne un nouveau job, à qui tout est renvoyé.
 
-1. Comment le workflow parle à la commande de la recette (un message par ligne sur son entrée, une réponse par ligne sur sa sortie ?), et comment `recipe.json` déclare une recette de session.
-2. Le délai d'attente du job, à choisir entre le coût en minutes et la reprise sans redémarrage.
-3. Comment le job surveille la branche sans dépasser les limites de l'API GitHub (`git fetch` plutôt que l'API, point 4 de « Ouvert »).
+- **Le job s'arrête après 5 minutes sans message** (décidé le 2026-11-23), une constante du workflow sans réglage dans l'app, et aussitôt à la fin de la session.
+
+- **Le job surveille sa branche par git** (décidé le 2026-11-23) : `git ls-remote` toutes les 2 s, puis `git fetch --depth=1` quand le dernier commit a changé. Non mesuré : un freinage de GitHub à ce rythme ; à ajuster s'il apparaît.
 
 ## L'API « Recette sur GitHub »
 

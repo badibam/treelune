@@ -48,9 +48,9 @@ An icon, for a zone or a tool, is named by its **Lucide** name. Every Lucide ico
 
 ## Tiles
 
-Zones on the home screen, and tools, variables, routines and Tasks in their zone, show as tiles in a grid 4 cells wide, one per section (group). Their `tile_size` gives the cells a tile takes, width × height: `icon` 1×1; `2x1` to `2x10`, half the width, 1 to 10 rows high; `4x1` to `4x10`, the whole width; `4xcontent`, the whole width, as tall as what it shows. A tile shows its name on its first row, then its summary (beside the name 4 wide, under it 2 wide), then what it lists in the rows left; a fixed height never shrinks. Two tiles 2 wide stand side by side, a tile 4 wide takes its rows alone; the other tiles make room when one grows.
+Zones on the home screen, and tools, variables, routines and Tasks in their zone, show as tiles in a grid 4 cells wide, one per section (group). Their `tile_size` gives the cells a tile takes, width × height: `icon` 1×1; `icons_1x2` and `icons_2x1`, a pair of cells in icons, in a column or in a row, without a word (a zone also takes `icons_1x3` to `icons_1x10` and `icons_3x1`, `icons_4x1`, its pieces in the cells after its icon); `2x1` to `2x10`, half the width, 1 to 10 rows high; `4x1` to `4x10`, the whole width; `4xcontent`, the whole width, as tall as what it shows. A tile with text shows its name on its first row, then its summary (beside the name 4 wide, under it 2 wide), then what it lists in the rows left; a fixed height never shrinks. Two tiles 2 wide stand side by side, a tile 4 wide takes its rows alone; the other tiles make room when one grows.
 
-You choose a tile's mode and its section, never its place in the grid: a new tile or one moved to another section comes at the first free place, and only the user moves a tile, by dragging it on the screen. Asked to put a tile somewhere (at the top, beside another), say so, and do what is in your hands only if it serves the request.
+You never write a tile's coordinates. A new tile, or one moved to another section by its own command, comes at the bottom of its section. To arrange a page, its order, sizes, sections and looks, read PAGE_PLAN then send ARRANGE_PAGE.
 
 Before adding a tile to a zone or moving one into it, read ZONE_CONTENTS with that `zone_id`, and follow the sizes, icons and colours of the tiles already there.]]></string>
 
@@ -308,6 +308,14 @@ What a zone holds, to understand its organisation before changing it or adding t
 **Parameters**:
 
 - `zone_id` (string, optional): that zone alone]]></string>
+    <string name="ai_command_page_plan"><![CDATA[### PAGE_PLAN
+
+The plan of one page, to read before ARRANGE_PAGE: its print (`plan`), the zone's own tile, then for each section a drawing of its grid of 4 columns and one line per tile: its mark, kind, name, exact `tile_size`, icon, colour, texture, and how its body lays its elements. `T1`, `T2`… mark the tiles across the page; a lower-case mark in a drawing is a tile in icons, `.` an empty cell. With `one_column` at its head, the phone shows each section as its “one column” drawing.
+
+**Parameters**:
+
+- `zone_id` (string, optional): that zone\'s page
+- `home` (boolean, optional): `true` for the home screen, whose tiles are the zones; give this or `zone_id`]]></string>
     <string name="ai_command_zone_config"><![CDATA[### ZONE_CONFIG
 
 Retrieves the configuration of a zone.
@@ -677,6 +685,18 @@ Changes a zone. Only what you give changes; `null` empties a field, except the n
 - `readout_columns` (string, optional): `one`, `two`, or `home` to follow the home screen
 
 The zone is held to the schema given with CREATE_ZONE.]]></string>
+    <string name="ai_command_arrange_page"><![CDATA[### ARRANGE_PAGE
+
+Arranges one page, a zone or the home screen, in one step the user can undo: the order of its tiles, its sections, each tile\'s size and look. The app places the tiles: each list is read in order, each tile going to the first free place after the one before it, so you never give coordinates and cannot leave a gap on purpose. Refused whole when anything is wrong. The result holds the new plan: check it. Afterwards, tell the user in a sentence or two the logic you followed.
+
+**Parameters**:
+
+- `plan` (string, **required**): the print PAGE_PLAN gave; refused if the page changed since
+- `zone_id` (string, optional): that zone\'s page
+- `home` (boolean, optional): `true` for the home screen; give this or `zone_id`
+- `section_order` (array, optional): every section\'s name once, in order; the ungrouped section stays last
+- `sections` (array, optional): the sections that change, each `{"name", "tiles"}`. `name` `null` is the ungrouped one, a new name creates a section. `tiles` holds **all** its tiles in order: a mark alone (`"T4"`) keeps the tile\'s look, an object `{"tile": "T3", "tile_size": "icons_2x1", "icon_color": "RED"}` changes what it names among `tile_size`, `icon_name`, `icon_color`, `texture`, `item_width` (`halves` or `full`), `item_lines`; `null` takes a colour, an icon or a texture out. A tile leaving a section requires that section to be listed too; `"tiles": []` removes a section
+- `zone_tile` (object, optional): on a zone\'s page only, the zone\'s own tile, among `tile_size`, `icon_name`, `icon_color`, `texture`, `tile_pieces` (marks in order, or `{"tile": "T7", "summary": true}`) and `tile_pieces_icons`]]></string>
     <string name="ai_command_delete_zone"><![CDATA[### DELETE_ZONE
 
 Deletes a zone, with its tools and their entries.

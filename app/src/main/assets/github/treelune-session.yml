@@ -1,0 +1,194 @@
+# Treelune's session workflow, written by the app into the user's worker repository
+# (docs/design/github-worker.md, « Le fournisseur « Recette sur GitHub » »). One session, one job:
+# the app has made the branch treelune/session-<session> holding 0001-app.json. The job starts the
+# command of recipes/<recipe>/recipe.json once and keeps it alive, giving it one JSON object per
+# line on its input and pushing each line of its output as the next reply file.
+# It ends when the branch is deleted, after IDLE_SECONDS without a message, or with the command.
+# The job's log holds states only, never the content of a session; the command's error output is dropped for that reason.
+name: Treelune session
+run-name: session ${{ inputs.session }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      recipe:
+        description: The recipe's folder under recipes/
+        required: true
+        type: string
+      session:
+        description: The session's id, its start in milliseconds and 16 hex characters; its branch is treelune/session-<session>
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Check the inputs
+        env:
+          RECIPE: ${{ inputs.recipe }}
+          SESSION: ${{ inputs.session }}
+        run: |
+          [[ "$RECIPE" =~ ^[a-z0-9][a-z0-9-]*$ ]] || { echo "recipe: not a folder name"; exit 1; }
+          [[ "$SESSION" =~ ^[0-9]{13}-[0-9a-f]{16}$ ]] || { echo "session: not a session's id"; exit 1; }
+
+      - name: Check out the recipes
+        uses: actions/checkout@v4
+        with:
+          path: worker
+
+      - name: Check out the session
+        uses: actions/checkout@v4
+        with:
+          ref: treelune/session-${{ inputs.session }}
+          path: session
+
+      - name: Run the session
+        env:
+          RECIPE: ${{ inputs.recipe }}
+          SESSION: ${{ inputs.session }}
+          # Every secret of the repository; the recipe is given only those it declares.
+          SECRETS: ${{ toJSON(secrets) }}
+          IDLE_SECONDS: "300"
+          POLL_SECONDS: "2"
+        shell: python3 -u {0}
+        run: |
+          import json, os, shutil, subprocess, sys, time
+
+          workspace = os.environ["GITHUB_WORKSPACE"]
+          recipe = os.environ["RECIPE"]
+          branch = "treelune/session-" + os.environ["SESSION"]
+          idle_seconds = int(os.environ["IDLE_SECONDS"])
+          poll_seconds = float(os.environ["POLL_SECONDS"])
+          secrets = json.loads(os.environ.pop("SECRETS"))
+          recipe_dir = os.path.join(workspace, "worker", "recipes", recipe)
+          session_dir = os.path.join(workspace, "session")
+
+          def stamp(state):
+              print(time.strftime("%H:%M:%S", time.gmtime()), state, flush=True)
+
+          def git(*args, check=True):
+              return subprocess.run(["git", *args], cwd=session_dir, check=check, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True).stdout.strip()
+
+          def publish(name, content, message):
+              """The file `name` committed and pushed to the session's branch; False when the branch is gone."""
+              with open(os.path.join(session_dir, name), "w", encoding="utf-8") as out:
+                  out.write(content)
+              git("add", name)
+              git("commit", "--quiet", "-m", message)
+              return subprocess.run(["git", "push", "--quiet", "origin", "HEAD:refs/heads/" + branch], cwd=session_dir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+
+          def fail(turn, message):
+              """The failure said as the reply to `turn`, for the app to read."""
+              stamp("failed: " + message)
+              publish(f"{turn + 1:04d}-reply.json", json.dumps({"failure": "CONFIG", "message": message}, ensure_ascii=False), "Failure")
+              sys.exit(0)
+
+          def install(spec):
+              """What the machine must hold: Claude Code, always its latest version, or a Debian package when its command is missing."""
+              for item in spec.get("install", []):
+                  if item == "claude":
+                      done = subprocess.run("curl -fsSL https://claude.ai/install.sh | bash", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                      if done.returncode != 0:
+                          fail(1, "Claude Code ne s'est pas installé.")
+                      os.environ["PATH"] = os.path.expanduser("~/.local/bin") + os.pathsep + os.environ["PATH"]
+                  elif shutil.which(item) is None:
+                      done = subprocess.run(f"sudo apt-get update -q && sudo apt-get install -y -q {item}", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                      if done.returncode != 0:
+                          fail(1, f"Le paquet « {item} » ne s'est pas installé.")
+                  stamp("installed: " + item)
+
+          git("config", "user.name", "Treelune worker")
+          git("config", "user.email", "treelune-worker@users.noreply.github.com")
+          stamp("job started")
+
+          spec_path = os.path.join(recipe_dir, "recipe.json")
+          if not os.path.isfile(spec_path):
+              fail(1, f"La recette « {recipe} » n'est pas dans le dépôt.")
+          try:
+              with open(spec_path, encoding="utf-8") as source:
+                  spec = json.load(source)
+          except ValueError:
+              fail(1, "recipe.json n'est pas du JSON.")
+          if spec.get("session") is not True:
+              fail(1, "recipe.json ne déclare pas \"session\": true.")
+          command = spec.get("command")
+          if not command:
+              fail(1, "recipe.json ne dit pas command.")
+          install(spec)
+
+          missing = [name for name in spec.get("secrets", []) if not secrets.get(name)]
+          if missing:
+              fail(1, "Secret à poser dans le dépôt : " + ", ".join(missing) + ".")
+          environment = {**os.environ, **{name: secrets[name] for name in spec.get("secrets", [])}}
+          del secrets
+
+          if spec.get("setup"):
+              if subprocess.run(["bash", "-c", spec["setup"]], cwd=recipe_dir, env=environment, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
+                  fail(1, "L'installation de la recette a échoué.")
+              stamp("setup done")
+
+          program = subprocess.Popen(["bash", "-c", command], cwd=recipe_dir, env=environment, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, encoding="utf-8", bufsize=1)
+          stamp("command started")
+          if not publish("ready.json", "{}", "Ready"):
+              program.kill()
+              stamp("branch gone")
+              sys.exit(0)
+
+          turn = 1
+          last_message = time.monotonic()
+          while True:
+              incoming = os.path.join(session_dir, f"{turn:04d}-app.json")
+              if os.path.isfile(incoming):
+                  with open(incoming, encoding="utf-8") as source:
+                      line = json.dumps(json.load(source), ensure_ascii=False, separators=(",", ":"))
+                  try:
+                      program.stdin.write(line + "\n")
+                      program.stdin.flush()
+                  except BrokenPipeError:
+                      fail(turn, "Le programme de la recette s'est arrêté.")
+                  stamp(f"turn {turn} given")
+                  answer = program.stdout.readline()
+                  if not answer:
+                      fail(turn, "Le programme de la recette s'est arrêté sans répondre.")
+                  try:
+                      reply = json.loads(answer)
+                  except ValueError:
+                      reply = None
+                  if not isinstance(reply, dict) or not ("text" in reply or "failure" in reply):
+                      program.kill()
+                      fail(turn, "Le programme de la recette a écrit une ligne illisible.")
+                  if not publish(f"{turn + 1:04d}-reply.json", json.dumps(reply, ensure_ascii=False), f"Reply {turn + 1}"):
+                      program.kill()
+                      stamp("branch gone")
+                      sys.exit(0)
+                  stamp(f"turn {turn} answered")
+                  if "failure" in reply:
+                      program.kill()
+                      sys.exit(0)
+                  turn += 2
+                  last_message = time.monotonic()
+                  continue
+
+              if program.poll() is not None:
+                  stamp("command ended")
+                  sys.exit(0)
+              if time.monotonic() - last_message >= idle_seconds:
+                  program.kill()
+                  stamp("idle, stopping")
+                  sys.exit(0)
+              time.sleep(poll_seconds)
+              seen = subprocess.run(["git", "ls-remote", "origin", "refs/heads/" + branch], cwd=session_dir, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+              if seen.returncode != 0:
+                  continue
+              if not seen.stdout.strip():
+                  program.kill()
+                  stamp("branch gone")
+                  sys.exit(0)
+              if seen.stdout.split()[0] != git("rev-parse", "HEAD"):
+                  if subprocess.run(["git", "fetch", "--quiet", "--depth=1", "origin", "refs/heads/" + branch], cwd=session_dir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
+                      git("reset", "--quiet", "--hard", "FETCH_HEAD")

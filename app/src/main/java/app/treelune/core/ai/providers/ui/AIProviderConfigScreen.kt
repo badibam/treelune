@@ -118,7 +118,7 @@ fun AIProviderConfigScreen(
     val editors = mapOf("model" to object : SettingEditor {
         @Composable
         override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
-            val label = s.shared("ai_provider_model")
+            val label = nodes.storedField("model")?.displayName ?: s.shared("ai_provider_model")
             when {
                 isFetching -> UI.Text(s.shared("ai_provider_fetching_models"), TextType.CAPTION)
                 models.isEmpty() -> Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {

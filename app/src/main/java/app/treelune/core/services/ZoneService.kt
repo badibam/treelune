@@ -58,6 +58,8 @@ class ZoneService(private val context: Context) : ExecutableService {
                 ))
                 "place" -> handlePlace(params)
                 "place_section" -> handlePlaceSection(params)
+                "page_plan" -> handlePagePlan(params)
+                "arrange" -> handleArrange(params)
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
             }
         } catch (e: kotlinx.coroutines.CancellationException) {
@@ -251,7 +253,7 @@ class ZoneService(private val context: Context) : ExecutableService {
      * The places of the zones of one zone group section, moved in the home screen's edit mode:
      * `group` (absent for the ungrouped one) and `places`, `{zone_id: {"grid_x", "grid_y"}}` for
      * every zone of the section. Written in one go, or refused when they do not lay the section
-     * out (Grid.isLaidOut). The screen alone moves tiles: the AI has no command for it.
+     * out (Grid.isLaidOut).
      */
     /**
      * The zones of the home screen's sections put where the grid editor leaves them: `sections`,
@@ -324,6 +326,38 @@ class ZoneService(private val context: Context) : ExecutableService {
         DataChangeNotifier.notifyToolsChanged(zone.id)
         DataChangeNotifier.notifyVariablesChanged()
         return OperationResult.success(mapOf("zone_id" to zone.id, "count" to sections.sumOf { it.second.size }))
+    }
+
+    /** The zone or home screen `params` name, exactly one of them: its id, null for the home screen; or the refusal. */
+    private fun pageTarget(params: JSONObject): Result<String?> {
+        val zoneId = params.optString("zone_id").takeIf { it.isNotBlank() }
+        val home = params.optBoolean("home", false)
+        return if ((zoneId != null) == home) Result.failure(IllegalArgumentException(s.shared("page_error_target"))) else Result.success(zoneId)
+    }
+
+    /** The plan of a page, as the AI reads it before arranging it (docs/design/ai-page-layout.md). */
+    private suspend fun handlePagePlan(params: JSONObject): OperationResult {
+        val zoneId = pageTarget(params).getOrElse { return OperationResult.error(it.message ?: "") }
+        val page = app.treelune.core.grid.PageLayout(context).read(zoneId)
+            ?: return OperationResult.error(s.shared("service_error_zone_not_found"))
+        return OperationResult.success(mapOf("plan" to app.treelune.core.grid.PagePlan.text(page)))
+    }
+
+    /** A page arranged as ARRANGE_PAGE asks, all or nothing; its new plan in the result. */
+    private suspend fun handleArrange(params: JSONObject): OperationResult {
+        val zoneId = pageTarget(params).getOrElse { return OperationResult.error(it.message ?: "") }
+        val layout = app.treelune.core.grid.PageLayout(context)
+        val page = layout.read(zoneId) ?: return OperationResult.error(s.shared("service_error_zone_not_found"))
+        val arranged = when (val outcome = app.treelune.core.grid.PageArrangement.resolve(page, params)) {
+            is app.treelune.core.grid.PageArrangement.Refused -> return OperationResult.error(s.shared(outcome.key).format(*outcome.args.toTypedArray()))
+            is app.treelune.core.grid.PageArrangement.Arranged -> outcome
+        }
+        layout.apply(page, arranged, ::checkZone)?.let { return OperationResult.error(it) }
+        val after = layout.read(zoneId) ?: throw IllegalStateException("The page arranged is gone")
+        return OperationResult.success(buildMap {
+            zoneId?.let { put("zone_id", it) }
+            put("plan", app.treelune.core.grid.PagePlan.text(after))
+        })
     }
 
     /**
@@ -614,6 +648,9 @@ class ZoneService(private val context: Context) : ExecutableService {
             }
             "place" -> s.shared("action_verbalize_zones_place")
             "place_section" -> s.shared("action_verbalize_zones_place_section")
+            "arrange" -> params.optString("zone_id").takeIf { it.isNotBlank() }?.let { id ->
+                s.shared("action_verbalize_zones_arrange").format(getZoneName(id, context) ?: s.shared("content_unnamed"))
+            } ?: s.shared("action_verbalize_zones_arrange_home")
             else -> s.shared("action_verbalize_unknown")
         }
     }

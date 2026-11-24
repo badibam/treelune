@@ -125,9 +125,9 @@ class RecipeCall(private val repo: GitHubRepo, private val recipe: String, priva
          * The workflow [text] written into [repo] when it is missing there or differs; the branch
          * it is on. An empty repository gets its first commit so.
          */
-        suspend fun ensureWorkflow(repo: GitHubRepo, text: String): String {
-            val held = repo.file(WORKFLOW_PATH)
-            if (held?.first != text) repo.putFile(WORKFLOW_PATH, text, held?.second, "Treelune recipe workflow")
+        suspend fun ensureWorkflow(repo: GitHubRepo, text: String, path: String = WORKFLOW_PATH, message: String = "Treelune recipe workflow"): String {
+            val held = repo.file(path)
+            if (held?.first != text) repo.putFile(path, text, held?.second, message)
             return repo.defaultBranch()
         }
 

@@ -8,6 +8,7 @@ import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
 import app.treelune.core.fields.ReferenceTarget
 import app.treelune.core.fields.ToolFields
+import app.treelune.core.reading.FailureReason
 import app.treelune.core.reading.FieldReading
 import app.treelune.core.reading.Reduction
 import app.treelune.core.selection.Edge
@@ -213,7 +214,11 @@ class ChartSources(private val context: Context) {
                 val entries = ((failure["entries"] as? List<*>).orEmpty() +
                     (failure["causes"] as? List<*>).orEmpty().flatMap { (it as? Map<*, *>)?.get("entries") as? List<*> ?: emptyList<Any>() })
                     .map { it.toString() }.distinct()
-                Cell.Failed(failure["message"] as? String ?: "", entries)
+                // A reading names its reason, a variable the reason of each of its causes
+                val reasons = listOfNotNull(failure["reason"]) +
+                    (failure["causes"] as? List<*>).orEmpty().mapNotNull { (it as? Map<*, *>)?.get("reason") }
+                Cell.Failed(failure["message"] as? String ?: "", entries,
+                    noEntry = reasons.isNotEmpty() && reasons.all { it == FailureReason.NO_ENTRY.name })
             } ?: Cell.Value(value["value"])
         }
     }

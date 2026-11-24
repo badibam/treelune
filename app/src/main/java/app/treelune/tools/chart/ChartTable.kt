@@ -15,8 +15,13 @@ sealed interface Cell {
     /** [value] in the stored form of its column's field; null for no answer. */
     data class Value(val value: Any?) : Cell
 
-    /** No value, and why: its words, and the entries to correct, by id. Drawn as a marked hole. */
-    data class Failed(val message: String, val entries: List<String>) : Cell
+    /**
+     * No value, and why: its words, and the entries to correct, by id. Drawn as a marked hole.
+     *
+     * @property noEntry Whether nothing but the absence of entries caused it: nothing is wrong, a
+     *   line or an area passes over this step as over a step that has no row
+     */
+    data class Failed(val message: String, val entries: List<String>, val noEntry: Boolean = false) : Cell
 }
 
 /**

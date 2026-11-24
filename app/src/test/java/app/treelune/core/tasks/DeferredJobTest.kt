@@ -72,7 +72,7 @@ class DeferredJobTest {
 
     /** A Task of one step calling a deferred API that waits an hour at most, its value `text`. */
     private suspend fun task(): TaskEntity {
-        val apiId = ok("apis.create", mapOf("name" to "Slow", "config" to mapOf(
+        val apiId = ok("apis.create", mapOf("name" to "Slow ${java.util.UUID.randomUUID()}", "config" to mapOf(
             "kind" to "web", "url" to "http://127.0.0.1:${server.address.port}/jobs", "method" to "POST", "key_in" to "none",
             "response" to "deferred", "id_path" to "job", "status_url" to "http://127.0.0.1:${server.address.port}/status?job={id}",
             "ready_path" to "state", "ready_value" to "ready", "failed_path" to "state", "failed_value" to "failed", "wait_limit" to HOUR,

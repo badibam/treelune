@@ -159,20 +159,96 @@
     "observed": "2026-10-29"
   },
   {
-    "id": "claude-forced-tool-use-rejected",
+    "id": "claude-code-fable-alias-5-2",
     "provider": "anthropic",
     "models": [
-      "claude-opus-5-5",
-      "claude-sonnet-5-5",
+      "claude-fable-5-1",
+      "claude-fable-5-2"
+    ],
+    "kind": "trap",
+    "effective": null,
+    "client": "claude-code",
+    "note": "From v2.1.321 the fable alias resolves to Fable 5.2 (Fable 5 in Claude apps gateway sessions), and best resolves to the same model as opus instead of the fable model. On Pro, Max and Ultra, a claude-fable-5-1 saved in user settings moves to the fable alias at the first v2.1.321 run, and (auto-updated) shows once. On Team and Enterprise the move waits for the organization's settings and comes with no notice. Console accounts, third-party providers, and project, local or managed settings keep claude-fable-5-1.",
+    "source": "https://code.claude.com/docs/en/model-config",
+    "observed": "2026-11-22"
+  },
+  {
+    "id": "claude-code-opus-4-ids-redirected",
+    "provider": "anthropic",
+    "models": [
+      "claude-opus-4-1",
+      "claude-opus-4-1-20250805",
+      "claude-opus-4-0",
+      "claude-opus-4-20250514"
+    ],
+    "kind": "trap",
+    "effective": null,
+    "client": "claude-code",
+    "note": "By default, a Claude Code session started on the Anthropic API with a Claude Opus 4 or Opus 4.1 ID runs on the model the opus alias resolves to. The API retired both models (claude-opus-4-retired, claude-opus-4-1-retired). The page names claude-opus-4-1 as an example; the other ids are the same models.",
+    "source": "https://code.claude.com/docs/en/model-config",
+    "observed": "2026-11-22"
+  },
+  {
+    "id": "claude-fable-5-2-default-effort-medium",
+    "provider": "anthropic",
+    "models": [
+      "claude-fable-5-2"
+    ],
+    "kind": "default",
+    "effective": null,
+    "value": "medium",
+    "client": "claude-code",
+    "note": "Claude Code defaults effort to medium on Fable 5.2. The API default is high, as on Fable 5.1, so the same model runs one level lower in Claude Code. Sessions moved from a saved claude-fable-5-1 to the fable alias start at this default.",
+    "source": "https://code.claude.com/docs/en/model-config",
+    "observed": "2026-11-22"
+  },
+  {
+    "id": "claude-fable-mythos-5-2-computer-use-toolset",
+    "provider": "anthropic",
+    "models": [
+      "claude-fable-5-2",
+      "claude-mythos-5-2"
+    ],
+    "kind": "trap",
+    "effective": null,
+    "client": null,
+    "note": "A tools entry of type computer_20251124 returns 400 on every platform except Amazon Bedrock. Declare computer_toolset_20260801 instead, with no name, no display dimensions and no beta header, and update the agent loop. Claude Fable 5, Fable 5.1 and Opus 5 accept computer_20251124 with its beta header.",
+    "source": "https://platform.claude.com/docs/en/models/fable-5-2/migration-guide",
+    "observed": "2026-11-22"
+  },
+  {
+    "id": "claude-fable-mythos-retention-required",
+    "provider": "anthropic",
+    "models": [
+      "claude-fable-5-2",
+      "claude-mythos-5-2",
       "claude-fable-5-1",
       "claude-mythos-5-1"
     ],
     "kind": "trap",
     "effective": null,
     "client": null,
+    "note": "These models require 30-day data retention and are not available under zero data retention unless Anthropic authorizes it. On the Claude API, every request from an organization or workspace without 30-day retention returns 400 invalid_request_error. A ZDR organization that moves traffic from Opus 5.5 or Opus 5 therefore fails on every request.",
+    "source": "https://platform.claude.com/docs/en/models/fable-5-2/migration-guide",
+    "observed": "2026-11-22"
+  },
+  {
+    "id": "claude-forced-tool-use-rejected",
+    "provider": "anthropic",
+    "models": [
+      "claude-opus-5-5",
+      "claude-sonnet-5-5",
+      "claude-fable-5-1",
+      "claude-mythos-5-1",
+      "claude-fable-5-2",
+      "claude-mythos-5-2"
+    ],
+    "kind": "trap",
+    "effective": null,
+    "client": null,
     "note": "tool_choice any or tool returns 400 on every request. Send tool_choice auto with strict tools or structured outputs, and say in the prompt when to call the tool. On other models forced tool use works with adaptive thinking, and the response then starts with the tool call with no thinking block.",
     "source": "https://platform.claude.com/docs/en/build-with-claude/thinking",
-    "observed": "2026-10-29"
+    "observed": "2026-11-22"
   },
   {
     "id": "claude-haiku-5-5-thinking-off",
@@ -273,14 +349,16 @@
       "claude-opus-5-5",
       "claude-haiku-5-5",
       "claude-fable-5-1",
-      "claude-mythos-5-1"
+      "claude-mythos-5-1",
+      "claude-fable-5-2",
+      "claude-mythos-5-2"
     ],
     "kind": "trap",
     "effective": null,
     "client": null,
     "note": "A request whose final turn is a prefilled assistant message returns 400, whether or not thinking is on. Put continuations in the user message, or use structured outputs to shape the reply. Earlier models refuse prefill only while thinking is on.",
     "source": "https://platform.claude.com/docs/en/build-with-claude/thinking",
-    "observed": "2026-10-29"
+    "observed": "2026-11-22"
   },
   {
     "id": "claude-sampling-parameters-rejected",
@@ -305,14 +383,16 @@
       "claude-sonnet-4-5",
       "claude-sonnet-4-5-20250929",
       "claude-haiku-4-5",
-      "claude-haiku-4-5-20251001"
+      "claude-haiku-4-5-20251001",
+      "claude-fable-5-2",
+      "claude-mythos-5-2"
     ],
     "kind": "trap",
     "effective": null,
     "client": null,
     "note": "From API version 2026-10-21, a request carrying temperature, top_p or top_k at any value returns 400 on every model. On earlier API versions, Claude Opus 4.7 and later, Sonnet 5 and later, Haiku 5.5, Fable and Mythos models return 400 for any non-default value, thinking or not; their top_p default is 0.99, so top_p 1 returns 400, and so does sending temperature and top_p together even at their defaults. The 4.6, 4.5 and Haiku 4.5 models restrict them only while thinking is on (top_p 0.95 to 1). Omit the three parameters.",
     "source": "https://platform.claude.com/docs/en/build-with-claude/thinking",
-    "observed": "2026-10-29"
+    "observed": "2026-11-22"
   },
   {
     "id": "claude-sonnet-4-5-retired",
@@ -344,6 +424,19 @@
     "note": "Announced 2026-04-14. Requests fail after the retirement date. The page names only the dated id. Still served on Amazon Bedrock and Claude Models on Google Cloud (Google managed).",
     "source": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
     "observed": "2026-10-29"
+  },
+  {
+    "id": "claude-sonnet-5-5-computer-use-toolset",
+    "provider": "anthropic",
+    "models": [
+      "claude-sonnet-5-5"
+    ],
+    "kind": "trap",
+    "effective": null,
+    "client": null,
+    "note": "Computer use works only through the computer_toolset_20260801 toolset. computer_20251124 returns 400 everywhere except Amazon Bedrock, where it needs the computer-use-2025-11-24 beta header. computer_20250124 returns 400 on every platform. Replace the tool version with the toolset, drop that version's beta header, and update the agent loop. Earlier models accept the older versions with their beta headers.",
+    "source": "https://platform.claude.com/docs/en/models/sonnet-5-5/migration-guide",
+    "observed": "2026-11-22"
   },
   {
     "id": "claude-sonnet-5-5-effort-recalibrated",
@@ -395,14 +488,16 @@
     "provider": "anthropic",
     "models": [
       "claude-sonnet-5-5",
-      "claude-haiku-5-5"
+      "claude-haiku-5-5",
+      "claude-fable-5-2",
+      "claude-mythos-5-2"
     ],
     "kind": "trap",
     "effective": null,
     "client": null,
     "note": "Thinking blocks from these models work only in the account that produced them or an account linked to it. Sent by another account, the blocks are dropped before the model sees them and the request still succeeds: the model answers without that reasoning. Blocks from earlier models are not affected.",
     "source": "https://platform.claude.com/docs/en/build-with-claude/preserved-thinking",
-    "observed": "2026-10-29"
+    "observed": "2026-11-22"
   },
   {
     "id": "claude-thinking-always-on",
@@ -413,7 +508,9 @@
       "claude-fable-5",
       "claude-mythos-5-1",
       "claude-mythos-5",
-      "claude-mythos-preview"
+      "claude-mythos-preview",
+      "claude-fable-5-2",
+      "claude-mythos-5-2"
     ],
     "kind": "thinking_off",
     "effective": null,
@@ -422,7 +519,7 @@
     "client": null,
     "note": "Thinking cannot be turned off: disabled and between_tools return 400. Lower the effort to think less. Claude Mythos Preview also accepts enabled with budget_tokens.",
     "source": "https://platform.claude.com/docs/en/build-with-claude/thinking",
-    "observed": "2026-10-29"
+    "observed": "2026-11-22"
   },
   {
     "id": "claude-thinking-history-bound",
@@ -432,14 +529,16 @@
       "claude-mythos-5-1",
       "claude-opus-5-5",
       "claude-sonnet-5-5",
-      "claude-haiku-5-5"
+      "claude-haiku-5-5",
+      "claude-fable-5-2",
+      "claude-mythos-5-2"
     ],
     "kind": "trap",
     "effective": null,
     "client": null,
-    "note": "Each thinking block is signed over the conversation before it. With thinking.block_binding.prefix_mismatch_behavior unset, replaying a block after any edit to system, tools or earlier messages returns 400: on Claude Mythos 5.1 for every account (Claude API, Google Cloud Google managed, Microsoft Foundry), on the other models for accounts created on or after 2026-08-31 00:00 UTC; on older accounts the failing blocks reach the model without error. In the Message Batches API an unset field drops the failing blocks instead. Keep requests append-only; change instructions or tools with mid-conversation system messages and tool_addition/tool_removal blocks. prefix_mismatch_behavior drop_block is a stopgap that raises output tokens, and on Sonnet 5.5 and Haiku 5.5 it works only with adaptive thinking.",
-    "source": "https://platform.claude.com/docs/en/build-with-claude/preserved-thinking",
-    "observed": "2026-11-01"
+    "note": "Each thinking block is signed over the conversation before it. With thinking.block_binding.prefix_mismatch_behavior unset, replaying a block after an edit to system, tools or earlier messages, or after leaving out or moving a block between others, returns 400 on Claude Fable 5.2, Mythos 5.2 and Mythos 5.1. On Fable 5.1, Opus 5.5, Sonnet 5.5 and Haiku 5.5 it may return 400 or no error; with no error, the stale blocks reach the model and are billed. The 2026-08-31 account-creation cutoff read on 2026-11-01 is no longer on any Anthropic page. Message Batches items with the field unset get no error and can lose the failing blocks. Keep requests append-only, and change instructions or tools with mid-conversation system messages and tool_addition/tool_removal blocks. drop_block is a stopgap that raises output tokens and needs adaptive thinking (it doesn't work with disabled or between_tools).",
+    "source": "https://platform.claude.com/docs/en/build-with-claude/preserved-thinking/prefix-checks",
+    "observed": "2026-11-22"
   },
   {
     "id": "claude-thinking-off-disabled",
@@ -588,6 +687,21 @@
     "observed": "2026-10-04"
   },
   {
+    "id": "eleven-text-to-sound-v2-retired",
+    "provider": "elevenlabs",
+    "models": [
+      "eleven_text_to_sound_v2"
+    ],
+    "kind": "retired",
+    "effective": "2027-03-01",
+    "replacement": "eleven_text_to_sound_v3",
+    "old_name_accepted": false,
+    "client": null,
+    "note": "Announced in the 2026-11-02 changelog. It is still the default sound-effects model, so a request without model_id runs on it and will fail after the date. Set model_id explicitly.",
+    "source": "https://elevenlabs.io/docs/overview/models",
+    "observed": "2026-11-22"
+  },
+  {
     "id": "elevenlabs-v1-tts-retired",
     "provider": "elevenlabs",
     "models": [
@@ -602,6 +716,21 @@
     "note": "Announced in the 2026-06-08 changelog. Absent from GET /v1/models; refusal of the old name not measured.",
     "source": "https://elevenlabs.io/docs/changelog/2026/6/8",
     "observed": "2026-10-08"
+  },
+  {
+    "id": "music-v1-retired",
+    "provider": "elevenlabs",
+    "models": [
+      "music_v1"
+    ],
+    "kind": "retired",
+    "effective": "2027-01-31",
+    "replacement": "music_v2_5",
+    "old_name_accepted": false,
+    "client": null,
+    "note": "Listed as deprecated on the models page, which says to set model_id explicitly if requests don't set it. The page does not say which music model is the default.",
+    "source": "https://elevenlabs.io/docs/overview/models",
+    "observed": "2026-11-22"
   },
   {
     "id": "scribe-v1-retired",
@@ -768,16 +897,17 @@
     "models": [
       "gpt-3.5-turbo-0613",
       "gpt-3.5-turbo-16k-0613",
-      "gpt-3.5-turbo-0301"
+      "gpt-3.5-turbo-0301",
+      "gpt-3.5-turbo-16k"
     ],
     "kind": "retired",
     "effective": "2024-09-13",
     "replacement": "gpt-3.5-turbo",
     "old_name_accepted": false,
     "client": null,
-    "note": "Announced 2023-06-13 (0301) and 2023-11-06 (0613, 16k-0613). The replacement is itself retired on 2026-10-23 (gpt-3-5-turbo-retired).",
+    "note": "Announced 2023-06-13 (0301) and 2023-11-06 (0613, 16k-0613). The replacement is itself retired on 2026-10-23 (gpt-3-5-turbo-retired). The alias gpt-3.5-turbo-16k, not named on the page, stayed in GET /v1/models until 2026-11-05.",
     "source": "https://developers.openai.com/api/docs/deprecations",
-    "observed": "2026-10-08"
+    "observed": "2026-11-22"
   },
   {
     "id": "gpt-3-5-turbo-retired",
@@ -1110,16 +1240,18 @@
     "provider": "openai",
     "models": [
       "gpt-4o-search-preview-2025-03-11",
-      "gpt-4o-mini-search-preview-2025-03-11"
+      "gpt-4o-mini-search-preview-2025-03-11",
+      "gpt-4o-search-preview",
+      "gpt-4o-mini-search-preview"
     ],
     "kind": "retired",
     "effective": "2026-07-23",
     "replacement": "gpt-5.6-terra",
     "old_name_accepted": false,
     "client": null,
-    "note": "Announced 2026-04-22. Still listed by GET /v1/models in the monitor's last reading (gpt-4o-search-preview-2025-03-11, gpt-4o-mini-search-preview-2025-03-11); refusal of the old name not measured.",
+    "note": "Announced 2026-04-22. Gone from GET /v1/models since the monitor's reading of 2026-11-06; refusal of the old name not measured. The aliases gpt-4o-search-preview and gpt-4o-mini-search-preview, not named on the page, left GET /v1/models on the same day.",
     "source": "https://developers.openai.com/api/docs/deprecations",
-    "observed": "2026-10-08"
+    "observed": "2026-11-22"
   },
   {
     "id": "gpt-5-1-codex-mini-retired",
@@ -1132,9 +1264,9 @@
     "replacement": "gpt-5.6-terra",
     "old_name_accepted": false,
     "client": null,
-    "note": "Announced 2026-04-22. Still listed by GET /v1/models in the monitor's last reading (gpt-5.1-codex-mini); refusal of the old name not measured.",
+    "note": "Announced 2026-04-22. Gone from GET /v1/models since the monitor's reading of 2026-11-06; refusal of the old name not measured.",
     "source": "https://developers.openai.com/api/docs/deprecations",
-    "observed": "2026-10-08"
+    "observed": "2026-11-22"
   },
   {
     "id": "gpt-5-1-effort-levels",
@@ -1201,9 +1333,9 @@
     "replacement": "gpt-5.6-sol",
     "old_name_accepted": false,
     "client": null,
-    "note": "Announced 2026-05-08. Still listed by GET /v1/models in the monitor's last reading (gpt-5.2-chat-latest, gpt-5.3-chat-latest); refusal of the old name not measured.",
+    "note": "Announced 2026-05-08. Gone from GET /v1/models since the monitor's reading of 2026-11-06; refusal of the old name not measured.",
     "source": "https://developers.openai.com/api/docs/deprecations",
-    "observed": "2026-10-08"
+    "observed": "2026-11-22"
   },
   {
     "id": "gpt-5-2-codex-effort-levels",
@@ -1251,9 +1383,9 @@
     "replacement": "gpt-5.6-sol",
     "old_name_accepted": false,
     "client": null,
-    "note": "The deprecations page says access was shut down on 2026-07-23, yet GET /v1/models still listed gpt-5.2-codex on 2026-10-03. Not measured by a request.",
+    "note": "The deprecations page says access was shut down on 2026-07-23, yet GET /v1/models still listed gpt-5.2-codex until 2026-11-05; gone since the monitor's reading of 2026-11-06. Not measured by a request.",
     "source": "https://developers.openai.com/api/docs/deprecations",
-    "observed": "2026-10-04"
+    "observed": "2026-11-22"
   },
   {
     "id": "gpt-5-2-effort-levels",
@@ -1340,12 +1472,12 @@
     ],
     "kind": "retired",
     "effective": "2026-12-11",
-    "replacement": "gpt-5.6-sol",
+    "replacement": "gpt-6.1-sol",
     "old_name_accepted": false,
     "client": null,
-    "note": "Announced 2026-06-11. For gpt-5-pro and its snapshot the replacement is gpt-5.6-sol with reasoning.mode: pro. The page names the aliases with their snapshots since 2026-10-25.",
+    "note": "Announced 2026-06-11. For gpt-5-pro and its snapshot the replacement is gpt-6.1-sol with reasoning.mode: pro. The page names the aliases with their snapshots since 2026-10-25.",
     "source": "https://developers.openai.com/api/docs/deprecations",
-    "observed": "2026-10-29"
+    "observed": "2026-11-22"
   },
   {
     "id": "gpt-5-3-codex-effort-levels",
@@ -1579,6 +1711,21 @@
     "observed": "2026-10-05"
   },
   {
+    "id": "gpt-5-5-cyber-preview-retired",
+    "provider": "openai",
+    "models": [
+      "gpt-5.5-cyber-preview"
+    ],
+    "kind": "retired",
+    "effective": "2027-02-01",
+    "replacement": null,
+    "old_name_accepted": false,
+    "client": null,
+    "note": "Announced 2026-11-05. The page names no replacement model: 'the most capable cyber model available to you'.",
+    "source": "https://developers.openai.com/api/docs/deprecations",
+    "observed": "2026-11-22"
+  },
+  {
     "id": "gpt-5-5-effort-levels",
     "provider": "openai",
     "models": [
@@ -1777,9 +1924,9 @@
     "replacement": "gpt-5.6-sol",
     "old_name_accepted": false,
     "client": null,
-    "note": "Announced 2026-04-22. Still listed by GET /v1/models in the monitor's last reading (gpt-5-chat-latest, gpt-5.1-chat-latest); refusal of the old name not measured.",
+    "note": "Announced 2026-04-22. Gone from GET /v1/models since the monitor's reading of 2026-11-06; refusal of the old name not measured.",
     "source": "https://developers.openai.com/api/docs/deprecations",
-    "observed": "2026-10-08"
+    "observed": "2026-11-22"
   },
   {
     "id": "gpt-5-codex-retired",
@@ -1794,9 +1941,9 @@
     "replacement": "gpt-5.6-sol",
     "old_name_accepted": false,
     "client": null,
-    "note": "Announced 2026-04-22. Still listed by GET /v1/models in the monitor's last reading (gpt-5-codex, gpt-5.1-codex, gpt-5.1-codex-max); refusal of the old name not measured.",
+    "note": "Announced 2026-04-22. Gone from GET /v1/models since the monitor's reading of 2026-11-06; refusal of the old name not measured.",
     "source": "https://developers.openai.com/api/docs/deprecations",
-    "observed": "2026-10-08"
+    "observed": "2026-11-22"
   },
   {
     "id": "gpt-5-effort-levels",
@@ -1844,12 +1991,12 @@
     ],
     "kind": "retired",
     "effective": "2026-12-11",
-    "replacement": "gpt-5.6-terra",
+    "replacement": "gpt-6.1-terra",
     "old_name_accepted": false,
     "client": null,
     "note": "Announced 2026-06-11. The page names the aliases with their snapshots since 2026-10-25.",
     "source": "https://developers.openai.com/api/docs/deprecations",
-    "observed": "2026-10-29"
+    "observed": "2026-11-22"
   },
   {
     "id": "gpt-5-nano-2025-snapshot-retired",
@@ -1860,12 +2007,12 @@
     ],
     "kind": "retired",
     "effective": "2026-12-11",
-    "replacement": "gpt-5.6-luna",
+    "replacement": "gpt-6-luna",
     "old_name_accepted": false,
     "client": null,
     "note": "Announced 2026-06-11. The page names the aliases with their snapshots since 2026-10-25.",
     "source": "https://developers.openai.com/api/docs/deprecations",
-    "observed": "2026-10-29"
+    "observed": "2026-11-22"
   },
   {
     "id": "gpt-5-pro-effort-levels",
@@ -1973,6 +2120,80 @@
     "note": "The model page lists its input modalities as text and image. GET /v1/models says nothing about inputs.",
     "source": "https://developers.openai.com/api/docs/models/gpt-6.1-terra",
     "observed": "2026-10-29"
+  },
+  {
+    "id": "gpt-6-2-astra-input",
+    "provider": "openai",
+    "models": [
+      "gpt-6.2-astra"
+    ],
+    "kind": "input",
+    "effective": null,
+    "images": true,
+    "audio": false,
+    "pdf": null,
+    "client": null,
+    "note": "The model page lists its input modalities as text and image. GET /v1/models says nothing about inputs.",
+    "source": "https://developers.openai.com/api/docs/models/gpt-6.2-astra",
+    "observed": "2026-11-22"
+  },
+  {
+    "id": "gpt-6-2-effort-none-rejected",
+    "provider": "openai",
+    "models": [
+      "gpt-6.2-astra",
+      "gpt-6.2-sol"
+    ],
+    "kind": "trap",
+    "effective": null,
+    "client": null,
+    "note": "reasoning.effort (Responses) or reasoning_effort (Chat Completions) set to none returns 400. OpenAI says to send low where none or minimal was sent, and to start new integrations at medium. Neither the model pages nor the reasoning guide list the accepted levels or the default.",
+    "source": "https://developers.openai.com/api/docs/guides/reasoning",
+    "observed": "2026-11-22"
+  },
+  {
+    "id": "gpt-6-2-reasoning-dropped-on-prefix-edit",
+    "provider": "openai",
+    "models": [
+      "gpt-6.2-astra",
+      "gpt-6.2-sol"
+    ],
+    "kind": "trap",
+    "effective": null,
+    "client": null,
+    "note": "Starting with GPT-6.2, the Responses API drops reasoning items without an error after an edit to earlier history (developer messages, tool calls), after certain model changes including downgrades, or after a change of end user or organization. Answer quality can fall and token use rise as the model redoes earlier work. Keep the prefix unchanged between responses.",
+    "source": "https://developers.openai.com/api/docs/guides/latest-model",
+    "observed": "2026-11-22"
+  },
+  {
+    "id": "gpt-6-2-request-changes",
+    "provider": "openai",
+    "models": [
+      "gpt-6.2-astra",
+      "gpt-6.2-sol"
+    ],
+    "kind": "trap",
+    "effective": null,
+    "client": null,
+    "note": "Top-level instructions are now placed after input in the Responses API, which moves them out of the cached prefix. Put stable instructions in a developer message at the start of input. Omit temperature, top_p, logprobs and top_logprobs, and remove message.output_text.logprobs from include. service_tier flex is not supported. Tool calling requires the Responses API.",
+    "source": "https://developers.openai.com/api/docs/guides/latest-model",
+    "observed": "2026-11-22"
+  },
+  {
+    "id": "gpt-6-2-sol-input",
+    "provider": "openai",
+    "models": [
+      "gpt-6.2-sol"
+    ],
+    "kind": "input",
+    "effective": null,
+    "images": true,
+    "audio": false,
+    "pdf": null,
+    "client": null,
+    "note": "The model page lists its input modalities as text and image. GET /v1/models says nothing about inputs.",
+    "source": "https://developers.openai.com/api/docs/models/gpt-6.2-sol",
+    "observed": "2026-11-22"
   },
   {
     "id": "gpt-6-astra-effort-levels",
@@ -2095,9 +2316,9 @@
     "replacement": "gpt-audio-1.5",
     "old_name_accepted": false,
     "client": null,
-    "note": "Announced 2026-04-22. Still listed by GET /v1/models in the monitor's last reading (gpt-audio-mini-2025-10-06); refusal of the old name not measured.",
+    "note": "Announced 2026-04-22. Gone from GET /v1/models since the monitor's reading of 2026-11-06; refusal of the old name not measured.",
     "source": "https://developers.openai.com/api/docs/deprecations",
-    "observed": "2026-10-08"
+    "observed": "2026-11-22"
   },
   {
     "id": "gpt-image-1-mini-1-5-retired",
@@ -2110,12 +2331,12 @@
     ],
     "kind": "retired",
     "effective": "2026-12-01",
-    "replacement": "gpt-image-2.5-sunburst",
+    "replacement": "gpt-image-2.6-sunburst",
     "old_name_accepted": false,
     "client": null,
-    "note": "Announced 2026-06-02. The page names gpt-image-2.5-sunburst or gpt-image-2.5-flare.",
+    "note": "Announced 2026-06-02. The page names gpt-image-2.6-sunburst or gpt-image-2.6-flare (gpt-image-2.5-sunburst or -flare until 2026-11-05).",
     "source": "https://developers.openai.com/api/docs/deprecations",
-    "observed": "2026-10-29"
+    "observed": "2026-11-22"
   },
   {
     "id": "gpt-image-1-retired",
@@ -2131,6 +2352,38 @@
     "note": "Announced 2026-04-22. The page names gpt-image-2.5-sunburst or gpt-image-2.5-flare.",
     "source": "https://developers.openai.com/api/docs/deprecations",
     "observed": "2026-10-08"
+  },
+  {
+    "id": "gpt-image-2-retired",
+    "provider": "openai",
+    "models": [
+      "gpt-image-2",
+      "gpt-image-2-2026-04-21"
+    ],
+    "kind": "retired",
+    "effective": "2027-02-10",
+    "replacement": "gpt-image-2.6-sunburst",
+    "old_name_accepted": false,
+    "client": null,
+    "note": "Announced 2026-11-10. The page names gpt-image-2.6-sunburst or gpt-image-2.6-flare. GET /v1/models has given shutdown_date 2027-02-10 since 2026-11-11. Image generation models now get at least 3 months' notice.",
+    "source": "https://developers.openai.com/api/docs/deprecations",
+    "observed": "2026-11-22"
+  },
+  {
+    "id": "gpt-live-1-1-input",
+    "provider": "openai",
+    "models": [
+      "gpt-live-1.1"
+    ],
+    "kind": "input",
+    "effective": null,
+    "images": false,
+    "audio": true,
+    "pdf": null,
+    "client": null,
+    "note": "The model page lists its input modalities as audio and text. Served on v1/live/sessions only; Chat Completions, Responses and Realtime are not supported. GET /v1/models says nothing about inputs.",
+    "source": "https://developers.openai.com/api/docs/models/gpt-live-1.1",
+    "observed": "2026-11-22"
   },
   {
     "id": "gpt-realtime-mini-2025-10-06-retired",
@@ -2240,12 +2493,12 @@
     ],
     "kind": "retired",
     "effective": "2026-12-11",
-    "replacement": "gpt-5.6-sol",
+    "replacement": "gpt-6.1-sol",
     "old_name_accepted": false,
     "client": null,
-    "note": "Announced 2026-06-11. For o3-pro and its snapshot the replacement is gpt-5.6-sol with reasoning.mode: pro. The page names the aliases with their snapshots since 2026-10-25.",
+    "note": "Announced 2026-06-11. For o3-pro and its snapshot the replacement is gpt-6.1-sol with reasoning.mode: pro. The page names the aliases with their snapshots since 2026-10-25.",
     "source": "https://developers.openai.com/api/docs/deprecations",
-    "observed": "2026-10-29"
+    "observed": "2026-11-22"
   },
   {
     "id": "o3-mini-retired",
@@ -2332,9 +2585,9 @@
     "replacement": "gpt-5.6-sol",
     "old_name_accepted": false,
     "client": null,
-    "note": "Announced 2026-04-22. Still listed by GET /v1/models in the monitor's last reading (o4-mini-deep-research-2025-06-26, o4-mini-deep-research); refusal of the old name not measured.",
+    "note": "Announced 2026-04-22. Gone from GET /v1/models since the monitor's reading of 2026-11-06; refusal of the old name not measured.",
     "source": "https://developers.openai.com/api/docs/deprecations",
-    "observed": "2026-10-08"
+    "observed": "2026-11-22"
   },
   {
     "id": "openai-edit-models-retired",
@@ -2436,16 +2689,17 @@
       "gpt-3.5-turbo-instruct",
       "babbage-002",
       "davinci-002",
-      "gpt-3.5-turbo-1106"
+      "gpt-3.5-turbo-1106",
+      "gpt-3.5-turbo-instruct-0914"
     ],
     "kind": "retired",
     "effective": "2026-09-28",
     "replacement": "gpt-5.6-terra",
     "old_name_accepted": false,
     "client": null,
-    "note": "Announced 2025-09-26. Still listed by GET /v1/models in the monitor's last reading (gpt-3.5-turbo-instruct, babbage-002, davinci-002, gpt-3.5-turbo-1106); refusal of the old name not measured.",
+    "note": "Announced 2025-09-26. Gone from GET /v1/models since the monitor's reading of 2026-11-06; refusal of the old name not measured. The snapshot gpt-3.5-turbo-instruct-0914, not named on the page, left GET /v1/models on the same day.",
     "source": "https://developers.openai.com/api/docs/deprecations",
-    "observed": "2026-10-08"
+    "observed": "2026-11-22"
   },
   {
     "id": "openai-pdf-input",
@@ -2483,7 +2737,9 @@
       "gpt-6-luna",
       "gpt-6-sol",
       "gpt-6.1-sol",
-      "gpt-6.1-terra"
+      "gpt-6.1-terra",
+      "gpt-6.2-astra",
+      "gpt-6.2-sol"
     ],
     "kind": "input",
     "effective": null,
@@ -2491,9 +2747,9 @@
     "audio": null,
     "pdf": true,
     "client": null,
-    "note": "PDF files are read by models with vision capabilities: the API sends the model both the extracted text and an image of each page. Chat Completions takes a PDF as a file content part; models without Chat Completions (Pro, Codex) take it through the Responses API as input_file. The model pages do not list PDF among input modalities, and their file_uploads feature is present on some models and absent on others without saying what it means for PDF.",
+    "note": "PDF files are read by models that accept image inputs: the API sends the model both the extracted text and an image of each page. Chat Completions takes a PDF as a file content part; models without Chat Completions (Pro, Codex) take it through the Responses API as input_file. The model pages do not list PDF among input modalities, and their file_uploads feature is present on some models and absent on others without saying what it means for PDF.",
     "source": "https://developers.openai.com/api/docs/guides/file-inputs",
-    "observed": "2026-10-29"
+    "observed": "2026-11-22"
   },
   {
     "id": "openai-realtime-legacy-retired",
@@ -2582,9 +2838,9 @@
     "replacement": null,
     "old_name_accepted": false,
     "client": null,
-    "note": "Announced 2026-03-24 with the Videos API itself; no replacement. Still listed by GET /v1/models in the monitor's last reading (sora-2, sora-2-pro); refusal of the old name not measured.",
+    "note": "Announced 2026-03-24 with the Videos API itself; no replacement. Gone from GET /v1/models since the monitor's reading of 2026-11-06; refusal of the old name not measured.",
     "source": "https://developers.openai.com/api/docs/deprecations",
-    "observed": "2026-10-08"
+    "observed": "2026-11-22"
   },
   {
     "id": "text-moderation-retired",
