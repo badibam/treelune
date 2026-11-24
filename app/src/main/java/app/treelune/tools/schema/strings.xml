@@ -3,7 +3,7 @@
     <!-- Strings of the schema tooltype -->
     <string name="display_name">Schema</string>
     <string name="usage">For drawing boxes and arrows: an organisation, a loop, what feeds what.\n## What it does\n- Draws them at the phone\'s width, top to bottom or bottom to top\n- Puts boxes inside a box, which becomes a group, one inside another, folded with a touch\n- A box can link to a thing of the app, whose current name it shows, and open it\n## Not made for\n- A timeline (Agenda), a table (Records), figures (Chart)</string>
-    <string name="guide_config">## The schema\n- Direction: top to bottom, or bottom to top\n\n## Boxes\n- Id: the short name arrows use\n- Text: what the box says\n- Link: a thing of the app, whose name the box shows when it has no text\n- Shape, Icon, Color\n- Inside: the box that holds it; a box holding others is drawn as a group, its text as its title\n- Starts folded: a group drawn as a box until touched\n\n## Arrows\n- From, To: two boxes, groups included, never a group and what it holds\n- Text on the arrow, Line, Arrowhead\n\n## Mermaid\n- Import Mermaid: paste a flowchart; what it gives shows before it replaces the schema\n- Copy as Mermaid: the schema as text, without its links</string>
+    <string name="guide_config">## The schema\n- Direction: top to bottom, or bottom to top\n\n## Boxes\n- Id: the short name arrows use\n- Text: what the box says\n- Link: a thing of the app, whose name the box shows when it has no text\n- Shape, Icon, Color\n- Fill: outline, its colour pale (the default), or full; Faded: for what is not there now\n- Inside: the box that holds it; a box holding others is drawn as a group, its text as its title\n- Starts folded: a group drawn as a box until touched\n\n## Arrows\n- From, To: two boxes, groups included, never a group and what it holds\n- Text on the arrow, Line, Arrowhead\n\n## Mermaid\n- Import Mermaid: paste a flowchart; what it gives shows before it replaces the schema\n- Copy as Mermaid: the schema as text, without its links</string>
     <string name="guide_screen">## The schema\nTouch a linked box to open what it designates, a box whose text is cut to read it whole; a group\'s underlined title does the same.\nTouch the rest of a group\'s title to fold or unfold it, for this visit: nothing is saved.\nTo change the schema, open its config.</string>
     <string name="ai_detail">A diagram in the vocabulary of Mermaid flowcharts, stored as JSON, never as Mermaid text; convert any Mermaid text you are given, a subgraph being a box that the boxes inside it name as their parent. Written for a phone held upright: direction TD or BT only, about ten boxes readable at a glance, short labels. When a box stands for a thing of the app, set its thing rather than a label, so that it follows its name. A box that holds others is drawn as a group, its label as its title; arrows join any two boxes, a group included, never a group and what it holds. Keeps no entries.</string>
     <string name="tagline">Boxes and arrows: an organisation, a loop, what feeds what</string>
@@ -49,6 +49,12 @@
     <string name="schema_thing">The thing of the app it stands for and opens</string>
     <string name="schema_shape">Its shape, by its Mermaid 11 name</string>
     <string name="schema_color">A palette name</string>
+    <string name="field_fill">Fill</string>
+    <string name="schema_fill">How the box is painted: outline, its colour pale under its border (the default), or full, a strong fill</string>
+    <string name="fill_outline">Outline</string>
+    <string name="fill_full">Full</string>
+    <string name="field_faded">Faded</string>
+    <string name="schema_faded">Whether the box is drawn faded, for what is not there now: out of season, set aside</string>
     <string name="schema_icon">An icon name of the vocabulary (ICONS finds one), shown before the box's text; without one, a linked box shows its thing's icon</string>
     <string name="schema_edges">The arrows</string>
     <string name="schema_edge">One arrow between two boxes</string>
@@ -100,6 +106,7 @@
     <string name="error_thing">Box “%1$s”: its link does not designate a thing of the app.</string>
     <string name="error_node_empty">Box “%1$s” has neither a text nor a link.</string>
     <string name="error_color">“%1$s”: unknown color “%2$s”.</string>
+    <string name="error_fill">“%1$s”: unknown fill “%2$s” (outline, full).</string>
     <string name="error_icon">Box “%1$s”: no icon is named “%2$s”.</string>
     <string name="error_edge_end">An arrow lacks its start or its end.</string>
     <string name="error_edge_unknown">An arrow names the box “%1$s”, which does not exist.</string>

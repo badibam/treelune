@@ -16,6 +16,8 @@ object SchemaKeys {
     const val THING = "thing"
     const val COLOR = "color"
     const val ICON = "icon"
+    const val FILL = "fill"
+    const val FADED = "faded"
     const val FROM = "from"
     const val TO = "to"
     const val LINE = "line"
@@ -31,6 +33,19 @@ enum class SchemaDirection(val key: String) {
 
     companion object {
         fun of(key: String): SchemaDirection? = entries.firstOrNull { it.key == key }
+    }
+}
+
+/**
+ * How a box is painted, as a Path brick's state paints it (docs/design/progression.md, « L'apparence
+ * d'une brique »): [OUTLINE], its colour as a pale fill under its border, as a box always was;
+ * [FULL], a strong fill, the text still in the theme's ink.
+ */
+enum class SchemaFill(val key: String) {
+    OUTLINE("outline"), FULL("full");
+
+    companion object {
+        fun of(key: String): SchemaFill? = entries.firstOrNull { it.key == key }
     }
 }
 
@@ -60,7 +75,8 @@ enum class SchemaLine(val key: String) {
  * A box may stand inside another, its [parent]. One that holds others is drawn as a frame, its
  * text as its title; its [shape] then serves only when it is folded, drawn as a box again, as it
  * is at first when [folded]. In [parts], what it holds is read as parts stacked one under the
- * other rather than as one graph (docs/design/progression.md, « La linéarisation »).
+ * other rather than as one graph (docs/design/progression.md, « La linéarisation »). Its [fill]
+ * and whether it is [faded] say how it is painted, set by hand (not this season, planned).
  */
 data class SchemaNode(
     val id: String,
@@ -71,7 +87,9 @@ data class SchemaNode(
     val icon: String? = null,
     val parent: String? = null,
     val folded: Boolean = false,
-    val parts: Boolean = false
+    val parts: Boolean = false,
+    val fill: SchemaFill = SchemaFill.OUTLINE,
+    val faded: Boolean = false
 )
 
 /** An arrow between two boxes; without [head], a plain line. */
@@ -134,8 +152,10 @@ data class SchemaSpec(
                 else ReferenceTarget.referenceOf(json.opt(SchemaKeys.THING)) ?: refuse(own("error_thing").format(id))
             val label = json.text(SchemaKeys.LABEL)
             if (label == null && thing == null) refuse(own("error_node_empty").format(id))
+            val fill = json.text(SchemaKeys.FILL)?.let { SchemaFill.of(it) ?: refuse(own("error_fill").format(id, it)) } ?: SchemaFill.OUTLINE
             return SchemaNode(id, label, shape, thing, color(json, id, own), json.text(SchemaKeys.ICON),
-                json.text(SchemaKeys.PARENT), json.optBoolean(SchemaKeys.FOLDED, false), json.optBoolean(SchemaKeys.PARTS, false))
+                json.text(SchemaKeys.PARENT), json.optBoolean(SchemaKeys.FOLDED, false), json.optBoolean(SchemaKeys.PARTS, false),
+                fill, json.optBoolean(SchemaKeys.FADED, false))
         }
 
         private fun edge(json: JSONObject, own: (String) -> String): SchemaEdge {

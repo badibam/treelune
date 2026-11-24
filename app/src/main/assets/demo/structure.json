@@ -2401,13 +2401,15 @@
               "kind": "TOOL_INSTANCE",
               "id": "demo-balcony-weather"
             },
-            "color": "YELLOW"
+            "color": "YELLOW",
+            "fill": "full"
           },
           {
             "id": "rain",
             "label": "@schema_care_rain",
             "shape": "diamond",
-            "color": "BLUE"
+            "color": "BLUE",
+            "fill": "full"
           },
           {
             "id": "water",
@@ -2415,7 +2417,8 @@
               "kind": "TOOL_INSTANCE",
               "id": "demo-balcony-watering"
             },
-            "color": "TEAL"
+            "color": "TEAL",
+            "fill": "full"
           },
           {
             "id": "observe",
@@ -2423,7 +2426,8 @@
               "kind": "TOOL_INSTANCE",
               "id": "demo-balcony-observations"
             },
-            "color": "GREEN"
+            "color": "GREEN",
+            "fill": "full"
           },
           {
             "id": "harvest",
@@ -2432,12 +2436,14 @@
               "id": "demo-balcony-harvests"
             },
             "color": "RED",
+            "fill": "full",
             "shape": "stadium"
           },
           {
             "id": "weekly",
             "label": "@schema_care_weekly",
-            "color": "PURPLE"
+            "color": "PURPLE",
+            "fill": "full"
           },
           {
             "id": "feed",
@@ -2446,6 +2452,7 @@
               "id": "demo-balcony-feeding"
             },
             "color": "PURPLE",
+            "fill": "full",
             "parent": "weekly"
           },
           {
@@ -2455,6 +2462,7 @@
               "id": "demo-balcony-fed"
             },
             "color": "PURPLE",
+            "fill": "full",
             "parent": "weekly"
           }
         ],

@@ -3,6 +3,7 @@ package app.treelune.tools.schema
 import app.treelune.core.selection.ReferenceKind
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -56,6 +57,16 @@ class SchemaSpecTest {
         val spec = read("{}")
         assertEquals(SchemaDirection.TOP_DOWN, spec.direction)
         assertTrue(spec.nodes.isEmpty())
+    }
+
+    @Test
+    fun `a box is outlined and not faded unless it says otherwise, an unknown fill refused`() {
+        val spec = read("""{"nodes": [{"id": "A", "label": "a"}, {"id": "B", "label": "b", "fill": "full", "faded": true}]}""")
+        assertEquals(SchemaFill.OUTLINE, spec.nodes[0].fill)
+        assertFalse(spec.nodes[0].faded)
+        assertEquals(SchemaFill.FULL, spec.nodes[1].fill)
+        assertTrue(spec.nodes[1].faded)
+        assertTrue(refusal("""{"nodes": [{"id": "A", "label": "a", "fill": "solid"}]}""").startsWith("error_fill A"))
     }
 
     @Test

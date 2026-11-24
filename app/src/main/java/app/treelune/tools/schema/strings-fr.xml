@@ -3,7 +3,7 @@
     <!-- Strings of the schema tooltype -->
     <string name="display_name">Schéma</string>
     <string name="usage">Pour dessiner des boîtes et des flèches : une organisation, une boucle, ce qui nourrit quoi.\n## Ce qu\'il fait\n- Il les dessine à la largeur du téléphone, de haut en bas ou de bas en haut\n- Il range des boîtes dans une boîte, qui devient un groupe, l\'un dans l\'autre, repliés d\'un toucher\n- Une boîte peut désigner une chose de l\'app, dont elle montre le nom actuel, et l\'ouvrir\n## Pas fait pour\n- Une frise (Agenda), un tableau (Fiches), des chiffres (Graphique)</string>
-    <string name="guide_config">## Le schéma\n- Direction : de haut en bas, ou de bas en haut\n\n## Boîtes\n- Identifiant : le nom court dont se servent les flèches\n- Texte : ce que dit la boîte\n- Lien : une chose de l\'app, dont la boîte montre le nom quand elle n\'a pas de texte\n- Forme, Icône, Couleur\n- Dans : la boîte qui la contient ; une boîte qui en contient d\'autres se dessine en groupe, son texte en titre\n- Replié au départ : un groupe dessiné en boîte jusqu\'à ce que tu le touches\n\n## Flèches\n- De, Vers : deux boîtes, groupes compris, jamais un groupe et ce qu\'il contient\n- Texte sur la flèche, Trait, Pointe\n\n## Mermaid\n- Importer du Mermaid : colle un flowchart ; ce qu\'il donne s\'affiche avant de remplacer le schéma\n- Copier en Mermaid : le schéma en texte, sans ses liens</string>
+    <string name="guide_config">## Le schéma\n- Direction : de haut en bas, ou de bas en haut\n\n## Boîtes\n- Identifiant : le nom court dont se servent les flèches\n- Texte : ce que dit la boîte\n- Lien : une chose de l\'app, dont la boîte montre le nom quand elle n\'a pas de texte\n- Forme, Icône, Couleur\n- Remplissage : contour, sa couleur pâle (par défaut), ou plein ; Estompée : pour ce qui n\'est pas là maintenant\n- Dans : la boîte qui la contient ; une boîte qui en contient d\'autres se dessine en groupe, son texte en titre\n- Replié au départ : un groupe dessiné en boîte jusqu\'à ce que tu le touches\n\n## Flèches\n- De, Vers : deux boîtes, groupes compris, jamais un groupe et ce qu\'il contient\n- Texte sur la flèche, Trait, Pointe\n\n## Mermaid\n- Importer du Mermaid : colle un flowchart ; ce qu\'il donne s\'affiche avant de remplacer le schéma\n- Copier en Mermaid : le schéma en texte, sans ses liens</string>
     <string name="guide_screen">## Le schéma\nTouche une boîte liée pour ouvrir ce qu\'elle désigne, une boîte au texte coupé pour le lire en entier ; le titre souligné d\'un groupe fait de même.\nTouche le reste du titre d\'un groupe pour le replier ou le déplier, le temps de la visite : rien n\'est enregistré.\nPour changer le schéma, ouvre sa config.</string>
     <string name="ai_detail">Un schéma au vocabulaire des flowcharts de Mermaid, enregistré en JSON, jamais en texte Mermaid ; convertis tout texte Mermaid reçu, un subgraph étant une boîte que les boîtes qu\'il contient nomment comme parent. Écrit pour un téléphone tenu droit : direction TD ou BT seulement, une dizaine de boîtes lisibles d\'un coup d\'œil, des textes courts. Quand une boîte représente une chose de l\'app, renseigne son lien (thing) plutôt qu\'un texte, pour qu\'elle suive son nom. Une boîte qui en contient d\'autres se dessine en groupe, son texte en titre ; les flèches relient deux boîtes quelconques, groupe compris, jamais un groupe et ce qu\'il contient. Ne garde aucune entrée.</string>
     <string name="tagline">Des boîtes et des flèches : une organisation, une boucle, ce qui nourrit quoi</string>
@@ -49,6 +49,12 @@
     <string name="schema_thing">La chose de l\'app qu\'elle représente et ouvre</string>
     <string name="schema_shape">Sa forme, sous son nom dans Mermaid 11</string>
     <string name="schema_color">Un nom de la palette</string>
+    <string name="field_fill">Remplissage</string>
+    <string name="schema_fill">Comment la boîte est peinte : contour, sa couleur pâle sous son bord (par défaut), ou plein, un fond franc</string>
+    <string name="fill_outline">Contour</string>
+    <string name="fill_full">Plein</string>
+    <string name="field_faded">Estompée</string>
+    <string name="schema_faded">Si la boîte est dessinée estompée, pour ce qui n\'est pas là maintenant : hors saison, mis de côté</string>
     <string name="schema_icon">Un nom d'icône du vocabulaire (ICONS en trouve un), montré devant le texte de la boîte ; sans icône, une boîte liée montre celle de sa chose</string>
     <string name="schema_edges">Les flèches</string>
     <string name="schema_edge">Une flèche entre deux boîtes</string>
@@ -100,6 +106,7 @@
     <string name="error_thing">Boîte « %1$s » : son lien ne désigne pas une chose de l\'app.</string>
     <string name="error_node_empty">La boîte « %1$s » n\'a ni texte ni lien.</string>
     <string name="error_color">« %1$s » : couleur « %2$s » inconnue.</string>
+    <string name="error_fill">« %1$s » : remplissage « %2$s » inconnu (outline, full).</string>
     <string name="error_icon">Boîte « %1$s » : aucune icône ne s'appelle « %2$s ».</string>
     <string name="error_edge_end">Il manque à une flèche son départ ou son arrivée.</string>
     <string name="error_edge_unknown">Une flèche nomme la boîte « %1$s », qui n\'existe pas.</string>

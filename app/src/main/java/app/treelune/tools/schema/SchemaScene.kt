@@ -348,8 +348,11 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             .forEach { (frame, rect) ->
                 val color = frame.node.color
                 val outline = rounded(rect.draw(), dp(8f), dp(8f))
-                shapes += DrawShape.Path(outline, fill(color), SURFACE_OPACITY / 2, 0f, null, true)
-                shapes += DrawShape.Path(outline, stroke(color, InkLevel.FAINT), 1f, thin(), null, false)
+                // A frame painted as a box is, a shade paler: full twice as strong, faded lighter
+                val fade = if (frame.node.faded) FADED_OPACITY else 1f
+                val strength = if (frame.node.fill == SchemaFill.FULL) SURFACE_OPACITY else SURFACE_OPACITY / 2
+                shapes += DrawShape.Path(outline, fill(color), strength * fade, 0f, null, true)
+                shapes += DrawShape.Path(outline, stroke(color, InkLevel.FAINT), fade, thin(), null, false)
                 val pad = GROUP_PADDING * density
                 val title = titles.getValue(frame.id)
                 // Its title's band: on its top, or on its left side in a drawing running across
@@ -406,14 +409,28 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
                 return@forEach
             }
             val outline = outline(box.shape, rect)
-            if (solid) shapes += DrawShape.Path(outline, box.color?.let { DrawColor.Palette(it) } ?: DrawColor.Ink(InkLevel.MEDIUM), 1f, 0f, null, true)
-            else shapes += DrawShape.Path(outline, fill(box.color), SURFACE_OPACITY, 0f, null, true)
-            shapes += DrawShape.Path(outline, stroke(box.color, InkLevel.MEDIUM), 1f, if (box.folded) max(unit * 2, dp(2.5f)) else thin(), null, false)
+            // How it is painted (SchemaFill): full or outlined, every part lighter when faded
+            val full = box.node.fill == SchemaFill.FULL
+            val fade = if (box.node.faded) FADED_OPACITY else 1f
+            val whole = box.color?.let { DrawColor.Palette(it) }
+            var border = if (box.folded) max(unit * 2, dp(2.5f)) else thin()
+            when {
+                // A small shape: full, its colour whole; outlined, a pale fill in a thick border, which tells it from a full one
+                solid && full -> shapes += DrawShape.Path(outline, whole ?: DrawColor.Ink(InkLevel.MEDIUM), fade, 0f, null, true)
+                solid -> {
+                    shapes += DrawShape.Path(outline, whole ?: DrawColor.Ink(InkLevel.MEDIUM), OUTLINE_SOLID_OPACITY * fade, 0f, null, true)
+                    border = max(unit * 2, dp(2f))
+                }
+                // With its text: a strong fill the theme's ink still reads on, or the pale one
+                full -> shapes += DrawShape.Path(outline, whole ?: DrawColor.Ink(InkLevel.FAINT), (if (whole != null) FULL_OPACITY else 1f) * fade, 0f, null, true)
+                else -> shapes += DrawShape.Path(outline, fill(box.color), SURFACE_OPACITY * fade, 0f, null, true)
+            }
+            shapes += DrawShape.Path(outline, stroke(box.color, InkLevel.MEDIUM), fade, border, null, false)
             // The icon and the text centered together in the box, the icon above or beside
             val centerX = (rect.left + rect.right) / 2
             val middleY = (rect.top + rect.bottom) / 2
             val textHeight = box.lines.size * text.height
-            val iconColor = stroke(box.color, InkLevel.STRONG)
+            val iconColor = if (box.node.faded) DrawColor.Ink(InkLevel.MEDIUM) else stroke(box.color, InkLevel.STRONG)
             when {
                 box.icon == null -> writeLines(box, centerX, middleY - textHeight / 2, shapes)
                 // The icon alone, at its own size
@@ -523,7 +540,8 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
      * word that closes a cut text, which a touch shows whole.
      */
     private fun writeLines(box: Measured, centerX: Float, top: Float, shapes: MutableList<DrawShape>) {
-        val ink = DrawColor.Ink(InkLevel.STRONG)
+        // A faded box's text in the medium ink, still read
+        val ink = DrawColor.Ink(if (box.node.faded) InkLevel.MEDIUM else InkLevel.STRONG)
         val linked = box.open != null
         fun underline(from: Float, to: Float, lineTop: Float) {
             val y = lineTop + text.height - dp(1f)
@@ -793,7 +811,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
     private fun PlacedPoint.draw() = DrawPoint(x, y)
     private fun PlacedRect.draw() = DrawRect(left, top, right, bottom)
 
-    private companion object {
+    internal companion object {
         const val MAX_LINES = 3
         // The ids of a cut arrow's two ends, by the arrow's index: a control character, which no box's id can be typed with
         const val REF_OUT = "\u0001out"
@@ -809,6 +827,12 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         const val ELLIPSIS = "…"
         const val GROUP_PADDING = 8f
         const val SURFACE_OPACITY = 0.22f
+        /** A full box's fill, strong but under the theme's ink, which its text keeps. */
+        const val FULL_OPACITY = 0.6f
+        /** An outlined small shape's fill, pale beside a full one's. */
+        const val OUTLINE_SOLID_OPACITY = 0.4f
+        /** What a faded box keeps of every part of it. */
+        const val FADED_OPACITY = 0.4f
         // A cubic's control point that makes a quarter of a circle
         const val CIRCLE_CONTROL = 0.5523f
     }

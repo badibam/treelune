@@ -62,14 +62,17 @@ object SchemaToolType : ToolTypeContract {
     private fun choice(values: List<String>, labels: (String) -> String): Map<String, Any> =
         mapOf("options" to ChoiceSettings.storedOptions(values, values.associateWith(labels), emptyMap()))
 
-    /** At most one color of the palette, by its name: the theme draws it. */
+    /** At most one color of the palette, by its name: the theme draws it; full or outlined, faded or not. */
     private fun look(context: Context): List<SettingNode> {
         val s = s(context)
         val shared = Strings.`for`(context = context)
         val colors = TagColor.entries.map { it.name }
         return listOf(
             SettingNode.Field(field(SchemaKeys.COLOR, s.tool("field_color"), FieldType.CHOICE, s.tool("schema_color"), mapOf("options" to ChoiceSettings.storedOptions(
-                colors, colors.associateWith { shared.shared("tag_color_${it.lowercase()}") }, TagColor.entries.associate { it.name to it }))))
+                colors, colors.associateWith { shared.shared("tag_color_${it.lowercase()}") }, TagColor.entries.associate { it.name to it })))),
+            SettingNode.Field(field(SchemaKeys.FILL, s.tool("field_fill"), FieldType.CHOICE, s.tool("schema_fill"),
+                choice(SchemaFill.entries.map { it.key }) { s.tool("fill_$it") }), default = SchemaFill.OUTLINE.key),
+            SettingNode.Field(field(SchemaKeys.FADED, s.tool("field_faded"), FieldType.BOOLEAN, s.tool("schema_faded")))
         )
     }
 

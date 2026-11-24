@@ -40,6 +40,19 @@ class SchemaSceneTest {
     private val chain = """"nodes": [{"id": "A", "label": "first"}, {"id": "B", "label": "second"}], "edges": [{"from": "A", "to": "B"}]"""
 
     @Test
+    fun `a box is painted by its fill, every part of it lighter when faded`() {
+        fun painted(box: String): Pair<Float, Float> {
+            val paths = scene("""{"nodes": [{"id": "A", "label": "a", "color": "GREEN"$box}]}""").drawing.shapes.filterIsInstance<DrawShape.Path>()
+            return paths.single { it.filled }.opacity to paths.single { !it.filled }.opacity
+        }
+        assertEquals(SchemaSceneBuilder.SURFACE_OPACITY to 1f, painted(""))
+        assertEquals(SchemaSceneBuilder.FULL_OPACITY to 1f, painted(""", "fill": "full""""))
+        val (fill, border) = painted(""", "fill": "full", "faded": true""")
+        assertEquals(SchemaSceneBuilder.FULL_OPACITY * SchemaSceneBuilder.FADED_OPACITY, fill, 0.001f)
+        assertEquals(SchemaSceneBuilder.FADED_OPACITY, border, 0.001f)
+    }
+
+    @Test
     fun `a box's icon stands above its text, the box no wider, beside it in a drawing running sideways`() {
         val plain = scene("""{"nodes": [{"id": "A", "label": "a long enough text"}]}""")
         val json = """{"nodes": [{"id": "A", "label": "a long enough text", "icon": "leaf"}]}"""
