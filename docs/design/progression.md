@@ -207,7 +207,7 @@ Les scènes de test, toutes tenues sur le papier : badges, calendrier de l'Avent
 - Le toucher d'une brique sans Séance : sa fiche avec « Fait », une case à cocher sur la ligne, ou les deux.
 - Une brique qui attend une brique d'un autre groupe (une séance d'août qui attend une de juillet) : la règle sait le lire, le dessin ne trace que les liens d'un même niveau.
 - Les notifications, la gamification, ce que l'IA peut faire sur un Parcours.
-- Exporter un Parcours avec ses entrées emporte son historique, rangé dans l'état de ses briques ; partager le plan seul demandera un export qui retire cet état, à concevoir quand un partage réel le demandera.
+- Exporter un Parcours avec ses entrées emporte son historique, rangé dans l'état de ses briques. Piste retenue le 2026-11-24 pour partager le plan seul, sans pièce d'export : dupliquer l'outil avec ses entrées, réinitialiser la copie, l'exporter ; deux gestes utiles chacun (une Liste dupliquée, un Parcours repris de zéro). À régler : la copie traduit les liens entre briques (`waits_for`) vers les nouvelles ; réinitialiser garde a priori le plan du passage courant sans ses mouvements, pas les passages fermés.
 
 ## Faits relevés dans le code
 
