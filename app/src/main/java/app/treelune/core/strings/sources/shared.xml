@@ -224,6 +224,13 @@
     <string name="condition_error_op">The condition of %1$s has an unknown operator: %2$s.</string>
     <string name="condition_error_combination">The condition of %1$s combines badly: {"all": […]} or {"any": […]} alone, with at least one part, each a comparison or a combination.</string>
     <string name="condition_error_not_combined">The condition of %1$s compares one value: it combines none (all, any).</string>
+    <string name="condition_join">Holds when</string>
+    <string name="condition_join_all">All are true</string>
+    <string name="condition_join_any">At least one is true</string>
+    <string name="condition_part">Comparison %1$d</string>
+    <string name="condition_add">Add a comparison</string>
+    <string name="condition_remove">Remove this comparison</string>
+    <string name="condition_nested">Comparisons combined inside one another: the assistant changes them, the screen joins one list.</string>
     <string name="condition_error_right">The condition of %1$s with %2$s takes %3$d side(s) on the right.</string>
     <string name="condition_error_untyped">The condition of %1$s compares two written values: one side must say what is compared, a field, a variable or a reading.</string>
     <string name="condition_error_operator">The condition of %1$s: %2$s does not compare %3$s (%4$s). It takes: %5$s.</string>

@@ -224,6 +224,13 @@
     <string name="condition_error_op">La condition de %1$s a un opérateur inconnu : %2$s.</string>
     <string name="condition_error_combination">La condition de %1$s se combine mal : {"all": […]} ou {"any": […]} seul, avec au moins une partie, chacune une comparaison ou une combinaison.</string>
     <string name="condition_error_not_combined">La condition de %1$s compare une seule valeur : elle n\'en combine aucune (all, any).</string>
+    <string name="condition_join">Vraie quand</string>
+    <string name="condition_join_all">Toutes sont vraies</string>
+    <string name="condition_join_any">Au moins une est vraie</string>
+    <string name="condition_part">Comparaison %1$d</string>
+    <string name="condition_add">Ajouter une comparaison</string>
+    <string name="condition_remove">Retirer cette comparaison</string>
+    <string name="condition_nested">Des comparaisons combinées les unes dans les autres : l\'assistant les change, l\'écran n\'en relie qu\'une liste.</string>
     <string name="condition_error_right">La condition de %1$s avec %2$s prend %3$d côté(s) à droite.</string>
     <string name="condition_error_untyped">La condition de %1$s compare deux valeurs écrites : un côté doit dire ce qui est comparé, un champ, une variable ou une lecture.</string>
     <string name="condition_error_operator">La condition de %1$s : %2$s ne compare pas %3$s (%4$s). Il prend : %5$s.</string>

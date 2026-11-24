@@ -227,3 +227,70 @@ private fun RowSide(side: JSONObject, field: FieldDefinition, others: Map<String
         )
     }
 }
+
+/**
+ * A condition that may combine comparisons (Conditions: `all`, `any`), as a setting: a list of
+ * comparisons joined one way, « all true » or « at least one », each drawn by [comparison], one
+ * added or taken away; one comparison alone is stored as it is, never wrapped. A combination
+ * nested deeper (the AI's, or the JSON's) is said, not drawn: the screen joins one list one way
+ * (TODO, « Une Condition imbriquée à l'écran »).
+ *
+ * @param combines Whether it may combine: one comparison alone otherwise (SettingNode.Condition.combines)
+ * @param comparison Draws one comparison, its stored form null while none is set
+ */
+@Composable
+fun CombinedConditionSetting(
+    label: String,
+    condition: JSONObject?,
+    combines: Boolean,
+    onChange: (JSONObject) -> Unit,
+    s: StringsContext,
+    comparison: @Composable (label: String, part: JSONObject?, onPart: (JSONObject) -> Unit) -> Unit
+) {
+    val current = condition ?: JSONObject()
+    val parts = Conditions.parts(current)
+    if (!combines || parts == null && !Conditions.isCombined(current)) {
+        Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+            comparison(label, condition, onChange)
+            if (combines && condition != null) UI.Button(type = app.treelune.core.ui.ButtonType.DEFAULT, onClick = {
+                onChange(JSONObject().put(Conditions.ALL, JSONArray().put(JSONObject(current.toString())).put(JSONObject())))
+            }) { UI.Text(text = s.shared("condition_add"), type = TextType.BODY) }
+        }
+        return
+    }
+    val list = parts.orEmpty()
+    // Deeper than one list: said, left to the AI
+    if (list.any { Conditions.isCombined(it) }) {
+        Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+            UI.Text(text = label, type = TextType.SUBTITLE)
+            UI.Text(text = s.shared("condition_nested"), type = TextType.CAPTION)
+        }
+        return
+    }
+    val join = if (current.has(Conditions.ANY)) Conditions.ANY else Conditions.ALL
+    fun store(next: List<JSONObject>, key: String = join) =
+        onChange(if (next.size == 1) next.single() else JSONObject().put(key, JSONArray(next.map { JSONObject(it.toString()) })))
+    Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+        UI.Text(text = label, type = TextType.SUBTITLE)
+        val joins = listOf(Conditions.ALL, Conditions.ANY)
+        val names = joins.map { s.shared("condition_join_$it") }
+        UI.FormSelection(
+            label = s.shared("condition_join"),
+            options = names,
+            selected = names[joins.indexOf(join)],
+            onSelect = { name -> store(list, joins[names.indexOf(name)]) },
+            required = true
+        )
+        list.forEachIndexed { i, part ->
+            comparison(s.shared("condition_part").format(i + 1), part.takeIf { it.length() > 0 }) { next ->
+                store(list.toMutableList().also { it[i] = next })
+            }
+            UI.Button(type = app.treelune.core.ui.ButtonType.DEFAULT, onClick = { store(list.filterIndexed { j, _ -> j != i }) }) {
+                UI.Text(text = s.shared("condition_remove"), type = TextType.BODY)
+            }
+        }
+        UI.Button(type = app.treelune.core.ui.ButtonType.DEFAULT, onClick = { store(list + JSONObject()) }) {
+            UI.Text(text = s.shared("condition_add"), type = TextType.BODY)
+        }
+    }
+}

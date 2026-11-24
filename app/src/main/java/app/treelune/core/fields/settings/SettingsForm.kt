@@ -724,13 +724,16 @@ private fun NodeForm(
         is SettingNode.Condition -> if (node.onRow) {
             val fields = rowFields()
             if (fields == null) UI.LoadingIndicator()
-            else app.treelune.core.ui.selectors.RowConditionSetting(
-                label = node.label,
-                condition = config.optJSONObject(node.name),
-                fields = fields,
-                onChange = { set(node.name, it) },
-                s = Strings.`for`(context = context)
-            )
+            else app.treelune.core.ui.selectors.CombinedConditionSetting(node.label, config.optJSONObject(node.name), node.combines, { set(node.name, it) },
+                Strings.`for`(context = context)) { label, part, onPart ->
+                app.treelune.core.ui.selectors.RowConditionSetting(
+                    label = label,
+                    condition = part,
+                    fields = fields,
+                    onChange = onPart,
+                    s = Strings.`for`(context = context)
+                )
+            }
         } else {
             // Its left side is the value entered beside it once that value has a type
             val entered = node.enteredField?.let { config.optJSONObject(it) }?.let { declared ->
@@ -738,14 +741,17 @@ private fun NodeForm(
                     app.treelune.core.fields.FieldDefinition(node.name, node.label, null, type, false, declared.optJSONObject("config")?.toFieldConfig())
                 }
             }
-            app.treelune.core.ui.selectors.ConditionSetting(
-                label = node.label,
-                condition = config.optJSONObject(node.name),
-                entered = entered,
-                onChange = { set(node.name, it) },
-                s = Strings.`for`(context = context),
-                where = app.treelune.core.ui.selectors.ReadingContext(node.reference, node.emptyPeriod, perEntry = false)
-            )
+            app.treelune.core.ui.selectors.CombinedConditionSetting(node.label, config.optJSONObject(node.name), node.combines, { set(node.name, it) },
+                Strings.`for`(context = context)) { label, part, onPart ->
+                app.treelune.core.ui.selectors.ConditionSetting(
+                    label = label,
+                    condition = part,
+                    entered = entered,
+                    onChange = onPart,
+                    s = Strings.`for`(context = context),
+                    where = app.treelune.core.ui.selectors.ReadingContext(node.reference, node.emptyPeriod, perEntry = false)
+                )
+            }
         }
 
         is SettingNode.Term -> {

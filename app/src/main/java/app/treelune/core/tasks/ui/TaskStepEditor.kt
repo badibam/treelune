@@ -548,14 +548,34 @@ private const val ONCE = "once"
  * The conditions of [step] (StepConditions), « Only if »: each what the step reads on the left —
  * a field of the entry or a value a trigger gives, a value an earlier step gave, a variable or a
  * reading —, the operators its type takes, then the side or two on the right, an input of that
- * type (StepInput). All holding, the step runs; added by +, removed by its bin.
+ * type (StepInput). All holding, the step runs, or at least one, the list then kept as one
+ * element `{"any": […]}` (Conditions); added by +, removed by its bin. A combination deeper than
+ * that, the AI's, is said, not drawn.
  */
 @Composable
 private fun StepWhen(step: JSONObject, earlier: Earlier, s: StringsContext, with: (JSONObject.() -> Unit) -> Unit) {
-    val list = step.optJSONArray(StepConditions.WHEN) ?: org.json.JSONArray()
-    fun put(next: org.json.JSONArray) = with { if (next.length() == 0) remove(StepConditions.WHEN) else put(StepConditions.WHEN, next) }
+    val stored = step.optJSONArray(StepConditions.WHEN) ?: org.json.JSONArray()
+    val Conditions = app.treelune.core.conditions.Conditions
+    // At least one: the list held in one element {"any": […]}
+    val anyOne = stored.length() == 1 && stored.optJSONObject(0)?.has(Conditions.ANY) == true
+    val list = if (anyOne) stored.getJSONObject(0).getJSONArray(Conditions.ANY) else stored
     UI.Text(s.shared("task_when"), TextType.LABEL)
     UI.Text(s.shared("task_when_help"), TextType.CAPTION)
+    if ((0 until list.length()).any { list.optJSONObject(it)?.let { c -> Conditions.isCombined(c) } == true }) {
+        UI.Text(s.shared("condition_nested"), TextType.CAPTION)
+        return
+    }
+    fun put(next: org.json.JSONArray, any: Boolean = anyOne) = with {
+        when {
+            next.length() == 0 -> remove(StepConditions.WHEN)
+            any && next.length() > 1 -> put(StepConditions.WHEN, org.json.JSONArray().put(JSONObject().put(Conditions.ANY, next)))
+            else -> put(StepConditions.WHEN, next)
+        }
+    }
+    if (list.length() > 1) {
+        Choice(s.shared("condition_join"), listOf(Conditions.ALL to s.shared("condition_join_all"), Conditions.ANY to s.shared("condition_join_any")),
+            if (anyOne) Conditions.ANY else Conditions.ALL) { key -> put(org.json.JSONArray(list.toString()), any = key == Conditions.ANY) }
+    }
     for (index in 0 until list.length()) {
         val condition = list.optJSONObject(index) ?: JSONObject()
         Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
