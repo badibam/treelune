@@ -1663,6 +1663,7 @@
     <string name="selection_problem_view">Une vue (la série d\'une variable, les lignes propres d\'un outil) ne se lit que par une lecture, avec tous ses champs.</string>
     <string name="selection_problem_view_target">Un %1$s n\'a pas de vue : un outil ou une variable en a.</string>
     <string name="selection_problem_view_unknown">Pas de vue « %1$s » ici. Ses vues : %2$s.</string>
+    <string name="reference_row_series">Un pas de la série d\'une variable ne se désigne pas : une série se lit sur une période.</string>
     <string name="selection_problem_field">Une sélection prend une chose, sans champ : le champ lu se dit à côté.</string>
     <string name="selection_problem_sort_missing">Une sélection d\'un outil ou d\'une série dit son ordre : « sort », une liste de clés, [{\"field\": \"timestamp\", \"direction\": \"desc\"}] pour la plus récente en tête.</string>
     <string name="selection_problem_order">Un ordre et un nombre rangent les entrées d\'une instance d\'outil ou d\'une série, pas d\'un %1$s.</string>

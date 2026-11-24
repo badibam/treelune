@@ -53,7 +53,7 @@ class ReferenceService(private val context: Context) : ExecutableService {
         }
         return OperationResult.success(mapOf("references" to references.distinct().map { reference ->
             val name = nameOf(reference)
-            mapOf("kind" to reference.kind.name, "id" to reference.id, "field" to reference.field, "name" to name, "deleted" to (name == null),
+            mapOf("kind" to reference.kind.name, "id" to reference.id, "field" to reference.field, "view" to reference.view, "row" to reference.row, "name" to name, "deleted" to (name == null),
                 "icon" to name?.let { iconOf(reference) })
         }))
     }
@@ -69,6 +69,12 @@ class ReferenceService(private val context: Context) : ExecutableService {
         }
         ReferenceKind.VARIABLE -> database.variableDao().getById(reference.id!!)?.name
         ReferenceKind.EVENT -> database.eventDao().get(reference.id!!)?.name
+        // A view's row: its own name, and its field's label (core/views)
+        ReferenceKind.ROW -> app.treelune.core.views.Views.row(reference, context, s)?.let { row ->
+            val label = row.name ?: row.id
+            val field = reference.field ?: return@let label
+            app.treelune.core.views.Views.of(Reference(ReferenceKind.TOOL_INSTANCE, reference.id), reference.view!!, context, s).fields[field]?.let { "$label › ${it.displayName}" }
+        }
     }
 
     /**
@@ -82,6 +88,8 @@ class ReferenceService(private val context: Context) : ExecutableService {
         ReferenceKind.ENTRY -> database.toolDataDao().getById(reference.id!!)
             ?.let { database.toolInstanceDao().getToolInstanceById(it.toolInstanceId) }?.let { toolIcon(it) }
         ReferenceKind.VARIABLE -> database.variableDao().getById(reference.id!!)?.iconName
+        // A row shows its tool's
+        ReferenceKind.ROW -> database.toolInstanceDao().getToolInstanceById(reference.id!!)?.let { toolIcon(it) }
     }
 
     private fun toolIcon(tool: ToolInstance): String? =

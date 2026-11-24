@@ -22,6 +22,18 @@ object ReferenceCheck {
             ReferenceKind.TOOL_INSTANCE -> s.shared("field_value_reference_not_found").takeIf { database.toolInstanceDao().getToolInstanceById(reference.id!!) == null }
             ReferenceKind.VARIABLE -> s.shared("field_value_reference_not_found").takeIf { database.variableDao().getById(reference.id!!) == null }
             ReferenceKind.EVENT -> s.shared("field_value_reference_not_found").takeIf { database.eventDao().get(reference.id!!) == null }
+            // A view's row, given by its view now, down to one of its fields
+            ReferenceKind.ROW -> try {
+                if (app.treelune.core.views.Views.row(reference, context, s) == null) s.shared("field_value_reference_not_found")
+                else reference.field?.let { path ->
+                    val fields = app.treelune.core.views.Views.of(Reference(ReferenceKind.TOOL_INSTANCE, reference.id), reference.view!!, context, s).fields
+                    s.shared("service_error_filter_unknown_field").format(path, fields.keys.joinToString(", ")).takeIf { path !in fields }
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: IllegalStateException) {
+                e.message ?: ""
+            }
             ReferenceKind.ENTRY -> when (val entry = database.toolDataDao().getById(reference.id!!)) {
                 // Gone: said as such, an id telling the user nothing (docs/design/dependents.md)
                 null -> s.shared("field_value_reference_entry_gone")

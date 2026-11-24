@@ -48,16 +48,15 @@ data class ReferenceTarget(val kinds: Set<ReferenceKind>, val toolInstances: Lis
          * values of a REFERENCE setting.
          */
         fun referenceOf(value: Any?): Reference? {
-            val kindName: Any?
-            val id: Any?
-            val field: Any?
-            when (value) {
-                is Map<*, *> -> { kindName = value["kind"]; id = value["id"]; field = value["field"] }
-                is JSONObject -> { kindName = value.opt("kind"); id = value.opt("id"); field = value.opt("field") }
+            val read: (String) -> Any? = when (value) {
+                is Map<*, *> -> { key -> value[key] }
+                is JSONObject -> { key -> value.opt(key) }
                 else -> return null
             }
-            val kind = ReferenceKind.entries.firstOrNull { it.name == kindName } ?: return null
-            return runCatching { Reference(kind, (id as? String)?.takeIf { it.isNotEmpty() }, (field as? String)?.takeIf { it.isNotEmpty() }) }.getOrNull()
+            fun text(key: String) = (read(key) as? String)?.takeIf { it.isNotEmpty() }
+            val kind = ReferenceKind.entries.firstOrNull { it.name == read("kind") } ?: return null
+            // A view's row names its view and its row besides its thing
+            return runCatching { Reference(kind, text("id"), text("field"), text("view"), text("row")) }.getOrNull()
         }
 
         /**

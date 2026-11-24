@@ -27,7 +27,9 @@ import org.json.JSONObject
  *
  * Its rows say the deck's own rules (FlashcardsDue): due as the session offers it (its last review
  * falling due before today ends, or failed), acquired from a stability of
- * FlashcardsDue.ACQUIRED_DAYS days, whatever the day's limits.
+ * FlashcardsDue.ACQUIRED_DAYS days, whatever the day's limits. A row is named by its question,
+ * the first field of its direction's front, and its direction (« cane · Italian »), which a
+ * reference to it (ROW) shows.
  */
 object FlashcardsCards : ToolView {
 
@@ -116,7 +118,8 @@ object FlashcardsCards : ToolView {
                     toolInstanceId = deckId,
                     tooltype = "flashcards",
                     timestamp = card?.last?.reviewedAt,
-                    name = null,
+                    // Named by its question and its direction, as a reference shows it
+                    name = listOfNotNull(source.values(line.id, direction.front.take(1)).firstOrNull()?.second?.toString(), direction.name).joinToString(" · "),
                     data = data.toString(),
                     createdAt = card?.first ?: 0L,
                     updatedAt = card?.last?.reviewedAt ?: 0L,

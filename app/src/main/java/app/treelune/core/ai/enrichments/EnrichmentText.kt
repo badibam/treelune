@@ -117,7 +117,7 @@ class EnrichmentText private constructor(
         ReferenceKind.ZONE -> zones[pointer.target.id]
         ReferenceKind.TOOL_INSTANCE -> tools[pointer.target.id]
         ReferenceKind.ENTRY -> entries[pointer.target.id]
-        ReferenceKind.APP, ReferenceKind.VARIABLE, ReferenceKind.EVENT -> throw IllegalArgumentException("a pointer to ${pointer.target.kind} has no text yet")
+        ReferenceKind.APP, ReferenceKind.VARIABLE, ReferenceKind.EVENT, ReferenceKind.ROW -> throw IllegalArgumentException("a pointer to ${pointer.target.kind} has no text yet")
     }
 
     companion object {

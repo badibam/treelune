@@ -48,6 +48,8 @@ data class ThingPath(val zone: Named? = null, val tool: Named? = null, val entry
         ReferenceKind.ENTRY -> Reference(ReferenceKind.ENTRY, entry!!.id, this.field?.id)
         ReferenceKind.VARIABLE -> Reference(ReferenceKind.VARIABLE, variable!!.id)
         ReferenceKind.EVENT -> Reference(ReferenceKind.EVENT, event!!.id)
+        // A view's row is never browsed to
+        ReferenceKind.ROW -> throw IllegalStateException("a browser never stands on a row")
     }
 
     /** Back up to [kind]: what lies below it is left. */
@@ -56,7 +58,7 @@ data class ThingPath(val zone: Named? = null, val tool: Named? = null, val entry
         ReferenceKind.ZONE -> ThingPath(zone)
         ReferenceKind.TOOL_INSTANCE -> ThingPath(zone, tool)
         ReferenceKind.ENTRY -> copy(field = null)
-        ReferenceKind.VARIABLE, ReferenceKind.EVENT -> this
+        ReferenceKind.VARIABLE, ReferenceKind.EVENT, ReferenceKind.ROW -> this
     }
 
     fun toJson(): String = JSONObject().apply {

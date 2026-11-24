@@ -1663,6 +1663,7 @@
     <string name="selection_problem_view">A view (a variable's series, a tool's own rows) is read by a reading alone, with all its fields.</string>
     <string name="selection_problem_view_target">A %1$s has no view: a tool or a variable has.</string>
     <string name="selection_problem_view_unknown">No view “%1$s” here. Its views: %2$s.</string>
+    <string name="reference_row_series">A step of a variable\'s series is never designated: a series is read over a period.</string>
     <string name="selection_problem_field">A selection takes a thing, without a field: the field read is said beside it.</string>
     <string name="selection_problem_sort_missing">A selection of a tool or a series says its order: \"sort\", a list of keys, [{\"field\": \"timestamp\", \"direction\": \"desc\"}] for the newest first.</string>
     <string name="selection_problem_order">An order and a count put the entries of a tool instance or a series in line, not of a %1$s.</string>

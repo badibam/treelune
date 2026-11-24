@@ -65,4 +65,24 @@ class FlashcardsCardsTest {
         assertFalse(dated.isSuccess)
         assertTrue(dated.error, dated.error!!.contains("cards"))
     }
+
+    @Test
+    fun `a card is referenced as a row of its view, named by its question and direction, gone once its view no longer gives it`() = runBlocking {
+        val context = RuntimeEnvironment.getApplication()
+        app.treelune.core.demo.DemoFixture.installed(context)
+        val coordinator = Coordinator(context)
+        val rows = app.treelune.core.views.Views.of(app.treelune.core.selection.Reference(app.treelune.core.selection.ReferenceKind.TOOL_INSTANCE, deck),
+            "cards", context, app.treelune.core.strings.Strings.`for`(context = context)).rows(null, null, System.currentTimeMillis())
+        val row = rows.first()
+        suspend fun named(rowId: String, field: String? = null): Map<*, *> {
+            val result = coordinator.processUserAction("references.names", mapOf("references" to listOf(buildMap {
+                put("kind", "ROW"); put("id", deck); put("view", "cards"); put("row", rowId); field?.let { put("field", it) }
+            })))
+            assertTrue(result.error, result.isSuccess)
+            return (result.data?.get("references") as List<*>).single() as Map<*, *>
+        }
+        assertEquals(row.name, named(row.id)["name"])
+        assertTrue((named(row.id, "data.due")["name"] as String).startsWith(row.name!!))
+        assertEquals(true, named("no-such-line@d_it")["deleted"])
+    }
 }

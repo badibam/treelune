@@ -58,6 +58,21 @@ object Views {
         else -> null
     }
 
+    /**
+     * The row [reference] designates (a ROW: its thing, view and row), as its view gives it now;
+     * null when its thing is gone or its view no longer gives it. The thing is a variable for its
+     * series, a tool for any other view. A series' step is never designated: its rows need a period.
+     *
+     * @throws IllegalStateException when the view cannot be opened or read
+     */
+    suspend fun row(reference: Reference, context: Context, s: StringsContext): ToolDataEntity? {
+        val view = reference.view ?: return null
+        if (view == SERIES) throw IllegalStateException(s.shared("reference_row_series"))
+        val tool = AppDatabase.getDatabase(context).toolInstanceDao().getToolInstanceById(reference.id ?: return null) ?: return null
+        return of(Reference(ReferenceKind.TOOL_INSTANCE, tool.id), view, context, s).rows(null, null, System.currentTimeMillis())
+            .firstOrNull { it.id == reference.row }
+    }
+
     /** The names of the views of the tool type [tooltype], for a selector to offer. */
     fun namesOf(tooltype: String): List<String> = ToolTypeManager.getToolType(tooltype)?.views()?.map { it.name }.orEmpty()
 }
