@@ -502,5 +502,12 @@
   "auto_lighten_seed": "Le travail est lourd cette semaine. Lis les sorties et les séances de fractionné de la semaine, puis écris dans le Carnet d'entraînement un plan plus léger pour les jours qui restent : moins de kilomètres, pas de fractionné, le sommeil d'abord. Ne change rien d'autre.",
   "readout_water_name": "Eau du jour",
   "readout_water_text": "Eau : {}",
-  "auto_giulia_seed": "Parle avec moi en italien, à mon niveau : corrige mes fautes en une ligne, puis continue la conversation."
+  "auto_giulia_seed": "Parle avec moi en italien, à mon niveau : corrige mes fautes en une ligne, puis continue la conversation.",
+  "schema_care_name": "Le soin du balcon",
+  "schema_care_description": "Le déroulé d'une journée au balcon, de la prévision du matin à la récolte, et l'engrais des tomates chaque semaine. Une boîte ouvre son outil.",
+  "schema_care_rain": "Pluie ?",
+  "schema_care_yes": "oui",
+  "schema_care_no": "non",
+  "schema_care_next_day": "le lendemain",
+  "schema_care_weekly": "Chaque semaine"
 }
