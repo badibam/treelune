@@ -105,7 +105,7 @@ Ce que ça demande au core :
 
 ## Les écrans
 
-- Le plan est de la configuration par son sens, des entrées par son stockage. Il se gère depuis l'écran de config, par un bouton qui ouvre un éditeur de plan sur sa propre page : une brique s'écrit tout de suite, alors qu'une config s'enregistre d'un bloc, et les mélanger laisserait croire qu'« Annuler » annule aussi les briques. Ce geste différent est accepté comme un moindre mal. L'écran de l'outil ne crée pas de briques : il sert à les noter et à lancer.
+- Le plan est fait d'entrées, l'éditeur de plan ne touche jamais la config. Il s'ouvre par un bouton « Plan » de l'écran de l'outil, sur sa propre page : l'usage de l'écran reste « toucher pour noter ou lancer », et la règle de l'app tient (la config dans l'écran de config, les entrées depuis l'écran de l'outil). Un passage fermé montre son plan en lecture seule. Écarté : un bouton dans l'écran de config, qui aurait mêlé une config enregistrée d'un bloc et des briques écrites tout de suite.
 - L'écran de config montre les sortes et la liste de leurs états, chaque ligne disant si l'état se note à la main, sa règle et son `note_if`. Une sorte unique reste invisible, et une sorte n'apparaît sur une brique qu'à partir de deux.
 - À la création, un point de départ (Liste, Suite, Arbre) préremplit une sorte, sans aucune brique ; ce n'est pas une notion du modèle, et tout reste éditable. L'affichage (liste, chemin, branches) est un réglage à part ; avec plusieurs champs de lien, il dit lequel trace les branches.
 - Un parcours conduit par un maître (le projet `parcours`, que Treelune remplacera en grande partie) n'utilise ni règles ni verrous : l'IA écrit le plan phase après phase, et tout se note à la main. L'IA est donc la principale autrice des configs riches.
@@ -142,7 +142,7 @@ Les scènes de test, toutes tenues sur le papier : badges, calendrier de l'Avent
 - Supprimer une brique emporte son historique : refuser si elle a des mouvements, ou l'archiver.
 - Le toucher d'une brique sans Séance : sa fiche avec « Fait », une case à cocher sur la ligne, ou les deux.
 - Les affichages (chemin, liste, branches, voyants), les notifications, la gamification, ce que l'IA peut faire sur un Parcours.
-- Non vérifié dans le code : comment un formulaire de config ouvre l'éditeur de plan ; comment un outil en ouvre un autre avec une ligne à lancer (`Place.Tool` ne porte que l'outil et sa zone).
+- Non vérifié dans le code : comment un outil en ouvre un autre avec une ligne à lancer (`Place.Tool` ne porte que l'outil et sa zone).
 
 ## Faits relevés dans le code
 
