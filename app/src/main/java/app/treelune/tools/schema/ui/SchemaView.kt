@@ -96,13 +96,14 @@ suspend fun thingsShown(things: List<Reference>, context: Context): Map<Referenc
  * A schema laid out at the width it is given and drawn by the theme. On a screen, a drawing still
  * wider than the width scrolls sideways. [reduced], it is laid out at a reading width and scaled
  * down to the room, for a tile; [across], it runs from left to right, laid out at a reading height
- * in the same proportion (a wide tile); [onTouch] null leaves the touch to the tile.
+ * in the same proportion (a wide tile), [orElse] shown where nothing of it holds even in dots;
+ * [onTouch] null leaves the touch to the tile.
  *
  * A group touched stays where it is on the screen while the schema changes around it, as far as
  * the edges allow: the drawing shifts sideways and [pageScroll], the page's scroll, follows.
  */
 @Composable
-fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((SchemaTouch) -> Unit)?, modifier: Modifier = Modifier, reduced: Boolean = false, pageScroll: ScrollState? = null, keptOpen: Set<String> = emptySet(), across: Boolean = false) {
+fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((SchemaTouch) -> Unit)?, modifier: Modifier = Modifier, reduced: Boolean = false, pageScroll: ScrollState? = null, keptOpen: Set<String> = emptySet(), across: Boolean = false, orElse: @Composable () -> Unit = {}) {
     val context = LocalContext.current
     val density = LocalDensity.current.density
     val style = UI.drawingTextStyle()
@@ -147,8 +148,8 @@ fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((Schema
             }.also { scenes[key] = it }
         }
         val shown = lastShown ?: return@BoxWithConstraints UI.LoadingIndicator()
-        // On a tile, a schema too dense even in dots shows nothing: its summary says it alone
-        val scene = shown.scene ?: return@BoxWithConstraints
+        // On a tile, a schema too dense even in dots shows nothing of it: what stands in its place
+        val scene = shown.scene ?: return@BoxWithConstraints orElse()
         val shownScale = scene.scale
         val free = available - scene.drawing.width * shownScale
         // Computed while composing, for the first frame of the new drawing to stand right already

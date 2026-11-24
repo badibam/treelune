@@ -90,6 +90,7 @@ Jugé visuellement acceptable par l'utilisateur à ce stade.
 ## La tuile
 
 - **Résumé** : le nombre de boîtes et de flèches (« 7 boîtes · 9 flèches ») ; le même en LINE, CONDENSED et EXTENDED.
+- **Sans corps** (4×1, 2×2) : la miniature à la place du résumé, comme le Graphique (`Glance`), dessinée de gauche à droite ; le résumé y reste quand même les pastilles n'y tiennent pas.
 - **SQUARE** : le schéma réduit à la tuile ; un toucher ouvre l'outil.
 - **FULL** : le schéma entier à la taille de lecture ; une boîte liée ouvre sa chose, un toucher ailleurs ouvre l'outil.
 
