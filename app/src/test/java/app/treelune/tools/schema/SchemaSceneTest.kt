@@ -69,6 +69,15 @@ class SchemaSceneTest {
     }
 
     @Test
+    fun `a schema running across puts the target right of its start, its head a side triangle`() {
+        val scene = SchemaSceneBuilder(1f, 1f, text, own).build(spec("""{"direction": "TD", $chain}"""), { null }, emptySet(), 340f, across = true)
+        val first = scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first { it.text == "first" }
+        val second = scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first { it.text == "second" }
+        assertTrue(second.at.x > first.at.x)
+        assertTrue(scene.heads().isEmpty())
+    }
+
+    @Test
     fun `an arrow points down in a schema running down`() {
         val scene = scene("""{"direction": "TD", $chain}""")
         assertFalse(scene.heads().single().up)

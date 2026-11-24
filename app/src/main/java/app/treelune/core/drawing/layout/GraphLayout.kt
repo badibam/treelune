@@ -65,7 +65,14 @@ data class LayoutGraph(
     val reference: Map<String, Float> = emptyMap()
 )
 
-/** Distances, in the unit of the boxes' measures. */
+/**
+ * Distances, in the unit of the boxes' measures.
+ *
+ * @property across Whether the drawing runs from left to right rather than down (a wide tile):
+ *   placed down with widths and heights swapped, then turned, so that [maxWidth] bounds its
+ *   height and each distance keeps its meaning along or across the arrows. A group's title, kept
+ *   level, takes a band on the group's left side rather than on its top
+ */
 data class LayoutOptions(
     val maxWidth: Float = 340f,
     val boxGap: Float = 16f,
@@ -77,7 +84,8 @@ data class LayoutOptions(
     val blockGap: Float = 6f,
     val blockMinimum: Int = 3,
     val loopSize: Float = 12f,
-    val attempts: Int = 2
+    val attempts: Int = 2,
+    val across: Boolean = false
 )
 
 data class PlacedPoint(val x: Float, val y: Float)
@@ -111,7 +119,9 @@ class GraphLayout(private val options: LayoutOptions = LayoutOptions()) {
      * drawn a few times, from fixed starts (the same graph always gives the same drawing), and the
      * drawing kept is the one that fits the width, then has the fewest crossings, bends and height.
      */
-    fun place(graph: LayoutGraph): Placement {
+    fun place(graph: LayoutGraph): Placement = if (options.across) placeDown(graph.turned()).turned() else placeDown(graph)
+
+    private fun placeDown(graph: LayoutGraph): Placement {
         val ranking = rankingFor(graph.reference)
         val first = Run(graph, options, portsFollowInside = false, start = 0, ranking).place()
         if (graph.groups.isEmpty() && graph.reference.isEmpty() && crossings(first) == 0 && first.width <= options.maxWidth) return first
@@ -171,6 +181,26 @@ class GraphLayout(private val options: LayoutOptions = LayoutOptions()) {
     private companion object {
     }
 }
+
+/** The graph as placed down for a drawing running across: each measure's width and height swapped. */
+private fun LayoutGraph.turned() = copy(
+    boxes = boxes.map { it.copy(width = it.height, height = it.width) },
+    edges = edges.map { it.copy(labelWidth = it.labelHeight, labelHeight = it.labelWidth) },
+    groups = groups.map { it.copy(titleWidth = it.titleHeight, titleHeight = it.titleWidth) }
+)
+
+private fun PlacedPoint.turned() = PlacedPoint(y, x)
+private fun PlacedRect.turned() = PlacedRect(top, left, bottom, right)
+
+/** A placement made down, turned to run across: each x and y swapped. */
+private fun Placement.turned() = Placement(
+    width = height,
+    height = width,
+    boxes = boxes.mapValues { it.value.turned() },
+    groups = groups.mapValues { it.value.turned() },
+    blocks = blocks.map { it.copy(rect = it.rect.turned()) },
+    routes = routes.map { route -> route.copy(points = route.points.map { it.turned() }, label = route.label?.turned()) }
+)
 
 private enum class Kind { BOX, GROUP, BLOCK, DUMMY, LABEL, TOP_PORT, BOTTOM_PORT }
 

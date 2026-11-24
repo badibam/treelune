@@ -40,7 +40,7 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
 }
 ```
 
-- **Direction** : `TD` (de haut en bas) ou `BT` (de bas en haut). Pas de `LR` ni de `RL` : de gauche à droite, un schéma déborde en portrait.
+- **Direction** : `TD` (de haut en bas) ou `BT` (de bas en haut). Pas de `LR` ni de `RL` : de gauche à droite, un schéma déborde en portrait. Seule une tuile plus large que haute (son corps, en cases) le dessine de gauche à droite, d'elle-même.
 - **Formes** : rectangle, coins arrondis, pilule, cercle, losange, sous les noms de la syntaxe `@{ shape: … }` de Mermaid 11 : `rect`, `rounded`, `stadium`, `circle`, `diamond`.
 - **Flèches** : un trait normal, pointillé ou épais, avec ou sans pointe, un texte facultatif.
 - **Groupes** : imbriquables, un titre, `folded` pour s'ouvrir replié ; `members` liste leurs boîtes et leurs sous-groupes, un identifiant ne servant qu'une fois parmi les deux.

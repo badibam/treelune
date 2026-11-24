@@ -58,8 +58,10 @@ fun rememberSchemaTile(tool: ToolInstance): ToolTile {
                 val read = reading as? SchemaReading.Drawn ?: return
                 if (read.spec.nodes.isEmpty() && read.spec.groups.isEmpty()) return
                 val folded = read.spec.groups.filter { it.folded }.map { it.id }.toSet()
+                // Sideways when the body has more columns than rows, a square one staying upright
+                // (docs/design/progression.md): read on the cells, never by placing both ways
                 if (room.rows == null) SchemaView(read, folded, onTouch = null)
-                else SchemaView(read, folded, onTouch = null, modifier = Modifier.fillMaxSize(), reduced = true)
+                else SchemaView(read, folded, onTouch = null, modifier = Modifier.fillMaxSize(), reduced = true, across = room.width > room.rows)
             }
         }
     }

@@ -103,6 +103,8 @@ internal class SchemaVisible(spec: SchemaSpec, private val folded: Set<String>) 
  * Lays a schema out at a width, in pixels: measures its boxes, has them placed (GraphLayout), and
  * writes the shapes the theme draws. A schema running upward is placed with its arrows turned, so
  * that titles stay at the top of their groups, and each head is drawn at the line's other end.
+ * On a wide tile, it runs from left to right instead (GraphLayout, `across`), its width the limit
+ * then bounding its height.
  *
  * @param density Pixels per dp
  * @param unit The theme's smallest stroke, in pixels
@@ -143,10 +145,13 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         // Every state, folded or tightened, is placed against one drawing, the schema all open at
         // its usual spacing, so that its parts keep their sides from one state to the other
         val allOpen by lazy { prepare(spec, nameOf, iconOf, across, emptySet(), width, emptyMap(), Spacing.NORMAL) }
-        val reference by lazy { (allOpen.placement.boxes + allOpen.placement.groups).mapValues { (_, rect) -> (rect.left + rect.right) / 2 } }
+        // Where each part stands across the arrows: its x in a drawing running down, its y across
+        val reference by lazy { (allOpen.placement.boxes + allOpen.placement.groups).mapValues { (_, rect) -> if (across) (rect.top + rect.bottom) / 2 else (rect.left + rect.right) / 2 } }
         fun placed(shut: Set<String>, spacing: Spacing): Prepared =
             if (shut.isEmpty() && spacing == Spacing.NORMAL) allOpen else prepare(spec, nameOf, iconOf, across, shut, width, reference, spacing)
-        fun Prepared.fits() = placement.width <= width + 0.5f
+        // The limit bounds the drawing across its arrows: its width running down, its height across
+        fun Prepared.extent() = if (across) placement.height else placement.width
+        fun Prepared.fits() = extent() <= width + 0.5f
 
         val normal = placed(folded, Spacing.NORMAL)
         if (!fit || normal.fits()) return draw(normal)
@@ -160,9 +165,9 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         val useless = mutableSetOf<String>()
         while (!best.fits()) {
             val widest = best.visible.groups.filter { it.id !in keptOpen && it.id !in useless }
-                .maxByOrNull { best.placement.groups[it.id]?.width ?: 0f } ?: break
+                .maxByOrNull { best.placement.groups[it.id]?.let { rect -> if (across) rect.height else rect.width } ?: 0f } ?: break
             val next = placed(folded + auto + widest.id, Spacing.TIGHT)
-            if (next.placement.width >= best.placement.width - 0.5f) useless += widest.id
+            if (next.extent() >= best.extent() - 0.5f) useless += widest.id
             else {
                 auto = auto + widest.id
                 best = next
@@ -171,7 +176,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         if (auto.isNotEmpty()) placed(folded + auto, Spacing.NORMAL).takeIf { it.fits() }?.let { best = it }
 
         // A theme drawing in whole pixels is never shown at a size between two of them
-        val wanted = width / best.placement.width
+        val wanted = width / best.extent()
         val scale = if (!best.fits() && unit <= 1f && wanted >= MIN_SCALE) wanted else 1f
         return draw(best, auto, scale)
     }
@@ -186,6 +191,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         val labels: List<String?>,
         val titles: Map<String, String>,
         val upward: Boolean,
+        val across: Boolean,
         val placement: Placement
     )
 
@@ -207,7 +213,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         val labels = visible.edges.map { edge -> edge.label?.let { ellipsize(it, dp(120f)) } }
         val titles = visible.groups.associate { it.id to ellipsize(it.title, width * 0.6f) }
         val placement = GraphLayout(LayoutOptions(
-            maxWidth = width, boxGap = dp(16f) * spacing.gap, rowGap = dp(24f), trackGap = dp(7f), portGap = dp(9f) * spacing.gap,
+            across = across, maxWidth = width, boxGap = dp(16f) * spacing.gap, rowGap = dp(24f), trackGap = dp(7f), portGap = dp(9f) * spacing.gap,
             groupPadding = GROUP_PADDING * density, blockPadding = dp(6f), blockGap = dp(6f), loopSize = dp(12f)
         )).place(LayoutGraph(
             boxes = boxes.map { box -> portSpan(box.shape)?.let { LayoutBox(box.id, box.width, box.height, it) } ?: LayoutBox(box.id, box.width, box.height) },
@@ -225,12 +231,12 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             starts = starts(spec, visible, upward),
             reference = reference
         ))
-        return Prepared(visible, boxes, byId, labels, titles, upward, placement)
+        return Prepared(visible, boxes, byId, labels, titles, upward, across, placement)
     }
 
     /** The shapes the theme draws, and what a touch finds on them. */
     private fun draw(prepared: Prepared, autoFolded: Set<String> = emptySet(), scale: Float = 1f): SchemaScene {
-        val (visible, boxes, byId, labels, titles, upward, placement) = prepared
+        val (visible, boxes, byId, labels, titles, upward, across, placement) = prepared
         val shapes = mutableListOf<DrawShape>()
         val hits = mutableListOf<Pair<DrawRect, SchemaTouch>>()
 
@@ -243,7 +249,10 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
                 shapes += DrawShape.Path(outline, stroke(group.color, InkLevel.FAINT), 1f, thin(), null, false)
                 val pad = GROUP_PADDING * density
                 shapes += DrawShape.Label(titles.getValue(group.id), DrawPoint(rect.left + pad, rect.top + pad), TextAnchor.START, TextBaseline.TOP, DrawColor.Ink(InkLevel.MEDIUM))
-                hits += DrawRect(rect.left, rect.top, rect.right, rect.top + 2 * pad + text.height) to SchemaTouch.Group(group.id, folded = false)
+                // Its title's band: on its top, or on its left side in a drawing running across
+                val band = if (across) DrawRect(rect.left, rect.top, rect.left + 2 * pad + text.width(titles.getValue(group.id)), rect.bottom)
+                    else DrawRect(rect.left, rect.top, rect.right, rect.top + 2 * pad + text.height)
+                hits += band to SchemaTouch.Group(group.id, folded = false)
             }
 
         placement.blocks.forEach { block ->
@@ -464,7 +473,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         return listOf(first) + points.subList(1, points.size - 1) + last
     }
 
-    /** [p], on the top, bottom or right side of [r], moved in to where [shape] really starts; any other point as it is. */
+    /** [p], on a side of [r], moved in to where [shape] really starts; any other point as it is. */
     private fun onOutline(p: PlacedPoint, shape: SchemaShape, r: PlacedRect): PlacedPoint {
         val halfW = r.width / 2
         val halfH = r.height / 2
@@ -474,6 +483,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             kotlin.math.abs(p.y - r.top) < ON_SIDE -> PlacedPoint(p.x, r.top + inset(shape, dx, halfW, halfH))
             kotlin.math.abs(p.y - r.bottom) < ON_SIDE -> PlacedPoint(p.x, r.bottom - inset(shape, dx, halfW, halfH))
             kotlin.math.abs(p.x - r.right) < ON_SIDE -> PlacedPoint(r.right - sideInset(shape, dy, halfW, halfH), p.y)
+            kotlin.math.abs(p.x - r.left) < ON_SIDE -> PlacedPoint(r.left + sideInset(shape, dy, halfW, halfH), p.y)
             else -> p
         }
     }
@@ -487,7 +497,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         SchemaShape.ROUNDED -> corner(dx, halfW, min(dp(8f), halfH))
     }
 
-    /** How far inside the rectangle's right side the shape starts, [dy] from its middle. */
+    /** How far inside the rectangle's left or right side the shape starts, [dy] from its middle. */
     private fun sideInset(shape: SchemaShape, dy: Float, halfW: Float, halfH: Float): Float = when (shape) {
         SchemaShape.RECT -> 0f
         SchemaShape.DIAMOND -> halfW * dy / halfH

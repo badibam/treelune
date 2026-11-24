@@ -93,13 +93,14 @@ suspend fun thingsShown(things: List<Reference>, context: Context): Map<Referenc
 /**
  * A schema laid out at the width it is given and drawn by the theme. On a screen, a drawing still
  * wider than the width scrolls sideways. [reduced], it is laid out at a reading width and scaled
- * down to the room, for a tile; [onTouch] null leaves the touch to the tile.
+ * down to the room, for a tile; [across], it runs from left to right, laid out at a reading height
+ * in the same proportion (a wide tile); [onTouch] null leaves the touch to the tile.
  *
  * A group touched stays where it is on the screen while the schema changes around it, as far as
  * the edges allow: the drawing shifts sideways and [pageScroll], the page's scroll, follows.
  */
 @Composable
-fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((SchemaTouch) -> Unit)?, modifier: Modifier = Modifier, reduced: Boolean = false, pageScroll: ScrollState? = null, keptOpen: Set<String> = emptySet()) {
+fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((SchemaTouch) -> Unit)?, modifier: Modifier = Modifier, reduced: Boolean = false, pageScroll: ScrollState? = null, keptOpen: Set<String> = emptySet(), across: Boolean = false) {
     val context = LocalContext.current
     val density = LocalDensity.current.density
     val style = UI.drawingTextStyle()
@@ -121,16 +122,19 @@ fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((Schema
     var anchor by remember { mutableStateOf<GroupAnchor?>(null) }
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val available = constraints.maxWidth.toFloat()
-        val width = if (reduced) max(available, READING_WIDTH * density) else available
+        // The limit the placement keeps to: the width at a size one reads, or across the height in
+        // the same proportion, the room's shape kept
+        val reading = if (reduced) max(1f, READING_WIDTH * density / available) else 1f
+        val width = if (across) constraints.maxHeight.toFloat() * reading else available * reading
         // Placing takes a good part of a second on a phone: done aside, the last drawing staying on
         // screen meanwhile, and kept, so that going back to a folding already seen is immediate
-        val scenes = remember(read, width, text, density, unit, reduced) { HashMap<Pair<Set<String>, Set<String>>, SchemaScene>() }
+        val scenes = remember(read, width, text, density, unit, reduced, across) { HashMap<Pair<Set<String>, Set<String>>, SchemaScene>() }
         var lastScene by remember { mutableStateOf<SchemaScene?>(null) }
         LaunchedEffect(scenes, folded, keptOpen) {
             val key = folded to keptOpen
             lastScene = scenes[key] ?: withContext(Dispatchers.Default) {
                 val start = System.currentTimeMillis()
-                SchemaSceneBuilder(density, unit, text) { s.tool(it) }.build(read.spec, { read.things[it]?.name }, folded, width, keptOpen, fit = !reduced, iconOf = { read.things[it]?.icon })
+                SchemaSceneBuilder(density, unit, text) { s.tool(it) }.build(read.spec, { read.things[it]?.name }, folded, width, keptOpen, fit = !reduced, iconOf = { read.things[it]?.icon }, across = across)
                     .also { app.treelune.core.utils.LogManager.ui("Schema laid out in ${System.currentTimeMillis() - start} ms (${it.autoFolded.size} folded to fit, scale ${it.scale})", "INFO") }
             }.also { scenes[key] = it }
         }
