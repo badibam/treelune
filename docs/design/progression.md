@@ -14,6 +14,8 @@ Tenir où on en est dans quelque chose qui se déroule par morceaux, aussi gén�
 
 ## Les entrées et le journal
 
+- Le nom (décidé le 2026-11-25) : `stage` dans le code (clés, classes, la vue `stages`), « étape » à l'écran (« stage » en anglais), « brick » désignant déjà les briques du core ; ce document garde « brique ». L'écran montre surtout les noms des sortes (« + Semaine »), le mot générique n'apparaissant que dans le schéma de l'IA, les refus, le Guide et la config des sortes.
+
 - Une entrée = une brique (a priori), propre à son passage (`run`), avec son parent, sa position et son historique de mouvements dans `state.moves`. La config ne tient que la grammaire : les sortes, leurs états, leurs règles.
 - Pourquoi : une brique change pendant que son passage vit (ses mouvements, ses champs, le plan écrit en cours de route, comme le cycle de dessin mois par mois) : elle est une donnée de son passage, écrite depuis l'écran de l'outil par l'éditeur de plan. Écartés : deux formes d'entrées dans le core (un seul outil s'en servirait), le plan dans une Fiche à part (trop fragile), le plan en config, et (le 2026-11-24) un plan modèle en config que le lancement d'un passage copierait en entrées : modifier le modèle ne changerait pas les briques, même d'un plan qui ne sert qu'une fois, et l'éditeur de plan resterait à côté, deux endroits pour un même plan.
 - Un mouvement est fixe, `{"at", "state", "note"}`, sans champ configurable. Ce qu'on note une fois par passage est un champ de la brique ; le détail d'une pratique vit dans l'outil qui la fait (une Séance, un Suivi), qu'une règle peut lire.
@@ -22,13 +24,13 @@ Tenir où on en est dans quelque chose qui se déroule par morceaux, aussi gén�
 
 ## Les vues
 
-- Deux vues calculées, jamais stockées, rendent le Parcours lisible par les Lectures, les Graphiques et les Conditions : `bricks`, une ligne par brique avec son état et `since` (la date du mouvement qui a donné l'état) ; `moves`, une ligne par mouvement.
-- `bricks` répond à « où en suis-je ? », `moves` à « que s'est-il passé, et quand ? ». Une ligne de `bricks` n'a qu'une date : « atteints en avril » posé à elle manquerait une brique atteinte en avril, perdue, puis réatteinte en mai. Une sélection sur `bricks` refuse donc `period` ; un filtre sur `since` reste possible.
+- Deux vues calculées, jamais stockées, rendent le Parcours lisible par les Lectures, les Graphiques et les Conditions : `stages`, une ligne par brique avec son état et `since` (la date du mouvement qui a donné l'état) ; `moves`, une ligne par mouvement.
+- `stages` répond à « où en suis-je ? », `moves` à « que s'est-il passé, et quand ? ». Une ligne de `stages` n'a qu'une date : « atteints en avril » posé à elle manquerait une brique atteinte en avril, perdue, puis réatteinte en mai. Une sélection sur `stages` refuse donc `period` ; un filtre sur `since` reste possible.
 - Lue à une autre référence, une vue ne rejoue que les mouvements d'avant cet instant. Limite acceptée : une date passée du passage en cours se relit avec ses briques actuelles.
 
 Ce que ça demande au core :
 
-- Une seule notion de lignes calculées, passant par la même porte que les entrées, dont la série d'une variable deviendrait un cas particulier. La sélection gagne un paramètre, `view`. Usages : Parcours (`bricks`, `moves`), Flashcards (`cards` : acquises, en retard, nouvelles), Séance (`playable`).
+- Une seule notion de lignes calculées, passant par la même porte que les entrées, dont la série d'une variable deviendrait un cas particulier. La sélection gagne un paramètre, `view`. Usages : Parcours (`stages`, `moves`), Flashcards (`cards` : acquises, en retard, nouvelles), Séance (`playable`).
 - Une Référence vers une ligne de vue, qui peut comme pour une entrée descendre jusqu'à un champ (`field`). Elle demande des identifiants de ligne stables (celui d'une entrée, d'un programme), jamais une position. Sa forme (décidée le 2026-11-24) : une sorte de plus, `{"kind": "ROW", "id": "<l'outil ou la variable>", "view", "row", "field"?}` ; supprimée quand sa chose l'est ou que sa vue ne rend plus la ligne, nommée par la ligne (sa colonne `name`), par `references.names` comme toute Référence. Une ligne qui est aussi une entrée (une brique) reste désignée `ENTRY` ; `ROW` sert à ce qui n'en est pas une (un programme, une carte, l'état calculé d'une brique par `field`).
 - Le coût à mesurer : un Graphique recalculerait la vue à chaque point de temps.
 - Codé le 2026-11-24 (`core/views`, docs/BRICKS.md « View ») : la porte, la série devenue la vue `series` (migration v121), la vue `cards` des Flashcards avec `reviews` (le nombre de révisions, pour les cartes qui résistent), offerte dans le sélecteur d'une Lecture ; pas vu sur le téléphone. La Référence vers une ligne de vue codée le même jour (`ROW`, essayée sur une carte, nommée par sa question et son sens), et `OpenAt` (`Entry`, `New`, `Row`, `ToolRequests.open` qui le prend, une boîte du Schéma liée à une ligne qui ouvre son outil là) ; aucun outil ne comprend encore `Row`, la Séance sera la première (étape 5).
@@ -76,22 +78,22 @@ Ce que ça demande au core :
 ### Les règles
 
 - Ce sont des Conditions du core, étendues plutôt qu'un langage propre au Parcours : le ET et le OU (décidé le 2026-11-24 : une capacité de la brique Condition partout où elle sert, `{"all": […]}` et `{"any": […]}` imbriquables, la comparaison simple inchangée ; le juge et la vérification récursifs ; à l'écran, une liste de comparaisons toutes par ET ou toutes par OU, sans imbrication) ; une valeur `self`, lue sur la brique jugée.
-- Pas de quantificateur (décidé le 2026-11-24) : compter des briques est une Lecture du core, la réduction COUNT sur la vue `bricks` filtrée, comparée à un nombre. « Au moins N » se lit `>= N` ; « aucun », `= 0` ; « tous », deux comptes égaux, ceux qui le sont et tous (les deux côtés d'une Condition pouvant être des Lectures, sans opérateur « pas dans », que la Condition n'a pas), vrai de lui-même sur un ensemble vide (0 = 0) ; le nombre d'un repère (« 3 / 5 ») est la Lecture elle-même. Le seul ajout au core est `self` comme terme (`{"self": "champ"}`, une sorte de terme de plus, `Term.Kind`, acceptée là seulement où le contexte déclare une chose jugée, aujourd'hui les règles d'un Parcours, refusée ailleurs en le disant ; distinct de `received` d'une Tâche, un instantané de l'entrée arrivée, quand `self` est relu à chaque jugement), une valeur dans le filtre d'une Lecture (`parent = self.id`, `position = self.position - 1`, `id in self.waits_for`, ce qui demande qu'un filtre prenne une liste venue de `self`).
-- Ce que `self` atteint : ses champs, `content`, `parent`, `siblings`, `previous`, ses descendants (`ancestor = self.id` dans un filtre de `bricks`), `last_move`, `state`, et les références de date.
+- Pas de quantificateur (décidé le 2026-11-24) : compter des briques est une Lecture du core, la réduction COUNT sur la vue `stages` filtrée, comparée à un nombre. « Au moins N » se lit `>= N` ; « aucun », `= 0` ; « tous », deux comptes égaux, ceux qui le sont et tous (les deux côtés d'une Condition pouvant être des Lectures, sans opérateur « pas dans », que la Condition n'a pas), vrai de lui-même sur un ensemble vide (0 = 0) ; le nombre d'un repère (« 3 / 5 ») est la Lecture elle-même. Le seul ajout au core est `self` comme terme (`{"self": "champ"}`, une sorte de terme de plus, `Term.Kind`, acceptée là seulement où le contexte déclare une chose jugée, aujourd'hui les règles d'un Parcours, refusée ailleurs en le disant ; distinct de `received` d'une Tâche, un instantané de l'entrée arrivée, quand `self` est relu à chaque jugement), une valeur dans le filtre d'une Lecture (`parent = self.id`, `position = self.position - 1`, `id in self.waits_for`, ce qui demande qu'un filtre prenne une liste venue de `self`).
+- Ce que `self` atteint : ses champs, `content`, `parent`, `siblings`, `previous`, ses descendants (`ancestor = self.id` dans un filtre de `stages`), `last_move`, `state`, et les références de date.
 - « Tous » sur un ensemble vide est vrai : juste pour une brique sans prérequis, faux pour un groupe sans contenu, dont la règle ajoute « au moins un existe » (un second compte, `> 0`).
 - Une règle de groupe nomme ce qu'elle compte (« au moins 2 parmi [Sorties, Événements] sont [Participée, Passé] ») : pas de case « compte comme acquis », et une sorte ajoutée ne compte qu'une fois nommée.
 - L'ordre de calcul (décidé le 2026-11-25) : une règle lit librement les faits, qui ne dépendent d'aucun calcul (les champs d'une brique, son parent, sa position, ses liens, ses mouvements, `last_move`, la vue `moves`, `opened_at`, les données des autres outils) ; elle ne lit l'état que de briques calculées avant elle, l'ordre venant de la structure seule : ses descendants, à toute profondeur, ses liens, celle d'avant. Chaque brique est calculée une fois, de bas en haut, les cibles d'un lien avant ce qui les attend ; les boucles de liens étant refusées, cet ordre existe toujours.
-- À l'enregistrement, une Lecture de `bricks` d'une règle qui touche l'état (son filtre, le champ lu, son regroupement) doit être ancrée sur une de ces relations de `self` (`ancestor = self.id`, sous `self` à toute profondeur ; `id in self.<champ de lien>` ; `id = self.previous`), sinon refusée en disant quoi écrire. Deux briques qui dépendent l'une de l'autre (des sœurs exclusives) lisent `last_move`, un fait. Écartés : un calcul en boucle jusqu'à ce que rien ne bouge (deux règles contraires ne s'arrêtent pas, découvert à l'affichage, un résultat qui dépend de l'ordre de passage) ; une règle qui lit l'état de briques sans relation avec elle (« 3 techniques acquises dans n'importe quelle branche »), qui passe par un lien ou par `last_move`.
+- À l'enregistrement, une Lecture de `stages` d'une règle qui touche l'état (son filtre, le champ lu, son regroupement) doit être ancrée sur une de ces relations de `self` (`ancestor = self.id`, sous `self` à toute profondeur ; `id in self.<champ de lien>` ; `id = self.previous`), sinon refusée en disant quoi écrire. Deux briques qui dépendent l'une de l'autre (des sœurs exclusives) lisent `last_move`, un fait. Écartés : un calcul en boucle jusqu'à ce que rien ne bouge (deux règles contraires ne s'arrêtent pas, découvert à l'affichage, un résultat qui dépend de l'ordre de passage) ; une règle qui lit l'état de briques sans relation avec elle (« 3 techniques acquises dans n'importe quelle branche »), qui passe par un lien ou par `last_move`.
 - Une date relative est un Instant du core (`{"relative": {"unit": "DAY", "offset": 15, "edge": "START"}}`) résolu contre une référence nommée : `run_start`, `run_end`, `opened_at` (l'ouverture de la brique), `since`. Sans référence nommée, c'est le moment de la lecture. L'outil ne suppose rien de ce qu'une date représente ; décaler un plan n'est pas une fonction, on modifie les briques à la main ou par l'IA.
 
 ```json
 {
-  "left": { "reading": { "selection": { "target": "ce Parcours", "view": "bricks", "filters": [
+  "left": { "reading": { "selection": { "target": "ce Parcours", "view": "stages", "filters": [
       { "left": { "field": "id" }, "op": "in", "right": { "self": "waits_for" } },
       { "left": { "field": "state" }, "op": "in", "right": { "constant": ["done"] } } ] },
     "reduction": "COUNT" } },
   "op": "=",
-  "right": { "reading": { "selection": { "target": "ce Parcours", "view": "bricks", "filters": [
+  "right": { "reading": { "selection": { "target": "ce Parcours", "view": "stages", "filters": [
       { "left": { "field": "id" }, "op": "in", "right": { "self": "waits_for" } } ] },
     "reduction": "COUNT" } }
 }
@@ -106,7 +108,7 @@ Ce que ça demande au core :
 
 ```json
 {
-  "on": { "…": "COUNT de bricks où parent = self.id et state in [done] = COUNT de bricks où parent = self.id" },
+  "on": { "…": "COUNT de stages où parent = self.id et state in [done] = COUNT de stages où parent = self.id" },
   "set": { "filters": [ { "left": { "field": "parent" }, "op": "=", "right": { "self": "id" } } ], "state": "todo" }
 }
 ```
@@ -164,8 +166,8 @@ Ce que la maquette du 2026-11-24 écrivait en dur, et que le modèle doit dire, 
 ```json
 { "key": "week", "readout": {
     "values": [
-      { "name": "done",  "value": { "…": "COUNT de bricks où parent = self.id et state in [faite]" } },
-      { "name": "total", "value": { "…": "COUNT de bricks où parent = self.id" } } ],
+      { "name": "done",  "value": { "…": "COUNT de stages où parent = self.id et state in [faite]" } },
+      { "name": "total", "value": { "…": "COUNT de stages où parent = self.id" } } ],
     "core": "{done} / {total}",
     "gauge": "done / total" } }
 ```
@@ -204,7 +206,6 @@ Les scènes de test, toutes tenues sur le papier : badges, calendrier de l'Avent
 
 ## Ouvert
 
-- Le nom de la brique : « brick » désigne déjà les briques du core (`docs/BRICKS.md`).
 - Une rechute en chaîne : un geste groupé, ou un `set` sur ce qui dépend de la brique.
 - Supprimer une brique emporte son historique : refuser si elle a des mouvements, ou l'archiver.
 - Le toucher d'une brique sans Séance : sa fiche avec « Fait », une case à cocher sur la ligne, ou les deux.
