@@ -40,15 +40,22 @@ class SchemaSceneTest {
     private val chain = """"nodes": [{"id": "A", "label": "first"}, {"id": "B", "label": "second"}], "edges": [{"from": "A", "to": "B"}]"""
 
     @Test
-    fun `a box's icon stands left of its text, the box wider by its room`() {
+    fun `a box's icon stands above its text, the box no wider, beside it in a drawing running sideways`() {
         val plain = scene("""{"nodes": [{"id": "A", "label": "a long enough text"}]}""")
-        val withIcon = scene("""{"nodes": [{"id": "A", "label": "a long enough text", "icon": "leaf"}]}""")
-        val icon = withIcon.drawing.shapes.filterIsInstance<DrawShape.Icon>().single()
-        val label = withIcon.drawing.shapes.filterIsInstance<DrawShape.Label>().single()
+        val json = """{"nodes": [{"id": "A", "label": "a long enough text", "icon": "leaf"}]}"""
+        val above = scene(json)
+        val icon = above.drawing.shapes.filterIsInstance<DrawShape.Icon>().single()
+        val label = above.drawing.shapes.filterIsInstance<DrawShape.Label>().single()
         assertEquals("leaf", icon.name)
-        assertTrue(icon.center.x + icon.size / 2 < label.at.x - text.width(label.text) / 2)
-        assertTrue(withIcon.drawing.width > plain.drawing.width)
+        assertTrue(icon.center.y + icon.size / 2 <= label.at.y)
+        assertEquals(plain.drawing.width, above.drawing.width, 0.01f)
+        assertTrue(above.drawing.height > plain.drawing.height)
         assertTrue(plain.drawing.shapes.none { it is DrawShape.Icon })
+
+        val beside = SchemaSceneBuilder(1f, 1f, text, own).build(spec(json), { null }, emptySet(), 340f, across = true)
+        val sideIcon = beside.drawing.shapes.filterIsInstance<DrawShape.Icon>().single()
+        val sideLabel = beside.drawing.shapes.filterIsInstance<DrawShape.Label>().single()
+        assertTrue(sideIcon.center.x + sideIcon.size / 2 < sideLabel.at.x - text.width(sideLabel.text) / 2)
     }
 
     @Test

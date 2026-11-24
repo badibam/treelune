@@ -45,7 +45,7 @@ Du JSON au vocabulaire de Mermaid (flowchart), décrit réglage par réglage com
 - **Flèches** : un trait normal, pointillé ou épais, avec ou sans pointe, un texte facultatif.
 - **Groupes** : imbriquables, un titre, `folded` pour s'ouvrir replié ; `members` liste leurs boîtes et leurs sous-groupes, un identifiant ne servant qu'une fois parmi les deux.
 - **Couleur** : sur une boîte ou un groupe, au plus une couleur d'étiquette, par son nom enregistré ; le thème la dessine, jamais une couleur écrite en dur. La texture, un temps prévue, n'est pas dans l'outil : la dessiner demande une forme de plus dans `core/drawing` et dans les 9 thèmes.
-- **Icône** : `icon` sur une boîte, un nom Lucide choisi avec le sélecteur de l'app (le drapeau `icon` d'un réglage), devant son texte ; sans `icon`, une boîte liée montre l'icône de sa chose. Un nom inconnu est refusé, l'id nommé ; un import Mermaid la garde à une boîte dont l'id reste, comme sa couleur.
+- **Icône** : `icon` sur une boîte, un nom Lucide choisi avec le sélecteur de l'app (le drapeau `icon` d'un réglage), au-dessus de son texte (à côté sur une tuile où le dessin va de gauche à droite) ; sans `icon`, une boîte liée montre l'icône de sa chose. Un nom inconnu est refusé, l'id nommé ; un import Mermaid la garde à une boîte dont l'id reste, comme sa couleur.
 - **Le lien d'une boîte** : la brique Chose (`Reference`, `{"kind", "id"}`), choisie par le navigateur des choses. Une boîte liée sans `label` porte le nom actuel de sa chose, « supprimée » si elle n'est plus ; avec `label`, le sien.
 - Une flèche ou un groupe qui nomme une boîte absente est refusé, le refus nommant l'id.
 
