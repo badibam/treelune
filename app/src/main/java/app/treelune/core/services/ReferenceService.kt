@@ -53,7 +53,8 @@ class ReferenceService(private val context: Context) : ExecutableService {
         }
         return OperationResult.success(mapOf("references" to references.distinct().map { reference ->
             val name = nameOf(reference)
-            mapOf("kind" to reference.kind.name, "id" to reference.id, "field" to reference.field, "name" to name, "deleted" to (name == null))
+            mapOf("kind" to reference.kind.name, "id" to reference.id, "field" to reference.field, "name" to name, "deleted" to (name == null),
+                "icon" to name?.let { iconOf(reference) })
         }))
     }
 
@@ -69,6 +70,23 @@ class ReferenceService(private val context: Context) : ExecutableService {
         ReferenceKind.VARIABLE -> database.variableDao().getById(reference.id!!)?.name
         ReferenceKind.EVENT -> database.eventDao().get(reference.id!!)?.name
     }
+
+    /**
+     * The icon what [reference] designates shows: a zone's or a variable's own, a tool's or its
+     * type's, an entry's tool's; null for the app and an event, which have none.
+     */
+    private suspend fun iconOf(reference: Reference): String? = when (reference.kind) {
+        ReferenceKind.APP, ReferenceKind.EVENT -> null
+        ReferenceKind.ZONE -> database.zoneDao().getZoneById(reference.id!!)?.icon_name
+        ReferenceKind.TOOL_INSTANCE -> database.toolInstanceDao().getToolInstanceById(reference.id!!)?.let { toolIcon(it) }
+        ReferenceKind.ENTRY -> database.toolDataDao().getById(reference.id!!)
+            ?.let { database.toolInstanceDao().getToolInstanceById(it.toolInstanceId) }?.let { toolIcon(it) }
+        ReferenceKind.VARIABLE -> database.variableDao().getById(reference.id!!)?.iconName
+    }
+
+    private fun toolIcon(tool: ToolInstance): String? =
+        JSONObject(tool.config_json).optString(app.treelune.core.look.Looks.ICON).ifBlank { null }
+            ?: app.treelune.core.tools.ToolTypeManager.getToolType(tool.tooltype)?.getDefaultIconName()
 
     private suspend fun choices(params: JSONObject): OperationResult {
         val kinds = params.optJSONArray("kinds")?.let { a -> (0 until a.length()).mapNotNull { i -> ReferenceKind.entries.firstOrNull { it.name == a.optString(i) } } }?.toSet()

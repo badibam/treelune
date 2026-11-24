@@ -40,6 +40,28 @@ class SchemaSceneTest {
     private val chain = """"nodes": [{"id": "A", "label": "first"}, {"id": "B", "label": "second"}], "edges": [{"from": "A", "to": "B"}]"""
 
     @Test
+    fun `a box's icon stands left of its text, the box wider by its room`() {
+        val plain = scene("""{"nodes": [{"id": "A", "label": "a long enough text"}]}""")
+        val withIcon = scene("""{"nodes": [{"id": "A", "label": "a long enough text", "icon": "leaf"}]}""")
+        val icon = withIcon.drawing.shapes.filterIsInstance<DrawShape.Icon>().single()
+        val label = withIcon.drawing.shapes.filterIsInstance<DrawShape.Label>().single()
+        assertEquals("leaf", icon.name)
+        assertTrue(icon.center.x + icon.size / 2 < label.at.x - text.width(label.text) / 2)
+        assertTrue(withIcon.drawing.width > plain.drawing.width)
+        assertTrue(plain.drawing.shapes.none { it is DrawShape.Icon })
+    }
+
+    @Test
+    fun `a linked box without an icon shows its thing's, its own icon first`() {
+        val thing = """{"kind": "ZONE", "id": "z"}"""
+        fun iconsOf(json: String) = SchemaSceneBuilder(1f, 1f, text, own)
+            .build(spec(json), { "Balcony" }, emptySet(), 340f, iconOf = { "flower" })
+            .drawing.shapes.filterIsInstance<DrawShape.Icon>().map { it.name }
+        assertEquals(listOf("flower"), iconsOf("""{"nodes": [{"id": "A", "thing": $thing}]}"""))
+        assertEquals(listOf("leaf"), iconsOf("""{"nodes": [{"id": "A", "thing": $thing, "icon": "leaf"}]}"""))
+    }
+
+    @Test
     fun `an arrow points down in a schema running down`() {
         val scene = scene("""{"direction": "TD", $chain}""")
         assertFalse(scene.heads().single().up)

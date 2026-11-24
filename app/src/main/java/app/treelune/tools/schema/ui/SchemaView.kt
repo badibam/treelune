@@ -56,30 +56,37 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-/** A schema's config as read for display: drawn with the current names of its things, or why it cannot be. */
+/** A schema's config as read for display: drawn with the current names and icons of its things, or why it cannot be. */
 sealed interface SchemaReading {
     data class Problem(val message: String) : SchemaReading
-    data class Drawn(val spec: SchemaSpec, val names: Map<Reference, String?>) : SchemaReading
+    data class Drawn(val spec: SchemaSpec, val things: Map<Reference, ThingShown>) : SchemaReading
 
     companion object {
         suspend fun of(config: JSONObject, context: Context): SchemaReading {
             val s = Strings.`for`(tool = "schema", context = context)
             val spec = try { SchemaSpec.of(config) { s.tool(it) } } catch (e: IllegalArgumentException) { return Problem(e.message.orEmpty()) }
-            val names = thingNames(spec.nodes.mapNotNull { it.thing }, context) ?: return Problem(s.tool("mermaid_names_failed"))
-            return Drawn(spec, names)
+            val things = thingsShown(spec.nodes.mapNotNull { it.thing }, context) ?: return Problem(s.tool("mermaid_names_failed"))
+            return Drawn(spec, things)
         }
     }
 }
 
+/** What a box shows of its thing: its current [name], null once it no longer exists, and its [icon], null when it has none. */
+data class ThingShown(val name: String?, val icon: String?)
+
 /** The current name of each of [things], null for one that no longer exists; null when they could not be read. */
-suspend fun thingNames(things: List<Reference>, context: Context): Map<Reference, String?>? {
+suspend fun thingNames(things: List<Reference>, context: Context): Map<Reference, String?>? =
+    thingsShown(things, context)?.mapValues { it.value.name }
+
+/** What each of [things] shows now; null when they could not be read. */
+suspend fun thingsShown(things: List<Reference>, context: Context): Map<Reference, ThingShown>? {
     if (things.isEmpty()) return emptyMap()
     val result = Coordinator(context).processUserAction("references.names", mapOf("references" to things.distinct().map { thing ->
         mapOf("kind" to thing.kind.name, "id" to thing.id, "field" to thing.field).filterValues { it != null }
     }))
     if (!result.isSuccess) return null
     return (result.data?.get("references") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().mapNotNull { row ->
-        ReferenceTarget.referenceOf(row)?.let { it to (row["name"] as? String) }
+        ReferenceTarget.referenceOf(row)?.let { it to ThingShown(row["name"] as? String, row["icon"] as? String) }
     }.toMap()
 }
 
@@ -123,7 +130,7 @@ fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((Schema
             val key = folded to keptOpen
             lastScene = scenes[key] ?: withContext(Dispatchers.Default) {
                 val start = System.currentTimeMillis()
-                SchemaSceneBuilder(density, unit, text) { s.tool(it) }.build(read.spec, { read.names[it] }, folded, width, keptOpen, fit = !reduced)
+                SchemaSceneBuilder(density, unit, text) { s.tool(it) }.build(read.spec, { read.things[it]?.name }, folded, width, keptOpen, fit = !reduced, iconOf = { read.things[it]?.icon })
                     .also { app.treelune.core.utils.LogManager.ui("Schema laid out in ${System.currentTimeMillis() - start} ms (${it.autoFolded.size} folded to fit, scale ${it.scale})", "INFO") }
             }.also { scenes[key] = it }
         }
