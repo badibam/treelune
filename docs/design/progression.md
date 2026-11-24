@@ -71,7 +71,7 @@ Ce que ça demande au core :
 
 ### Les règles
 
-- Ce sont des Conditions du core, étendues plutôt qu'un langage propre au Parcours : le ET et le OU ; une valeur `self`, lue sur la brique jugée ; un quantificateur, un ensemble, une condition sur chacun, une quantité (`"all"`, `"any"`, `"none"` ou un nombre pour « au moins N »), qui peut aussi se lire sur la brique (`{"self": "waits_for_count"}`).
+- Ce sont des Conditions du core, étendues plutôt qu'un langage propre au Parcours : le ET et le OU (décidé le 2026-11-24 : une capacité de la brique Condition partout où elle sert, `{"all": […]}` et `{"any": […]}` imbriquables, la comparaison simple inchangée ; le juge et la vérification récursifs ; à l'écran, une liste de comparaisons toutes par ET ou toutes par OU, sans imbrication) ; une valeur `self`, lue sur la brique jugée ; un quantificateur, un ensemble, une condition sur chacun, une quantité (`"all"`, `"any"`, `"none"` ou un nombre pour « au moins N »), qui peut aussi se lire sur la brique (`{"self": "waits_for_count"}`).
 - Ce que `self` atteint : ses champs, `content`, `parent`, `siblings`, `previous`, `last_move`, `state`, et les références de date.
 - « Tous » sur un ensemble vide est vrai : juste pour une brique sans prérequis, faux pour un groupe sans contenu, dont la règle ajoute « au moins un existe ».
 - Une règle de groupe nomme ce qu'elle compte (« au moins 2 parmi [Sorties, Événements] sont [Participée, Passé] ») : pas de case « compte comme acquis », et une sorte ajoutée ne compte qu'une fois nommée.
