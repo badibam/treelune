@@ -5,8 +5,8 @@ package app.treelune.tools.schema
  * in [SchemaNode.parts] holds, or the schema's top level in [SchemaSpec.parts], is stacked one part
  * under the other, each part one of the boxes it holds with all that is inside it.
  *
- * Between two parts no line is drawn. An arrow from a part to the next one, both ends the parts
- * themselves, is said by the order and left out. Any other arrow a stack cuts (one that skips
+ * An arrow from a part to the next one, both ends the parts themselves, is said by the order: it is
+ * not placed, only drawn as a short line across the gap. Any other arrow a stack cuts (one that skips
  * parts, goes back up, or starts or ends inside a part, or comes into a part from outside the
  * stack) becomes a pair of references, the same letter at both ends.
  *
@@ -27,7 +27,7 @@ internal class SchemaParts(spec: SchemaSpec, visible: SchemaVisible, upward: Boo
     /** The stacks: by the box that holds them, null for the top level, the parts in their order. */
     val stacks: Map<String?, List<String>>
 
-    /** The arrows, by their index among the visible ones, said by the order and not drawn. */
+    /** The arrows, by their index among the visible ones, said by the order: not placed, a short line across the gap. */
     val told: Set<Int>
 
     /** The arrows, by their index among the visible ones, drawn as a pair of references, with their letter. */

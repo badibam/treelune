@@ -395,8 +395,19 @@ class SchemaSceneTest {
         val scene = scene(house)
         val tops = listOf("shell", "pause", "second", "finish", "end").map { scene.top(it) }
         assertEquals(tops.sorted(), tops)
-        // Three arrows inside the phases, and each cut one drawn as two halves; the four told ones gone
-        assertEquals(3 + 2 * 2, scene.heads().size)
+        // Three arrows inside the phases, each cut one drawn as two halves, and the four told ones a short line each
+        assertEquals(3 + 2 * 2 + 4, scene.heads().size)
+    }
+
+    @Test
+    fun `the short line to the next part keeps clear of a letter hanging in the gap`() {
+        val scene = scene(house)
+        val pause = scene.hits.first { (it.second as? SchemaTouch.Box)?.node?.id == "pause" }.first
+        val second = scene.groupArea("second")!!
+        val letter = scene.hits.first { (it.second as? SchemaTouch.Ref)?.let { r -> scene.refArea(r.id)!!.top > pause.bottom && scene.refArea(r.id)!!.bottom < second.top } == true }.first
+        // The head landing on Second work's top stands beside the letter, not under it
+        val head = scene.heads().first { kotlin.math.abs(it.at.y + it.size / 2 - second.top) < 1f }
+        assertTrue(head.at.x < letter.left || head.at.x > letter.right)
     }
 
     @Test
@@ -421,8 +432,8 @@ class SchemaSceneTest {
             "edges": [{"from": "A", "to": "S"}, {"from": "A", "to": "Q"}, {"from": "P", "to": "Q"}]
         }""")
         assertEquals(2, scene.hits.count { it.second is SchemaTouch.Ref })
-        // A to the stack's frame, and the cut arrow's two halves; P to Q told by the order
-        assertEquals(3, scene.heads().size)
+        // A to the stack's frame, the cut arrow's two halves, and P to Q told by the order, a short line
+        assertEquals(4, scene.heads().size)
         assertTrue(scene.top("P") < scene.top("Q"))
     }
 

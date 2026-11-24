@@ -219,7 +219,9 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         val titles: Map<String, Title>,
         val upward: Boolean,
         val mode: Mode,
-        val placement: Placement
+        val placement: Placement,
+        /** The arrows from a part to the next one, drawn as a short straight line across the gap between them */
+        val told: List<SchemaEdge> = emptyList()
     )
 
     /** Which way the drawing runs and how much its boxes say. */
@@ -326,12 +328,12 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             reference = reference,
             stack = parts.stacks[null]
         ))
-        return Prepared(visible, boxes, byId, lines, labels, titles, upward, mode, placement)
+        return Prepared(visible, boxes, byId, lines, labels, titles, upward, mode, placement, parts.told.sorted().map { visible.edges[it] })
     }
 
     /** The shapes the theme draws, and what a touch finds on them. */
     private fun draw(prepared: Prepared, autoFolded: Set<String> = emptySet(), scale: Float = 1f): SchemaScene {
-        val (visible, boxes, byId, lines, labels, titles, upward, mode, placement) = prepared
+        val (visible, boxes, byId, lines, labels, titles, upward, mode, placement, told) = prepared
         val across = mode.across
         // Small shapes take their color whole, a faint fill vanishing at their size
         val solid = mode.detail == SchemaDetail.SHAPE || mode.detail == SchemaDetail.DOT
@@ -428,6 +430,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
             }
             hits += rect to (if (box.folded) SchemaTouch.Group(box.id, folded = true) else SchemaTouch.Box(box.node, box.whole, box.cut, box.open))
         }
+        told.forEach { edge -> shapes += toldLine(edge, placement, solid, mode) }
         return SchemaScene(Drawing(placement.width, placement.height, shapes), hits, autoFolded, scale)
     }
 
@@ -438,6 +441,51 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
     private fun starts(spec: SchemaSpec, visible: SchemaVisible, upward: Boolean): List<String> {
         val reached = spec.edges.filter { it.from != it.to }.map { if (upward) it.from else it.to }.toSet()
         return spec.nodes.filter { it.id !in spec.holders }.sortedBy { it.id in reached }.map { visible.shownAs(it.id) }.distinct()
+    }
+
+    /**
+     * An arrow from a part to the next, which the order says: a short straight line from the one's
+     * bottom to the other's top, its head at its target, its look and its text kept. It stands on
+     * the parts' common axis, or beside it when a letter hangs there, never reading as leading on
+     * from that letter.
+     */
+    private fun toldLine(edge: SchemaEdge, placement: Placement, solid: Boolean, mode: Mode): List<DrawShape> {
+        fun rectOf(id: String) = placement.boxes[id] ?: placement.groups[id]
+        val source = rectOf(edge.from) ?: return emptyList()
+        val target = rectOf(edge.to) ?: return emptyList()
+        val (upper, lower) = if (source.top <= target.top) Pair(source, target) else Pair(target, source)
+        val top = upper.bottom
+        val bottom = lower.top
+        // What stands in the gap: the letters hanging below the one and above the other
+        val between = (placement.boxes.values + placement.groups.values).filter { it.top >= top - 0.5f && it.bottom <= bottom + 0.5f }
+        val margin = dp(10f)
+        val low = max(upper.left, lower.left) + margin
+        val high = min(upper.right, lower.right) - margin
+        val center = ((upper.left + upper.right) / 2).coerceIn(min(low, high), max(low, high))
+        val clear = dp(4f)
+        fun free(x: Float) = between.none { x >= it.left - clear && x <= it.right + clear }
+        val step = dp(8f)
+        val x = generateSequence(1) { it + 1 }.take(40).flatMap { k -> sequenceOf(center + k * step, center - k * step) }
+            .let { sequenceOf(center) + it }.firstOrNull { it in low..high && free(it) }
+        // No room beside the letters: the line keeps to the gap below them
+        val start = if (x != null) top else (between.maxOfOrNull { it.bottom } ?: top) + clear
+        val lineX = x ?: center
+        val downward = source === upper
+        val a = PlacedPoint(lineX, if (downward) start else bottom)
+        val b = PlacedPoint(lineX, if (downward) bottom else start)
+        val ink = DrawColor.Ink(InkLevel.MEDIUM)
+        val strokeWidth = (if (edge.line == SchemaLine.THICK) max(unit * 2, dp(3f)) else thin()).let { if (solid) max(unit, it * 0.7f) else it }
+        val dash = if (edge.line == SchemaLine.DOTTED) listOf(dp(4f), dp(3f)) else null
+        val headSize = if (solid) dp(5f) else dp(8f)
+        val points = listOf(a, b)
+        val line = if (edge.head) shortened(points, headSize * 0.7f) else points
+        return buildList {
+            add(DrawShape.Path(steps(line, null), ink, 1f, strokeWidth, dash, false))
+            if (edge.head) add(head(a, b, headSize, ink))
+            edge.label?.takeIf { mode.written }?.let { ellipsize(it, dp(120f)) }?.let { label ->
+                add(DrawShape.Label(label, DrawPoint(lineX + dp(6f), (a.y + b.y) / 2 - text.height / 2), TextAnchor.START, TextBaseline.TOP, ink))
+            }
+        }
     }
 
     /** One end of a cut arrow: a small circle with its letter, from the compact level up. */
