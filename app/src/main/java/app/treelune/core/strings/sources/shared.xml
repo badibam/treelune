@@ -3377,6 +3377,8 @@
     <string name="readout_error_gauge_names">The gauge reads %1$s, which is none of its values (%2$s)</string>
     <string name="readout_error_gauge_instant">In the gauge, “%1$s” computes with a date or a time, which gives a number only as the time between two instants: now() - last_meal</string>
     <string name="readout_error_gauge_failed">The gauge computes nothing: %1$s</string>
+    <string name="readout_error_core_or_gauge">A readout shows a core, a gauge or both: give one</string>
+    <string name="readout_error_text_without_core">A sentence places the core with {}: give a core, or no sentence</string>
     <string name="readout_value_missing">?</string>
     <string name="readout_verbalize_create">Creation of the readout “%1$s”</string>
     <string name="readout_verbalize_update">Change of the readout “%1$s”</string>
@@ -3392,7 +3394,7 @@
     <string name="ai_read_user_readouts_of">\'%1$s\': readouts read</string>
     <string name="ai_read_user_readout">A readout read</string>
     <string name="readout_core">Core</string>
-    <string name="readout_schema_core">The short form, shown where room is short (a zone\'s tile, its own tile beside its name), each of its values written {name}: \"{done} / {expected}\"</string>
+    <string name="readout_schema_core">The short form, shown where room is short (a zone\'s tile, its own tile beside its name), each of its values written {name}: \"{done} / {expected}\"; it may be left out beside a gauge, which then shows alone</string>
     <string name="readout_error_core_place">The core is the short form itself: {} places it in the sentence, not in itself</string>
     <string name="event_none">None yet: an event is made here, or where a Task or a routine chooses one (“New event…”).</string>
     <string name="grid_mode_title">Arranging</string>

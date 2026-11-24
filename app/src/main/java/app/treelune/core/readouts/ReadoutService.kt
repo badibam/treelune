@@ -54,7 +54,8 @@ import java.util.UUID
  *
  * A write is checked as the screen checks it: its settings against their schema, its look as
  * every look is, its group one of its zone's, its values each a name a sentence can write, unique,
- * and a term that reads, every `{name}` of its sentence one of them, its gauge a formula that reads
+ * and a term that reads, every `{name}` of its sentence one of them, a core, a gauge or both, a
+ * sentence only beside a core, its gauge a formula that reads
  * its values alone, an instant only subtracted from another, its conditions comparing its
  * values (ConditionCheck, its values as a row's fields: ReadoutRows), its target a thing that is.
  */
@@ -200,6 +201,12 @@ class ReadoutService(private val context: Context) : ExecutableService {
         ConditionCheck(AppConditionSources(context, ReadoutRows)) { s.shared(it) }.refuse(ReadoutSettings.nodes(context), settings)?.let { throw Refused(it) }
         checkTarget(settings)
         checkGauge(settings, fields)
+        // A core, a gauge or both; a sentence places a core
+        if (core.isBlank()) {
+            settings.remove(ReadoutSettings.CORE)
+            if (!settings.has(ReadoutSettings.GAUGE)) throw Refused(s.shared("readout_error_core_or_gauge"))
+            if (settings.optString(ReadoutSettings.TEXT).isNotBlank()) throw Refused(s.shared("readout_error_text_without_core"))
+        }
 
         val body = JSONObject().apply { ReadoutSettings.BODY_KEYS.forEach { key -> settings.opt(key)?.let { put(key, it) } } }
         return readout.copy(

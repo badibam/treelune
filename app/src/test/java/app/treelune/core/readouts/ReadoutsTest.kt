@@ -176,6 +176,15 @@ class ReadoutsTest {
     }
 
     @Test
+    fun aGaugeAlone_standsWithoutACore(): Unit = runBlocking {
+        val id = ok("readouts.create", water(mapOf("gauge" to "done / expected")) - "core" - "text")["readout_id"] as String
+        assertEquals(0.0, read(id)["gauge"])
+        // Neither a core nor a gauge, or a sentence without a core, is refused
+        refused("readouts.create", water() - "core" - "text")
+        refused("readouts.create", water(mapOf("gauge" to "done / expected")) - "core")
+    }
+
+    @Test
     fun aGaugeNamingNoValue_isRefused() = runBlocking {
         val error = refused("readouts.create", water(mapOf("gauge" to "drunk / expected")))
         assertTrue(error, error.contains("drunk"))

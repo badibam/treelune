@@ -19,7 +19,8 @@ import org.json.JSONObject
 
 /**
  * A readout's settings, declared with the fields (docs/design/readouts.md): its look and its
- * group, as any tile's; its core, the short form every place shows where room is short, where
+ * group, as any tile's; its core, the short form every place shows where room is short (a core, a
+ * gauge or both, a sentence asking for a core), where
  * `{name}` stands for one of its values; its sentence, optional, placing its core with `{}` (without
  * one, its core shows everywhere); its values, each
  * a name and a term read when it is shown; its gauge, optional, a formula over its values giving
@@ -83,7 +84,7 @@ object ReadoutSettings {
         val s = Strings.`for`(context = context)
         return listOf(
             SettingNode.Field(FieldDefinition(CORE, s.shared("readout_core"), s.shared("readout_schema_core"), FieldType.TEXT, false,
-                mapOf("length" to TextLength.SHORT.name)), required = true),
+                mapOf("length" to TextLength.SHORT.name))),
             SettingNode.Field(FieldDefinition(TEXT, s.shared("readout_text"), s.shared("readout_schema_text"), FieldType.TEXT, false,
                 mapOf("length" to TextLength.MEDIUM.name))),
             SettingNode.ListOf(VALUES, s.shared("readout_values"), SettingNode.Item.Of(listOf(

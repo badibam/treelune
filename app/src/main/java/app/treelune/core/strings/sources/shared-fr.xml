@@ -3377,6 +3377,8 @@
     <string name="readout_error_gauge_names">La jauge lit %1$s, qui n\'est aucune de ses valeurs (%2$s)</string>
     <string name="readout_error_gauge_instant">Dans la jauge, « %1$s » calcule avec une date ou une heure, qui ne donne un nombre que comme le temps entre deux instants : maintenant() - dernier_repas</string>
     <string name="readout_error_gauge_failed">La jauge ne calcule rien : %1$s</string>
+    <string name="readout_error_core_or_gauge">Un Repère montre un cœur, une jauge ou les deux : donne l\'un des deux</string>
+    <string name="readout_error_text_without_core">Une phrase place le cœur avec {} : donne un cœur, ou pas de phrase</string>
     <string name="readout_value_missing">?</string>
     <string name="readout_verbalize_create">Création du Repère « %1$s »</string>
     <string name="readout_verbalize_update">Modification du Repère « %1$s »</string>
@@ -3392,7 +3394,7 @@
     <string name="ai_read_user_readouts_of">« %1$s » : Repères lus</string>
     <string name="ai_read_user_readout">Un Repère lu</string>
     <string name="readout_core">Cœur</string>
-    <string name="readout_schema_core">La forme courte, montrée là où la place manque (la tuile d\'une zone, sa tuile propre à côté de son nom), chacune de ses valeurs écrite {nom} : « {fait} / {attendu} »</string>
+    <string name="readout_schema_core">La forme courte, montrée là où la place manque (la tuile d\'une zone, sa tuile propre à côté de son nom), chacune de ses valeurs écrite {nom} : « {fait} / {attendu} » ; il peut manquer à côté d\'une jauge, qui se montre alors seule</string>
     <string name="readout_error_core_place">Le cœur est lui-même la forme courte : {} le place dans la phrase, pas en lui-même</string>
     <string name="event_none">Aucun pour l\'instant : un événement se crée ici, ou là où une Tâche ou une routine en choisit un (« Nouvel événement… »).</string>
     <string name="grid_mode_title">Organisation</string>

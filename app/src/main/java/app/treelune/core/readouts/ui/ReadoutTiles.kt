@@ -133,7 +133,8 @@ fun openTarget(readout: ReadoutRow) {
 fun configure(readout: ReadoutRow) = Navigator.push(Place.ReadoutConfig(readout.zoneId, readout.id))
 
 /**
- * A readout's sentence, or its core when [short], in its colour (UI.Tag), or plain without one;
+ * A readout's sentence, or its core when [short], in its colour (UI.Tag), or plain without one
+ * (nothing for a readout that is its gauge alone);
  * under it, its gauge across the width in the same colour (UI.Gauge), or « ? » where a gauge
  * computes nothing, as a value that gave nothing shows in the sentence.
  */
@@ -146,8 +147,10 @@ fun ReadoutSentence(shown: ReadoutShown?, maxLines: Int = 2, short: Boolean = fa
         return
     }
     val written = if (short) shown.core else shown.text
+    // A readout without a core is its gauge alone
     val sentence: @Composable () -> Unit = {
-        if (shown.color != null) UI.Tag(written, shown.color, maxLines) else UI.Text(written, TextType.BODY, maxLines = maxLines)
+        if (written.isBlank()) Unit
+        else if (shown.color != null) UI.Tag(written, shown.color, maxLines) else UI.Text(written, TextType.BODY, maxLines = maxLines)
     }
     if (shown.gauge == null && shown.gaugeFailure == null) {
         sentence()
