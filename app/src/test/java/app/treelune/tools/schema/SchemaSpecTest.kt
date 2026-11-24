@@ -1,11 +1,11 @@
 package app.treelune.tools.schema
 
+import app.treelune.core.drawing.layout.GraphLayout
+import app.treelune.core.drawing.layout.LayoutBox
+import app.treelune.core.drawing.layout.LayoutEdge
+import app.treelune.core.drawing.layout.LayoutGraph
+import app.treelune.core.drawing.layout.LayoutGroup
 import app.treelune.core.selection.ReferenceKind
-import app.treelune.tools.schema.layout.LayoutBox
-import app.treelune.tools.schema.layout.LayoutEdge
-import app.treelune.tools.schema.layout.LayoutGraph
-import app.treelune.tools.schema.layout.LayoutGroup
-import app.treelune.tools.schema.layout.SchemaLayout
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -108,7 +108,7 @@ class SchemaSpecTest {
 
     @Test
     fun `an empty group, which the config accepts, is placed`() {
-        val placement = SchemaLayout().place(LayoutGraph(
+        val placement = GraphLayout().place(LayoutGraph(
             boxes = listOf(LayoutBox("A", 80f, 40f), LayoutBox("B", 80f, 40f)),
             edges = listOf(LayoutEdge("A", "B")),
             groups = listOf(LayoutGroup("G", 40f, 16f, boxes = emptyList()))

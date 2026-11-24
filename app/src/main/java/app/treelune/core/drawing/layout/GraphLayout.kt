@@ -1,4 +1,4 @@
-package app.treelune.tools.schema.layout
+package app.treelune.core.drawing.layout
 
 import kotlin.math.abs
 import kotlin.math.max
@@ -6,12 +6,12 @@ import kotlin.math.min
 import kotlin.random.Random
 
 /*
- * The placement of a Schema: boxes, arrows and nested groups laid out from top to bottom, for a
- * phone held upright. Plain Kotlin, with no Android type: what it computes can be run and measured
- * on a computer.
+ * The placement of a drawing of boxes, arrows and nested groups, laid out from top to bottom for a
+ * phone held upright; the Schema tool draws with it (tools/schema, SchemaScene). Plain Kotlin, with
+ * no Android type: what it computes can be run and measured on a computer.
  *
  * The method is the layered one (Sugiyama), applied scope by scope:
- *  - a scope is the app's whole schema or one group; a child group is one opaque node of its
+ *  - a scope is the whole drawing or one group; a child group is one opaque node of its
  *    parent, so that no foreign arrow can run through it;
  *  - an arrow that enters or leaves a group is cut at the group's border, at a port on its top or
  *    bottom side, and continues inside as an arrow of the group's own layout;
@@ -54,7 +54,7 @@ data class LayoutGroup(
 /**
  * What to place. [starts] orders the boxes by where a loop should be entered, first the best; empty,
  * the boxes no arrow reaches, then the others as written. [reference] gives the x each box or group
- * stands at in another drawing of the same schema: among equally clean drawings, the one that leaves
+ * stands at in another drawing of the same graph: among equally clean drawings, the one that leaves
  * neighbours on the same side is kept, so that folding a group does not swap what surrounds it.
  */
 data class LayoutGraph(
@@ -103,12 +103,12 @@ data class Placement(
     val routes: List<PlacedRoute>
 )
 
-/** Places a graph; the graph's ids are expected valid, the Schema's config check having refused the others. */
-class SchemaLayout(private val options: LayoutOptions = LayoutOptions()) {
+/** Places a graph; its ids are expected valid, whoever builds it having refused the others (the Schema's config check). */
+class GraphLayout(private val options: LayoutOptions = LayoutOptions()) {
     /**
      * Ordering rows is a heuristic that depends on where it starts, and a group's ports can follow
-     * what they face outside or what they reach inside. So a schema that is not clean at once is
-     * drawn a few times, from fixed starts (the same schema always gives the same drawing), and the
+     * what they face outside or what they reach inside. So a graph that is not clean at once is
+     * drawn a few times, from fixed starts (the same graph always gives the same drawing), and the
      * drawing kept is the one that fits the width, then has the fewest crossings, bends and height.
      */
     fun place(graph: LayoutGraph): Placement {
@@ -434,7 +434,7 @@ private class Run(private val graph: LayoutGraph, private val options: LayoutOpt
     }
 
     /**
-     * Where a loop is entered, lowest first: by the best start a node holds, the schema's real
+     * Where a loop is entered, lowest first: by the best start a node holds, the drawing's real
      * start even when a loop passes through its group.
      */
     private fun startRank(node: Node): Int = boxesIn(node).minOfOrNull { startIndex[it] ?: Int.MAX_VALUE } ?: Int.MAX_VALUE

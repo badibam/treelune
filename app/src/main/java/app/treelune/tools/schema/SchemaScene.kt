@@ -9,17 +9,17 @@ import app.treelune.core.drawing.InkLevel
 import app.treelune.core.drawing.PathStep
 import app.treelune.core.drawing.TextAnchor
 import app.treelune.core.drawing.TextBaseline
+import app.treelune.core.drawing.layout.GraphLayout
+import app.treelune.core.drawing.layout.LayoutBox
+import app.treelune.core.drawing.layout.LayoutEdge
+import app.treelune.core.drawing.layout.LayoutGraph
+import app.treelune.core.drawing.layout.LayoutGroup
+import app.treelune.core.drawing.layout.LayoutOptions
+import app.treelune.core.drawing.layout.PlacedPoint
+import app.treelune.core.drawing.layout.PlacedRect
+import app.treelune.core.drawing.layout.Placement
 import app.treelune.core.selection.Reference
 import app.treelune.core.themes.TagColor
-import app.treelune.tools.schema.layout.LayoutBox
-import app.treelune.tools.schema.layout.LayoutEdge
-import app.treelune.tools.schema.layout.LayoutGraph
-import app.treelune.tools.schema.layout.LayoutGroup
-import app.treelune.tools.schema.layout.LayoutOptions
-import app.treelune.tools.schema.layout.PlacedPoint
-import app.treelune.tools.schema.layout.PlacedRect
-import app.treelune.tools.schema.layout.Placement
-import app.treelune.tools.schema.layout.SchemaLayout
 import kotlin.math.max
 import kotlin.math.min
 
@@ -100,7 +100,7 @@ internal class SchemaVisible(spec: SchemaSpec, private val folded: Set<String>) 
 }
 
 /**
- * Lays a schema out at a width, in pixels: measures its boxes, has them placed (SchemaLayout), and
+ * Lays a schema out at a width, in pixels: measures its boxes, has them placed (GraphLayout), and
  * writes the shapes the theme draws. A schema running upward is placed with its arrows turned, so
  * that titles stay at the top of their groups, and each head is drawn at the line's other end.
  *
@@ -200,7 +200,7 @@ class SchemaSceneBuilder(private val density: Float, private val unit: Float, pr
         val upward = spec.direction == SchemaDirection.BOTTOM_UP
         val labels = visible.edges.map { edge -> edge.label?.let { ellipsize(it, dp(120f)) } }
         val titles = visible.groups.associate { it.id to ellipsize(it.title, width * 0.6f) }
-        val placement = SchemaLayout(LayoutOptions(
+        val placement = GraphLayout(LayoutOptions(
             maxWidth = width, boxGap = dp(16f) * spacing.gap, rowGap = dp(24f), trackGap = dp(7f), portGap = dp(9f) * spacing.gap,
             groupPadding = GROUP_PADDING * density, blockPadding = dp(6f), blockGap = dp(6f), loopSize = dp(12f)
         )).place(LayoutGraph(

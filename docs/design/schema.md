@@ -71,7 +71,7 @@ Une page de lecture : le schéma sur toute la page, comme en FULL. Ce qui est so
 
 ## Le placement
 
-`tools/schema/layout/SchemaLayout.kt`, en Kotlin sans type Android : l'app mesure les boîtes et leurs textes, le placement rend des positions et des traits à angles droits, le thème dessine. Méthode en couches, groupe par groupe : un groupe est une boîte opaque pour son parent, une flèche qui y entre est coupée à son bord.
+`core/drawing/layout/GraphLayout.kt`, dans le core pour servir aussi au Parcours, en Kotlin sans type Android : l'app mesure les boîtes et leurs textes, le placement rend des positions et des traits à angles droits, le thème dessine. Méthode en couches, groupe par groupe : un groupe est une boîte opaque pour son parent, une flèche qui y entre est coupée à son bord.
 
 ELK n'entre pas dans l'app. Relevé le 2026-11-22 dans les sources de Maven Central : les 500 fichiers d'ELK 0.12.1 autorisent la GPL-3.0, ceux d'EMF (`common`, `ecore`, `xmi`) et de `xtext.xbase.lib`, dont il dépend, non, en version tirée comme en dernière version. L'autre sortie, une exception ajoutée à la licence de Treelune, n'a pas été retenue.
 
