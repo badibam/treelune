@@ -719,20 +719,18 @@ class AICommandProcessor(private val context: Context) {
      * The tooltype is the one injectTooltypeIfNeeded read from the tool for an update.
      */
     private suspend fun configToStoredForm(params: Map<String, Any?>): Map<String, Any?> {
-        val config = params["config"] ?: return params
         val tooltype = params["tooltype"] as? String ?: return params
         val toolType = ToolTypeManager.getToolType(tooltype) ?: return params
-        val schema = JSONObject(app.treelune.core.tools.ToolConfigSettings.schema(toolType, "${tooltype}_config", context).content)
-        val zone = AppConfigManager.getDateTimeConfig().getZoneId()
-        // The written values of its conditions, by the type each faces (ConditionValues)
-        @Suppress("UNCHECKED_CAST")
-        val storedConfig = (ModelValues.fromModel(config, schema, zone) as? Map<String, Any?>)?.let { values ->
-            val nodes = app.treelune.core.tools.ToolConfigSettings.nodes(toolType, context)
-            val conditions = ConditionValues(app.treelune.core.conditions.AppConditionSources(context, toolType.getRowFields()), zone) { s.shared(it) }
-                .toStored(nodes, JsonUtils.toJSONObject(values))
-            // The values of its fields, by the field each is given for (FieldValuesForModel)
-            JsonUtils.toMap(FieldValuesForModel.toStored(nodes, conditions, zone))
-        } ?: return params
+        // One element written alone (ConfigElements): its value read as it would be in its list
+        val element = params["element"] as? Map<*, *>
+        val value = element?.get(app.treelune.core.fields.settings.ConfigElements.VALUE) as? Map<*, *>
+        val list = element?.get(app.treelune.core.fields.settings.ConfigElements.LIST) as? String
+        if (element != null && value != null && list != null) {
+            val stored = storedForm(mapOf(list to listOf(value)), toolType, tooltype) ?: return params
+            return params + ("element" to element + (app.treelune.core.fields.settings.ConfigElements.VALUE to (stored[list] as? List<*>)?.firstOrNull()))
+        }
+        val config = params["config"] ?: return params
+        val storedConfig = storedForm(config, toolType, tooltype) ?: return params
         return params.toMutableMap().apply {
             put("config", storedConfig)
             // The values given for fields the change makes required are entry values: read with
@@ -741,8 +739,23 @@ class AICommandProcessor(private val context: Context) {
                 @Suppress("UNCHECKED_CAST")
                 val newConfig = JsonUtils.toJSONObject(storedConfig as Map<String, Any?>)
                 val entrySchema = JSONObject(BaseSchemas.getEntrySchemaOrThrow(toolType, newConfig, params["tool_instance_id"] as? String, context))
-                put("fill_values", ModelValues.fromModel(fill, entrySchema, zone))
+                put("fill_values", ModelValues.fromModel(fill, entrySchema, AppConfigManager.getDateTimeConfig().getZoneId()))
             }
+        }
+    }
+
+    /** [config] as the model wrote it, in its stored form; null when it is not an object. */
+    private suspend fun storedForm(config: Any, toolType: app.treelune.core.tools.ToolTypeContract, tooltype: String): Map<String, Any?>? {
+        val schema = JSONObject(app.treelune.core.tools.ToolConfigSettings.schema(toolType, "${tooltype}_config", context).content)
+        val zone = AppConfigManager.getDateTimeConfig().getZoneId()
+        // The written values of its conditions, by the type each faces (ConditionValues)
+        @Suppress("UNCHECKED_CAST")
+        return (ModelValues.fromModel(config, schema, zone) as? Map<String, Any?>)?.let { values ->
+            val nodes = app.treelune.core.tools.ToolConfigSettings.nodes(toolType, context)
+            val conditions = ConditionValues(app.treelune.core.conditions.AppConditionSources(context, toolType.getRowFields()), zone) { s.shared(it) }
+                .toStored(nodes, JsonUtils.toJSONObject(values))
+            // The values of its fields, by the field each is given for (FieldValuesForModel)
+            JsonUtils.toMap(FieldValuesForModel.toStored(nodes, conditions, zone))
         }
     }
 

@@ -3419,6 +3419,10 @@
     <string name="ai_read_user_contents">Contents of the zones read</string>
     <string name="ai_read_user_contents_of">\'%1$s\': contents read</string>
     <string name="service_error_tool_look_and_config">Give the whole config or the look alone, not both</string>
+    <string name="service_error_tool_element_and_config">Give the whole config or one element alone, not both</string>
+    <string name="service_error_config_element_list">“%1$s” is not a list written element by element; this tool\'s: %2$s</string>
+    <string name="service_error_config_element_value">An element\'s value is an object, or null to take it out</string>
+    <string name="service_error_config_element_missing">No element “%1$s” in “%2$s” to take out</string>
     <string name="service_error_tool_look_key">“%1$s” is not part of a tool\'s look: %2$s</string>
     <!-- What depends on a thing about to be deleted (Dependents) -->
     <string name="dependents_entries_of">%1$d entries of %2$s</string>

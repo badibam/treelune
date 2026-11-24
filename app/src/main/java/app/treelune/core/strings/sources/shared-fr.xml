@@ -3419,6 +3419,10 @@
     <string name="ai_read_user_contents">Contenu des zones lu</string>
     <string name="ai_read_user_contents_of">« %1$s » : contenu lu</string>
     <string name="service_error_tool_look_and_config">Donne la config entière ou l\'apparence seule, pas les deux</string>
+    <string name="service_error_tool_element_and_config">Donne la config entière ou un élément seul, pas les deux</string>
+    <string name="service_error_config_element_list">« %1$s » n\'est pas une liste qui s\'écrit élément par élément ; celles de cet outil : %2$s</string>
+    <string name="service_error_config_element_value">La valeur d\'un élément est un objet, ou null pour le retirer</string>
+    <string name="service_error_config_element_missing">Aucun élément « %1$s » dans « %2$s » à retirer</string>
     <string name="service_error_tool_look_key">« %1$s » ne fait pas partie de l\'apparence d\'un outil : %2$s</string>
     <!-- What depends on a thing about to be deleted (Dependents) -->
     <string name="dependents_entries_of">%1$d entrées de %2$s</string>

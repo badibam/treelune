@@ -238,6 +238,20 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             configJson = merged.toString()
         }
 
+        // One element of one of its lists, by its id, written into the config it has: a box or a
+        // program changed without the rest sent back (ConfigElements)
+        val element = params.optJSONObject(ELEMENT)
+        if (element != null) {
+            if (configJson.isNotBlank()) return OperationResult.error(s.shared("service_error_tool_element_and_config"))
+            val type = ToolTypeManager.getToolType(existingTool.tooltype)
+                ?: return OperationResult.error(s.shared("error_tooltype_not_found").format(existingTool.tooltype))
+            when (val written = app.treelune.core.fields.settings.ConfigElements.write(
+                app.treelune.core.tools.ToolConfigSettings.nodes(type, context), JSONObject(existingTool.config_json), element) { s.shared(it) }) {
+                is app.treelune.core.fields.settings.ConfigElements.Written.Refused -> return OperationResult.error(written.message)
+                is app.treelune.core.fields.settings.ConfigElements.Written.Config -> configJson = written.config.toString()
+            }
+        }
+
         // The options of CHOICE fields its editor renames (OptionRenames): their entries, the
         // values the config holds and the filters of other tools follow them
         val renames = try {
@@ -415,7 +429,19 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         ) + iconCheck.report() + (migration?.let { report(it, aimedBy) } ?: emptyMap())
             + (emptiedGroup?.let { mapOf("group_emptied" to it) } ?: emptyMap())
             + (filtersRenamed.takeIf { it.isNotEmpty() }?.let { tools -> mapOf("filters_renamed" to tools.map { JSONObject(it.config_json).getString("name") }) } ?: emptyMap())
-            + (removedFieldValues.takeIf { it > 0 }?.let { mapOf("removed_field_values" to it) } ?: emptyMap()))
+            + (removedFieldValues.takeIf { it > 0 }?.let { mapOf("removed_field_values" to it) } ?: emptyMap())
+            + (element?.let { written -> elementId(written, JSONObject(updatedTool.config_json))?.let { mapOf("element_id" to it) } } ?: emptyMap()))
+    }
+
+    /**
+     * The id of the element [element] wrote, as the stored [config] holds it: the one it was given,
+     * or for one added without, the one the tool gave the last of its list; null for one taken out.
+     */
+    private fun elementId(element: JSONObject, config: JSONObject): String? {
+        if (element.optJSONObject(app.treelune.core.fields.settings.ConfigElements.VALUE) == null) return null
+        element.optString(app.treelune.core.fields.settings.ConfigElements.ID).takeIf { it.isNotBlank() }?.let { return it }
+        val list = config.optJSONArray(element.optString(app.treelune.core.fields.settings.ConfigElements.LIST)) ?: return null
+        return list.optJSONObject(list.length() - 1)?.optString(app.treelune.core.fields.settings.ConfigElements.ID)?.takeIf { it.isNotEmpty() }
     }
 
     /**
@@ -1360,6 +1386,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
     companion object {
         /** An update's look alone (`look`), merged into the tool's config. */
         const val LOOK = "look"
+        /** One element of a list of its config, written alone (ConfigElements) */
+        const val ELEMENT = "element"
 
         /** What a look alone may change: the tool's group, its tile's size, its icon, the icon's colour, its texture. */
         val LOOK_KEYS = listOf("group", "tile_size", "icon_name", app.treelune.core.themes.IconColor.KEY, app.treelune.core.themes.Texture.KEY)
