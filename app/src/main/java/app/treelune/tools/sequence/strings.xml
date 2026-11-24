@@ -255,4 +255,23 @@
     <string name="launch_media_count">Played %1$d times</string>
     <string name="launch_media_never">Never played</string>
     <string name="timer_proposed">Timer · %1$s proposed</string>
+    <string name="variant_programs">Programs</string>
+    <string name="schema_variant_programs">Several programs, each with its own steps, one chosen at start</string>
+    <string name="field_programs">Programs</string>
+    <string name="schema_programs">The programs to choose from at start, in order</string>
+    <string name="schema_program_element">A program: its name, what it is for, its steps</string>
+    <string name="field_program_id">Id</string>
+    <string name="schema_program_id">Given by the app from the name when the program is created, fixed afterwards. Omit it for a new program; repeat it as is for an existing one: changing it cuts the sessions that played it from it</string>
+    <string name="field_program_name">Name</string>
+    <string name="schema_program_name">The program\'s name, as the list at start shows it</string>
+    <string name="field_program_description">Description</string>
+    <string name="schema_program_description">What the program is for, shown before it starts</string>
+    <string name="field_program">Program</string>
+    <string name="schema_program">The id of the program the session played</string>
+    <string name="schema_complete_program">For a session of programs, required: the id of the program played</string>
+    <string name="error_program_missing">Say which program is played: a session of programs plays one of them</string>
+    <string name="error_program_unknown">No program has the id “%1$s”</string>
+    <string name="error_program_auto_next_without_length">Program “%1$s”: the step “%2$s” has no time of its own: nothing would end it by itself. Give it a time, or untick Next step by itself.</string>
+    <string name="launch_program">Which program?</string>
+    <string name="launch_program_steps">Steps: %1$d</string>
 </resources>

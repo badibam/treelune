@@ -99,6 +99,8 @@ object SequenceToolType : ToolTypeContract {
     const val STEP_STATUSES = "step_statuses"
     /** The background files chosen for the session, its own links */
     const val BACKGROUND = "background"
+    /** The program the session played, by its id (SequenceVariants.PROGRAMS); its steps kept apart, it outlives the program */
+    const val PROGRAM = "program"
 
     private fun s(context: Context) = Strings.`for`(tool = "sequence", context = context)
 
@@ -170,8 +172,8 @@ object SequenceToolType : ToolTypeContract {
 
     /**
      * What makes a session (SequenceVariants): its steps; a timer, its length proposed at launch;
-     * or a medium, played from an entry chosen at launch among a selection's, from the file field
-     * named, offered in the order of a sort.
+     * a medium, played from an entry chosen at launch among a selection's, from the file field
+     * named, offered in the order of a sort; or programs, each its own steps, one chosen at launch.
      */
     private fun variant(text: (String) -> String) = SettingNode.Variant(
         selector = SettingNode.Field(field(SequenceVariants.VARIANT, text("field_variant"), FieldType.CHOICE, text("schema_variant"),
@@ -192,6 +194,16 @@ object SequenceToolType : ToolTypeContract {
                     distinct = true, description = text("schema_media_shown")),
                 SettingNode.Field(field(SequenceVariants.MEDIA_IMAGES, text("field_media_images"), FieldType.TEXT, text("schema_media_images"), mapOf("length" to TextLength.SHORT.name)),
                     fieldOf = SequenceVariants.MEDIA_SOURCE, fieldOfKinds = setOf(FileKind.IMAGE))
+            ),
+            SequenceVariants.PROGRAMS to listOf(
+                SettingNode.ListOf(SequenceVariants.PROGRAMS, text("field_programs"), SettingNode.Item.Of(listOf(
+                    // Given from its name at the save, fixed from then on: what a played session and a reference keep
+                    SettingNode.Field(field(SequenceVariants.PROGRAM_ID, text("field_program_id"), FieldType.TEXT, text("schema_program_id"), mapOf("length" to TextLength.SHORT.name)), systemWritten = true),
+                    SettingNode.Field(field(SequenceVariants.PROGRAM_NAME, text("field_program_name"), FieldType.TEXT, text("schema_program_name"), mapOf("length" to TextLength.SHORT.name)), required = true),
+                    SettingNode.Field(field(SequenceVariants.PROGRAM_DESCRIPTION, text("field_program_description"), FieldType.TEXT, text("schema_program_description"), mapOf("length" to TextLength.LONG.name))),
+                    steps(text)
+                ), description = text("schema_program_element")), required = true, minItems = 1,
+                    summary = listOf(SequenceVariants.PROGRAM_NAME), description = text("schema_programs"))
             )
         ),
         descriptions = SequenceVariants.ALL.associateWith { text("schema_variant_$it") }
@@ -283,7 +295,8 @@ object SequenceToolType : ToolTypeContract {
                 data(BACKGROUND, FieldType.FILE, BACKGROUND_FILE_CONFIG),
                 data(BACKGROUND_SHUFFLE, FieldType.BOOLEAN),
                 data(BACKGROUND_LOOP, FieldType.BOOLEAN),
-                data(BACKGROUND_VOLUME, FieldType.SCALE, BACKGROUND_VOLUME_CONFIG)
+                data(BACKGROUND_VOLUME, FieldType.SCALE, BACKGROUND_VOLUME_CONFIG),
+                data(PROGRAM, FieldType.TEXT, mapOf("length" to TextLength.SHORT.name))
             ),
             state = listOf(
                 StateField(field(STATUS, s.tool("field_status"), FieldType.CHOICE, s.tool("schema_status"), choice(Status.ALL) { s.tool("status_$it") }), filterable = true),
@@ -322,7 +335,8 @@ object SequenceToolType : ToolTypeContract {
                 SettingNode.Field(field("id", s.tool("field_entry"), FieldType.TEXT, s.tool("schema_complete_id"), mapOf("length" to TextLength.SHORT.name))),
                 SettingNode.Field(field("timestamp", s.tool("field_when"), FieldType.DATETIME, s.tool("schema_complete_timestamp"))),
                 SettingNode.Field(field(DURATION, s.tool("field_duration"), FieldType.DURATION, s.tool("schema_complete_duration"), SESSION_UNITS)),
-                SettingNode.Field(field("entry", s.tool("field_media_entry"), FieldType.TEXT, s.tool("schema_complete_entry"), mapOf("length" to TextLength.SHORT.name)))
+                SettingNode.Field(field("entry", s.tool("field_media_entry"), FieldType.TEXT, s.tool("schema_complete_entry"), mapOf("length" to TextLength.SHORT.name))),
+                SettingNode.Field(field(PROGRAM, s.tool("field_program"), FieldType.TEXT, s.tool("schema_complete_program"), mapOf("length" to TextLength.SHORT.name)))
             )),
             ToolOperation(SequenceService.CORRECT, s.tool("operation_correct"), listOf(
                 id,
@@ -351,8 +365,20 @@ object SequenceToolType : ToolTypeContract {
      * A step without a length of its own that would pass by itself: nothing would ever end it. A
      * medium's field: a file field of its selection's tool that takes sounds or videos.
      */
+    /** A program without its id gets one from its name, fixed from then on: renaming it keeps the sessions that played it. */
+    override fun completeConfig(config: JSONObject, previous: JSONObject?): JSONObject {
+        val completed = JSONObject(config.toString())
+        app.treelune.core.fields.settings.ElementKeys.complete(SequenceVariants.programs(completed), SequenceVariants.PROGRAM_ID) {
+            app.treelune.core.fields.settings.ElementKeys.keyOf("", it.optString(SequenceVariants.PROGRAM_NAME)).ifEmpty { "program" }
+        }
+        return completed
+    }
+
     override suspend fun refuseConfig(config: JSONObject, context: Context): String? = when (SequenceVariants.of(config)) {
         SequenceVariants.STEPS -> SequencePlan.endless(config)?.let { s(context).tool("error_auto_next_without_length").format(it) }
+        SequenceVariants.PROGRAMS -> SequenceVariants.programs(config).firstNotNullOfOrNull { program ->
+            SequencePlan.endless(program)?.let { s(context).tool("error_program_auto_next_without_length").format(program.optString(SequenceVariants.PROGRAM_NAME), it) }
+        }
         SequenceVariants.MEDIA -> refuseMediaField(config, context)
         else -> null
     }

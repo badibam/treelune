@@ -89,7 +89,9 @@ data class SequenceEntry(
     /** The background files chosen for it, its own links */
     val background: List<String> = emptyList(),
     /** The background's volume chosen at launch */
-    val backgroundVolume: Int? = null
+    val backgroundVolume: Int? = null,
+    /** The program it played, by its id; null for a session of another variant */
+    val program: String? = null
 ) {
     /** The steps of the session, once it is over: done, skipped and not reached together. */
     val stepsTotal: Int? get() = if (stepsDone != null && stepsSkipped != null && stepsNotDone != null) stepsDone + stepsSkipped + stepsNotDone else null
@@ -114,7 +116,8 @@ internal fun sequenceEntries(result: Map<String, Any?>?): List<SequenceEntry> =
             steps = SequenceSteps.read(data?.get(SequenceToolType.KEPT_STEPS) as? String),
             extra = (e["extra"] as? Map<*, *>)?.entries?.associate { it.key.toString() to it.value } ?: emptyMap(),
             background = app.treelune.core.fields.FileField.ids(data?.get(SequenceToolType.BACKGROUND)),
-            backgroundVolume = count(SequenceToolType.BACKGROUND_VOLUME)
+            backgroundVolume = count(SequenceToolType.BACKGROUND_VOLUME),
+            program = (data?.get(SequenceToolType.PROGRAM) as? String)?.takeIf { it.isNotEmpty() }
         )
     }
 
@@ -405,6 +408,10 @@ private fun Idle(config: JSONObject, entries: List<SequenceEntry>, s: StringsCon
             UI.Text(s.tool("field_steps"), TextType.SUBTITLE)
             StepLines(config.optJSONArray(SequencePlan.STEPS), depth = 0, s)
         }
+        SequenceVariants.PROGRAMS -> {
+            UI.Text(s.tool("field_programs"), TextType.SUBTITLE)
+            SequenceVariants.programs(config).forEach { UI.Text(it.optString(SequenceVariants.PROGRAM_NAME), TextType.BODY) }
+        }
         SequenceVariants.TIMER -> UI.Text(s.tool("timer_proposed").format(clockText(config.optLong(SequenceVariants.TIMER_DURATION, SequenceVariants.DEFAULT_TIMER))), TextType.CAPTION)
     }
 
@@ -413,7 +420,7 @@ private fun Idle(config: JSONObject, entries: List<SequenceEntry>, s: StringsCon
     history.forEach { entry ->
         val opens = entry.stepsTotal != null
         Box(modifier = if (opens) Modifier.fillMaxWidth().clickable { onOpen(entry.id) }.padding(vertical = UI.Space.XS) else Modifier.padding(vertical = UI.Space.XS)) {
-            UI.Text(historyLine(entry, s, context), TextType.BODY)
+            UI.Text(historyLine(entry, config, s, context), TextType.BODY)
         }
     }
 }
@@ -423,8 +430,13 @@ internal fun stepsText(entry: SequenceEntry, s: StringsContext): String? =
     if (entry.stepsDone != null && entry.stepsTotal != null && entry.stepsTotal!! > 1) s.tool("steps_of").format(entry.stepsDone, entry.stepsTotal) else null
 
 /** One history line: when, its state, how long, how far. */
-internal fun historyLine(entry: SequenceEntry, s: StringsContext, context: Context): String = listOfNotNull(
+/**
+ * A session over, on one line: when, its program by its name in [config] (none once the program
+ * is gone, its steps keeping theirs), how it ended, how long, its steps.
+ */
+internal fun historyLine(entry: SequenceEntry, config: JSONObject, s: StringsContext, context: Context): String = listOfNotNull(
     DateTimeFormatter.formatForDisplay(entry.timestamp, context),
+    entry.program?.let { SequenceVariants.program(config, it)?.optString(SequenceVariants.PROGRAM_NAME) },
     s.tool("status_${entry.status}"),
     entry.duration?.let { clockText(it) },
     stepsText(entry, s)

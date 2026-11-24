@@ -14,8 +14,9 @@ import org.json.JSONObject
 
 /**
  * What makes a session, as its config's variant says (docs/TOOLS.md, « Session (Sequence) »):
- * its steps and blocks; a timer, its length asked at launch; or a sound or a video, played from
- * an entry chosen at launch among a selection's, in the field the config names.
+ * its steps and blocks; a timer, its length asked at launch; a sound or a video, played from
+ * an entry chosen at launch among a selection's, in the field the config names; or one of its
+ * programs, each with its own steps, chosen at launch.
  *
  * To the user a timer and a medium have no steps. Here each makes a single step out of what was
  * answered at launch ([Answer]), and everything after runs as for steps: the run, the gestures,
@@ -29,7 +30,13 @@ object SequenceVariants {
     const val STEPS = "steps"
     const val TIMER = "timer"
     const val MEDIA = "media"
-    val ALL = listOf(STEPS, TIMER, MEDIA)
+    const val PROGRAMS = "programs"
+    val ALL = listOf(STEPS, TIMER, MEDIA, PROGRAMS)
+
+    /** A program: its id, given by the tool from its name and fixed (SequenceToolType.completeConfig), its name, its description, its steps under "steps" as a config's (SequencePlan) */
+    const val PROGRAM_ID = "id"
+    const val PROGRAM_NAME = "name"
+    const val PROGRAM_DESCRIPTION = "description"
 
     /** The timer's length proposed at launch, and taken by `complete` without one. */
     const val TIMER_DURATION = "timer_duration"
@@ -54,13 +61,20 @@ object SequenceVariants {
     /** Whether starting a session of [config] opens a window first: its variant asks, or its background. */
     fun asksAtLaunch(config: JSONObject): Boolean = of(config) != STEPS || offersBackground(config)
 
-    /** What was answered at launch: nothing for steps, a length for a timer, an entry for a medium. */
+    /** What was answered at launch: nothing for steps, a length for a timer, an entry for a medium, a program by its id. */
     sealed interface Answer {
         data object None : Answer
         /** [length] null: the config's own */
         data class Length(val length: Long?) : Answer
         data class Entry(val id: String?) : Answer
+        data class Program(val id: String?) : Answer
     }
+
+    /** The programs of [config], in their order. */
+    fun programs(config: JSONObject): List<JSONObject> = app.treelune.core.fields.settings.ElementKeys.objects(config.optJSONArray(PROGRAMS))
+
+    /** The program [id] of [config]; null when it has none of that id. */
+    fun program(config: JSONObject, id: String): JSONObject? = programs(config).firstOrNull { it.optString(PROGRAM_ID) == id }
 
     /** The steps of a session, or why it cannot start. */
     sealed interface Made {
@@ -85,6 +99,10 @@ object SequenceVariants {
                 // A selection whose tool cannot be read says why
                 val step = try { mediaStep(context, config, id, s) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { return Made.Refused(e.message ?: "") }
                 listOf(step ?: return Made.Refused(s.tool("error_media_entry_outside")))
+            }
+            PROGRAMS -> {
+                val id = (answer as? Answer.Program)?.id ?: return Made.Refused(s.tool("error_program_missing"))
+                SequencePlan.unroll(program(config, id) ?: return Made.Refused(s.tool("error_program_unknown").format(id)))
             }
             else -> SequencePlan.unroll(config)
         }

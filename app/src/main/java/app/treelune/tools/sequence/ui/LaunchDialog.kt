@@ -45,7 +45,7 @@ import org.json.JSONObject
 
 /**
  * What a session's variant asks before it starts (SequenceVariants), as the params of the
- * operation it opens for: a timer's `duration`, a medium's `entry`; nothing for steps, which
+ * operation it opens for: a timer's `duration`, a medium's `entry`, a program's `program`; nothing for steps, which
  * starts at once unless it offers a background. [onAnswer] gets those params, [onCancel] closes
  * without starting.
  *
@@ -64,6 +64,7 @@ internal fun LaunchDialog(config: JSONObject, history: List<SequenceEntry>, s: S
     when (SequenceVariants.of(config)) {
         SequenceVariants.TIMER -> TimerDialog(config, s, background, answer, onCancel)
         SequenceVariants.MEDIA -> MediaDialog(config, history, s, background, answer, onCancel)
+        SequenceVariants.PROGRAMS -> ProgramsDialog(config, history, s, background, answer, onCancel)
         else -> if (offers) UI.Dialog(type = DialogType.CONFIRM, onConfirm = { answer(emptyMap()) }, onCancel = onCancel) {
             Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) { background() }
         } else LaunchedEffect(Unit) { onAnswer(emptyMap()) }
@@ -220,6 +221,79 @@ private fun MediaPreview(config: JSONObject, entry: Map<String, Any?>, lastAt: L
                 UI.ActionButton(action = ButtonAction.BACK, onClick = onBack)
                 UI.Button(type = ButtonType.PRIMARY, size = Size.M,
                     state = if (unreachable || medium == null) ComponentState.DISABLED else ComponentState.NORMAL, onClick = onStart) {
+                    UI.Text(s.tool("launch_media_start"), TextType.BODY)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Which program: the config's, in its order, each with when this tool last played it; the list
+ * opened at the one played last. A touch never starts: it opens the program ([ProgramPreview]),
+ * whose « Start » answers.
+ */
+@Composable
+private fun ProgramsDialog(config: JSONObject, history: List<SequenceEntry>, s: StringsContext, background: @Composable () -> Unit, onAnswer: (Map<String, Any?>) -> Unit, onCancel: () -> Unit) {
+    val context = LocalContext.current
+    val programs = remember(config.toString()) { SequenceVariants.programs(config) }
+    // When each program was played last, and how many times, by its id
+    val played = remember(history) { history.filter { it.program != null && it.status != SequenceToolType.Status.PLANNED }.groupBy { it.program!! } }
+    val lastPlayed = remember(played) { played.maxByOrNull { (_, sessions) -> sessions.maxOf { it.timestamp } }?.key }
+    var previewed by rememberSaveable { mutableStateOf<String?>(null) }
+
+    UI.Dialog(type = DialogType.SELECTION, onConfirm = {}, onCancel = onCancel) {
+        Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+            UI.Text(s.tool("launch_program"), TextType.SUBTITLE)
+            val start = programs.indexOfFirst { it.optString(SequenceVariants.PROGRAM_ID) == lastPlayed }.coerceAtLeast(0)
+            val list = rememberLazyListState(initialFirstVisibleItemIndex = start)
+            LazyColumn(state = list) {
+                itemsIndexed(programs, key = { _, p -> p.optString(SequenceVariants.PROGRAM_ID) }) { _, program ->
+                    val id = program.optString(SequenceVariants.PROGRAM_ID)
+                    Column(modifier = Modifier.fillMaxWidth().clickable { previewed = id }.padding(vertical = UI.Space.S)) {
+                        UI.Text(program.optString(SequenceVariants.PROGRAM_NAME), TextType.BODY)
+                        played[id]?.maxOf { it.timestamp }?.let { at ->
+                            UI.Text(s.tool(if (id == lastPlayed) "launch_media_last" else "launch_media_played").format(DateTimeFormatter.formatForDisplay(at, context)), TextType.CAPTION)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    previewed?.let { id -> SequenceVariants.program(config, id) }?.let { program ->
+        val sessions = played[program.optString(SequenceVariants.PROGRAM_ID)].orEmpty()
+        ProgramPreview(program, sessions.maxOfOrNull { it.timestamp }, sessions.size, s, background,
+            onStart = { onAnswer(mapOf(SequenceToolType.PROGRAM to program.optString(SequenceVariants.PROGRAM_ID))) }, onBack = { previewed = null })
+    }
+}
+
+/**
+ * The program [program] touched, before it starts: its name, its description, when it was played
+ * last and how many times, then its steps as they will run, blocks unrolled, each with its length.
+ * « Start » answers; back returns to the list.
+ */
+@Composable
+private fun ProgramPreview(program: JSONObject, lastAt: Long?, count: Int, s: StringsContext, background: @Composable () -> Unit, onStart: () -> Unit, onBack: () -> Unit) {
+    val context = LocalContext.current
+    val steps = remember(program.toString()) { app.treelune.tools.sequence.SequencePlan.unroll(program) }
+    UI.Dialog(type = DialogType.SELECTION, onConfirm = onBack, onCancel = onBack) {
+        Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+            UI.Text(program.optString(SequenceVariants.PROGRAM_NAME), TextType.TITLE)
+            UI.Text(if (lastAt == null) s.tool("launch_media_never")
+                else s.tool("launch_media_last").format(DateTimeFormatter.formatForDisplay(lastAt, context)) + " · " + s.tool("launch_media_count").format(count), TextType.CAPTION)
+            program.optString(SequenceVariants.PROGRAM_DESCRIPTION).takeIf { it.isNotBlank() }?.let { UI.Text(it, TextType.BODY) }
+            UI.Text(s.tool("launch_program_steps").format(steps.size), TextType.LABEL)
+            steps.forEach { step ->
+                Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                    androidx.compose.foundation.layout.Box(modifier = Modifier.weight(1f)) { UI.Text(step.name, TextType.BODY) }
+                    step.duration?.let { UI.Text(clockText(it), TextType.CAPTION) }
+                }
+            }
+            background()
+            Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {
+                UI.ActionButton(action = ButtonAction.BACK, onClick = onBack)
+                UI.Button(type = ButtonType.PRIMARY, size = Size.M, onClick = onStart) {
                     UI.Text(s.tool("launch_media_start"), TextType.BODY)
                 }
             }

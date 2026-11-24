@@ -112,4 +112,43 @@ class SequenceVariantsTest {
             "config" to app.treelune.core.utils.JsonUtils.toMap(config)))
         assertFalse(session.isSuccess)
     }
+
+    @Test
+    fun `a program is chosen at launch by its id, given from its name, written alone, and kept by the session that played it`() = runBlocking {
+        val coordinator = Coordinator(context)
+        val zone = coordinator.processUserAction("zones.create", mapOf("name" to "Drawing"))
+        fun step(name: String) = mapOf("kind" to "step", "name" to name, "length" to "fixed", "duration" to 480_000L, "auto_next" to false)
+        val created = coordinator.processUserAction("tools.create", mapOf("zone_id" to zone.data!!["zone_id"], "tooltype" to "sequence",
+            "config" to mapOf("name" to "Cycle", SequenceVariants.VARIANT to SequenceVariants.PROGRAMS, SequenceVariants.PROGRAMS to listOf(
+                mapOf(SequenceVariants.PROGRAM_NAME to "Séance 1", "steps" to listOf(step("Emoji"), step("La Bean"))),
+                mapOf(SequenceVariants.PROGRAM_NAME to "Séance 1", "steps" to listOf(step("Plante")))))))
+        assertTrue(created.error, created.isSuccess)
+        val sequenceId = created.data!!["tool_instance_id"] as String
+        suspend fun config() = JSONObject((coordinator.processUserAction("tools.get", mapOf("tool_instance_id" to sequenceId)).data!!["tool_instance"] as Map<*, *>)
+            .let { @Suppress("UNCHECKED_CAST") app.treelune.core.utils.JsonUtils.toJSONObject(it["config"] as Map<String, Any?>) }.toString())
+        assertEquals(listOf("seance_1", "seance_1_2"), SequenceVariants.programs(config()).map { it.getString(SequenceVariants.PROGRAM_ID) })
+
+        assertEquals(listOf("Emoji", "La Bean"), steps(SequenceVariants.steps(context, config(), SequenceVariants.Answer.Program("seance_1"), 0L, s)).map { it.name })
+        assertTrue(SequenceVariants.steps(context, config(), SequenceVariants.Answer.Program("gone"), 0L, s) is SequenceVariants.Made.Refused)
+        assertTrue(SequenceVariants.steps(context, config(), SequenceVariants.Answer.Program(null), 0L, s) is SequenceVariants.Made.Refused)
+
+        // One program added alone, its id given from its name and returned; the others untouched
+        val added = coordinator.processUserAction("tools.update", mapOf("tool_instance_id" to sequenceId,
+            "element" to mapOf("list" to SequenceVariants.PROGRAMS, "value" to mapOf(SequenceVariants.PROGRAM_NAME to "Séance 2", "steps" to listOf(step("Vases"))))))
+        assertTrue(added.error, added.isSuccess)
+        assertEquals("seance_2", added.data!!["element_id"])
+        assertEquals(listOf("Séance 1", "Séance 1", "Séance 2"), SequenceVariants.programs(config()).map { it.getString(SequenceVariants.PROGRAM_NAME) })
+        // A program whose step would never end is refused, written alone as whole
+        val endless = coordinator.processUserAction("tools.update", mapOf("tool_instance_id" to sequenceId, "element" to mapOf("list" to SequenceVariants.PROGRAMS, "id" to "seance_2",
+            "value" to mapOf(SequenceVariants.PROGRAM_NAME to "Séance 2", "steps" to listOf(step("Vases") + mapOf("length" to "none", "auto_next" to true))))))
+        assertFalse(endless.isSuccess)
+
+        assertFalse(coordinator.processUserAction("sequence.complete", mapOf("tool_instance_id" to sequenceId, "timestamp" to 1_000L)).isSuccess)
+        val done = coordinator.processUserAction("sequence.complete", mapOf("tool_instance_id" to sequenceId, "timestamp" to 1_000L, SequenceToolType.PROGRAM to "seance_2"))
+        assertTrue(done.error, done.isSuccess)
+        val kept = coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to sequenceId)).data!!["entries"] as List<*>
+        val data = (kept.single() as Map<*, *>)["data"] as Map<*, *>
+        assertEquals("seance_2", data[SequenceToolType.PROGRAM])
+        assertEquals(listOf("Vases"), SequenceSteps.read(data[SequenceToolType.KEPT_STEPS] as String)!!.map { it.name })
+    }
 }

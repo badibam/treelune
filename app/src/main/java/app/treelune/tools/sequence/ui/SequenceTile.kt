@@ -135,7 +135,7 @@ fun rememberSequenceTile(tool: ToolInstance): ToolTile {
             @Composable
             override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val past = entries?.filter { it.status != SequenceToolType.Status.PLANNED && it.run == null }?.sortedByDescending { it.timestamp } ?: return
-                TileGrid(room, past) { entry -> TileLine(historyLine(entry, s, context)) }
+                TileGrid(room, past) { entry -> TileLine(historyLine(entry, config, s, context)) }
             }
         }
     }

@@ -85,9 +85,14 @@ class SequenceService(private val context: Context) : ExecutableService {
     /** What [params] answer to the launch's question, read as the config's variant asks it. */
     private fun answer(params: JSONObject): SequenceVariants.Answer = when {
         params.has("entry") -> SequenceVariants.Answer.Entry(params.optString("entry").takeIf { it.isNotEmpty() })
+        params.has(SequenceToolType.PROGRAM) -> SequenceVariants.Answer.Program(params.optString(SequenceToolType.PROGRAM).takeIf { it.isNotEmpty() })
         params.has(SequenceToolType.DURATION) -> SequenceVariants.Answer.Length((params.opt(SequenceToolType.DURATION) as? Number)?.toLong())
         else -> SequenceVariants.Answer.None
     }
+
+    /** The program a session plays, as its entry keeps it; nothing for the other variants. */
+    private fun programOf(answer: SequenceVariants.Answer): Map<String, Any> =
+        (answer as? SequenceVariants.Answer.Program)?.id?.let { mapOf(SequenceToolType.PROGRAM to it) }.orEmpty()
 
     private suspend fun start(toolInstanceId: String, answer: SequenceVariants.Answer, chosen: JSONObject?): OperationResult {
         if (toolInstanceId.isEmpty()) return OperationResult.error(s.shared("service_error_missing_tool_instance_id"))
@@ -107,7 +112,8 @@ class SequenceService(private val context: Context) : ExecutableService {
         }
         val run = SequenceRun.start(steps, now)
         // Its background, which the entry takes as its own links; none where the config offers none
-        val background = chosen?.takeIf { SequenceVariants.offersBackground(config) }?.let { BackgroundChoice.of(it) }?.toData().orEmpty()
+        val background = chosen?.takeIf { SequenceVariants.offersBackground(config) }?.let { BackgroundChoice.of(it) }?.toData().orEmpty() +
+            programOf(answer)
         val state = mapOf(
             SequenceToolType.STATUS to SequenceToolType.Status.RUNNING,
             SequenceToolType.STARTED_AT to now,
@@ -227,8 +233,11 @@ class SequenceService(private val context: Context) : ExecutableService {
         if (plannedId == null && timestamp == null) return OperationResult.error(s.tool("error_complete_without_time"))
         val config = configOf(toolInstanceId)
         // A timer's duration is both what was asked and what was done
-        val answer = if (SequenceVariants.of(config) == SequenceVariants.MEDIA) SequenceVariants.Answer.Entry(params.optString("entry").takeIf { it.isNotEmpty() })
-            else answer(params)
+        val answer = when (SequenceVariants.of(config)) {
+            SequenceVariants.MEDIA -> SequenceVariants.Answer.Entry(params.optString("entry").takeIf { it.isNotEmpty() })
+            SequenceVariants.PROGRAMS -> SequenceVariants.Answer.Program(params.optString(SequenceToolType.PROGRAM).takeIf { it.isNotEmpty() })
+            else -> answer(params)
+        }
         val steps = when (val made = SequenceVariants.steps(context, config, answer, System.currentTimeMillis(), s)) {
             is SequenceVariants.Made.Refused -> return OperationResult.error(made.error)
             is SequenceVariants.Made.Steps -> made.steps
@@ -238,7 +247,7 @@ class SequenceService(private val context: Context) : ExecutableService {
             SequenceToolType.STEPS_SKIPPED to 0,
             SequenceToolType.STEPS_NOT_DONE to 0,
             SequenceToolType.KEPT_STEPS to SequenceSteps.toJson(SequenceSteps.allDone(steps))
-        )
+        ).apply { putAll(programOf(answer)) }
         // Without a duration given, a session of one timed step lasted it: a timer's, a medium's length
         ((params.opt(SequenceToolType.DURATION) as? Number)?.toLong() ?: steps.singleOrNull()?.takeIf { it.end.timed && SequenceVariants.of(config) != SequenceVariants.STEPS }?.duration)
             ?.let { data[SequenceToolType.DURATION] = it }

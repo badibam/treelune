@@ -255,4 +255,23 @@
     <string name="launch_media_count">Jouée %1$d fois</string>
     <string name="launch_media_never">Jamais jouée</string>
     <string name="timer_proposed">Minuteur · %1$s proposé</string>
+    <string name="variant_programs">Programmes</string>
+    <string name="schema_variant_programs">Plusieurs programmes, chacun avec ses étapes, un choisi au démarrage</string>
+    <string name="field_programs">Programmes</string>
+    <string name="schema_programs">Les programmes où choisir au démarrage, dans l\'ordre</string>
+    <string name="schema_program_element">Un programme : son nom, ce à quoi il sert, ses étapes</string>
+    <string name="field_program_id">Identifiant</string>
+    <string name="schema_program_id">Donné par l\'app à partir du nom à la création du programme, fixe ensuite. À omettre pour un nouveau programme ; à reprendre tel quel pour un programme existant : le changer coupe de lui les séances qui l\'ont joué</string>
+    <string name="field_program_name">Nom</string>
+    <string name="schema_program_name">Le nom du programme, tel que la liste du démarrage le montre</string>
+    <string name="field_program_description">Description</string>
+    <string name="schema_program_description">Ce à quoi sert le programme, montré avant son démarrage</string>
+    <string name="field_program">Programme</string>
+    <string name="schema_program">L\'id du programme joué par la séance</string>
+    <string name="schema_complete_program">Pour une séance de programmes, obligatoire : l\'id du programme joué</string>
+    <string name="error_program_missing">Dis quel programme est joué : une séance de programmes en joue un</string>
+    <string name="error_program_unknown">Aucun programme n\'a l\'id « %1$s »</string>
+    <string name="error_program_auto_next_without_length">Programme « %1$s » : l\'étape « %2$s » n\'a pas de durée à elle : rien ne la terminerait d\'elle-même. Donne-lui une durée, ou décoche Étape suivante d\'elle-même.</string>
+    <string name="launch_program">Quel programme ?</string>
+    <string name="launch_program_steps">Étapes : %1$d</string>
 </resources>
