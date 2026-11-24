@@ -138,10 +138,12 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         // there protects values already stored under the old key, and a tool being created
         // has none. The interface takes that route, assigning names in its editor.
         // A setting left out takes its declared default, as in the screen that creates a tool
-        fieldsRefusal(configJson)?.let { return OperationResult.error(it) }
+        val lists = fieldLists(toolType)
+        lists.firstNotNullOfOrNull { fieldsRefusal(configJson, it) }?.let { return OperationResult.error(it) }
+        val named = lists.fold(configJson) { config, list -> assignMissingFieldNames(config, list) }
         val namedConfigJson = ToolTypeManager.getToolType(toolType)?.let { type ->
-            type.completeConfig(app.treelune.core.tools.ToolConfigSettings.withDefaults(type, JSONObject(assignMissingFieldNames(configJson)), context), null).toString()
-        } ?: assignMissingFieldNames(configJson)
+            type.completeConfig(app.treelune.core.tools.ToolConfigSettings.withDefaults(type, JSONObject(named), context), null).toString()
+        } ?: named
 
         // Its look checked and brought to its stored form (Looks)
         val lookConfig = JSONObject(namedConfigJson)
@@ -264,10 +266,11 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         if (!renames.isEmpty()) configJson = renames.defaults(JSONObject(configJson)).toString()
 
         // Process custom fields if config is being updated
-        if (configJson.isNotBlank()) {
+        if (configJson.isNotBlank()) for (list in fieldLists(existingTool.tooltype)) {
             val processResult = processCustomFields(
                 oldConfigJson = existingTool.config_json,
                 newConfigJson = configJson,
+                list = list,
                 token = token
             )
 
@@ -1235,15 +1238,19 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
      * field without its display_name failed on an exception the caller got raw, naming neither
      * the field nor what to correct.
      */
-    private fun fieldsRefusal(configJson: String): String? {
-        val fields = JSONObject(configJson).opt("extra_fields") ?: return null
+    /** The lists of field definitions a config of [tooltype] holds; the user's fields alone for a type unknown. */
+    private fun fieldLists(tooltype: String): List<String> = ToolTypeManager.getToolType(tooltype)
+        ?.let { app.treelune.core.tools.ToolConfigSettings.fieldLists(it, context) } ?: listOf(app.treelune.core.tools.ToolConfigSettings.EXTRA_FIELDS)
+
+    private fun fieldsRefusal(configJson: String, list: String): String? {
+        val fields = JSONObject(configJson).opt(list) ?: return null
         val schema = app.treelune.core.validation.Schema(
-            id = "extra_fields", displayName = s.shared("custom_fields_list"), description = "",
+            id = list, displayName = s.shared("custom_fields_list"), description = "",
             category = app.treelune.core.validation.SchemaCategory.FIELD_TYPE,
-            content = JSONObject().put("type", "object").put("properties", JSONObject().put("extra_fields",
+            content = JSONObject().put("type", "object").put("properties", JSONObject().put(list,
                 JSONObject().put("type", "array").put("items", JSONObject(app.treelune.core.fields.settings.FieldTypeSchemas.anyDefinition(context))))).toString()
         )
-        val checked = SchemaValidator.validate(schema, mapOf("extra_fields" to JsonUtils.toValue(fields)), context)
+        val checked = SchemaValidator.validate(schema, mapOf(list to JsonUtils.toValue(fields)), context)
         if (!checked.isValid) return checked.errorMessage ?: s.shared("message_validation_error_simple")
         // What the schema cannot say: a setting's rule that depends on another beside it
         val definitions = (fields as? org.json.JSONArray)?.toFieldDefinitions().orEmpty()
@@ -1258,13 +1265,13 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
      * A config with no custom_fields comes back untouched, so the caller can run this over
      * every creation without asking first.
      */
-    private fun assignMissingFieldNames(configJson: String): String {
+    private fun assignMissingFieldNames(configJson: String, list: String): String {
         val config = JSONObject(configJson)
-        val fieldsArray = config.optJSONArray("extra_fields") ?: return configJson
+        val fieldsArray = config.optJSONArray(list) ?: return configJson
         if (fieldsArray.length() == 0) return configJson
 
         val fields = (0 until fieldsArray.length()).map { fieldsArray.getJSONObject(it).toFieldDefinition() }
-        config.put("extra_fields", assignNames(fields).toJsonArray())
+        config.put(list, assignNames(fields).toJsonArray())
         return config.toString()
     }
 
@@ -1280,12 +1287,14 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
      *
      * @param oldConfigJson Previous configuration JSON
      * @param newConfigJson New configuration JSON (with custom_fields possibly modified)
+     * @param list The list of field definitions processed (ToolConfigSettings.fieldLists)
      * @param token Cancellation token
      * @return OperationResult with processed_config containing generated field names
      */
     private suspend fun processCustomFields(
         oldConfigJson: String,
         newConfigJson: String,
+        list: String,
         token: CancellationToken
     ): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
@@ -1295,14 +1304,14 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             val newConfig = JSONObject(newConfigJson)
 
             // Extract custom_fields arrays
-            val oldFieldsArray = oldConfig.optJSONArray("extra_fields")
-            val newFieldsArray = newConfig.optJSONArray("extra_fields")
+            val oldFieldsArray = oldConfig.optJSONArray(list)
+            val newFieldsArray = newConfig.optJSONArray(list)
 
             // Without user's fields, there is nothing to name or check
             if (newFieldsArray == null || newFieldsArray.length() == 0) {
                 return OperationResult.success(mapOf("processed_config" to newConfigJson))
             }
-            fieldsRefusal(newConfigJson)?.let { return OperationResult.error(it) }
+            fieldsRefusal(newConfigJson, list)?.let { return OperationResult.error(it) }
 
             // Parse field definitions
             val oldFields = if (oldFieldsArray != null) {
@@ -1353,7 +1362,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
             // Phase 3: Build processed config with generated names
             val processedFieldsArray = processedFields.toJsonArray()
-            newConfig.put("extra_fields", processedFieldsArray)
+            newConfig.put(list, processedFieldsArray)
 
             return OperationResult.success(mapOf(
                 "processed_config" to newConfig.toString()

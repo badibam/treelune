@@ -64,10 +64,31 @@ object ToolConfigSettings {
             field(SHOW_FIELD_LABELS, text("tools_config_label_show_field_labels"), FieldType.BOOLEAN,
                 text("tools_base_schema_config_show_field_labels"), default = toolType.getDefaultShowFieldLabels()),
             // What they are for in the type is the entry's first level (EntryDescription), which comes with this schema
-            SettingNode.ListOf("extra_fields", text("custom_fields_list"),
+            SettingNode.ListOf(EXTRA_FIELDS, text("custom_fields_list"),
                 SettingNode.Item.Of(FieldTypeSettings.definitionNodes(text)), fieldDefinitions = true,
                 summary = listOf("display_name", "type"), description = text("tools_base_schema_config_extra_fields"))
         )))
+    }
+
+    /** The list of the user's fields every tool's entries can have. */
+    const val EXTRA_FIELDS = "extra_fields"
+
+    /**
+     * The names of the lists of field definitions a config of [toolType] holds at its first level
+     * (SettingNode.ListOf.fieldDefinitions), its sections' and its variants' cases' included: the
+     * user's fields of its entries, and those its type declares besides (a session's programs'),
+     * each named, checked and followed by its values as the user's fields are.
+     */
+    fun fieldLists(toolType: ToolTypeContract, context: Context): List<String> {
+        fun walk(nodes: List<SettingNode>): List<String> = nodes.flatMap { node ->
+            when (node) {
+                is SettingNode.ListOf -> listOfNotNull(node.name.takeIf { node.fieldDefinitions })
+                is SettingNode.Section -> walk(node.nodes)
+                is SettingNode.Variant -> node.cases.values.flatMap { walk(it) }
+                else -> emptyList()
+            }
+        }
+        return walk(nodes(toolType, context)).distinct()
     }
 
     /** The setting that says whether the user's fields show their names. */
