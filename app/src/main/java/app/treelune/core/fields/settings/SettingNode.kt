@@ -21,6 +21,8 @@ sealed class SettingNode {
      *   stored form (milliseconds for a DURATION); null when absence means "nothing"
      * @property secret Entered masked, never sent to the AI, never logged (an API key)
      * @property address A web address, entered without the capital and the correction of a text
+     * @property icon A name of the icon vocabulary (a TEXT), chosen with the icon picker
+     *   (IconSelector) wherever it stands, in a list's element too, never typed
      * @property systemWritten Written by the app and sent back unchanged, never entered: the
      *   form does not show it (a field definition's name, made from its label)
      * @property valueOfDefined A value of the field the object holding it defines (a field
@@ -41,6 +43,7 @@ sealed class SettingNode {
         val default: Any? = null,
         val secret: Boolean = false,
         val address: Boolean = false,
+        val icon: Boolean = false,
         val systemWritten: Boolean = false,
         val valueOfDefined: Boolean = false,
         val fieldOf: String? = null,

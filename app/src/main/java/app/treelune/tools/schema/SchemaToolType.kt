@@ -83,7 +83,8 @@ object SchemaToolType : ToolTypeContract {
                     SettingNode.Field(field(SchemaKeys.THING, s.tool("field_thing"), FieldType.REFERENCE, s.tool("schema_thing"),
                         mapOf(ReferenceTarget.TARGET to mapOf(ReferenceTarget.KINDS to things)))),
                     SettingNode.Field(field(SchemaKeys.SHAPE, s.tool("field_shape"), FieldType.CHOICE, s.tool("schema_shape"),
-                        choice(SchemaShape.entries.map { it.key }) { s.tool("shape_$it") }), default = SchemaShape.ROUNDED.key)
+                        choice(SchemaShape.entries.map { it.key }) { s.tool("shape_$it") }), default = SchemaShape.ROUNDED.key),
+                    SettingNode.Field(field(SchemaKeys.ICON, s.tool("field_icon"), FieldType.TEXT, s.tool("schema_icon"), short()), icon = true)
                 ) + look(context), description = s.tool("schema_node")), summary = listOf(SchemaKeys.LABEL, SchemaKeys.THING, SchemaKeys.ID), description = s.tool("schema_nodes")),
                 SettingNode.ListOf(SchemaKeys.EDGES, s.tool("field_edges"), SettingNode.Item.Of(listOf(
                     SettingNode.Field(field(SchemaKeys.FROM, s.tool("field_from"), FieldType.TEXT, s.tool("schema_from"), short()), required = true, rowField = true),
@@ -112,8 +113,10 @@ object SchemaToolType : ToolTypeContract {
     override fun ConfigTools(config: JSONObject, onChange: (JSONObject) -> Unit) = app.treelune.tools.schema.ui.SchemaMermaidSection(config, onChange)
 
     override suspend fun refuseConfig(config: JSONObject, context: Context): String? = try {
-        SchemaSpec.of(config) { s(context).tool(it) }
-        null
+        val spec = SchemaSpec.of(config) { s(context).tool(it) }
+        // A box's icon is a name of the vocabulary, a former one included
+        spec.nodes.firstOrNull { node -> node.icon?.let { app.treelune.core.icons.Icons.storedName(context, it) == null } == true }
+            ?.let { s(context).tool("error_icon").format(it.id, it.icon) }
     } catch (e: IllegalArgumentException) {
         e.message
     }

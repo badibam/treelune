@@ -17,6 +17,7 @@ object SchemaKeys {
     const val SHAPE = "shape"
     const val THING = "thing"
     const val COLOR = "color"
+    const val ICON = "icon"
     const val FROM = "from"
     const val TO = "to"
     const val LINE = "line"
@@ -55,14 +56,16 @@ enum class SchemaLine(val key: String) {
 
 /**
  * A box. It says something by its own [label], or by the current name of the [thing] of the app
- * it designates; with both, its label is shown.
+ * it designates; with both, its label is shown. Its [icon], a name of the vocabulary, stands
+ * before its text; without one, a linked box shows its thing's icon.
  */
 data class SchemaNode(
     val id: String,
     val label: String?,
     val shape: SchemaShape,
     val thing: Reference?,
-    val color: TagColor?
+    val color: TagColor?,
+    val icon: String? = null
 )
 
 /** An arrow between two boxes; without [head], a plain line. */
@@ -132,7 +135,7 @@ data class SchemaSpec(
                 else ReferenceTarget.referenceOf(json.opt(SchemaKeys.THING)) ?: refuse(own("error_thing").format(id))
             val label = json.text(SchemaKeys.LABEL)
             if (label == null && thing == null) refuse(own("error_node_empty").format(id))
-            return SchemaNode(id, label, shape, thing, color(json, id, own))
+            return SchemaNode(id, label, shape, thing, color(json, id, own), json.text(SchemaKeys.ICON))
         }
 
         private fun edge(json: JSONObject, own: (String) -> String): SchemaEdge {

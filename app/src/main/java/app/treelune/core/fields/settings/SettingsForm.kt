@@ -638,6 +638,10 @@ private fun NodeForm(
                     fieldType = app.treelune.core.ui.FieldType.PASSWORD,
                     required = node.required
                 )
+                node.icon -> (stored as? String)?.takeIf { it.isNotBlank() }.let { current ->
+                    app.treelune.core.ui.components.IconSelector(current = current, label = node.definition.displayName,
+                        onChange = { set(name, it) }, onClear = current?.let { { set(name, null) } })
+                }
                 node.address -> UI.FormField(
                     label = node.definition.displayName,
                     value = stored?.toString() ?: "",

@@ -186,12 +186,13 @@ class SchemaMermaidTest {
     @Test
     fun `a box whose id stays keeps what Mermaid cannot say`() {
         val existing = JSONObject("""{
-            "nodes": [{"id": "A", "label": "old", "color": "RED", "thing": {"kind": "ZONE", "id": "z"}}],
+            "nodes": [{"id": "A", "label": "old", "color": "RED", "icon": "leaf", "thing": {"kind": "ZONE", "id": "z"}}],
             "groups": [{"id": "G", "title": "old", "color": "BLUE", "folded": true, "members": ["A"]}]
         }""")
         val s = spec("flowchart TD\nsubgraph G [New]\nA[new]\nend", existing)
         assertEquals("new", s.nodes[0].label)
         assertEquals("RED", s.nodes[0].color?.name)
+        assertEquals("leaf", s.nodes[0].icon)
         assertEquals("z", s.nodes[0].thing?.id)
         assertEquals("BLUE", s.groups[0].color?.name)
         assertTrue(s.groups[0].folded)

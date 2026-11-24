@@ -79,7 +79,8 @@ fun iconColorPage(label: String, iconName: String, texture: String?) = object : 
  * applies within the category. The search is the one the AI's ICONS command runs, so the same
  * words find the same icons on both sides. Tags are Lucide's, in English.
  *
- * @param current Currently selected icon
+ * @param current Currently selected icon; null for none, which shows no icon
+ * @param label What the icon is, before it: an icon in general by default
  * @param color Its colour, which it is shown in; null for a neutral icon
  * @param suggested Icons offered first: the tooltype's, or a starting set for a zone
  * @param onChange Callback called when an icon is selected
@@ -89,7 +90,8 @@ fun iconColorPage(label: String, iconName: String, texture: String?) = object : 
  */
 @Composable
 fun IconSelector(
-    current: String,
+    current: String?,
+    label: String? = null,
     color: TagColor? = null,
     suggested: List<String> = emptyList(),
     onChange: (String) -> Unit,
@@ -101,8 +103,8 @@ fun IconSelector(
 
     val head: @Composable () -> Unit = {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UI.Space.M)) {
-            UI.Text(s.shared("tools_config_label_icon"), TextType.LABEL)
-            UI.ItemIcon(iconName = current, color = color, size = 32.dp)
+            UI.Text(label ?: s.shared("tools_config_label_icon"), TextType.LABEL)
+            if (current != null) UI.ItemIcon(iconName = current, color = color, size = 32.dp)
         }
     }
     val buttons: @Composable () -> Unit = {
@@ -142,7 +144,7 @@ fun IconSelector(
 
     if (showDialog) {
         IconPickerDialog(
-            current = current,
+            current = current.orEmpty(),
             suggested = suggested,
             s = s,
             onPick = {
