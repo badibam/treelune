@@ -102,7 +102,7 @@ interface ToolTypeContract {
      * @param configJson Configuration JSON of the tool instance
      * @param onNavigateBack Called when user wants to navigate back
      * @param onLongClick Called when user long-clicks for configuration access
-     * @param openEntry What to open at once (EntryToOpen): an entry touched on the tile or
+     * @param openAt What to open at once (OpenAt): an entry touched on the tile or
      *   named by a notification, or a new one; null for the screen alone, where what waits shows
      */
     @Composable
@@ -112,7 +112,7 @@ interface ToolTypeContract {
         zoneName: String,
         onNavigateBack: () -> Unit,
         onLongClick: () -> Unit,
-        openEntry: EntryToOpen?
+        openAt: OpenAt?
     )
 
     /**
@@ -134,14 +134,14 @@ interface ToolTypeContract {
      * The tile of [tool] (ToolTile): its summary and its body, placed by UI.ToolCard as its
      * size lays them out (TileSize). Every tool type fills every size: there is no tile by default.
      * [open] opens the tool on one of its entries, as this tool type understands opening one
-     * (getUsageScreen's openEntry): a tile opens an entry it shows when touched, or a new one from
+     * (getUsageScreen's openAt): a tile opens an entry it shows when touched, or a new one from
      * a button that writes one.
      *
      * A tile that shows something the tool's entries hold loads it once for both parts and
      * reloads on their change (DataChangeNotifier).
      */
     @Composable
-    fun rememberTile(tool: app.treelune.core.database.entities.ToolInstance, open: (EntryToOpen) -> Unit): ToolTile
+    fun rememberTile(tool: app.treelune.core.database.entities.ToolInstance, open: (OpenAt) -> Unit): ToolTile
 
     /**
      * What this tool type offers at the head of its config's root page, beyond settings: actions

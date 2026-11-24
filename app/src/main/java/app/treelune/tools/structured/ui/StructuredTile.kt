@@ -18,7 +18,7 @@ import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.entities.ToolInstance
 import app.treelune.core.strings.Strings
-import app.treelune.core.tools.EntryToOpen
+import app.treelune.core.tools.OpenAt
 import app.treelune.core.tools.ToolTile
 import app.treelune.core.ui.ButtonType
 import app.treelune.core.ui.Size
@@ -42,7 +42,7 @@ private data class TileSheet(val id: String, val name: String, val updatedAt: Lo
  * the lines its tile gives it (TileItem), ten when it follows its content. Touching a sheet opens it.
  */
 @Composable
-fun rememberStructuredTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile {
+fun rememberStructuredTile(tool: ToolInstance, open: (OpenAt) -> Unit): ToolTile {
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "structured", context = context) }
@@ -77,7 +77,7 @@ fun rememberStructuredTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): Too
                         if (loaded.size == 1) s.tool("tile_count_one") else s.tool("tile_count_many").format(loaded.size.toString()),
                         TextType.BODY, maxLines = 1
                     )
-                    UI.Button(type = ButtonType.PRIMARY, size = Size.S, onClick = { open(EntryToOpen.New) }) {
+                    UI.Button(type = ButtonType.PRIMARY, size = Size.S, onClick = { open(OpenAt.New) }) {
                         UI.Text(s.tool("new_sheet"), TextType.LABEL, maxLines = 1)
                     }
                 }
@@ -86,14 +86,14 @@ fun rememberStructuredTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): Too
             // In icons: + writes a new entry, as the summary's button does
 
             @Composable
-            override fun Second() = app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.ADD) { open(EntryToOpen.New) }
+            override fun Second() = app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.ADD) { open(OpenAt.New) }
 
             @Composable
             override fun Body(room: app.treelune.core.look.TileSize.Room) {
                 val read = sheets ?: return
                 val loaded = read.entries
                 TileGrid(room, if (room.rows == null) loaded.take(FULL_SHEETS) else loaded) { sheet ->
-                    app.treelune.core.ui.components.TileItem(sheet.name, modifier = Modifier.clickable { open(EntryToOpen.Existing(sheet.id)) },
+                    app.treelune.core.ui.components.TileItem(sheet.name, modifier = Modifier.clickable { open(OpenAt.Entry(sheet.id)) },
                         fields = app.treelune.core.ui.components.tileItemFields(app.treelune.tools.structured.StructuredToolType, org.json.JSONObject(tool.config_json), sheet.extra, read.names, context))
                 }
             }

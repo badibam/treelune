@@ -93,7 +93,7 @@ private val DATES = setOf("created_at", "updated_at")
  * stored before « Enregistrer ». A sheet changed that leaves the filter stays shown until left.
  */
 @Composable
-fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureClick: () -> Unit, openEntry: app.treelune.core.tools.EntryToOpen? = null) {
+fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureClick: () -> Unit, openAt: app.treelune.core.tools.OpenAt? = null) {
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "structured", context = context) }
@@ -210,13 +210,14 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
     }
     fun close() { openId = null; editing = false; kept = emptyMap() }
 
-    LaunchedEffect(openEntry) {
+    LaunchedEffect(openAt) {
         if (openHandled) return@LaunchedEffect
         openHandled = true
-        when (openEntry) {
-            app.treelune.core.tools.EntryToOpen.New -> open(null)
-            is app.treelune.core.tools.EntryToOpen.Existing -> shown.find { it.id == openEntry.id }?.let { open(it) }
-            null -> Unit
+        when (openAt) {
+            app.treelune.core.tools.OpenAt.New -> open(null)
+            is app.treelune.core.tools.OpenAt.Entry -> shown.find { it.id == openAt.id }?.let { open(it) }
+            // No view of its own: its screen as usual
+            is app.treelune.core.tools.OpenAt.Row, null -> Unit
         }
     }
 

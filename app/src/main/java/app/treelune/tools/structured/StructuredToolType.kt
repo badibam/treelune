@@ -120,14 +120,14 @@ object StructuredToolType : ToolTypeContract {
         zoneName: String,
         onNavigateBack: () -> Unit,
         onLongClick: () -> Unit,
-        openEntry: app.treelune.core.tools.EntryToOpen?
+        openAt: app.treelune.core.tools.OpenAt?
     ) {
-        StructuredScreen(toolInstanceId = toolInstanceId, onNavigateBack = onNavigateBack, onConfigureClick = onLongClick, openEntry = openEntry)
+        StructuredScreen(toolInstanceId = toolInstanceId, onNavigateBack = onNavigateBack, onConfigureClick = onLongClick, openAt = openAt)
     }
 
     override val tileSecond = app.treelune.core.tools.IconSecond.GESTURE
 
     @Composable
-    override fun rememberTile(tool: ToolInstance, open: (app.treelune.core.tools.EntryToOpen) -> Unit): app.treelune.core.tools.ToolTile =
+    override fun rememberTile(tool: ToolInstance, open: (app.treelune.core.tools.OpenAt) -> Unit): app.treelune.core.tools.ToolTile =
         app.treelune.tools.structured.ui.rememberStructuredTile(tool, open)
 }

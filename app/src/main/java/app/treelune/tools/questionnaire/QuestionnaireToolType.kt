@@ -129,14 +129,14 @@ object QuestionnaireToolType : ToolTypeContract {
     override fun getDatabaseEntities(): List<Class<*>> = listOf(ToolDataEntity::class.java)
 
     @Composable
-    override fun getUsageScreen(toolInstanceId: String, configJson: String, zoneName: String, onNavigateBack: () -> Unit, onLongClick: () -> Unit, openEntry: app.treelune.core.tools.EntryToOpen?) {
-        QuestionnaireScreen(toolInstanceId = toolInstanceId, onNavigateBack = onNavigateBack, onConfigureClick = onLongClick, openEntryId = (openEntry as? app.treelune.core.tools.EntryToOpen.Existing)?.id,
-            fillNow = openEntry == app.treelune.core.tools.EntryToOpen.New)
+    override fun getUsageScreen(toolInstanceId: String, configJson: String, zoneName: String, onNavigateBack: () -> Unit, onLongClick: () -> Unit, openAt: app.treelune.core.tools.OpenAt?) {
+        QuestionnaireScreen(toolInstanceId = toolInstanceId, onNavigateBack = onNavigateBack, onConfigureClick = onLongClick, openEntryId = (openAt as? app.treelune.core.tools.OpenAt.Entry)?.id,
+            fillNow = openAt == app.treelune.core.tools.OpenAt.New)
     }
 
     override val tileSecond = app.treelune.core.tools.IconSecond.GESTURE
 
     @Composable
-    override fun rememberTile(tool: ToolInstance, open: (app.treelune.core.tools.EntryToOpen) -> Unit): app.treelune.core.tools.ToolTile =
+    override fun rememberTile(tool: ToolInstance, open: (app.treelune.core.tools.OpenAt) -> Unit): app.treelune.core.tools.ToolTile =
         app.treelune.tools.questionnaire.ui.rememberQuestionnaireTile(tool, open)
 }

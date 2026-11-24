@@ -2,7 +2,7 @@ package app.treelune.core.navigation
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
-import app.treelune.core.tools.EntryToOpen
+import app.treelune.core.tools.OpenAt
 import app.treelune.core.ui.sound.UISignal
 import app.treelune.core.ui.sound.UISounds
 
@@ -95,11 +95,11 @@ object Navigator {
      * notification's. Taken once by the place's screen ([take]): an activity started afresh while
      * the process lives on finds the stack as it was, and must not open the entry again.
      */
-    val openings = mutableStateMapOf<String, EntryToOpen>()
+    val openings = mutableStateMapOf<String, OpenAt>()
 
     val top: Place get() = stack.last()
 
-    fun push(place: Place, opening: EntryToOpen? = null) {
+    fun push(place: Place, opening: OpenAt? = null) {
         opening?.let { openings[place.address] = it }
         set(PlaceStack.push(stack, place), "push")
         if (!place.overlay) UISounds.play(UISignal.ENTER)
@@ -126,7 +126,7 @@ object Navigator {
     }
 
     /** [place] opened from outside the screen on display: a notification, a tool asked for elsewhere. */
-    fun open(place: Place, opening: EntryToOpen? = null) {
+    fun open(place: Place, opening: OpenAt? = null) {
         opening?.let { openings[place.address] = it }
         set(PlaceStack.open(stack, place), "open")
         if (!place.overlay) UISounds.play(UISignal.ENTER)
@@ -146,7 +146,7 @@ object Navigator {
     fun drop(place: Place) = set(stack.filter { it != place }.ifEmpty { listOf(Place.Home) }, "drop")
 
     /** The entry [place] opens on, removed as it is handed: null once taken. */
-    fun take(place: Place): EntryToOpen? = openings.remove(place.address)
+    fun take(place: Place): OpenAt? = openings.remove(place.address)
 
     fun name(place: Place, name: String) {
         if (names[place.address] != name) names[place.address] = name

@@ -121,7 +121,7 @@ object JournalToolType : ToolTypeContract {
     override val tileSecond = app.treelune.core.tools.IconSecond.GESTURE
 
     @Composable
-    override fun rememberTile(tool: app.treelune.core.database.entities.ToolInstance, open: (app.treelune.core.tools.EntryToOpen) -> Unit): app.treelune.core.tools.ToolTile =
+    override fun rememberTile(tool: app.treelune.core.database.entities.ToolInstance, open: (app.treelune.core.tools.OpenAt) -> Unit): app.treelune.core.tools.ToolTile =
         app.treelune.tools.journal.ui.rememberJournalTile(tool, open)
 
     @Composable
@@ -131,14 +131,14 @@ object JournalToolType : ToolTypeContract {
         zoneName: String,
         onNavigateBack: () -> Unit,
         onLongClick: () -> Unit,
-        openEntry: app.treelune.core.tools.EntryToOpen?
+        openAt: app.treelune.core.tools.OpenAt?
     ) {
         JournalScreen(
             toolInstanceId = toolInstanceId,
             zoneName = zoneName,
             onNavigateBack = onNavigateBack,
             onConfigureClick = onLongClick,
-            openEntry = openEntry
+            openAt = openAt
         )
     }
 

@@ -47,7 +47,7 @@ fun NotesScreen(
     zoneName: String,
     onNavigateBack: () -> Unit,
     onConfigureClick: () -> Unit = {},
-    openEntry: app.treelune.core.tools.EntryToOpen? = null
+    openAt: app.treelune.core.tools.OpenAt? = null
 ) {
     LogManager.ui("NotesScreen called with toolInstanceId: $toolInstanceId")
 
@@ -177,12 +177,13 @@ fun NotesScreen(
     // What the tile asked to open, once: a new note last, or a note once the notes are loaded.
     // Kept across recreation, so the dialog is not opened again over one the user closed.
     var openHandled by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(openEntry, notes, notesLoaded) {
+    LaunchedEffect(openAt, notes, notesLoaded) {
         if (openHandled || !notesLoaded) return@LaunchedEffect
-        when (openEntry) {
-            app.treelune.core.tools.EntryToOpen.New -> openCreateDialog((notes.maxOfOrNull { it.position } ?: -1) + 1)
-            is app.treelune.core.tools.EntryToOpen.Existing -> openEditDialog(notes.find { it.id == openEntry.id } ?: return@LaunchedEffect)
-            null -> Unit
+        when (openAt) {
+            app.treelune.core.tools.OpenAt.New -> openCreateDialog((notes.maxOfOrNull { it.position } ?: -1) + 1)
+            is app.treelune.core.tools.OpenAt.Entry -> openEditDialog(notes.find { it.id == openAt.id } ?: return@LaunchedEffect)
+            // No view of its own: its screen as usual
+            is app.treelune.core.tools.OpenAt.Row, null -> Unit
         }
         openHandled = true
     }

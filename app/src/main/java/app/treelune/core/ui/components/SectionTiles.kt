@@ -98,7 +98,7 @@ fun SectionTiles(
     tiles: List<SectionTile>,
     onToolClick: (ToolInstance) -> Unit,
     onToolLongClick: (ToolInstance) -> Unit,
-    onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
+    onOpenEntry: (ToolInstance, app.treelune.core.tools.OpenAt) -> Unit,
     onOpenVariable: (String) -> Unit,
     routineActions: app.treelune.core.ai.ui.routine.RoutineActions,
     edit: GridEdit? = null
@@ -118,7 +118,7 @@ fun SectionTileContent(
     context: android.content.Context,
     onToolClick: (ToolInstance) -> Unit,
     onToolLongClick: (ToolInstance) -> Unit,
-    onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
+    onOpenEntry: (ToolInstance, app.treelune.core.tools.OpenAt) -> Unit,
     onOpenVariable: (String) -> Unit,
     routineActions: app.treelune.core.ai.ui.routine.RoutineActions
 ) = when (tile) {

@@ -45,7 +45,7 @@ fun JournalScreen(
     zoneName: String,
     onNavigateBack: () -> Unit,
     onConfigureClick: () -> Unit = {},
-    openEntry: app.treelune.core.tools.EntryToOpen? = null
+    openAt: app.treelune.core.tools.OpenAt? = null
 ) {
     LogManager.ui("JournalScreen called with toolInstanceId: $toolInstanceId")
 
@@ -88,13 +88,14 @@ fun JournalScreen(
 
     // What the tile asked to open, once: kept across recreation, so a new entry is not created twice
     var openHandled by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(openEntry) {
+    LaunchedEffect(openAt) {
         if (openHandled) return@LaunchedEffect
         openHandled = true
-        when (openEntry) {
-            is app.treelune.core.tools.EntryToOpen.Existing -> navigateToEntryId = openEntry.id
-            app.treelune.core.tools.EntryToOpen.New -> createEntry()
-            null -> Unit
+        when (openAt) {
+            is app.treelune.core.tools.OpenAt.Entry -> navigateToEntryId = openAt.id
+            app.treelune.core.tools.OpenAt.New -> createEntry()
+            // No view of its own: its screen as usual
+            is app.treelune.core.tools.OpenAt.Row, null -> Unit
         }
     }
 

@@ -43,7 +43,7 @@ private data class Passings(val toFill: List<Long>, val oldestToFill: String?, v
  * filled, one per line, each question and its answer in the questions' order: all of them in FULL.
  */
 @Composable
-fun rememberQuestionnaireTile(tool: ToolInstance, open: (app.treelune.core.tools.EntryToOpen) -> Unit): ToolTile {
+fun rememberQuestionnaireTile(tool: ToolInstance, open: (app.treelune.core.tools.OpenAt) -> Unit): ToolTile {
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "questionnaire", context = context) }
@@ -107,7 +107,7 @@ fun rememberQuestionnaireTile(tool: ToolInstance, open: (app.treelune.core.tools
             override fun Second() {
                 val loaded = passings ?: return
                 app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.FILL) {
-                    open(loaded.oldestToFill?.let { app.treelune.core.tools.EntryToOpen.Existing(it) } ?: app.treelune.core.tools.EntryToOpen.New)
+                    open(loaded.oldestToFill?.let { app.treelune.core.tools.OpenAt.Entry(it) } ?: app.treelune.core.tools.OpenAt.New)
                 }
             }
 

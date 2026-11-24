@@ -16,7 +16,7 @@ import app.treelune.core.selection.ReferenceKind
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.strings.Strings
 import app.treelune.core.themes.TagColor
-import app.treelune.core.tools.EntryToOpen
+import app.treelune.core.tools.OpenAt
 import app.treelune.core.tools.ToolTile
 import app.treelune.core.tools.ToolTypeContract
 import app.treelune.tools.schema.ui.SchemaScreen
@@ -129,12 +129,12 @@ object SchemaToolType : ToolTypeContract {
     override fun getDatabaseEntities(): List<Class<*>> = emptyList()
 
     @Composable
-    override fun getUsageScreen(toolInstanceId: String, configJson: String, zoneName: String, onNavigateBack: () -> Unit, onLongClick: () -> Unit, openEntry: EntryToOpen?) {
+    override fun getUsageScreen(toolInstanceId: String, configJson: String, zoneName: String, onNavigateBack: () -> Unit, onLongClick: () -> Unit, openAt: OpenAt?) {
         SchemaScreen(toolInstanceId = toolInstanceId, onNavigateBack = onNavigateBack, onConfigureClick = onLongClick)
     }
 
     @Composable
-    override fun rememberTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile = rememberSchemaTile(tool)
+    override fun rememberTile(tool: ToolInstance, open: (OpenAt) -> Unit): ToolTile = rememberSchemaTile(tool)
 }
 
 /**

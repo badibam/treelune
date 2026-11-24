@@ -238,7 +238,7 @@ object MessageToolType : ToolTypeContract {
     override val tileSecond = app.treelune.core.tools.IconSecond.WAITING
 
     @Composable
-    override fun rememberTile(tool: app.treelune.core.database.entities.ToolInstance, open: (app.treelune.core.tools.EntryToOpen) -> Unit): app.treelune.core.tools.ToolTile =
+    override fun rememberTile(tool: app.treelune.core.database.entities.ToolInstance, open: (app.treelune.core.tools.OpenAt) -> Unit): app.treelune.core.tools.ToolTile =
         app.treelune.tools.messages.ui.rememberMessagesTile(tool, open)
 
     @Composable
@@ -248,14 +248,14 @@ object MessageToolType : ToolTypeContract {
         zoneName: String,
         onNavigateBack: () -> Unit,
         onLongClick: () -> Unit,
-        openEntry: app.treelune.core.tools.EntryToOpen?
+        openAt: app.treelune.core.tools.OpenAt?
     ) {
         app.treelune.tools.messages.ui.MessagesScreen(
             toolInstanceId = toolInstanceId,
             zoneName = zoneName,
             onNavigateBack = onNavigateBack,
             onConfigureClick = onLongClick,
-            openEntryId = (openEntry as? app.treelune.core.tools.EntryToOpen.Existing)?.id
+            openEntryId = (openAt as? app.treelune.core.tools.OpenAt.Entry)?.id
         )
     }
 

@@ -71,7 +71,7 @@ private fun ZoneScreenBody(zone: Zone) {
     var adding by rememberSaveable { mutableStateOf(false) }
 
     // A tool opened on top of the zone: on its page from its tile, where what waits shows; on an entry from a tile that names one
-    val openTool = { toolId: String, entry: app.treelune.core.tools.EntryToOpen? -> Navigator.push(Place.Tool(toolId, zone.id), entry) }
+    val openTool = { toolId: String, entry: app.treelune.core.tools.OpenAt? -> Navigator.push(Place.Tool(toolId, zone.id), entry) }
     val configureTool = { tool: ToolInstance -> Navigator.push(Place.ToolConfig(zone.id, tool.tooltype, tool.id)) }
     // What a routine's tile does (RoutineActions), its long touch opening its config
     val routineActions = app.treelune.core.ai.ui.routine.rememberRoutineActions { errorMessage = it }
@@ -442,7 +442,7 @@ private fun GroupSection(
     tasks: List<app.treelune.core.tasks.Task>,
     readouts: List<app.treelune.core.readouts.ui.ReadoutRow>,
     onToolClick: (String) -> Unit,
-    onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
+    onOpenEntry: (ToolInstance, app.treelune.core.tools.OpenAt) -> Unit,
     editor: app.treelune.core.ui.components.GridEditor,
     onToolLongClick: (ToolInstance) -> Unit,
     routineActions: app.treelune.core.ai.ui.routine.RoutineActions,
@@ -462,7 +462,7 @@ private fun UngroupedSection(
     readouts: List<app.treelune.core.readouts.ui.ReadoutRow>,
     hasConfiguredGroups: Boolean,
     onToolClick: (String) -> Unit,
-    onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
+    onOpenEntry: (ToolInstance, app.treelune.core.tools.OpenAt) -> Unit,
     editor: app.treelune.core.ui.components.GridEditor,
     onToolLongClick: (ToolInstance) -> Unit,
     routineActions: app.treelune.core.ai.ui.routine.RoutineActions,
@@ -486,7 +486,7 @@ private fun Section(
     editor: app.treelune.core.ui.components.GridEditor,
     onToolClick: (String) -> Unit,
     onToolLongClick: (ToolInstance) -> Unit,
-    onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
+    onOpenEntry: (ToolInstance, app.treelune.core.tools.OpenAt) -> Unit,
     onOpenVariable: (String) -> Unit,
     routineActions: app.treelune.core.ai.ui.routine.RoutineActions,
     context: android.content.Context
@@ -526,7 +526,7 @@ private fun SectionGrid(
     editor: app.treelune.core.ui.components.GridEditor,
     onToolClick: (String) -> Unit,
     onToolLongClick: (ToolInstance) -> Unit,
-    onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
+    onOpenEntry: (ToolInstance, app.treelune.core.tools.OpenAt) -> Unit,
     onOpenVariable: (String) -> Unit,
     routineActions: app.treelune.core.ai.ui.routine.RoutineActions
 ) {

@@ -23,7 +23,7 @@ import app.treelune.core.fields.settings.labelOf
 import app.treelune.core.selection.ReferenceKind
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.strings.Strings
-import app.treelune.core.tools.EntryToOpen
+import app.treelune.core.tools.OpenAt
 import app.treelune.core.tools.RemovedByConfig
 import app.treelune.core.tools.ToolOperation
 import app.treelune.core.tools.ToolTile
@@ -261,12 +261,12 @@ object FlashcardsToolType : ToolTypeContract {
 
     /** A deck opens on its page; nothing of it is an entry to open. */
     @Composable
-    override fun getUsageScreen(toolInstanceId: String, configJson: String, zoneName: String, onNavigateBack: () -> Unit, onLongClick: () -> Unit, openEntry: EntryToOpen?) {
+    override fun getUsageScreen(toolInstanceId: String, configJson: String, zoneName: String, onNavigateBack: () -> Unit, onLongClick: () -> Unit, openAt: OpenAt?) {
         FlashcardsScreen(toolInstanceId = toolInstanceId, onNavigateBack = onNavigateBack, onConfigureClick = onLongClick)
     }
 
     override val tileSecond = app.treelune.core.tools.IconSecond.WAITING
 
     @Composable
-    override fun rememberTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile = rememberFlashcardsTile(tool)
+    override fun rememberTile(tool: ToolInstance, open: (OpenAt) -> Unit): ToolTile = rememberFlashcardsTile(tool)
 }

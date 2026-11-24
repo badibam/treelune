@@ -143,7 +143,7 @@ fun ChartDetails(hit: Hit) {
                 }
             }
             if (hit.row.entryId != null) {
-                UI.Button(type = ButtonType.DEFAULT, onClick = { scope.launch { openEntry(context, hit.row.entryId) } }) {
+                UI.Button(type = ButtonType.DEFAULT, onClick = { scope.launch { openAt(context, hit.row.entryId) } }) {
                     UI.Text(s.tool("open_entry"), TextType.LABEL)
                 }
             }
@@ -164,14 +164,14 @@ private fun FailedEntries(ids: List<String>) {
             .mapNotNull { r -> (r["id"] as? String)?.let { id -> (r["name"] as? String)?.let { id to it } } }.toMap()
     }
     ids.forEach { id ->
-        UI.Button(type = ButtonType.DEFAULT, onClick = { scope.launch { openEntry(context, id) } }) {
+        UI.Button(type = ButtonType.DEFAULT, onClick = { scope.launch { openAt(context, id) } }) {
             UI.Text(names[id] ?: id, TextType.LABEL)
         }
     }
 }
 
 /** Opens the tool holding the entry [id], on it. */
-private suspend fun openEntry(context: Context, id: String) {
+private suspend fun openAt(context: Context, id: String) {
     val result = Coordinator(context).processUserAction("tool_data.get_single", mapOf("entry_id" to id))
     val toolId = (result.data?.get("entry") as? Map<*, *>)?.get("tool_instance_id") as? String
     if (toolId != null) ToolRequests.open(toolId, id)

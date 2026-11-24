@@ -293,8 +293,8 @@ suspend fun openThing(thing: Reference, context: Context) {
             val zone = (result.data?.get("event") as? Map<*, *>)?.get("zone_id") as? String
             if (zone != null) Navigator.open(Place.Zone(zone)) else UI.Toast(result.error ?: s.tool("thing_deleted"))
         }
-        // A view's row: the tool whose view gives it
-        ReferenceKind.ROW -> ToolRequests.open(id)
+        // A view's row: the tool whose view gives it, opened there as its type understands it
+        ReferenceKind.ROW -> ToolRequests.open(id, app.treelune.core.tools.OpenAt.Row(thing.view!!, thing.row!!))
         ReferenceKind.APP -> Unit
     }
 }

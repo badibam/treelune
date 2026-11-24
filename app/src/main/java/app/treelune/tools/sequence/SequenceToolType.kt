@@ -19,7 +19,7 @@ import app.treelune.core.fields.settings.ScheduleSettings
 import app.treelune.core.fields.settings.SettingNode
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.strings.Strings
-import app.treelune.core.tools.EntryToOpen
+import app.treelune.core.tools.OpenAt
 import app.treelune.core.tools.ToolOperation
 import app.treelune.core.tools.ToolScheduler
 import app.treelune.core.tools.ToolTile
@@ -377,12 +377,12 @@ object SequenceToolType : ToolTypeContract {
     override fun getDatabaseEntities(): List<Class<*>> = listOf(ToolDataEntity::class.java)
 
     @Composable
-    override fun getUsageScreen(toolInstanceId: String, configJson: String, zoneName: String, onNavigateBack: () -> Unit, onLongClick: () -> Unit, openEntry: EntryToOpen?) {
+    override fun getUsageScreen(toolInstanceId: String, configJson: String, zoneName: String, onNavigateBack: () -> Unit, onLongClick: () -> Unit, openAt: OpenAt?) {
         SequenceScreen(toolInstanceId = toolInstanceId, onNavigateBack = onNavigateBack, onConfigureClick = onLongClick)
     }
 
     override val tileSecond = app.treelune.core.tools.IconSecond.GESTURE
 
     @Composable
-    override fun rememberTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile = rememberSequenceTile(tool)
+    override fun rememberTile(tool: ToolInstance, open: (OpenAt) -> Unit): ToolTile = rememberSequenceTile(tool)
 }

@@ -16,7 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.database.entities.ToolInstance
 import app.treelune.core.strings.Strings
-import app.treelune.core.tools.EntryToOpen
+import app.treelune.core.tools.OpenAt
 import app.treelune.core.tools.ToolTile
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
@@ -42,7 +42,7 @@ private data class Inbox(val unread: List<Occurrence>, val read: List<Occurrence
  * user's fields (TileItem), ten when it follows its content. Opening a message reads it.
  */
 @Composable
-fun rememberMessagesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile {
+fun rememberMessagesTile(tool: ToolInstance, open: (OpenAt) -> Unit): ToolTile {
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "messages", context = context) }
@@ -104,7 +104,7 @@ fun rememberMessagesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolT
                 TileGrid(room, shown) { message ->
                     app.treelune.core.ui.components.TileItem(
                         message.displayTitle,
-                        modifier = Modifier.clickable { open(EntryToOpen.Existing(message.id)) },
+                        modifier = Modifier.clickable { open(OpenAt.Entry(message.id)) },
                         text = message.displayContent?.let { app.treelune.core.markup.Markup.plain(it) },
                         fields = app.treelune.core.ui.components.tileItemFields(app.treelune.tools.messages.MessageToolType, config, message.extra, read.names, context),
                         mainType = if (message.read) TextType.CAPTION else TextType.STRONG,

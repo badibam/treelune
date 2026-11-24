@@ -23,7 +23,7 @@ import app.treelune.core.fields.FileField
 import app.treelune.core.fields.toFieldDefinitions
 import app.treelune.core.strings.Strings
 import app.treelune.core.strings.StringsContext
-import app.treelune.core.tools.EntryToOpen
+import app.treelune.core.tools.OpenAt
 import app.treelune.core.tools.ToolTile
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
@@ -46,7 +46,7 @@ import org.json.JSONObject
  * is not there. An event touched opens; elsewhere, the tool.
  */
 @Composable
-fun rememberAgendaTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile {
+fun rememberAgendaTile(tool: ToolInstance, open: (OpenAt) -> Unit): ToolTile {
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "agenda", context = context) }
@@ -86,7 +86,7 @@ fun rememberAgendaTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTil
             // In icons: + opens a new event on the calendar's page
 
             @Composable
-            override fun Second() = app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.ADD) { open(EntryToOpen.New) }
+            override fun Second() = app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.ADD) { open(OpenAt.New) }
 
             @Composable
             override fun Body(room: app.treelune.core.look.TileSize.Room) {
@@ -96,7 +96,7 @@ fun rememberAgendaTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTil
                 TileGrid(room, coming(loaded, now)) { event ->
                     app.treelune.core.ui.components.TileItem(
                         if (event.isPlanned) event.name else s.tool("cancelled_name").format(event.name),
-                        modifier = Modifier.clickable { open(EntryToOpen.Existing(event.id)) },
+                        modifier = Modifier.clickable { open(OpenAt.Entry(event.id)) },
                         fields = app.treelune.core.ui.components.tileItemFields(app.treelune.tools.agenda.AgendaToolType, config, event.extra, read.names, context),
                         leading = { UI.Text(shortWhen(event, now, s), TextType.LABEL) },
                         trailing = images(event, fields).takeIf { it.isNotEmpty() }?.let { ids -> { app.treelune.core.files.FileAbbreviation(ids) } }

@@ -894,7 +894,7 @@ object UI {
         context: android.content.Context,
         onClick: () -> Unit,
         onLongClick: () -> Unit = { },
-        onOpenEntry: (app.treelune.core.tools.EntryToOpen) -> Unit = { }
+        onOpenEntry: (app.treelune.core.tools.OpenAt) -> Unit = { }
     ) {
         val toolType = requireNotNull(ToolTypeManager.getToolType(tool.tooltype)) { "No tool type '${tool.tooltype}' for tool ${tool.id}" }
         val tile = toolType.rememberTile(tool, onOpenEntry)

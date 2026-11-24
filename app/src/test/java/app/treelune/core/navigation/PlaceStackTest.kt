@@ -116,8 +116,8 @@ class PlaceStackTest {
     /** An activity started afresh while the process lives on finds the stack, not the entry to open again. */
     @Test
     fun anEntryToOpenIsHandedOnce() {
-        Navigator.openings[runs.address] = app.treelune.core.tools.EntryToOpen.Existing("e-1")
-        assertEquals(app.treelune.core.tools.EntryToOpen.Existing("e-1"), Navigator.take(runs))
+        Navigator.openings[runs.address] = app.treelune.core.tools.OpenAt.Entry("e-1")
+        assertEquals(app.treelune.core.tools.OpenAt.Entry("e-1"), Navigator.take(runs))
         assertNull(Navigator.take(runs))
     }
 

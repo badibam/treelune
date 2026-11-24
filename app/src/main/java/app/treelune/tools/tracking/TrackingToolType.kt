@@ -197,7 +197,7 @@ object TrackingToolType : ToolTypeContract {
         zoneName: String,
         onNavigateBack: () -> Unit,
         onLongClick: () -> Unit,
-        openEntry: app.treelune.core.tools.EntryToOpen?
+        openAt: app.treelune.core.tools.OpenAt?
     ) {
         TrackingScreen(
             toolInstanceId = toolInstanceId,
@@ -216,7 +216,7 @@ object TrackingToolType : ToolTypeContract {
     override val tileSecond = app.treelune.core.tools.IconSecond.GESTURE
 
     @Composable
-    override fun rememberTile(tool: app.treelune.core.database.entities.ToolInstance, open: (app.treelune.core.tools.EntryToOpen) -> Unit): app.treelune.core.tools.ToolTile =
+    override fun rememberTile(tool: app.treelune.core.database.entities.ToolInstance, open: (app.treelune.core.tools.OpenAt) -> Unit): app.treelune.core.tools.ToolTile =
         app.treelune.tools.tracking.ui.rememberTrackingTile(tool)
 
     override suspend fun settleEntries(entries: suspend () -> List<ToolDataEntity>, writtenId: String?): List<ToolDataEntity> =

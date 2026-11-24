@@ -18,7 +18,7 @@ import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.entities.ToolInstance
 import app.treelune.core.strings.Strings
-import app.treelune.core.tools.EntryToOpen
+import app.treelune.core.tools.OpenAt
 import app.treelune.core.tools.ToolTile
 import app.treelune.core.ui.ButtonType
 import app.treelune.core.ui.Size
@@ -45,7 +45,7 @@ private data class TileEntry(val id: String, val title: String, val timestamp: L
  * user's fields (TileItem). Touching an entry opens it.
  */
 @Composable
-fun rememberJournalTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile {
+fun rememberJournalTile(tool: ToolInstance, open: (OpenAt) -> Unit): ToolTile {
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "journal", context = context) }
@@ -79,7 +79,7 @@ fun rememberJournalTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTi
             override fun Summary() {
                 val loaded = entries?.entries ?: return
                 Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally) {
-                    UI.Button(type = ButtonType.PRIMARY, size = Size.S, onClick = { open(EntryToOpen.New) }) {
+                    UI.Button(type = ButtonType.PRIMARY, size = Size.S, onClick = { open(OpenAt.New) }) {
                         UI.Text(s.tool("tile_write"), TextType.LABEL, maxLines = 1)
                     }
                     UI.Text(
@@ -92,7 +92,7 @@ fun rememberJournalTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTi
             // In icons: + writes a new entry, as the summary's button does
 
             @Composable
-            override fun Second() = app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.ADD) { open(EntryToOpen.New) }
+            override fun Second() = app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.ADD) { open(OpenAt.New) }
 
             @Composable
             override fun Body(room: app.treelune.core.look.TileSize.Room) {
@@ -102,7 +102,7 @@ fun rememberJournalTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTi
                 TileGrid(room, loaded) { entry ->
                     app.treelune.core.ui.components.TileItem(
                         entry.title,
-                        modifier = Modifier.clickable { open(EntryToOpen.Existing(entry.id)) },
+                        modifier = Modifier.clickable { open(OpenAt.Entry(entry.id)) },
                         text = entry.text,
                         fields = app.treelune.core.ui.components.tileItemFields(app.treelune.tools.journal.JournalToolType, config, entry.extra, read.names, context),
                         trailing = { UI.Text(FormatUtils.formatRelativeTimeShort(entry.timestamp, context), TextType.CAPTION, maxLines = 1) }

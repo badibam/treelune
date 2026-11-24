@@ -19,7 +19,7 @@ import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.entities.ToolInstance
 import app.treelune.core.strings.Strings
-import app.treelune.core.tools.EntryToOpen
+import app.treelune.core.tools.OpenAt
 import app.treelune.core.tools.ToolTile
 import app.treelune.core.ui.ButtonType
 import app.treelune.core.ui.Size
@@ -40,7 +40,7 @@ private data class TileNote(val id: String, val title: String?, val content: Str
  * (TileItem); all of them when it follows its content. Touching a note opens it.
  */
 @Composable
-fun rememberNotesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile {
+fun rememberNotesTile(tool: ToolInstance, open: (OpenAt) -> Unit): ToolTile {
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val s = remember { Strings.`for`(tool = "notes", context = context) }
@@ -76,7 +76,7 @@ fun rememberNotesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile
             override fun Summary() {
                 val loaded = notes ?: return
                 Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally) {
-                    UI.Button(type = ButtonType.PRIMARY, size = Size.S, onClick = { open(EntryToOpen.New) }) {
+                    UI.Button(type = ButtonType.PRIMARY, size = Size.S, onClick = { open(OpenAt.New) }) {
                         UI.Text(s.tool("tile_new"), TextType.LABEL, maxLines = 1)
                     }
                     UI.Text(
@@ -93,7 +93,7 @@ fun rememberNotesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile
             // In icons: + writes a new entry, as the summary's button does
 
             @Composable
-            override fun Second() = app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.ADD) { open(EntryToOpen.New) }
+            override fun Second() = app.treelune.core.ui.components.IconGesture(app.treelune.core.ui.ButtonAction.ADD) { open(OpenAt.New) }
 
             @Composable
             override fun Body(room: app.treelune.core.look.TileSize.Room) {
@@ -103,7 +103,7 @@ fun rememberNotesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile
                     val text = Markup.plain(note.content).ifBlank { s.tool("content_empty") }
                     app.treelune.core.ui.components.TileItem(
                         note.title ?: text,
-                        modifier = Modifier.clickable { open(EntryToOpen.Existing(note.id)) },
+                        modifier = Modifier.clickable { open(OpenAt.Entry(note.id)) },
                         text = text.takeIf { note.title != null },
                         mainType = if (note.title != null) TextType.STRONG else TextType.BODY
                     )

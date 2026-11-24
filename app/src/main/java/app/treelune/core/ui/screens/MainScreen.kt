@@ -32,7 +32,7 @@ import app.treelune.core.navigation.LocalBreadcrumb
 import app.treelune.core.navigation.Navigator
 import app.treelune.core.navigation.Place
 import app.treelune.core.navigation.PlaceStack
-import app.treelune.core.tools.EntryToOpen
+import app.treelune.core.tools.OpenAt
 import app.treelune.core.tools.ToolTypeManager
 import app.treelune.core.ui.screens.settings.*
 import app.treelune.core.ai.ui.screens.AIProvidersScreen
@@ -101,7 +101,7 @@ fun MainScreen(openToolId: String? = null, openEntryId: String? = null, onToolOp
             onToolOpened()
             return@LaunchedEffect
         }
-        Navigator.open(Place.Tool(toolId, zoneId), openEntryId?.let { EntryToOpen.Existing(it) })
+        Navigator.open(Place.Tool(toolId, zoneId), openEntryId?.let { OpenAt.Entry(it) })
         onToolOpened()
     }
     // The place a notification asked for
@@ -110,16 +110,16 @@ fun MainScreen(openToolId: String? = null, openEntryId: String? = null, onToolOp
         Navigator.open(Place.of(address))
         onPlaceOpened()
     }
-    // A tool asked for from any screen, on one of its entries
+    // A tool asked for from any screen, where its tool type opens
     LaunchedEffect(Unit) {
-        app.treelune.core.tools.ToolRequests.requests.collect { (toolId, entryId) ->
+        app.treelune.core.tools.ToolRequests.requests.collect { (toolId, at) ->
             val zoneId = zoneOfTool(coordinator, toolId)
             if (zoneId == null) {
                 LogManager.ui("MainScreen: tool $toolId asked for not found", "WARN")
                 errorMessage = s.shared("service_error_tool_instance_not_found")
                 return@collect
             }
-            Navigator.open(Place.Tool(toolId, zoneId), entryId?.let { EntryToOpen.Existing(it) })
+            Navigator.open(Place.Tool(toolId, zoneId), at)
         }
     }
 
@@ -402,7 +402,7 @@ private fun ToolPlace(place: Place.Tool, zoneName: String) {
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     // The entry to open, taken from the stack once and kept by the place across recreation
-    val opening by rememberSaveable(stateSaver = EntryToOpen.Saver) { mutableStateOf(Navigator.take(place)) }
+    val opening by rememberSaveable(stateSaver = OpenAt.Saver) { mutableStateOf(Navigator.take(place)) }
     var tool by remember { mutableStateOf<Map<*, *>?>(null) }
     var version by remember { mutableStateOf(0) }
     LaunchedEffect(place.id, version) {
@@ -434,7 +434,7 @@ private fun ToolPlace(place: Place.Tool, zoneName: String) {
                 zoneName = zoneName,
                 onNavigateBack = { Navigator.pop() },
                 onLongClick = { Navigator.push(Place.ToolConfig(place.zoneId, tooltype, place.id)) },
-                openEntry = opening
+                openAt = opening
             )
         }
     }

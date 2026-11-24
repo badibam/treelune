@@ -19,7 +19,7 @@ import app.treelune.core.tools.ToolTypeContract
 import app.treelune.tools.chart.ui.ChartScreen
 import app.treelune.tools.chart.ui.rememberChartTile
 import app.treelune.core.database.entities.ToolInstance
-import app.treelune.core.tools.EntryToOpen
+import app.treelune.core.tools.OpenAt
 import app.treelune.core.tools.ToolTile
 import org.json.JSONObject
 
@@ -275,11 +275,11 @@ object ChartToolType : ToolTypeContract {
 
     /** A chart has no entry of its own to open: its screen alone. */
     @Composable
-    override fun getUsageScreen(toolInstanceId: String, configJson: String, zoneName: String, onNavigateBack: () -> Unit, onLongClick: () -> Unit, openEntry: EntryToOpen?) {
+    override fun getUsageScreen(toolInstanceId: String, configJson: String, zoneName: String, onNavigateBack: () -> Unit, onLongClick: () -> Unit, openAt: OpenAt?) {
         ChartScreen(toolInstanceId = toolInstanceId, onNavigateBack = onNavigateBack, onConfigureClick = onLongClick)
     }
 
     /** Its tile never opens an entry: a touch opens the tool. */
     @Composable
-    override fun rememberTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile = rememberChartTile(tool)
+    override fun rememberTile(tool: ToolInstance, open: (OpenAt) -> Unit): ToolTile = rememberChartTile(tool)
 }

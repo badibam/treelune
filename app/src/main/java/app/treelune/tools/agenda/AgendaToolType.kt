@@ -256,14 +256,14 @@ object AgendaToolType : ToolTypeContract {
     fun calendar(zone: java.time.ZoneId) = TimeResolver.at(System.currentTimeMillis(), zone)
 
     @Composable
-    override fun getUsageScreen(toolInstanceId: String, configJson: String, zoneName: String, onNavigateBack: () -> Unit, onLongClick: () -> Unit, openEntry: app.treelune.core.tools.EntryToOpen?) {
+    override fun getUsageScreen(toolInstanceId: String, configJson: String, zoneName: String, onNavigateBack: () -> Unit, onLongClick: () -> Unit, openAt: app.treelune.core.tools.OpenAt?) {
         AgendaScreen(toolInstanceId = toolInstanceId, onNavigateBack = onNavigateBack, onConfigureClick = onLongClick,
-            openEntryId = (openEntry as? app.treelune.core.tools.EntryToOpen.Existing)?.id, createNow = openEntry == app.treelune.core.tools.EntryToOpen.New)
+            openEntryId = (openAt as? app.treelune.core.tools.OpenAt.Entry)?.id, createNow = openAt == app.treelune.core.tools.OpenAt.New)
     }
 
     override val tileSecond = app.treelune.core.tools.IconSecond.GESTURE
 
     @Composable
-    override fun rememberTile(tool: ToolInstance, open: (app.treelune.core.tools.EntryToOpen) -> Unit): app.treelune.core.tools.ToolTile =
+    override fun rememberTile(tool: ToolInstance, open: (app.treelune.core.tools.OpenAt) -> Unit): app.treelune.core.tools.ToolTile =
         app.treelune.tools.agenda.ui.rememberAgendaTile(tool, open)
 }
