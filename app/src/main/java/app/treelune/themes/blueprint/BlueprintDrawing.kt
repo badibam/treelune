@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -27,6 +28,7 @@ import app.treelune.core.drawing.PathStep
 import app.treelune.core.drawing.SymbolShape
 import app.treelune.core.drawing.TextAnchor
 import app.treelune.core.drawing.TextBaseline
+import app.treelune.core.drawing.rememberDrawingIcons
 
 /**
  * The blueprint theme's drawings (docs/themes/blueprint.md, line 10): a box (a bar) is an
@@ -49,6 +51,7 @@ internal object BlueprintDrawing {
         val paper = colors.paper.srgb
         val (width, height) = with(screen) { drawing.width.toDp() to drawing.height.toDp() }
 
+        val icons = rememberDrawingIcons()
         Canvas(modifier = modifier.size(width, height)) {
             fun resolve(color: DrawColor): Color = when (color) {
                 is DrawColor.Palette -> colors.crayon(color.color).srgb
@@ -117,6 +120,7 @@ internal object BlueprintDrawing {
                             close()
                         }, resolve(shape.color))
                     }
+                    is DrawShape.Icon -> icons.draw(this, shape, (resolve(shape.color)).toArgb())
                 }
             }
         }

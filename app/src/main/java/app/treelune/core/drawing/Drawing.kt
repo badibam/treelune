@@ -71,4 +71,10 @@ sealed interface DrawShape {
 
     /** A small triangle [size] pixels wide centered on [at], pointing [up] or down. */
     data class Arrowhead(val at: DrawPoint, val up: Boolean, val size: Float, val color: DrawColor) : DrawShape
+
+    /**
+     * An icon of the vocabulary ([name], a Lucide name), [size] pixels square centered on [center],
+     * in [color]; the theme draws its own icon for the name (core/drawing/DrawingIcons).
+     */
+    data class Icon(val name: String, val center: DrawPoint, val size: Float, val color: DrawColor) : DrawShape
 }

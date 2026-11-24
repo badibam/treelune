@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -29,6 +30,7 @@ import app.treelune.core.drawing.PathStep
 import app.treelune.core.drawing.SymbolShape
 import app.treelune.core.drawing.TextAnchor
 import app.treelune.core.drawing.TextBaseline
+import app.treelune.core.drawing.rememberDrawingIcons
 import app.treelune.core.themes.TagColor
 
 /**
@@ -62,6 +64,7 @@ internal object DefaultDrawing {
         val faint = MaterialTheme.colorScheme.outlineVariant
         val (width, height) = with(density) { drawing.width.toDp() to drawing.height.toDp() }
 
+        val icons = rememberDrawingIcons()
         Canvas(modifier = modifier.size(width, height)) {
             fun resolve(color: DrawColor): Color = when (color) {
                 is DrawColor.Palette -> palette(color.color)
@@ -119,6 +122,7 @@ internal object DefaultDrawing {
                             close()
                         }, resolve(shape.color))
                     }
+                    is DrawShape.Icon -> icons.draw(this, shape, (resolve(shape.color)).toArgb())
                 }
             }
         }

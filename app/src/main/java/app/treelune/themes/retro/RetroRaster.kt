@@ -32,7 +32,7 @@ import kotlin.math.sin
  * - A symbol is drawn on an odd number of pixels round a middle one, the same shape at every place.
  * - A slice of a ring leaves a pixel of ground along the side it starts from.
  *
- * Texts (DrawShape.Label) are not put down here: the theme writes them over in its font, on whole pixels.
+ * Texts (DrawShape.Label) and icons (DrawShape.Icon) are not put down here: the theme draws them over, on whole pixels.
  * Nothing here knows Android, so the rules are tested as they are.
  */
 internal class RetroRaster(drawing: Drawing, private val scale: Int, private val color: (DrawColor) -> Int) {
@@ -55,7 +55,7 @@ internal class RetroRaster(drawing: Drawing, private val scale: Int, private val
                 is DrawShape.Segment -> stroke(listOf(px(shape.from), px(shape.to)), color(shape.color), 1f, shape.strokeWidth, shape.dash,
                     dots = shape.dash == null && shape.color == DrawColor.Ink(InkLevel.FAINT))
                 is DrawShape.Arrowhead -> arrowhead(shape.at, shape.size, shape.up, color(shape.color))
-                is DrawShape.Label -> Unit
+                is DrawShape.Label, is DrawShape.Icon -> Unit
             }
         }
     }

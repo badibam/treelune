@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -27,6 +28,7 @@ import app.treelune.core.drawing.PathStep
 import app.treelune.core.drawing.SymbolShape
 import app.treelune.core.drawing.TextAnchor
 import app.treelune.core.drawing.TextBaseline
+import app.treelune.core.drawing.rememberDrawingIcons
 
 /**
  * The e-reader theme's drawings (docs/themes/eink.md), in the ink and the ground alone. A
@@ -47,6 +49,7 @@ internal object EinkDrawing {
         val ground = colors.ground
         val (width, height) = with(density) { drawing.width.toDp() to drawing.height.toDp() }
 
+        val icons = rememberDrawingIcons()
         Canvas(modifier = modifier.size(width, height)) {
             /** What a fill of [color] at [opacity] is painted with. */
             fun fill(color: DrawColor, opacity: Float): Brush = when (color) {
@@ -124,6 +127,7 @@ internal object EinkDrawing {
                             close()
                         }, ink)
                     }
+                    is DrawShape.Icon -> icons.draw(this, shape, (ink).toArgb())
                 }
             }
         }

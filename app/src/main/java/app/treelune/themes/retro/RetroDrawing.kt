@@ -30,7 +30,8 @@ import kotlin.math.sin
 
 /**
  * The retro theme's drawings: put down in its pixels (RetroRaster), blown up by the grid's whole
- * factor without smoothing, its texts written over in Cartouche on whole pixels.
+ * factor without smoothing, its icons drawn over in its own pixels and its texts written in
+ * Cartouche, on whole pixels.
  */
 internal object RetroDrawing {
 
@@ -49,10 +50,19 @@ internal object RetroDrawing {
             android.graphics.Bitmap.createBitmap(raster.pixels, raster.width, raster.height, android.graphics.Bitmap.Config.ARGB_8888).asImageBitmap()
         }
         val (width, height) = with(LocalDensity.current) { drawing.width.toDp() to drawing.height.toDp() }
+        val icons = app.treelune.core.drawing.rememberDrawingIcons()
 
         Canvas(modifier = modifier.size(width, height)) {
             clipRect(0f, 0f, size.width, size.height) {
                 drawImage(image, dstSize = IntSize(raster.width * scale, raster.height * scale), filterQuality = FilterQuality.None)
+                // Icons over the shapes, in the theme's own pixel icons, each pixel a whole number
+                // of screen pixels, their corner on a whole pixel of the grid
+                drawing.shapes.filterIsInstance<DrawShape.Icon>().forEach { icon ->
+                    val side = (RetroGrid.ICON * maxOf(1, (icon.size / RetroGrid.ICON).roundToInt())).toFloat()
+                    val left = ((icon.center.x - side / 2) / scale).roundToInt() * scale.toFloat()
+                    val top = ((icon.center.y - side / 2) / scale).roundToInt() * scale.toFloat()
+                    icons.draw(this, icon.copy(center = app.treelune.core.drawing.DrawPoint(left + side / 2, top + side / 2)), resolve(icon.color), side)
+                }
                 // Texts last, over every shape, their corner on a whole pixel
                 drawing.shapes.filterIsInstance<DrawShape.Label>().forEach { label ->
                     val laid = measurer.measure(label.text, style.copy(color = androidx.compose.ui.graphics.Color(resolve(label.color))))

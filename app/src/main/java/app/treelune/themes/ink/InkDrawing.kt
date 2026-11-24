@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -30,6 +31,7 @@ import app.treelune.core.drawing.PathStep
 import app.treelune.core.drawing.SymbolShape
 import app.treelune.core.drawing.TextAnchor
 import app.treelune.core.drawing.TextBaseline
+import app.treelune.core.drawing.rememberDrawingIcons
 
 /**
  * The ink theme's drawings (docs/themes/ink.md, line 10): a block (a bar, a cell) is a wash
@@ -49,6 +51,7 @@ internal object InkDrawing {
         val faint = colors.trackWash
         val (width, height) = with(density) { drawing.width.toDp() to drawing.height.toDp() }
 
+        val icons = rememberDrawingIcons()
         Canvas(modifier = modifier.size(width, height)) {
             fun resolve(color: DrawColor): Color = when (color) {
                 is DrawColor.Palette -> colors.tag(color.color)
@@ -105,6 +108,7 @@ internal object InkDrawing {
                             close()
                         }, resolve(shape.color), style = Stroke(width = s * 0.15f, join = StrokeJoin.Round))
                     }
+                    is DrawShape.Icon -> icons.draw(this, shape, (resolve(shape.color)).toArgb())
                 }
             }
         }
