@@ -132,6 +132,7 @@ Ce que ça demande au core :
 ## Les écrans
 
 - Le plan est fait d'entrées, l'éditeur de plan ne touche jamais la config. Il s'ouvre par un bouton « Plan » de l'écran de l'outil, sur sa propre page : l'usage de l'écran reste « toucher pour noter ou lancer », et la règle de l'app tient (la config dans l'écran de config, les entrées depuis l'écran de l'outil). Un passage fermé montre son plan en lecture seule. Écarté : un bouton dans l'écran de config, qui aurait mêlé une config enregistrée d'un bloc et des briques écrites tout de suite.
+- L'éditeur de plan (décidé le 2026-11-25) : un plan en retrait, comme un sommaire, une ligne par brique, chaque niveau décalé vers la droite, un groupe qui se replie. On y ajoute par une ligne « + Semaine » en dernière place de chaque groupe ouvert, au retrait de son contenu, une par sorte qu'il peut contenir : l'endroit où la brique naîtra se voit avant de toucher, un groupe vide et un Parcours neuf n'ont pas de cas à part. Insérer au milieu, c'est ajouter en fin de groupe puis glisser. Écarté : un « + » sur chaque ligne, ambigu sur celle d'un groupe (après lui ou dedans), et cent « + » sur un plan de cent lignes.
 - L'écran de config montre les sortes et la liste de leurs états, chaque ligne disant si l'état se note à la main, sa règle et son `note_if`. Une sorte unique reste invisible, et une sorte n'apparaît sur une brique qu'à partir de deux.
 - À la création, le Parcours a une sorte, sans aucune brique ; le choix de `waits` pour son contenu remplace les « formes ».
 - Un seul dessin, de haut en bas (le portrait) : le graphe des liens. Les briques sans lien se rangent côte à côte sur autant de colonnes que la place permet (l'ancienne grille) ; une chaîne est une colonne avec son fil (l'ancien chemin) ; un graphe se dispose par niveaux (les anciennes branches). Avec plusieurs champs de lien, l'affichage dit lequel il trace.
@@ -173,7 +174,7 @@ Ce que la maquette du 2026-11-24 écrivait en dur, et que le modèle doit dire, 
 ```
 
 - La fiche d'une brique offre un bouton par état manuel que `note_if` autorise, avec son libellé, dans l'ordre de la liste. Parmi les états manuels, cet ordre est l'échelle : un bouton vers un état plus bas est un retour (« ↓ Revenir à Déchiffré », en retrait), avec un libellé facultatif (`back_label` : « Oublié (→ Déchiffré) »). Revenir écrit un vrai recul ; « Annuler « Su » » efface le dernier mouvement, sans date dans le bouton. La fiche montre l'historique des états de la brique pour le passage en cours.
-- Restent de la maquette, à traiter : un groupe peut aussi être noté, donc avoir sa fiche (un bouton en tête du niveau, toucher un groupe y entrant) ; la sorte dit quel champ s'affiche en tête de son niveau ; « + » dans l'éditeur de plan propose les sortes que le groupe peut contenir.
+- Restent de la maquette, à traiter : un groupe peut aussi être noté, donc avoir sa fiche (un bouton en tête du niveau, toucher un groupe y entrant) ; la sorte dit quel champ s'affiche en tête de son niveau.
 
 ## Lancer une Séance depuis une brique
 
