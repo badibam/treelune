@@ -359,6 +359,19 @@ interface ToolTypeContract {
      * @return ToolScheduler instance if this tool requires periodic scheduling, null otherwise
      */
     fun getScheduler(): ToolScheduler? = null
+
+    /**
+     * Whether this tool type judges again what others write (a Path, whose rules read other
+     * tools): it is then told of every step's writes (heard).
+     */
+    val hearsWrites: Boolean get() = false
+
+    /**
+     * After a step that wrote the entries of the tools [written], once it is done, inside the
+     * writer's context (EntryTriggers): what this tool type judges again. Called only when
+     * [hearsWrites]; whatever it writes, it writes as the app, out of the writer's step.
+     */
+    suspend fun heard(context: Context, written: Set<String>) {}
 }
 
 /**

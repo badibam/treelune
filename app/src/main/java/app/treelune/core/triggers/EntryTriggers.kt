@@ -32,9 +32,12 @@ object EntryTriggers {
                 false
             }
         }
-        if (tasks.isEmpty() && routines.isEmpty()) return
+        val hearing = app.treelune.core.tools.ToolTypeManager.getAllToolTypes().values.filter { it.hearsWrites }
+        if (tasks.isEmpty() && routines.isEmpty() && hearing.isEmpty()) return
         val writes = written()
         if (writes.isEmpty()) return
+        // What judges again what others write (a Path's rules), before what the writes start
+        for (type in hearing) type.heard(context, writes.map { it.toolInstanceId }.toSet())
         for (task in tasks) {
             for (write in heard(context, "Task ${task.id}", task.triggersJson, writes)) {
                 val chainId = chainOf(context, task.name) ?: continue
