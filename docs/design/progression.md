@@ -240,7 +240,7 @@ Des configurations types écrites avec les pièces du moteur, jamais codées (d�
 ## Ouvert
 
 - D'autres montages à explorer, pour éprouver le moteur (« Les montages »).
-- Exporter un Parcours avec ses entrées emporte son historique, rangé dans l'état de ses briques. Piste retenue le 2026-11-24 pour partager le plan seul, sans pièce d'export : dupliquer l'outil avec ses entrées, réinitialiser la copie, l'exporter ; deux gestes utiles chacun (une Liste dupliquée, un Parcours repris de zéro). À régler : la copie traduit les liens entre briques (`links`) vers les nouvelles ; réinitialiser garde a priori le plan du passage courant sans ses mouvements, pas les passages fermés.
+- Exporter un Parcours avec ses entrées emporte son historique, rangé dans l'état de ses briques. Pour partager le plan seul, sans pièce d'export (piste du 2026-11-24, réglée le 2026-11-25) : dupliquer l'outil avec ses entrées, réinitialiser la copie, l'exporter. Réinitialiser, c'est ouvrir un passage qui copie le plan du passage courant, comme le rythme le fait, puis supprimer les autres passages : une seule définition de « repartir de ce plan ». La duplication traduit les liens et les champs Référence du plan comme la copie d'un passage. Reste neuf, et valable pour tout outil : dupliquer un outil avec ses entrées (une Liste de courses avec ses articles), la duplication ne copiant aujourd'hui que la config. Ce que les briques désignent ailleurs (la vidéo d'un niveau dans une Séance) suit les règles de l'export d'une partie, hors du Parcours.
 
 ## Faits relevés dans le code
 
