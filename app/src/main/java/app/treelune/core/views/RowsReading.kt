@@ -52,6 +52,8 @@ object RowsReading {
      */
     fun read(rows: List<Map<String, Any?>>, selection: EntrySelection, path: String?, reduction: Reduction, fields: Map<String, FieldDefinition>, resolver: TimeResolver, text: (String) -> String): ReadingResult {
         val field = path?.let { fields[it] ?: throw IllegalStateException(text("service_error_filter_unknown_field").format(it, fields.keys.joinToString(", "))) }
+        // A streak needs its condition, which a reading of rows in memory does not carry
+        if (reduction == Reduction.STREAK) throw IllegalStateException(text("reading_error_streak_rows"))
         if (reduction !in Reduction.forField(field)) {
             throw IllegalStateException(text("service_error_reading_reduction_type").format(
                 reduction.name, field?.type?.name ?: "-", Reduction.forField(field).joinToString(", ") { it.name }))

@@ -88,4 +88,32 @@ class ReadingGroupServiceTest {
         val keep = JSONObject().put("op", "<=").put("right", JSONObject().put("variable", variable.data!!["variable_id"]))
         assertEquals(2, ((read(perDay(tool, keep), attempt) as TermReader.Read.Value).value as Number).toInt())
     }
+
+    @Test
+    fun `a streak counts the days in a row that hold its condition from the latest back, and the rows in a row from the first`() = runBlocking {
+        val (_, tool) = cups()
+        val atLeastOne = JSONObject().put("op", ">=").put("right", JSONObject().put("constant", 1))
+        fun streak(period: EntryPeriod) = Term.fromJson(JSONObject().put("reading", JSONObject()
+            .put("selection", JSONObject().put("target", JSONObject().put("kind", "TOOL_INSTANCE").put("id", tool))
+                .put("period", period.toJson())
+                .put("sort", org.json.JSONArray().put(JSONObject().put("field", "timestamp").put("direction", "desc"))))
+            .put("field", "data.value").put("reduction", "SUM")
+            .put("group", JSONObject().put("field", "timestamp").put("unit", "DAY").put("reduction", "STREAK").put("while", atLeastOne))), "t") { it }
+        // The 16th holds, the 15th is empty: one day in a row; a period ending the 14th sees the 14th alone
+        assertEquals(1, ((read(streak(EntryPeriod(TimePoint.Fixed(noon(13)), TimePoint.Fixed(noon(16) + 3_600_000))), null) as TermReader.Read.Value).value as Number).toInt())
+        assertEquals(1, ((read(streak(EntryPeriod(TimePoint.Fixed(noon(13)), TimePoint.Fixed(noon(14) + 3_600_000))), null) as TermReader.Read.Value).value as Number).toInt())
+        // A streak without its condition is refused
+        val refused = coordinator.processUserAction("readings.read", mapOf("selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to tool)),
+            "field" to "data.value", "reduction" to "STREAK", "reference" to noon(16)))
+        assertTrue(!refused.isSuccess)
+
+        // Rows, newest first: 1 (16th) then 1 and 2 (14th); while ≥ 1, three in a row; while ≥ 2, none, the first breaking it
+        suspend fun rows(min: Int) = coordinator.processUserAction("readings.read", mapOf(
+            "selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to tool), "sort" to listOf(mapOf("field" to "timestamp", "direction" to "desc"))),
+            "field" to "data.value", "reduction" to "STREAK", "while" to mapOf("op" to ">=", "right" to mapOf("constant" to min)), "reference" to noon(16) + 3_600_000))
+        val all = rows(1)
+        assertTrue(all.error, all.isSuccess)
+        assertEquals(3, (all.data!!["value"] as Number).toInt())
+        assertEquals(0, (rows(2).data!!["value"] as Number).toInt())
+    }
 }

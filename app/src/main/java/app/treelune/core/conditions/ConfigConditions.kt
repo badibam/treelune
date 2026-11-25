@@ -181,7 +181,25 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
     private suspend fun reading(term: JSONObject, label: String, root: JSONObject, path: List<Any>, visit: suspend (Found) -> JSONObject) {
         val reading = term.optJSONObject("reading") ?: return
         reading.optJSONObject("selection")?.let { selection(it, label, root, path, visit) }
+        // A streak of rows: its condition put on each row's value of the field read
+        reading.optJSONObject(app.treelune.core.reading.Streaks.WHILE)?.let { streak ->
+            val value = readField(reading) ?: return@let
+            val here = under(label, text("reading_streak_while"))
+            val turned = visit(Found(here, ReadingGroup.keepCondition(streak), Kind.ONCE, entered = value, root = root, path = path))
+            turned.remove(Conditions.LEFT)
+            reading.put(app.treelune.core.reading.Streaks.WHILE, turned)
+            sidesOf(turned).forEach { side -> reading(side, here, root, path, visit) }
+        }
         val group = reading.optJSONObject("group") ?: return
+        // A group's streak: its condition on each group's value
+        group.optJSONObject(app.treelune.core.reading.Streaks.WHILE)?.let { streak ->
+            val value = groupValue(reading) ?: return@let
+            val here = under(label, text("reading_streak_while"))
+            val turned = visit(Found(here, ReadingGroup.keepCondition(streak), Kind.ONCE, entered = value, root = root, path = path))
+            turned.remove(Conditions.LEFT)
+            group.put(app.treelune.core.reading.Streaks.WHILE, turned)
+            sidesOf(turned).forEach { side -> reading(side, here, root, path, visit) }
+        }
         val keep = group.optJSONObject(ReadingGroup.KEEP) ?: return
         // A group's value whose field does not read leaves the keep to the reading's own check, which names it
         val value = groupValue(reading) ?: return
@@ -190,6 +208,14 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
         turned.remove(Conditions.LEFT)
         group.put(ReadingGroup.KEEP, turned)
         sidesOf(turned).forEach { side -> reading(side, here, root, path, visit) }
+    }
+
+    /** The field [reading] reads, as its target declares it; null when it does not read. */
+    private suspend fun readField(reading: JSONObject): FieldDefinition? {
+        val selection = reading.optJSONObject("selection")
+        val target = selection?.optJSONObject("target")?.let { app.treelune.core.selection.Reference.fromJson(it) } ?: return null
+        val fields = try { sources.targetFields(target, selection.optString("view").takeIf { it.isNotEmpty() }) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { return null } catch (e: IllegalArgumentException) { return null }
+        return fields[reading.optString("field")]
     }
 
     /** The field each group of [reading] has a value of: its own field reduced, or a count; null when it does not read. */

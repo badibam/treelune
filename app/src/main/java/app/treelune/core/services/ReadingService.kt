@@ -142,12 +142,17 @@ class ReadingService(private val context: Context) : ExecutableService {
         } catch (e: IllegalArgumentException) {
             return OperationResult.error(e.message ?: "")
         }
+        // A streak of rows: its condition beside it, the row's value on its left; a group's streak is the group's own
+        val rowWhile = params.optJSONObject(app.treelune.core.reading.Streaks.WHILE)
+        app.treelune.core.reading.Streaks.problem(reduction, rowWhile, group) { s.shared(it) }?.let { return OperationResult.error(it) }
+        val streak = rowWhile?.let { Condition.fromJson(ReadingGroup.keepCondition(it), "", { key -> s.shared(key) }) }
         val value = field.takeIf { reduction != Reduction.COUNT } ?: FieldReading.COUNT_FIELD
         group?.problem(fields, value) { s.shared(it) }?.let { return OperationResult.error(it) }
         if (group != null && GroupedReading.needsStart(group) && selection.period.start == null) {
             return OperationResult.error(s.shared("reading_error_group_start"))
         }
         val keep = group?.keepCondition()?.let { Condition.fromJson(it, "", { key -> s.shared(key) }) }
+        val groupWhile = group?.whileCondition()?.let { Condition.fromJson(it, "", { key -> s.shared(key) }) }
         val ifNone = params.optString(app.treelune.core.terms.Term.IF_NONE).takeIf { it.isNotEmpty() }?.let { given ->
             app.treelune.core.terms.Term.IfNone.entries.firstOrNull { it.name == given }
                 ?: return OperationResult.error(s.shared("reading_error_if_none_value").format(given, app.treelune.core.terms.Term.IfNone.entries.joinToString(", ") { it.name }))
@@ -158,18 +163,28 @@ class ReadingService(private val context: Context) : ExecutableService {
         suspend fun reduced(rows: List<Map<String, Any?>>, at: Long): ReadingResult {
             // No entry, and the term says what that is worth: the instant read at
             if (ifNone == app.treelune.core.terms.Term.IfNone.NOW && rows.isEmpty()) return ReadingResult.Value(at, field!!)
-            group ?: return FieldReading.reduce(rows, path, field, reduction, at)
             val calendar = TimeResolver.at(at)
-            val (start, end) = selection.period.instants(calendar)
-            val right = keep?.right?.map { side ->
+            // The values a condition compares with, read once at the instant
+            suspend fun rightOf(condition: Condition?): List<Any?>? = condition?.right?.map { side ->
                 when (val read = TermReader(context).read((side as Condition.Side.Of).term, at, null)) {
                     is TermReader.Read.Value -> read.value
                     is TermReader.Read.Failed -> throw IllegalStateException(s.shared("reading_error_group_keep").format(read.message))
                 }
             }
+            if (group == null) {
+                if (streak == null) return FieldReading.reduce(rows, path, field, reduction, at)
+                val right = rightOf(streak)!!
+                return ReadingResult.Value(app.treelune.core.reading.Streaks.count(rows.map { FieldReading.valueAt(it, path!!) }) { v ->
+                    ConditionJudge.holds(field!!, streak.op, v, right, calendar) { s.shared(it) } == true
+                }, FieldReading.COUNT_FIELD)
+            }
+            val (start, end) = selection.period.instants(calendar)
+            val right = rightOf(keep)
+            val whileRight = rightOf(groupWhile)
             return GroupedReading.reduce(rows, path, field, reduction, group, fields.getValue(group.field),
                 GroupedReading.listed(group, fields.getValue(group.field), start, end ?: at, calendar), calendar,
-                { v -> ConditionJudge.holds(value, keep!!.op, v, right!!, calendar) { s.shared(it) } == true }, at)
+                { v -> ConditionJudge.holds(value, keep!!.op, v, right!!, calendar) { s.shared(it) } == true }, at,
+                { v -> ConditionJudge.holds(value, groupWhile!!.op, v, whileRight!!, calendar) { s.shared(it) } == true })
         }
 
         if (instants == null) {

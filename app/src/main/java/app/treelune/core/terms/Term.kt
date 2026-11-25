@@ -25,7 +25,7 @@ sealed interface Term {
      * (ReadingGroup). With [ifNone], set by hand, what it is worth when no entry is selected
      * (IfNone): never implied.
      */
-    data class Reading(val selection: EntrySelection, val field: String?, val reduction: Reduction, val perEntry: String? = null, val group: ReadingGroup? = null, val ifNone: IfNone? = null) : Term {
+    data class Reading(val selection: EntrySelection, val field: String?, val reduction: Reduction, val perEntry: String? = null, val group: ReadingGroup? = null, val ifNone: IfNone? = null, val streakWhile: JSONObject? = null) : Term {
 
         /** What readings.read takes to read it, but the instant: its stored form's keys. */
         fun params(): Map<String, Any> = buildMap {
@@ -34,6 +34,7 @@ sealed interface Term {
             put("reduction", reduction.name)
             group?.let { put("group", JsonUtils.toMap(it.toJson())) }
             ifNone?.let { put(IF_NONE, it.name) }
+            streakWhile?.let { put(app.treelune.core.reading.Streaks.WHILE, JsonUtils.toMap(it)) }
         }
 
         /**
@@ -88,6 +89,7 @@ sealed interface Term {
             put("reduction", reduction.name)
             group?.let { put("group", it.toJson()) }
             ifNone?.let { put(IF_NONE, it.name) }
+            streakWhile?.let { put(app.treelune.core.reading.Streaks.WHILE, it) }
         })
         is Constant -> JSONObject().put("constant", when (value) {
             is List<*> -> JsonUtils.toJSONArray(value)
@@ -140,7 +142,8 @@ sealed interface Term {
                     ifNone = reading.optString(IF_NONE).takeIf { it.isNotEmpty() }?.let { value ->
                         IfNone.entries.firstOrNull { it.name == value }
                             ?: throw IllegalArgumentException(text("reading_error_if_none_value").format(value, IfNone.entries.joinToString(", ") { it.name }))
-                    }
+                    },
+                    streakWhile = reading.optJSONObject(app.treelune.core.reading.Streaks.WHILE)
                 )
             }
             json.has("constant") && !json.isNull("constant") -> Constant(JsonUtils.toValue(json.get("constant"))!!)

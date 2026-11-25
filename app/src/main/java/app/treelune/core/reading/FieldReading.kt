@@ -12,7 +12,14 @@ import app.treelune.core.utils.JsonUtils
  * MAX the smallest and the largest, a date's or a time's the earliest and the latest.
  */
 enum class Reduction {
-    FIRST, SUM, AVERAGE, MIN, MAX, COUNT;
+    FIRST, SUM, AVERAGE, MIN, MAX, COUNT,
+
+    /**
+     * How many elements in a row hold its condition (`while`), from the first in the selection's
+     * order: rows, or the groups of a grouping by date (Streaks). It reduces any field that
+     * reduces but a file, never a count, which has no value to hold the condition.
+     */
+    STREAK;
 
     companion object {
         /**
@@ -34,7 +41,12 @@ enum class Reduction {
          * The reductions [field] takes; null is no field, which is counting entries. A file field
          * holding more than one file takes none: a reading gives one file.
          */
-        fun forField(field: FieldDefinition?): Set<Reduction> =
+        fun forField(field: FieldDefinition?): Set<Reduction> = offered(field) +
+            // A file holds no value a condition compares
+            if (field != null && field.type != FieldType.FILE && offered(field).isNotEmpty()) setOf(STREAK) else emptySet()
+
+        /** What [forField] offers but the streak: what reduces values alone, without a condition. */
+        fun offered(field: FieldDefinition?): Set<Reduction> =
             if (field?.type == FieldType.FILE && app.treelune.core.fields.FileField.max(field.config) != 1) emptySet() else forType(field?.type)
 
         /**
@@ -94,7 +106,7 @@ object FieldReading {
      * @param at The instant read at, up to which a running DURATION counts
      */
     fun reduce(entries: List<Map<String, Any?>>, path: String?, field: FieldDefinition?, reduction: Reduction, at: Long): ReadingResult {
-        require(reduction in Reduction.forField(field)) { "$reduction does not reduce a ${field?.type ?: "count"}" }
+        require(reduction in Reduction.offered(field)) { "$reduction does not reduce a ${field?.type ?: "count"}" }
         if (reduction == Reduction.COUNT) return ReadingResult.Value(entries.size, COUNT_FIELD)
         path!!; field!!
 
@@ -118,6 +130,7 @@ object FieldReading {
             Reduction.MIN -> present.minWith(order(field.type))
             Reduction.MAX -> present.maxWith(order(field.type))
             Reduction.COUNT -> error("counted above")
+            Reduction.STREAK -> error("a streak is counted with its condition (Streaks)")
         }
         return ReadingResult.Value(value, field)
     }

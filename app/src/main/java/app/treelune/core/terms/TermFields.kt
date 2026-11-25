@@ -65,6 +65,7 @@ object TermFields {
         }
         if (term.perEntry != null) {
             if (term.group != null) throw IllegalArgumentException(text("reading_error_group_per_entry"))
+            if (term.reduction == Reduction.STREAK) throw IllegalArgumentException(text("reading_error_streak_per_entry"))
             return null
         }
         val field = term.field?.let { fields[it] ?: throw IllegalArgumentException(text("service_error_filter_unknown_field").format(it, fields.keys.joinToString(", "))) }
@@ -73,6 +74,8 @@ object TermFields {
                 Reduction.forField(field).joinToString(", ") { it.name }))
         }
         Term.ifNoneProblem(term.ifNone, field, term.reduction, term.group != null, text)?.let { throw IllegalArgumentException(text("variable_error_term").format(name) + " " + it) }
+        app.treelune.core.reading.Streaks.problem(term.reduction, term.streakWhile, term.group, text)?.let { throw IllegalArgumentException(text("variable_error_term").format(name) + " " + it) }
+        if (term.reduction == Reduction.STREAK) return FieldReading.COUNT_FIELD
         val value = if (term.reduction == Reduction.COUNT) FieldReading.COUNT_FIELD else field!!
         val group = term.group ?: return value
         group.problem(fields, value, text)?.let { throw IllegalArgumentException(text("variable_error_term").format(name) + " " + it) }

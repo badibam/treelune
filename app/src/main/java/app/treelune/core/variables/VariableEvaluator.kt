@@ -151,6 +151,8 @@ class VariableEvaluator(private val sources: VariableSources) {
             Reduction.MAX -> numbers.max()
             Reduction.FIRST -> numbers.first()
             Reduction.COUNT -> numbers.size.toDouble()
+            // The service refuses a streak computed in each entry: it has no condition there
+            Reduction.STREAK -> error("a streak is not computed per entry")
         })
     }
 

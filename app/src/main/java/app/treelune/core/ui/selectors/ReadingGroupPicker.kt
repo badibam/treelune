@@ -91,15 +91,25 @@ fun ReadingGroupPicker(
             { condition -> edit { put(ReadingGroup.KEEP, condition) } }, s, where)
     }
 
-    val reductions = ReadingGroup.reductions(value).toList()
+    // A streak counts groups in a row, which only units of time are
+    val unit = ReadingGroup.UNITS.firstOrNull { it.name == group.optString(ReadingGroup.UNIT) }
+    val reductions = ReadingGroup.reductions(value, unit).toList()
     ReductionPicker(
         label = s.shared("reading_group_reduction"),
         reductions = reductions,
         selected = reductions.firstOrNull { it.name == group.optString(ReadingGroup.REDUCTION) },
-        onSelect = { reduction -> edit { put(ReadingGroup.REDUCTION, reduction.name) } },
+        onSelect = { reduction -> edit {
+            put(ReadingGroup.REDUCTION, reduction.name)
+            if (reduction == Reduction.STREAK) { if (!has(app.treelune.core.reading.Streaks.WHILE)) put(app.treelune.core.reading.Streaks.WHILE, JSONObject()) } else remove(app.treelune.core.reading.Streaks.WHILE)
+        } },
         s = s,
         type = value.type
     )
+    if (group.optString(ReadingGroup.REDUCTION) == Reduction.STREAK.name && unit != null) {
+        ConditionSetting(s.shared("reading_streak_while_group"), group.optJSONObject(app.treelune.core.reading.Streaks.WHILE), value.copy(displayName = s.shared("reading_group_value")),
+            { condition -> edit { put(app.treelune.core.reading.Streaks.WHILE, condition) } }, s, where)
+        UI.Text(s.shared("reading_streak_note_${unit.name.lowercase()}"), app.treelune.core.ui.TextType.CAPTION)
+    }
 }
 
 /**

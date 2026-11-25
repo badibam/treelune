@@ -22,14 +22,18 @@ import java.time.LocalDate
  *
  * @property keep A condition without its left side, which is the group's value; null keeps them all
  */
-data class ReadingGroup(val field: String, val unit: PeriodType?, val keep: JSONObject?, val reduction: Reduction) {
+data class ReadingGroup(val field: String, val unit: PeriodType?, val keep: JSONObject?, val reduction: Reduction, val streakWhile: JSONObject? = null) {
 
     fun toJson(): JSONObject = JSONObject().apply {
         put(FIELD, field)
         unit?.let { put(UNIT, it.name) }
         keep?.let { put(KEEP, it) }
         put(REDUCTION, reduction.name)
+        streakWhile?.let { put(Streaks.WHILE, it) }
     }
+
+    /** [streakWhile] as a condition judged once, its left side standing for the group's value. */
+    fun whileCondition(): JSONObject? = streakWhile?.let { keepCondition(it) }
 
     /** [keep] as a condition judged once, its left side standing for the group's value (ConfigConditions, ConditionJudge). */
     fun keepCondition(): JSONObject? = keep?.let { keepCondition(it) }
@@ -44,6 +48,13 @@ data class ReadingGroup(val field: String, val unit: PeriodType?, val keep: JSON
         if (unit != null && by.type !in DATES) return text("reading_error_group_unit_type").format(by.displayName, by.type.name)
         if (unit != null && unit !in UNITS) return text("reading_error_group_unit").format(unit.name, UNITS.joinToString(", ") { it.name })
         if (unit == null && by.type == FieldType.DATETIME) return text("reading_error_group_unit_needed").format(by.displayName, UNITS.joinToString(", ") { it.name })
+        // A streak counts groups in a row: only units of time follow one another
+        if (reduction == Reduction.STREAK) {
+            if (unit == null) return text("reading_error_streak_group")
+            if (streakWhile == null) return text("reading_error_streak_while")
+            return null
+        }
+        if (streakWhile != null) return text("reading_error_while_alone")
         if (reduction !in reductions(value)) return text("reading_error_group_reduction").format(reduction.name, reductions(value).joinToString(", ") { it.name })
         return null
     }
@@ -74,11 +85,15 @@ data class ReadingGroup(val field: String, val unit: PeriodType?, val keep: JSON
          * those [value] takes, the first entry's excepted, which groups have no order to give.
          */
         fun reductions(value: FieldDefinition): Set<Reduction> =
-            (Reduction.forField(value) - Reduction.FIRST) + Reduction.COUNT
+            (Reduction.offered(value) - Reduction.FIRST) + Reduction.COUNT
+
+        /** [reductions], and the streak for a grouping by a unit of time, whose groups follow one another. */
+        fun reductions(value: FieldDefinition, unit: PeriodType?): Set<Reduction> =
+            reductions(value) + if (unit != null) setOf(Reduction.STREAK) else emptySet()
 
         /** The field a reduction of the groups' values, each of [value], gives: a count is a whole number. */
         fun resultField(value: FieldDefinition, reduction: Reduction): FieldDefinition = when {
-            reduction == Reduction.COUNT -> FieldReading.COUNT_FIELD
+            reduction == Reduction.COUNT || reduction == Reduction.STREAK -> FieldReading.COUNT_FIELD
             reduction == Reduction.AVERAGE && value == FieldReading.COUNT_FIELD -> AVERAGE_COUNT_FIELD
             else -> value
         }
@@ -94,7 +109,7 @@ data class ReadingGroup(val field: String, val unit: PeriodType?, val keep: JSON
             }
             val reduction = Reduction.entries.firstOrNull { it.name == json.optString(REDUCTION) }
                 ?: throw IllegalArgumentException(text("service_error_reading_reduction").format(json.optString(REDUCTION), Reduction.entries.joinToString(", ") { it.name }))
-            return ReadingGroup(field, unit, json.optJSONObject(KEEP), reduction)
+            return ReadingGroup(field, unit, json.optJSONObject(KEEP), reduction, json.optJSONObject(Streaks.WHILE))
         }
     }
 }
@@ -126,10 +141,11 @@ object GroupedReading {
         listed: List<Any>,
         calendar: TimeResolver,
         kept: (Any) -> Boolean,
-        at: Long
+        at: Long,
+        streak: (Any) -> Boolean = { error("a streak without its condition") }
     ): ReadingResult {
         val value = if (reduction == Reduction.COUNT) FieldReading.COUNT_FIELD else field!!
-        require(group.reduction in ReadingGroup.reductions(value)) { "${group.reduction} does not reduce groups of ${value.type}" }
+        require(group.reduction == Reduction.STREAK || group.reduction in ReadingGroup.reductions(value)) { "${group.reduction} does not reduce groups of ${value.type}" }
 
         // The groups listed first, in their order, then those only entries make
         val groups = LinkedHashMap<Any, MutableList<Map<String, Any?>>>()
@@ -138,6 +154,11 @@ object GroupedReading {
             keysOf(FieldReading.valueAt(entry, group.field), by, group.unit, calendar).forEach { key -> groups.getOrPut(key) { mutableListOf() }.add(entry) }
         }
 
+        // A streak: the units in a row holding its condition, from the latest back; one without a value breaks it
+        if (group.reduction == Reduction.STREAK) {
+            val latestFirst = groups.entries.sortedByDescending { (it.key as Number).toLong() }.map { (_, rows) -> FieldReading.reduce(rows, path, field, reduction, at) }
+            return ReadingResult.Value(Streaks.count(latestFirst.map { (it as? ReadingResult.Value)?.value }) { v -> v != null && streak(v) }, FieldReading.COUNT_FIELD)
+        }
         val values = mutableListOf<Any>()
         for (rows in groups.values) {
             when (val result = FieldReading.reduce(rows, path, field, reduction, at)) {

@@ -54,7 +54,7 @@ fun ReadingPicker(reading: JSONObject, s: StringsContext, where: ReadingContext,
     fun edit(change: JSONObject.() -> Unit) = onChange(JSONObject(reading.toString()).apply(change))
     /** What each group is worth changes: its keep and the reduction of the groups start over. */
     fun JSONObject.regroup() {
-        optJSONObject("group")?.apply { remove(ReadingGroup.KEEP); put(ReadingGroup.REDUCTION, Reduction.COUNT.name) }
+        optJSONObject("group")?.apply { remove(ReadingGroup.KEEP); remove(app.treelune.core.reading.Streaks.WHILE); put(ReadingGroup.REDUCTION, Reduction.COUNT.name) }
     }
 
     // The stored selection, its tool and zone named as they are now; a tool deleted since starts over
@@ -90,7 +90,7 @@ fun ReadingPicker(reading: JSONObject, s: StringsContext, where: ReadingContext,
         },
         onSelect = { pick ->
             edit {
-                remove("field"); remove("per_entry"); remove(app.treelune.core.terms.Term.IF_NONE)
+                remove("field"); remove("per_entry"); remove(app.treelune.core.terms.Term.IF_NONE); remove(app.treelune.core.reading.Streaks.WHILE)
                 regroup()
                 when (pick) {
                     FieldPick.Other(COUNT) -> put("reduction", Reduction.COUNT.name)
@@ -120,10 +120,20 @@ fun ReadingPicker(reading: JSONObject, s: StringsContext, where: ReadingContext,
         label = s.shared("variable_reading_reduction"),
         reductions = reductions,
         selected = reductions.firstOrNull { it.name == reading.optString("reduction") },
-        onSelect = { reduction -> edit { put("reduction", reduction.name); regroup(); remove(app.treelune.core.terms.Term.IF_NONE) } },
+        onSelect = { reduction -> edit {
+            put("reduction", reduction.name); regroup(); remove(app.treelune.core.terms.Term.IF_NONE)
+            // A streak of rows comes with its condition, and is not grouped: its rows follow one another
+            if (reduction == Reduction.STREAK) { if (!has(app.treelune.core.reading.Streaks.WHILE)) put(app.treelune.core.reading.Streaks.WHILE, JSONObject()); remove("group") } else remove(app.treelune.core.reading.Streaks.WHILE)
+        } },
         s = s,
         type = readField?.type
     )
+    val streak = reading.optString("reduction") == Reduction.STREAK.name
+    if (streak && readField != null) {
+        ConditionSetting(s.shared("reading_streak_while"), reading.optJSONObject(app.treelune.core.reading.Streaks.WHILE), readField,
+            { condition -> edit { put(app.treelune.core.reading.Streaks.WHILE, condition) } }, s, where)
+        UI.Text(s.shared("reading_streak_rows_note"), app.treelune.core.ui.TextType.CAPTION)
+    }
 
     // A date and time kept from one entry: what no entry is worth, set by hand, never implied
     val ifNoneApplies = Reduction.entries.firstOrNull { it.name == reading.optString("reduction") }?.let { reduction ->
@@ -139,7 +149,7 @@ fun ReadingPicker(reading: JSONObject, s: StringsContext, where: ReadingContext,
 
     // Grouped: each group reduced as above, then the groups; a formula per entry is not grouped
     val value = if (reading.has("field")) readField?.takeIf { reading.optString("reduction") != Reduction.COUNT.name } else FieldReading.COUNT_FIELD
-    if (!perEntry && value != null) {
+    if (!perEntry && value != null && !streak) {
         ReadingGroupPicker(reading.optJSONObject("group"), fields, value, current.period, s, where) { group ->
             edit { if (group == null) remove("group") else { put("group", group); remove(app.treelune.core.terms.Term.IF_NONE) } }
         }
