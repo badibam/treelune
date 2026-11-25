@@ -8,7 +8,6 @@ Tenir où on en est dans quelque chose qui se déroule par morceaux, aussi gén�
 
 ## La méthode
 
-- Partir des cas réels de l'utilisateur (le cycle de dessin, le konnakol), les écrire entièrement, et ne garder dans l'outil que ce qu'au moins l'un d'eux utilise. Les scènes imaginées servent de test, pas de cahier des charges.
 - Un point à la fois, concis ; une situation concrète, de vrais embranchements, puis un avis présenté comme un avis.
 - Ne rien traiter comme acquis tant que l'utilisateur ne l'a pas décidé, et ne pas reconduire une piste parce qu'elle a déjà été écrite.
 
