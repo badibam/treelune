@@ -26,7 +26,7 @@ data class TimeResolver(
             ?: throw IllegalArgumentException("a fixed instant is milliseconds, not ${point.value}")
         TimePoint.Now -> reference
         is TimePoint.Relative -> {
-            val start = resolveRelativePeriod(RelativePeriod(point.offset, point.unit), reference, dayStartHour, weekStartDay, zone)
+            val start = resolveRelativePeriod(RelativePeriod(point.offset, point.unit), point.from ?: reference, dayStartHour, weekStartDay, zone)
             if (point.edge == Edge.START) start.timestamp else getPeriodEndTimestamp(start, dayStartHour, weekStartDay, zone)
         }
         is TimePoint.Shift -> shifted(point)
@@ -41,7 +41,7 @@ data class TimeResolver(
      * read from it ([day]) is the app's.
      */
     private fun shifted(point: TimePoint.Shift): Long {
-        val from = Instant.ofEpochMilli(reference).atZone(zone)
+        val from = Instant.ofEpochMilli(point.from ?: reference).atZone(zone)
         val at = point.at
         if (at != null) return from.toLocalDate().plusDays(point.offset.toLong()).atTime(at).atZone(zone).toInstant().toEpochMilli()
         val unit = when (point.unit) {
@@ -67,11 +67,12 @@ data class TimeResolver(
             ?: throw IllegalArgumentException("a fixed day is \"yyyy-MM-dd\", not ${point.value}")
         TimePoint.Now -> dateOf(reference).toString()
         is TimePoint.Relative -> {
-            val start = resolveRelativePeriod(RelativePeriod(point.offset, point.unit), reference, dayStartHour, weekStartDay, zone)
+            val anchor = point.from ?: reference
+            val start = resolveRelativePeriod(RelativePeriod(point.offset, point.unit), anchor, dayStartHour, weekStartDay, zone)
             val first = dayOf(start.timestamp)
             if (point.edge == Edge.START) first.toString()
             else {
-                val next = resolveRelativePeriod(RelativePeriod(point.offset + 1, point.unit), reference, dayStartHour, weekStartDay, zone)
+                val next = resolveRelativePeriod(RelativePeriod(point.offset + 1, point.unit), anchor, dayStartHour, weekStartDay, zone)
                 maxOf(first, dayOf(next.timestamp).minusDays(1)).toString()
             }
         }

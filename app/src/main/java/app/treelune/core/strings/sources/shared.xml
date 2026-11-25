@@ -355,6 +355,7 @@
     <string name="ai_condition_write_datetime">an ISO 8601 date-time with its offset, \"2026-09-15T08:00:00+02:00\", or a relative date</string>
     <string name="ai_error_period_unknown_type">Unknown period type: %1$s. Accepted types: %2$s</string>
     <string name="error_relative_date_invalid">Unreadable relative date: %1$s. Expected: {"relative": {"unit": "DAY", "offset": -1, "edge": "START"}} (edge START or END; SAME, or {"at": "18:00"} by the DAY, to keep the place in the unit, MINUTE included), or {"relative": "NOW"}</string>
+    <string name="error_relative_date_from">The instant a relative date starts from must be in milliseconds, not %1$s: a date of a stage ({"self": …}) is written only in the rules of a Path.</string>
 
     <!-- AI Data Types - Enrichment descriptions -->
     <string name="ai_data_zone">zone data</string>

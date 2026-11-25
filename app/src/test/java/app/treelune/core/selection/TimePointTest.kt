@@ -174,4 +174,20 @@ class TimePointTest {
         val flight = TimeResolver(at(2026, 10, 15, 1, 30), zone, 4, "monday")
         assertEquals(at(2026, 10, 14, 18, 0), flight.instant(TimePoint.Shift(ShiftUnit.DAY, -1, LocalTime.of(18, 0))))
     }
+
+    @Test
+    fun `a relative date resolves against its own instant when it gives one, and refuses one not written in milliseconds`() {
+        // Thursday 2026-01-01 at 10:00; 15 days after it start on Friday the 16th at 4:00
+        val from = at(2026, 1, 1, 10, 0)
+        val json = """{"relative":{"unit":"DAY","offset":15,"edge":"START"},"from":$from}"""
+        val point = read(json)
+        assertEquals(TimePoint.Relative(PeriodType.DAY, 15, Edge.START, from), point)
+        assertEquals(JSONObject(json).toString(), point.toJson().toString())
+        assertEquals(at(2026, 1, 16, 4, 0), resolver.instant(point))
+        assertEquals("2026-01-16", resolver.day(point))
+        // A shift keeps its place from the instant given
+        assertEquals(at(2026, 1, 2, 10, 0), resolver.instant(read("""{"relative":{"unit":"DAY","offset":1,"edge":"SAME"},"from":$from}""")))
+        assertThrows(IllegalArgumentException::class.java) { read("""{"relative":{"unit":"DAY","offset":1,"edge":"START"},"from":{"self":"since"}}""") }
+        assertThrows(IllegalArgumentException::class.java) { read("""{"relative":"NOW","from":$from}""") }
+    }
 }

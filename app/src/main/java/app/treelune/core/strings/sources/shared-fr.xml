@@ -355,6 +355,7 @@
     <string name="ai_condition_write_datetime">une date-heure ISO 8601 avec son décalage, \"2026-09-15T08:00:00+02:00\", ou une date relative</string>
     <string name="ai_error_period_unknown_type">Type de période inconnu : %1$s. Types acceptés : %2$s</string>
     <string name="error_relative_date_invalid">Date relative illisible : %1$s. Attendu : {"relative": {"unit": "DAY", "offset": -1, "edge": "START"}} (edge START ou END ; SAME, ou {"at": "18:00"} avec DAY, pour garder la place dans l\'unité, MINUTE comprise), ou {"relative": "NOW"}</string>
+    <string name="error_relative_date_from">L\'instant d\'où part une date relative s\'écrit en millisecondes, pas %1$s : une date d\'une étape ({"self": …}) ne s\'écrit que dans les règles d\'un Parcours.</string>
 
     <!-- AI Data Types - Enrichment descriptions -->
     <string name="ai_data_zone">données zone</string>
