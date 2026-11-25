@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Strings of the path tooltype -->
+    <string name="path_error_self_links_type">Les liens d\'une étape se lisent par leur type : {"self": "links", "type": "…"}.</string>
+    <string name="path_error_self_unknown">« %1$s » n\'est ni un fait d\'une étape ni un champ de la sorte %2$s.</string>
+    <string name="path_error_self_from">Une date relative part de %1$s de l\'étape jugée, qui n\'en a pas.</string>
+    <string name="path_error_rule_field">Une règle compare des valeurs lues, jamais un champ d\'une entrée : lis l\'étape jugée avec {"self": …}.</string>
+    <string name="path_error_rule_reading_group">Une règle lit les vues du Parcours sans les regrouper ni calculer par ligne.</string>
+    <string name="path_problem_loop">Ces étapes s\'attendent l\'une l\'autre, et aucun état ne peut se calculer : %1$s.</string>
+    <string name="path_problem_kind">Aucune sorte ne s\'appelle plus « %1$s ».</string>
+    <string name="path_problem_ceiling">Le rejeu s\'est arrêté après %1$d mouvements donnés par des effets pour un seul mouvement : l\'effet de %2$s qui donne « %3$s » repart sans fin.</string>
+</resources>
