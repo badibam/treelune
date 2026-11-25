@@ -1612,6 +1612,7 @@
     <string name="variable_error_unknown_names">Inconnu dans la formule : %1$s. Connus : %2$s.</string>
     <string name="variable_error_loop">Une variable se lirait elle-même : %1$s.</string>
     <string name="variable_error_term">Le terme %1$s ne peut pas être lu.</string>
+    <string name="term_error_self">Le terme %1$s lit l\'étape jugée ({"self": …}) : seules les règles d\'un Parcours jugent une étape.</string>
     <string name="variable_error_constant_value">Une constante demande une "value" numérique.</string>
     <string name="variable_error_constant_not_number">La constante %1$s n\'est pas un nombre (%2$s) : une formule calcule sur des nombres.</string>
     <string name="variable_error_instant_misused">Dans « %1$s », un instant ne se soustrait qu\'à un autre instant, ce qui donne le temps entre les deux : maintenant() - dernier_repas.</string>

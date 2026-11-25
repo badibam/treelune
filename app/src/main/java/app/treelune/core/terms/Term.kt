@@ -92,6 +92,13 @@ sealed interface Term {
         const val IF_NONE = "if_none"
 
         /**
+         * The key of a value read on the stage a Path's rule judges (`{"self": "since"}`): never a
+         * term of the core, the Path putting the stage's value in its place, as a constant, before
+         * the rule is judged (tools/path). Met anywhere else, it is refused in words.
+         */
+        const val SELF = "self"
+
+        /**
          * The problem with [ifNone] on a reading of [field] reduced by [reduction] (grouped when
          * [grouped]), in words; null when it takes it: a date and time, one of its entries' kept
          * (MIN, MAX, FIRST), not grouped.
@@ -123,6 +130,7 @@ sealed interface Term {
             }
             json.has("constant") && !json.isNull("constant") -> Constant(JsonUtils.toValue(json.get("constant"))!!)
             json.optString("variable").isNotEmpty() -> Variable(json.getString("variable"))
+            json.has(SELF) -> throw IllegalArgumentException(text("term_error_self").format(name))
             else -> throw IllegalArgumentException(text("variable_error_term").format(name))
         }
     }
