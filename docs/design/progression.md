@@ -135,7 +135,7 @@ Ce que ça demande au core :
 ]
 ```
 
-- Le système ne connaît en dur que les clés d'un état (`key`, `manual`, `when`, `note_if`, `record`, `closes_run`), les mouvements `start` et `end`, et les références de date. Prévenir se règle en général : quand une brique entre dans tel état.
+- Le système ne connaît en dur que les clés d'un état (`key`, `manual`, `when`, `note_if`, `record`, `closes_run`), les mouvements `start` et `end`, et les références de date. Une brique qui entre dans un état est un point où l'app dit quelque chose (`EventPoints`, décidé le 2026-11-25) : l'état a ses réglages « Prévenir » (`notify`, « Hépatite B : bientôt ») et « Émettre » (`emit_event`, un événement de la zone qui porte la brique, pour qu'une Tâche fasse le reste), comme le rappel de l'Agenda ou la tentative d'Objectif à valider. Une Condition guettée sur `stages` n'y suffirait pas : elle ne part qu'en passant de fausse à vraie, et une seconde brique entrée pendant que la première y est encore ne préviendrait pas.
 
 ## Les écrans
 
