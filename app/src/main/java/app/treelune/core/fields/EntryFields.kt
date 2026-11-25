@@ -44,13 +44,21 @@ data class FixedField(
  * @property bookkeeping A note the app keeps so as not to do a thing twice (a reminder marked
  *   sent): out of the history of writes, which never copies it and leaves it as it is when it
  *   undoes a step (docs/DATA.md, « History of writes »)
+ * @property schema The JSON schema of a value no field type says (a Path's journal of moves, a
+ *   list of objects), in place of the one [definition]'s type gives; such a value is written by
+ *   the tool type's own operations alone, and is neither filtered nor sorted on
  */
 data class StateField(
     val definition: FieldDefinition,
     val filterable: Boolean,
     val bookkeeping: Boolean = false,
-    val sortable: Boolean = filterable
-)
+    val sortable: Boolean = filterable,
+    val schema: JSONObject? = null
+) {
+    init {
+        require(schema == null || (!filterable && !sortable)) { "a state field of its own schema is neither filtered nor sorted on: ${definition.name}" }
+    }
+}
 
 /**
  * Everything a tool type declares about the fields of its entries, sorted by who writes them:
@@ -315,7 +323,8 @@ object EntrySchemaGenerator {
         val givenStatus = start?.statuses?.isNotEmpty() == true
         val state = objectOf(
             fields = declared.state.associate { field ->
-                field.definition.name to FieldValueSchema.forReader(field.definition, text).also {
+                field.definition.name to (field.schema?.let { JSONObject(it.toString()).put("description", field.definition.description ?: field.definition.displayName) }
+                    ?: FieldValueSchema.forReader(field.definition, text)).also {
                     if (givenStatus && field.definition.name != EntryStart.STATUS) it.put("system_managed", true)
                 }
             },
