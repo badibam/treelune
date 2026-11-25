@@ -13,6 +13,7 @@ import app.treelune.tools.chart.ChartToolType
 import app.treelune.tools.sequence.SequenceToolType
 import app.treelune.tools.flashcards.FlashcardsToolType
 import app.treelune.tools.schema.SchemaToolType
+import app.treelune.tools.path.PathToolType
 
 /**
  * Simple registry that lists known tool types
@@ -34,7 +35,8 @@ object ToolTypeScanner {
             "sequence" to SequenceToolType,
             "agenda" to AgendaToolType,
             "flashcards" to FlashcardsToolType,
-            "schema" to SchemaToolType
+            "schema" to SchemaToolType,
+            "path" to PathToolType
         )
     }
 }

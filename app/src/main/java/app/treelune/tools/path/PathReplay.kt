@@ -138,6 +138,7 @@ class PathReplay(
             override fun stages() = otherRows + rows.values
             override fun moves() = otherMoves + movesRows()
             override val stageFields get() = fields
+            override val moveFields = PathRows.moveFields(grammar)
         }
 
         suspend fun replay(judge: Boolean): Outcome {

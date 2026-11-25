@@ -202,8 +202,9 @@ data class PathGrammar(
                 MarkRule(mark.optString("key"), mark.optString("name").ifEmpty { mark.optString("key") }, mark.optJSONObject("when") ?: JSONObject(), Paint.fromJson(mark.optJSONObject("paint")))
             },
             effects = objects(json.optJSONArray("effects")).map { effect ->
+                // The stages it gives a move to: a selection of the Path's own stages, its filters judged with self
                 val set = effect.optJSONObject("set") ?: JSONObject()
-                EffectRule(effect.optJSONObject("on") ?: JSONObject(), set.optJSONArray("filters") ?: JSONArray(), set.optString("state"))
+                EffectRule(effect.optJSONObject("on") ?: JSONObject(), set.optJSONObject("stages")?.optJSONArray("filters") ?: JSONArray(), set.optString("state"))
             },
             readout = json.optJSONObject("readout"),
             inParts = json.optString("layout") == "parts"

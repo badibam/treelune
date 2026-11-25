@@ -72,31 +72,28 @@ object PathSelf {
      */
     fun value(json: JSONObject, of: Of, text: (String) -> String): Value {
         val key = json.optString(Term.SELF)
-        fun plain(v: Any?) = Value(v, field(key, FieldType.TEXT))
-        fun ids(v: List<Stage>) = Value(v.map { it.id }, field(key, FieldType.TEXT))
-        fun instant(v: Long?) = Value(v, field(key, FieldType.DATETIME))
-        return when (key) {
-            ID -> plain(of.stage.id)
-            NAME -> plain(of.stage.name)
-            KIND -> plain(of.stage.kind)
-            PARENT -> plain(of.stage.parent)
-            POSITION -> Value(of.stage.position, field(key, FieldType.NUMERIC))
-            PREVIOUS -> plain(of.previous()?.id)
-            SIBLINGS -> ids(of.siblings())
-            CONTENT -> ids(of.content())
+        val raw: Any? = when (key) {
+            ID -> of.stage.id
+            NAME -> of.stage.name
+            KIND -> of.stage.kind
+            PARENT -> of.stage.parent
+            POSITION -> of.stage.position
+            PREVIOUS -> of.previous()?.id
+            SIBLINGS -> of.siblings().map { it.id }
+            CONTENT -> of.content().map { it.id }
             LINKS -> {
                 val type = json.optString(TYPE).takeIf { it.isNotEmpty() } ?: throw IllegalArgumentException(text("path_error_self_links_type"))
-                Value(of.stage.links.filter { it.type == type }.map { it.from }, field(key, FieldType.TEXT))
+                of.stage.links.filter { it.type == type }.map { it.from }
             }
-            STATE -> plain(of.state()?.first)
-            SINCE -> instant(of.state()?.second)
-            LAST_MOVE -> plain(of.lastMove()?.state)
-            LAST_MOVE_AT -> instant(of.lastMove()?.at)
-            RUN_START -> instant(of.runStart())
-            RUN_END -> instant(of.runEnd())
-            else -> of.kind.fields.firstOrNull { it.name == key }?.let { Value(of.stage.fields[key], it) }
-                ?: throw IllegalArgumentException(text("path_error_self_unknown").format(key, of.kind.name))
+            STATE -> of.state()?.first
+            SINCE -> of.state()?.second
+            LAST_MOVE -> of.lastMove()?.state
+            LAST_MOVE_AT -> of.lastMove()?.at
+            RUN_START -> of.runStart()
+            RUN_END -> of.runEnd()
+            else -> of.stage.fields[key]
         }
+        return Value(raw, fieldOf(key, of.kind, text))
     }
 
     /**
@@ -140,6 +137,27 @@ object PathSelf {
         is List<*> -> JSONArray(value)
         else -> value
     }
+
+    /**
+     * The field the value of `self` [key] is a value of on a stage of [kind], known from the
+     * grammar alone: what a rule is checked against when it is written.
+     *
+     * @throws IllegalArgumentException on a key `self` does not reach on that kind
+     */
+    fun fieldOf(key: String, kind: Kind, text: (String) -> String): FieldDefinition = when (key) {
+        // A stage designates stages by their ids, compared as options: `id in self.links`
+        ID, PARENT, PREVIOUS, SIBLINGS, CONTENT, LINKS -> choice(key, emptyList())
+        KIND -> choice(key, listOf(kind.key))
+        STATE, LAST_MOVE -> choice(key, kind.states.map { it.key })
+        NAME -> field(key, FieldType.TEXT)
+        POSITION -> field(key, FieldType.NUMERIC)
+        SINCE, LAST_MOVE_AT, RUN_START, RUN_END -> field(key, FieldType.DATETIME)
+        else -> kind.fields.firstOrNull { it.name == key } ?: throw IllegalArgumentException(text("path_error_self_unknown").format(key, kind.name))
+    }
+
+    /** A choice among [options], their keys standing for their labels; [multiple] for a list of them. */
+    fun choice(key: String, options: List<String>, multiple: Boolean = false) = FieldDefinition(key, key, null, FieldType.CHOICE, false,
+        mapOf("options" to app.treelune.core.fields.ChoiceSettings.storedOptions(options, options.associateWith { it }, emptyMap())) + if (multiple) mapOf("multiple" to true) else emptyMap())
 
     private fun field(key: String, type: FieldType) = FieldDefinition(key, key, null, type, false, null)
 }

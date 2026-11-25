@@ -50,6 +50,7 @@ class PathRules(
         fun stages(): List<Map<String, Any?>>
         fun moves(): List<Map<String, Any?>>
         val stageFields: Map<String, FieldDefinition>
+        val moveFields: Map<String, FieldDefinition>
     }
 
     /** [rule] judged on [self] at [at], its readings of the Path reading [rows]. */
@@ -114,7 +115,7 @@ class PathRules(
         if (!own) return external(term, at)
         term as Term.Reading
         if (term.group != null || term.perEntry != null) throw IllegalArgumentException(own("path_error_rule_reading_group"))
-        val (lines, fields) = if (term.selection.view == PathRows.STAGES) rows.stages() to rows.stageFields else rows.moves() to PathRows.moveFields()
+        val (lines, fields) = if (term.selection.view == PathRows.STAGES) rows.stages() to rows.stageFields else rows.moves() to rows.moveFields
         return when (val read = RowsReading.read(lines, term.selection, term.field, term.reduction, fields, calendar(at), text)) {
             is ReadingResult.Value -> TermReader.Read.Value(read.value, if (term.field == null) FieldReading.COUNT_FIELD else read.field)
             is ReadingResult.Failure -> TermReader.Read.Failed(text("reading_failure_no_entry").format(read.field ?: ""))

@@ -210,7 +210,7 @@ class PathReplayTest {
         val filters = org.json.JSONArray("""[
             {"left": {"field": "timestamp"}, "op": ">=", "right": {"constant": {"relative": {"unit": "DAY", "offset": 0, "edge": "START"}, "from": {"self": "last_move_at"}}}},
             {"left": {"field": "data.level"}, "op": "=", "right": {"self": "id"}},
-            {"left": {"field": "id"}, "op": "=", "right": {"self": "previous"}}]""")
+            {"left": {"field": "id"}, "op": "in", "right": {"self": "previous"}}]""")
         val written = PathSelf.substituted(filters, of) { it } as org.json.JSONArray
         assertEquals(t0 + day, written.getJSONObject(0).getJSONObject("right").getJSONObject("constant").getLong("from"))
         assertEquals("p2", written.getJSONObject(1).getJSONObject("right").getString("constant"))
@@ -226,7 +226,7 @@ class PathReplayTest {
         fun stages(filters: String) = """{"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "self"}, "view": "stages", "filters": [$filters]}, "reduction": "COUNT"}}"""
         fun filter(field: String, op: String, right: String) = """{"left": {"field": "$field"}, "op": "$op", "right": $right}"""
 
-        val CHILDREN = filter("data.parent", "=", """{"self": "id"}""")
+        val CHILDREN = filter("data.parent", "in", """{"self": "id"}""")
         val CHILDREN_DONE = "$CHILDREN, ${filter("data.state", "in", """{"constant": ["done"]}""")}"
 
         /** Plan: sessions noted by hand, a month done when its whole content is, and it has one. */
@@ -239,7 +239,7 @@ class PathReplayTest {
                 {"key": "todo"}]},
             {"key": "session", "states": [{"key": "done", "manual": true}, {"key": "todo"}]}]}"""
 
-        val PREVIOUS = filter("id", "=", """{"self": "previous"}""")
+        val PREVIOUS = filter("id", "in", """{"self": "previous"}""")
 
         /** Levels: passed when five sessions of the practice name it (record), current when the one before has passed. */
         val LEVELS = """{"root_kind": "suite", "kinds": [
@@ -265,23 +265,23 @@ class PathReplayTest {
         val REHAB = """{"root_kind": "rehab", "kinds": [
             {"key": "rehab", "contains": ["step"], "states": [{"key": "ongoing"}]},
             {"key": "step", "states": [{"key": "passed", "manual": true}, {"key": "current", "manual": true}, {"key": "waiting"}],
-             "effects": [{"on": {"left": {"self": "last_move"}, "op": "=", "right": {"constant": "passed"}},
-                          "set": {"filters": [${filter("data.previous", "=", """{"self": "id"}""")}], "state": "current"}}]}]}"""
+             "effects": [{"on": {"left": {"self": "last_move"}, "op": "in", "right": {"constant": ["passed"]}},
+                          "set": {"stages": {"target": {"kind": "TOOL_INSTANCE", "id": "self"}, "view": "stages", "filters": [${filter("data.previous", "in", """{"self": "id"}""")}]}, "state": "current"}}]}]}"""
 
         /** Two effects that give each other, without end. */
         val PING_PONG = """{"root_kind": "loop", "kinds": [
             {"key": "loop", "contains": ["ping"], "states": [{"key": "ongoing"}]},
             {"key": "ping", "states": [{"key": "a", "manual": true}, {"key": "b", "manual": true}, {"key": "none"}],
              "effects": [
-                {"on": {"left": {"self": "last_move"}, "op": "=", "right": {"constant": "a"}}, "set": {"filters": [${filter("id", "=", """{"self": "id"}""")}], "state": "b"}},
-                {"on": {"left": {"self": "last_move"}, "op": "=", "right": {"constant": "b"}}, "set": {"filters": [${filter("id", "=", """{"self": "id"}""")}], "state": "a"}}]}]}"""
+                {"on": {"left": {"self": "last_move"}, "op": "in", "right": {"constant": ["a"]}}, "set": {"stages": {"target": {"kind": "TOOL_INSTANCE", "id": "self"}, "view": "stages", "filters": [${filter("id", "in", """{"self": "id"}""")}]}, "state": "b"}},
+                {"on": {"left": {"self": "last_move"}, "op": "in", "right": {"constant": ["b"]}}, "set": {"stages": {"target": {"kind": "TOOL_INSTANCE", "id": "self"}, "view": "stages", "filters": [${filter("id", "in", """{"self": "id"}""")}]}, "state": "a"}}]}]}"""
 
         /** Career change: what lies in a dropped way bears a mark, read from its parent. */
         val CAREER = """{"root_kind": "career", "kinds": [
             {"key": "career", "contains": ["way"], "states": [{"key": "ongoing"}]},
             {"key": "way", "contains": ["task"], "states": [{"key": "dropped", "manual": true}, {"key": "to_explore"}]},
             {"key": "task", "states": [{"key": "done", "manual": true}, {"key": "todo"}],
-             "marks": [{"key": "in_dropped_way", "when": {"left": ${stages("${filter("id", "=", """{"self": "parent"}""")}, ${filter("data.state", "in", """{"constant": ["dropped"]}""")}")}, "op": ">", "right": {"constant": 0}}}]}]}"""
+             "marks": [{"key": "in_dropped_way", "when": {"left": ${stages("${filter("id", "in", """{"self": "parent"}""")}, ${filter("data.state", "in", """{"constant": ["dropped"]}""")}")}, "op": ">", "right": {"constant": 0}}}]}]}"""
 
         /** An attempt: failed once its end date has passed, which closes its run. */
         val ATTEMPT = """{"root_kind": "attempt", "kinds": [
@@ -295,7 +295,7 @@ class PathReplayTest {
             {"key": "book", "contains": ["vaccine"], "states": [{"key": "ongoing"}]},
             {"key": "vaccine", "plan_fields": [{"name": "validity", "display_name": "Validity", "type": "NUMERIC"}], "states": [
                 {"key": "expired", "when": {"all": [
-                    {"left": {"self": "last_move"}, "op": "=", "right": {"constant": "injected"}},
+                    {"left": {"self": "last_move"}, "op": "in", "right": {"constant": ["injected"]}},
                     {"left": {"constant": {"relative": {"unit": "YEAR", "offset": {"self": "validity"}, "edge": "SAME"}, "from": {"self": "last_move_at"}}},
                      "op": "<=", "right": {"constant": {"relative": "NOW"}}}]}},
                 {"key": "injected", "manual": true},

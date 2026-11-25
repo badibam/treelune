@@ -24,12 +24,21 @@ object PathRows {
     const val NOTE = "note"
     const val VIRTUAL = "virtual"
 
-    /** The fields of a row of [STAGES] by path: its own, then each kind's fields. */
+    /**
+     * The fields of a row of [STAGES] by path: its own, then each kind's fields. What designates
+     * a stage, its kind and its state are choices, compared by `in`; its ancestors and its marks,
+     * lists of them.
+     */
     fun stageFields(grammar: PathGrammar): Map<String, FieldDefinition> = buildMap {
-        put("id", field("id", FieldType.TEXT))
+        val states = grammar.kinds.flatMap { k -> k.states.map { it.key } }.distinct()
+        put("id", PathSelf.choice("id", emptyList()))
         put("name", field("name", FieldType.TEXT))
-        listOf(PathSelf.KIND, PathSelf.PARENT, PathSelf.PREVIOUS, ANCESTORS, PathSelf.STATE, PathSelf.LAST_MOVE, MARKS, RUN)
-            .forEach { put("data.$it", field(it, FieldType.TEXT)) }
+        put("data.${PathSelf.KIND}", PathSelf.choice(PathSelf.KIND, grammar.kinds.map { it.key }))
+        listOf(PathSelf.PARENT, PathSelf.PREVIOUS, RUN).forEach { put("data.$it", PathSelf.choice(it, emptyList())) }
+        put("data.$ANCESTORS", PathSelf.choice(ANCESTORS, emptyList(), multiple = true))
+        put("data.${PathSelf.STATE}", PathSelf.choice(PathSelf.STATE, states))
+        put("data.${PathSelf.LAST_MOVE}", PathSelf.choice(PathSelf.LAST_MOVE, states))
+        put("data.$MARKS", PathSelf.choice(MARKS, grammar.kinds.flatMap { k -> k.marks.map { it.key } }.distinct(), multiple = true))
         put("data.${PathSelf.POSITION}", field(PathSelf.POSITION, FieldType.NUMERIC))
         listOf(PathSelf.SINCE, PathSelf.LAST_MOVE_AT, PathSelf.RUN_START, PathSelf.RUN_END)
             .forEach { put("data.$it", field(it, FieldType.DATETIME)) }
@@ -38,10 +47,14 @@ object PathRows {
     }
 
     /** The fields of a row of [MOVES] by path. */
-    fun moveFields(): Map<String, FieldDefinition> = buildMap {
-        put("id", field("id", FieldType.TEXT))
+    fun moveFields(grammar: PathGrammar): Map<String, FieldDefinition> = buildMap {
+        put("id", PathSelf.choice("id", emptyList()))
         put("timestamp", field("timestamp", FieldType.DATETIME))
-        listOf(STAGE, PathSelf.KIND, PathSelf.STATE, NOTE, RUN).forEach { put("data.$it", field(it, FieldType.TEXT)) }
+        put("data.$STAGE", PathSelf.choice(STAGE, emptyList()))
+        put("data.$RUN", PathSelf.choice(RUN, emptyList()))
+        put("data.${PathSelf.KIND}", PathSelf.choice(PathSelf.KIND, grammar.kinds.map { it.key }))
+        put("data.${PathSelf.STATE}", PathSelf.choice(PathSelf.STATE, grammar.kinds.flatMap { k -> k.states.map { it.key } }.distinct() + listOf(Move.START, Move.END)))
+        put("data.$NOTE", field(NOTE, FieldType.TEXT))
         put("data.$VIRTUAL", field(VIRTUAL, FieldType.BOOLEAN))
     }
 
