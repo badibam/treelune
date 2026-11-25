@@ -222,7 +222,8 @@ class PathReplayTest {
         const val PATH = "path"
         const val PRACTICE = "practice"
 
-        fun stages(filters: String) = """{"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "$PATH"}, "view": "stages", "filters": [$filters]}, "reduction": "COUNT"}}"""
+        /** A count of the Path's own stages, its tool named "self" as a rule written before its tool exists names it. */
+        fun stages(filters: String) = """{"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "self"}, "view": "stages", "filters": [$filters]}, "reduction": "COUNT"}}"""
         fun filter(field: String, op: String, right: String) = """{"left": {"field": "$field"}, "op": "$op", "right": $right}"""
 
         val CHILDREN = filter("data.parent", "=", """{"self": "id"}""")

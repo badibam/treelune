@@ -23,7 +23,8 @@ import org.json.JSONObject
  * a variable, the Path's entries themselves — is read by the core through [external], `self` put
  * in its place first.
  *
- * @param pathId The Path's tool, which a reading names as its target to read its own views
+ * @param pathId The Path's tool, which a reading names as its target to read its own views — or
+ *   `"self"` (Term.SELF_TOOL), as a rule is written before its tool exists
  * @param external A term of the core read at an instant (TermReader)
  * @param calendar The calendar a relative date resolves on, against an instant (TimeResolver.at)
  * @param text The core's strings, [own] the Path's
@@ -108,7 +109,7 @@ class PathRules(
         // A written value has no type of its own: it takes the other side's
         if (term is Term.Constant) return TermReader.Read.Value(term.value, null)
         val selection = (term as? Term.Reading)?.selection
-        val own = selection != null && selection.target.kind == ReferenceKind.TOOL_INSTANCE && selection.target.id == pathId &&
+        val own = selection != null && selection.target.kind == ReferenceKind.TOOL_INSTANCE && selection.target.id in setOf(pathId, Term.SELF_TOOL) &&
             selection.view in setOf(PathRows.STAGES, PathRows.MOVES)
         if (!own) return external(term, at)
         term as Term.Reading
