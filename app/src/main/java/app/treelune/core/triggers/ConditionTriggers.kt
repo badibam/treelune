@@ -243,7 +243,8 @@ object ConditionTriggers {
         val tools = mutableSetOf<String>()
         for (term in terms(condition)) {
             when (term) {
-                is Term.Constant -> Unit
+                // A thing judged is never listened to: only a Path judges one, in its rules
+                is Term.Constant, is Term.Self -> Unit
                 is Term.Reading -> {
                     val target = term.selection.target
                     when (target.kind) {
@@ -287,7 +288,7 @@ object ConditionTriggers {
         when (term) {
             is Term.Reading -> app.treelune.core.access.AccessRules.reach("readings", "read", mapOf("selection" to JsonUtils.toMap(term.selection.toJson())), isToolType)
             is Term.Variable -> app.treelune.core.access.AccessRules.reach("variables", "evaluate", mapOf("variable_id" to term.id), isToolType)
-            is Term.Constant -> emptyList()
+            is Term.Constant, is Term.Self -> emptyList()
         }
     }
 

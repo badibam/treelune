@@ -41,6 +41,8 @@ object TermFields {
     ): FieldDefinition? = when (term) {
         is Term.Constant -> null
         is Term.Variable -> variableField(term.id) ?: throw IllegalArgumentException(text("variable_error_not_found").format(term.id))
+        // Typed by whoever declares a thing judged (ConditionCheck), refused here where none is
+        is Term.Self -> throw IllegalArgumentException(text("term_error_self").format(name))
         is Term.Reading -> reading(term, name, text, targetFields)
     }
 

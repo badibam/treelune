@@ -91,7 +91,7 @@ class ChartSources(private val context: Context) {
                 // Grouped, the groups' values reduced
                 term.group?.let { app.treelune.core.reading.ReadingGroup.resultField(value, it.reduction) } ?: value
             }
-            is Term.Constant -> throw IllegalStateException(s.tool("error_column_term").format(column.name))
+            is Term.Constant, is Term.Self -> throw IllegalStateException(s.tool("error_column_term").format(column.name))
         }
         return field.copy(name = column.name, displayName = column.name, description = null)
     }
@@ -200,7 +200,7 @@ class ChartSources(private val context: Context) {
                     TimePoint.Relative(source.step, 0, Edge.START), TimePoint.Relative(source.step, 0, Edge.END))) else term.selection
                 coordinator.processUserAction("readings.read", term.copy(selection = selection).params() + ("at" to instants))
             }
-            is Term.Constant -> throw IllegalStateException(s.tool("error_column_term").format(column.name))
+            is Term.Constant, is Term.Self -> throw IllegalStateException(s.tool("error_column_term").format(column.name))
         }
         if (!result.isSuccess) throw IllegalStateException(s.tool("error_column_read").format(column.name, result.error ?: ""))
         return cellsOf(result.data?.get("values") as? List<*>)

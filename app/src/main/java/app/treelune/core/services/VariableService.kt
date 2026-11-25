@@ -289,6 +289,7 @@ class VariableService(private val context: Context) : ExecutableService {
             // A formula computes on numbers
             is Term.Constant -> if (term.value !is Number) throw Refused(s.shared("variable_error_constant_not_number").format(name, term.value.toString()))
             is Term.Variable -> if (others.none { it.id == term.id }) throw Refused(s.shared("variable_error_not_found").format(term.id))
+            is Term.Self -> throw Refused(s.shared("term_error_self").format(name))
             is Term.Reading -> {
                 fieldOf(term, name)
                 if (term.perEntry != null && Formula.parse(term.perEntry, aliases) is Formula.Parsed.Unreadable) throw Refused(s.shared("variable_error_term").format(name))

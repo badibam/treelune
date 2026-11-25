@@ -53,6 +53,16 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
          * owner gives none.
          */
         suspend fun rowFields(root: JSONObject, path: List<Any>): Map<String, FieldDefinition>?
+
+        /**
+         * The field the value of the thing judged [self] names is a value of, for a condition
+         * found at [path] of [root] (a Path's rule, on a stage of the kind it belongs to); null
+         * where no thing is judged, which refuses it. Only a config that judges a thing of its
+         * own answers (ToolTypeContract.conditionSources).
+         *
+         * @throws IllegalArgumentException naming a value the thing judged does not have
+         */
+        suspend fun selfField(root: JSONObject, path: List<Any>, self: app.treelune.core.terms.Term.Self): FieldDefinition? = null
     }
 
     /** How a condition is judged, which says what its sides may be. */
@@ -73,6 +83,8 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
      * @property fields The fields a side may name, by path or name: the entries' for [Kind.ON_ENTRY], the row's for [Kind.ON_ROW]
      * @property entered For [Kind.ONCE], the value entered in each attempt that stands on its left whatever is stored there
      * @property tool For [Kind.ON_ENTRY], the tool instance whose entries it is put on; null when its selection names none
+     * @property root The config it stands in, and [path] the place of the object holding it, for
+     *   what a side reads of the thing judged there (Sources.selfField)
      */
     data class Found(
         val label: String,
@@ -80,7 +92,9 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
         val kind: Kind,
         val fields: Map<String, FieldDefinition> = emptyMap(),
         val entered: FieldDefinition? = null,
-        val tool: String? = null
+        val tool: String? = null,
+        val root: JSONObject = JSONObject(),
+        val path: List<Any> = emptyList()
     )
 
     /**
@@ -129,18 +143,18 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
                 if (!node.combines && Conditions.isCombined(condition)) throw IllegalArgumentException(text("condition_error_not_combined").format(here))
                 if (node.onRow) {
                     val fields = sources.rowFields(root, path) ?: error("The condition '${node.name}' is put on each row, and its config's owner gives no RowFields")
-                    obj.put(node.name, Conditions.mapComparisons(condition) { visit(Found(here, it, Kind.ON_ROW, fields)) })
+                    obj.put(node.name, Conditions.mapComparisons(condition) { visit(Found(here, it, Kind.ON_ROW, fields, root = root, path = path)) })
                 } else {
                     val turned = Conditions.mapComparisons(condition) { comparison ->
-                        visit(Found(here, comparison, Kind.ONCE, entered = entered(node, obj))).also { turned ->
-                            sidesOf(turned).forEach { side -> reading(side, here, visit) }
+                        visit(Found(here, comparison, Kind.ONCE, entered = entered(node, obj), root = root, path = path)).also { turned ->
+                            sidesOf(turned).forEach { side -> reading(side, here, root, path, visit) }
                         }
                     }
                     obj.put(node.name, turned)
                 }
             }
-            is SettingNode.Term -> obj.optJSONObject(node.name)?.let { reading(it, under(label, node.label), visit) }
-            is SettingNode.Selection -> obj.optJSONObject(node.name)?.let { selection(it, under(label, node.label), visit) }
+            is SettingNode.Term -> obj.optJSONObject(node.name)?.let { reading(it, under(label, node.label), root, path, visit) }
+            is SettingNode.Selection -> obj.optJSONObject(node.name)?.let { selection(it, under(label, node.label), root, path, visit) }
         }
     }
 
@@ -164,18 +178,18 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
      * The filters of the reading [term] stands for, if it is one, then the keep of its groups and
      * the readings on its sides.
      */
-    private suspend fun reading(term: JSONObject, label: String, visit: suspend (Found) -> JSONObject) {
+    private suspend fun reading(term: JSONObject, label: String, root: JSONObject, path: List<Any>, visit: suspend (Found) -> JSONObject) {
         val reading = term.optJSONObject("reading") ?: return
-        reading.optJSONObject("selection")?.let { selection(it, label, visit) }
+        reading.optJSONObject("selection")?.let { selection(it, label, root, path, visit) }
         val group = reading.optJSONObject("group") ?: return
         val keep = group.optJSONObject(ReadingGroup.KEEP) ?: return
         // A group's value whose field does not read leaves the keep to the reading's own check, which names it
         val value = groupValue(reading) ?: return
         val here = under(label, text("reading_group_keep"))
-        val turned = visit(Found(here, ReadingGroup.keepCondition(keep), Kind.ONCE, entered = value))
+        val turned = visit(Found(here, ReadingGroup.keepCondition(keep), Kind.ONCE, entered = value, root = root, path = path))
         turned.remove(Conditions.LEFT)
         group.put(ReadingGroup.KEEP, turned)
-        sidesOf(turned).forEach { side -> reading(side, here, visit) }
+        sidesOf(turned).forEach { side -> reading(side, here, root, path, visit) }
     }
 
     /** The field each group of [reading] has a value of: its own field reduced, or a count; null when it does not read. */
@@ -189,7 +203,7 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
     }
 
     /** The filters of [selection], each put on an entry of its tool and naming its fields. */
-    private suspend fun selection(selection: JSONObject, label: String, visit: suspend (Found) -> JSONObject) {
+    private suspend fun selection(selection: JSONObject, label: String, root: JSONObject, path: List<Any>, visit: suspend (Found) -> JSONObject) {
         val filters = selection.optJSONArray("filters")?.takeIf { it.length() > 0 } ?: return
         val target = selection.optJSONObject("target")
         // A tool's entries, or a view's rows (core/views: a variable's series), whose fields its filters name
@@ -208,7 +222,7 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
         } ?: emptyMap()
         for (i in 0 until filters.length()) {
             val filter = filters.optJSONObject(i) ?: continue
-            filters.put(i, visit(Found(label, filter, Kind.ON_ENTRY, fields, tool = id)))
+            filters.put(i, visit(Found(label, filter, Kind.ON_ENTRY, fields, tool = id, root = root, path = path)))
         }
     }
 

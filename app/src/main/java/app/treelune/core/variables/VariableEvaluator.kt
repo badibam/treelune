@@ -79,6 +79,8 @@ class VariableEvaluator(private val sources: VariableSources) {
                     is Term.Constant -> Outcome.Value((term.value as? Number)?.toDouble() ?: error("the constant '${leaf.name}' is not a number"))
                     is Term.Variable -> other(term.id, at, visiting, leaf.name)
                     is Term.Reading -> if (term.perEntry != null) perEntry(term, leaf.name, at) else named(sources.read(term, at), leaf.name)
+                    // The service refuses it: a variable judges nothing
+                    is Term.Self -> error("the term '${leaf.name}' reads a thing judged")
                 }
                 is Formula.VariableRef -> other(leaf.id, at, visiting, null)
                 // The instant the variable is read at, not the clock: read yesterday, it is yesterday

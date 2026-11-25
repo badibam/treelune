@@ -125,4 +125,24 @@ class ConditionCheckTest {
         assertEquals(null, refuse(filters(condition("""{"field": "data.kcal"}""", "<", """{"variable": "kcal_goal"}"""))))
         assertEquals("condition_error_field", refuse(filters(condition("""{"field": "data.protein"}""", "<", """{"constant": 1}"""))))
     }
+
+    @Test
+    fun aValueOfTheThingJudged_isTypedByWhoDeclaresIt_andRefusedWhereNothingIsJudged() {
+        val since = condition("""{"self": "since"}""", "<=", """{"constant": {"relative": "NOW"}}""")
+        // Nowhere does a meal's criterion judge a thing
+        assertEquals("term_error_self", refuse(criteria(criterion(since))))
+        // Where a thing is judged, its value is of the type its declarer gives, and held to it
+        val judged = object : ConfigConditions.Sources by sources {
+            override suspend fun selfField(root: JSONObject, path: List<Any>, self: app.treelune.core.terms.Term.Self) =
+                if (path == listOf("criteria", 0) && self.key == "since") field("since", FieldType.DATETIME) else null
+        }
+        val check = { config: JSONObject -> runBlocking { ConditionCheck(judged) { it }.refuse(nodes, config) } }
+        assertNull(check(criteria(criterion(since))))
+        assertEquals("condition_error_value", check(criteria(criterion(condition("""{"self": "since"}""", "<=", """{"constant": "tomorrow"}""")))))
+        // In a reading's filters too
+        val filtered = condition("""{"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "meals"}, "filters": [
+            {"left": {"field": "timestamp"}, "op": ">=", "right": {"self": "since"}}]}, "reduction": "COUNT"}}""", ">", """{"constant": 0}""")
+        assertNull(check(criteria(criterion(filtered))))
+        assertEquals("term_error_self", refuse(criteria(criterion(filtered))))
+    }
 }

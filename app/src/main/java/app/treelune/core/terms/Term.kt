@@ -63,6 +63,16 @@ sealed interface Term {
     data class Variable(val id: String) : Term
 
     /**
+     * A value of the thing a condition judges, read on it each time it is judged (`{"self":
+     * "since"}`, `{"self": "links", "type": "required"}`): a Path's stage, in its rules. Its [key]
+     * and its [type] (a link type) are what the judged thing reaches; the field it is a value of
+     * comes from whoever declares the thing judged (ConfigConditions.Sources.selfField), and it
+     * is read by that thing alone, which puts its value in its place before anything of the core
+     * reads the condition. Anywhere no thing is judged, it is refused in words.
+     */
+    data class Self(val key: String, val type: String? = null) : Term
+
+    /**
      * What a reading of an instant is worth when no entry is selected, set by hand on the term:
      * [NOW], the instant it is read at — the first meal of today not taken yet is at the
      * earliest now. Only a date and time reduced to one of its entries' takes it (checkIfNone);
@@ -85,18 +95,23 @@ sealed interface Term {
             else -> value
         })
         is Variable -> JSONObject().put("variable", id)
+        is Self -> JSONObject().put(SELF, key).apply { type?.let { put(SELF_TYPE, it) } }
     }
 
     companion object {
         /** The key of a reading's IfNone, in its stored form and in readings.read. */
         const val IF_NONE = "if_none"
 
-        /**
-         * The key of a value read on the stage a Path's rule judges (`{"self": "since"}`): never a
-         * term of the core, the Path putting the stage's value in its place, as a constant, before
-         * the rule is judged (tools/path). Met anywhere else, it is refused in words.
-         */
+        /** The key of a value read on the thing judged (Self), and of the link type it reads. */
         const val SELF = "self"
+        const val SELF_TYPE = "type"
+
+        /**
+         * The id a reading gives its target to read the thing judged's own tool (`{"kind":
+         * "TOOL_INSTANCE", "id": "self"}`, a Path's views in its rules), known before the tool is
+         * created; put in its place, as [Self] is, before the reading goes anywhere.
+         */
+        const val SELF_TOOL = "self"
 
         /**
          * The problem with [ifNone] on a reading of [field] reduced by [reduction] (grouped when
@@ -130,7 +145,7 @@ sealed interface Term {
             }
             json.has("constant") && !json.isNull("constant") -> Constant(JsonUtils.toValue(json.get("constant"))!!)
             json.optString("variable").isNotEmpty() -> Variable(json.getString("variable"))
-            json.has(SELF) -> throw IllegalArgumentException(text("term_error_self").format(name))
+            json.optString(SELF).isNotEmpty() -> Self(json.getString(SELF), json.optString(SELF_TYPE).takeIf { it.isNotEmpty() })
             else -> throw IllegalArgumentException(text("variable_error_term").format(name))
         }
     }

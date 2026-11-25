@@ -99,14 +99,14 @@ class ConditionCheck(private val sources: ConfigConditions.Sources, private val 
                 // The value entered stands on the left, whatever is stored there
                 index == 0 && found.entered != null -> found.entered
                 side is Condition.Side.Field -> throw IllegalArgumentException(text("condition_error_field_side").format(label, side.path))
-                else -> termField((side as Condition.Side.Of).term, label)
+                else -> termField((side as Condition.Side.Of).term, found)
             }
             ConfigConditions.Kind.ON_ENTRY -> when {
                 index == 0 -> (side as? Condition.Side.Field)?.let { namedField(found, it.path) }
                     ?: throw IllegalArgumentException(text("condition_error_left_field").format(label))
                 side is Condition.Side.Of && side.term is Term.Constant -> null
-                // A variable or a reading, read once where the entries are read (FilterTerms)
-                side is Condition.Side.Of -> termField(side.term, label)
+                // A variable, a reading or the thing judged, read once where the entries are read (FilterTerms)
+                side is Condition.Side.Of -> termField(side.term, found)
                 else -> throw IllegalArgumentException(text("service_error_filter_not_written").format(label, raw(side)))
             }
             ConfigConditions.Kind.ON_ROW -> when {
@@ -121,9 +121,15 @@ class ConditionCheck(private val sources: ConfigConditions.Sources, private val 
     private fun namedField(found: ConfigConditions.Found, path: String): FieldDefinition =
         found.fields[path] ?: throw IllegalArgumentException(text("condition_error_field").format(found.label, path, found.fields.keys.joinToString(", ")))
 
-    /** The field a term judged once gives values of: a formula per entry is a variable's alone. */
-    private suspend fun termField(term: Term, label: String): FieldDefinition? {
+    /**
+     * The field a term judged once gives values of: a formula per entry is a variable's alone; a
+     * value of the thing judged, the one its declarer gives, refused where nothing is judged.
+     */
+    private suspend fun termField(term: Term, found: ConfigConditions.Found): FieldDefinition? {
+        val label = found.label
         if (term is Term.Reading && term.perEntry != null) throw IllegalArgumentException(text("condition_error_per_entry").format(label))
+        if (term is Term.Self) return sources.selfField(found.root, found.path, term)
+            ?: throw IllegalArgumentException(text("term_error_self").format(label))
         return TermFields.of(term, label, text, sources::targetFields, sources::variableField)
     }
 

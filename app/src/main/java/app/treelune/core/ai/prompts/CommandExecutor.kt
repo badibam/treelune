@@ -1041,8 +1041,9 @@ class CommandExecutor(private val context: Context) {
             ?: throw IllegalStateException("Unknown tooltype $tooltype")
         val schema = JSONObject(app.treelune.core.tools.ToolConfigSettings.schema(toolType, "${tooltype}_config", context).content)
         val nodes = app.treelune.core.tools.ToolConfigSettings.nodes(toolType, context)
-        val conditions = app.treelune.core.ai.processing.ConditionValues(app.treelune.core.conditions.AppConditionSources(context, toolType.getRowFields()), timezone) { s.shared(it) }
-            .toModel(nodes, JsonUtils.toJSONObject(JsonUtils.toMap(config)))
+        val stored = JsonUtils.toJSONObject(JsonUtils.toMap(config))
+        val conditions = app.treelune.core.ai.processing.ConditionValues(toolType.conditionSources(app.treelune.core.conditions.AppConditionSources(context, toolType.getRowFields()), stored, context), timezone) { s.shared(it) }
+            .toModel(nodes, stored)
         val values = app.treelune.core.ai.processing.FieldValuesForModel.toModel(nodes, conditions, timezone)
         return map.toMutableMap().apply { put("config", ModelValues.toModel(JsonUtils.toMap(values), schema, timezone)) }
     }

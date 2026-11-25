@@ -319,6 +319,14 @@ interface ToolTypeContract {
     fun getRowFields(): app.treelune.core.fields.settings.RowFields? = null
 
     /**
+     * Where the conditions of [config] read what they name (ConditionCheck, ConditionValues):
+     * [base], the app's, unless this tool type's config judges a thing of its own — a Path's
+     * stage, read by `self` (Term.Self) — and reads its own views before the tool exists
+     * (Term.SELF_TOOL), which only it knows from the config.
+     */
+    fun conditionSources(base: app.treelune.core.conditions.ConfigConditions.Sources, config: JSONObject, context: Context): app.treelune.core.conditions.ConfigConditions.Sources = base
+
+    /**
      * Why [config] may not be stored, beyond what its schema says, or null when it may: what only
      * reading the app tells, such as a chart's column that none of its sources gives.
      * ToolInstanceService asks it on every create and update, whoever the caller, once the schema

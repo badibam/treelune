@@ -466,7 +466,7 @@ object TaskSteps {
                         when (term) {
                             is Term.Reading -> reach("readings.read", mapOf("selection" to app.treelune.core.utils.JsonUtils.toMap(term.selection.toJson())))
                             is Term.Variable -> reach("variables.evaluate", mapOf("variable_id" to term.id))
-                            is Term.Constant -> emptyList()
+                            is Term.Constant, is Term.Self -> emptyList()
                         }
                     }
                 input.has(Term.Kind.VARIABLE.key) -> reach("variables.evaluate", mapOf("variable_id" to input.getString(Term.Kind.VARIABLE.key)))

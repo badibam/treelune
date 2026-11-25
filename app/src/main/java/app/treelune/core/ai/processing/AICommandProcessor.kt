@@ -752,8 +752,9 @@ class AICommandProcessor(private val context: Context) {
         @Suppress("UNCHECKED_CAST")
         return (ModelValues.fromModel(config, schema, zone) as? Map<String, Any?>)?.let { values ->
             val nodes = app.treelune.core.tools.ToolConfigSettings.nodes(toolType, context)
-            val conditions = ConditionValues(app.treelune.core.conditions.AppConditionSources(context, toolType.getRowFields()), zone) { s.shared(it) }
-                .toStored(nodes, JsonUtils.toJSONObject(values))
+            val written = JsonUtils.toJSONObject(values)
+            val conditions = ConditionValues(toolType.conditionSources(app.treelune.core.conditions.AppConditionSources(context, toolType.getRowFields()), written, context), zone) { s.shared(it) }
+                .toStored(nodes, written)
             // The values of its fields, by the field each is given for (FieldValuesForModel)
             JsonUtils.toMap(FieldValuesForModel.toStored(nodes, conditions, zone))
         }

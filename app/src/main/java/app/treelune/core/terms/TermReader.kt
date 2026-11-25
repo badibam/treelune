@@ -37,6 +37,8 @@ class TermReader(private val context: Context) {
      */
     suspend fun read(term: Term, at: Long, period: EntryPeriod?): Read = when (term) {
         is Term.Constant -> Read.Value(term.value, null)
+        // Read by the thing judged alone, which puts its value in its place first
+        is Term.Self -> throw IllegalStateException(app.treelune.core.strings.Strings.`for`(context = context).shared("term_error_self").format(term.key))
         is Term.Variable -> {
             val result = Coordinator(context).processUserAction("variables.evaluate", mapOf("variable_id" to term.id, "at" to listOf(at)))
             if (!result.isSuccess) throw IllegalStateException(result.error ?: "")

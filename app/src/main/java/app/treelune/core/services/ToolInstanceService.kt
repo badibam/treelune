@@ -753,7 +753,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
     private suspend fun refuseConditions(tooltype: String, configJson: String): String? {
         val toolType = ToolTypeManager.getToolType(tooltype) ?: return s.shared("error_tooltype_not_found").format(tooltype)
         val nodes = app.treelune.core.tools.ToolConfigSettings.nodes(toolType, context)
-        return app.treelune.core.conditions.ConditionCheck(app.treelune.core.conditions.AppConditionSources(context, toolType.getRowFields())) { s.shared(it) }
+        val sources = toolType.conditionSources(app.treelune.core.conditions.AppConditionSources(context, toolType.getRowFields()), JSONObject(configJson), context)
+        return app.treelune.core.conditions.ConditionCheck(sources) { s.shared(it) }
             .refuse(nodes, JSONObject(configJson))
             // A file's term follows one entry's file field (ConfigTerms)
             ?: app.treelune.core.terms.ConfigTerms.refuseFiles(nodes, JSONObject(configJson), context, s)
