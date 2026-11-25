@@ -36,6 +36,10 @@ object PathToolType : ToolTypeContract {
 
     private fun s(context: Context) = Strings.`for`(tool = PathRows.TOOLTYPE, context = context)
 
+    /** The units of the calendar a run may be opened at. */
+    private val UNITS = listOf(app.treelune.core.selection.PeriodType.DAY, app.treelune.core.selection.PeriodType.WEEK,
+        app.treelune.core.selection.PeriodType.MONTH, app.treelune.core.selection.PeriodType.YEAR)
+
     override fun getDisplayName(context: Context): String = s(context).tool("display_name")
     override fun getGuideConfig(context: Context): String = s(context).tool("guide_config")
     override fun getGuideScreen(context: Context): String = s(context).tool("guide_screen")
@@ -102,7 +106,10 @@ object PathToolType : ToolTypeContract {
             rule(context, "note_if", s.tool("field_note_if")),
             SettingNode.Field(field("back_label", s.tool("field_back_label"), FieldType.TEXT, s.tool("schema_back_label"), short())),
             SettingNode.Field(field("closes_run", s.tool("field_closes_run"), FieldType.BOOLEAN, s.tool("schema_closes_run"))),
-            paint(context)
+            paint(context),
+            // What the app says when a stage enters it
+            SettingNode.Field(field("notify", s.tool("field_notify"), FieldType.BOOLEAN, s.tool("schema_notify"))),
+            app.treelune.core.events.EventPoints.node { shared.shared(it) }
         ), description = s.tool("schema_state")), required = true, minItems = 1, summary = listOf("name"), description = s.tool("schema_states"))
         val marks = SettingNode.ListOf("marks", s.tool("field_marks"), SettingNode.Item.Of(listOf(
             key(context, s.tool("schema_mark_key")),
@@ -144,8 +151,15 @@ object PathToolType : ToolTypeContract {
                 ), description = s.tool("schema_link_type")), summary = listOf("name"), description = s.tool("schema_link_types"))
             )),
             SettingNode.Section(s.tool("section_runs"), listOf(
+                SettingNode.Field(field(PathGrammar.OPENS, s.tool("field_opens"), FieldType.CHOICE, s.tool("schema_opens"),
+                    choice(Opens.entries.map { it.key }) { s.tool("opens_$it") }), default = Opens.MANUAL.key),
+                SettingNode.Field(field(PathGrammar.LASTS, s.tool("field_lasts"), FieldType.DURATION, s.tool("schema_lasts"))),
                 SettingNode.Field(field(PathGrammar.CONFIRM, s.tool("field_confirm"), FieldType.BOOLEAN, s.tool("schema_confirm")))
-            ))
+            )),
+            SettingNode.Section(s.tool("section_scheduled"), listOf(
+                SettingNode.Field(field(PathGrammar.UNIT, s.tool("field_unit"), FieldType.CHOICE, s.tool("schema_unit"),
+                    choice(UNITS.map { it.name }) { shared.shared("period_type_${it.lowercase()}") }))
+            ), shownWith = SettingNode.ShownWith(PathGrammar.OPENS, Opens.SCHEDULED.key))
         )
     }
 
@@ -189,7 +203,8 @@ object PathToolType : ToolTypeContract {
                 StateField(field(PathStages.MOVES, s.tool("field_stage_moves"), FieldType.TEXT, s.tool("schema_stage_moves")), filterable = false, schema = PathStages.MOVES_SCHEMA),
                 StateField(field(PathStages.FINAL_STATE, s.tool("field_stage_final_state"), FieldType.TEXT, s.tool("schema_stage_final_state"), short()), filterable = true),
                 StateField(field(PathStages.PLANNED_END, s.tool("field_stage_planned_end"), FieldType.DATETIME, s.tool("schema_stage_planned_end")), filterable = true),
-                StateField(field(PathStages.AWAITING, s.tool("field_stage_awaiting"), FieldType.DATETIME, s.tool("schema_stage_awaiting")), filterable = true)
+                StateField(field(PathStages.AWAITING, s.tool("field_stage_awaiting"), FieldType.DATETIME, s.tool("schema_stage_awaiting")), filterable = true),
+                StateField(field(PathStages.TOLD, s.tool("field_stage_told"), FieldType.TEXT, s.tool("schema_stage_told"), short()), filterable = false, bookkeeping = true)
             ),
             // Written by the Path's operations alone, the plan holding together
             start = EntryStart(emptyList(), refusal = s.tool("start_refused"), withStatus = false)

@@ -143,16 +143,26 @@ data class Kind(
 /** A link type: what its links mean comes only from the rules that read them; it draws in its [stroke]. */
 data class LinkType(val key: String, val name: String, val stroke: String, val color: String?)
 
+/** How a run opens (the rhythm): by hand, at each unit of the calendar, or as soon as the one before closes. */
+enum class Opens(val key: String) { MANUAL("manual"), SCHEDULED("scheduled"), CHAINED("chained") }
+
 /**
- * A Path's grammar, its config read: the kinds, the root's among them, the link types.
+ * A Path's grammar, its config read: the kinds, the root's among them, the link types, the rhythm.
  *
  * @property confirm At closing, the root's state is offered for validation rather than frozen
+ * @property opens How a run opens
+ * @property unit For a run opened at each unit of the calendar, the unit: it runs to its end
+ * @property lasts For a run opened by hand or chained, how long it lasts, in milliseconds; null
+ *   for a run without a planned end
  */
 data class PathGrammar(
     val kinds: List<Kind>,
     val rootKind: String,
     val linkTypes: List<LinkType>,
-    val confirm: Boolean
+    val confirm: Boolean,
+    val opens: Opens = Opens.MANUAL,
+    val unit: app.treelune.core.selection.PeriodType? = null,
+    val lasts: Long? = null
 ) {
     fun kind(key: String): Kind? = kinds.firstOrNull { it.key == key }
 
@@ -161,6 +171,9 @@ data class PathGrammar(
         const val ROOT_KIND = "root_kind"
         const val LINK_TYPES = "link_types"
         const val CONFIRM = "confirm"
+        const val OPENS = "run_opens"
+        const val UNIT = "run_unit"
+        const val LASTS = "run_lasts"
 
         /**
          * The grammar a config holds, read without judging it (PathCheck says what is wrong).
@@ -173,7 +186,10 @@ data class PathGrammar(
             linkTypes = objects(config.optJSONArray(LINK_TYPES)).map {
                 LinkType(it.optString("key"), it.optString("name"), it.optString("stroke", "solid"), it.optString("color").takeIf { c -> c.isNotEmpty() })
             },
-            confirm = config.optBoolean(CONFIRM, false)
+            confirm = config.optBoolean(CONFIRM, false),
+            opens = Opens.entries.firstOrNull { it.key == config.optString(OPENS) } ?: Opens.MANUAL,
+            unit = app.treelune.core.selection.PeriodType.entries.firstOrNull { it.name == config.optString(UNIT) },
+            lasts = (config.opt(LASTS) as? Number)?.toLong()?.takeIf { it > 0 }
         )
 
         private fun kind(json: JSONObject) = Kind(
@@ -195,7 +211,7 @@ data class PathGrammar(
                     paint = Paint.fromJson(state.optJSONObject("paint")),
                     backLabel = state.optString("back_label").takeIf { it.isNotEmpty() },
                     notify = state.optBoolean("notify", false),
-                    emitEvent = state.optString("emit_event").takeIf { it.isNotEmpty() }
+                    emitEvent = app.treelune.core.fields.ReferenceTarget.referenceOf(state.opt("emit_event"))?.id
                 )
             },
             marks = objects(json.optJSONArray("marks")).map { mark ->

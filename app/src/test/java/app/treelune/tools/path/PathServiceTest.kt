@@ -112,4 +112,44 @@ class PathServiceTest {
         assertEquals("passed", states()[copied[0].id])
         assertEquals("current", states()[copied[1].id])
     }
+
+    @Test
+    fun `a run opened each day by the judge, once, a chained run opened as soon as the one before closes, its states told once`() = runBlocking {
+        val zone = ok("zones.create", mapOf("name" to "Habits"))["zone_id"] as String
+        val done = """{"left": {"field": "data.state"}, "op": "in", "right": {"constant": ["done"]}}"""
+        val children = """{"left": {"field": "data.parent"}, "op": "in", "right": {"self": "id"}}"""
+        fun count(filters: String) = """{"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "self"}, "view": "stages", "filters": [$filters]}, "reduction": "COUNT"}}"""
+        fun config(opens: String) = json("""{"name": "Day", "root_kind": "day", "run_opens": "$opens", "run_unit": "DAY", "kinds": [
+            {"name": "Day", "key": "day", "contains": ["task"], "states": [
+                {"key": "finished", "name": "Finished", "closes_run": true, "when": {"all": [
+                    {"left": ${count("$children, $done")}, "op": "=", "right": ${count(children)}},
+                    {"left": ${count(children)}, "op": ">", "right": {"constant": 0}}]}},
+                {"key": "ongoing", "name": "Ongoing"}]},
+            {"name": "Task", "key": "task", "states": [{"key": "done", "name": "Done", "manual": true, "notify": true}, {"key": "todo", "name": "To do"}]}]}""")
+
+        // Each day: the judge opens today's run at the day's start, ending with it, and opens no second one
+        val daily = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to PathRows.TOOLTYPE, "config" to config("scheduled")))["tool_instance_id"] as String
+        ok("path.judge", mapOf("tool_instance_id" to daily))
+        ok("path.judge", mapOf("tool_instance_id" to daily))
+        val days = PathRead.of(context, daily)!!.runs()
+        assertEquals(1, days.size)
+        val resolver = app.treelune.core.selection.TimeResolver.at(System.currentTimeMillis())
+        assertEquals(resolver.instant(app.treelune.core.selection.TimePoint.Relative(app.treelune.core.selection.PeriodType.DAY, 0, app.treelune.core.selection.Edge.START)), days.single().moves.first().at)
+        assertEquals(resolver.instant(app.treelune.core.selection.TimePoint.Relative(app.treelune.core.selection.PeriodType.DAY, 0, app.treelune.core.selection.Edge.END)), days.single().plannedEnd)
+
+        // Chained: the root finished closes the run, and the next opens at once with the plan copied
+        val chained = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to PathRows.TOOLTYPE, "config" to config("chained")))["tool_instance_id"] as String
+        val first = ok("path.start", mapOf("tool_instance_id" to chained, "name" to "Lap"))["run"] as String
+        val task = (ok("path.write_plan", mapOf("tool_instance_id" to chained, "stages" to listOf(mapOf("key" to "t", "kind" to "task", "name" to "Stretch"))))["ids"] as Map<*, *>)["t"] as String
+        // A stage seen for the first time tells the state it is in, once
+        assertEquals("todo", PathRead.of(context, chained)!!.entity(task)!!.state!!.let { JSONObject(it).optString(PathStages.TOLD) })
+        ok("path.note", mapOf("tool_instance_id" to chained, "stage" to task, "state" to "done"))
+        val read = PathRead.of(context, chained)!!
+        assertEquals("done", read.entity(task)!!.state!!.let { JSONObject(it).optString(PathStages.TOLD) })
+        assertTrue(read.isClosed(read.stage(first)!!))
+        assertEquals("finished", read.stage(first)!!.finalState)
+        val next = read.currentRun()!!
+        assertTrue(next.id != first)
+        assertEquals(listOf("Stretch"), read.stages.filter { it.run == next.id && !it.isRoot }.map { it.name })
+    }
 }

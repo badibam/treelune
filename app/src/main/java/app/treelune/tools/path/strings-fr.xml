@@ -195,4 +195,20 @@
     <string name="path_error_closed">Ce passage est fermé : ses étapes ne changent plus.</string>
     <string name="path_error_not_awaiting">La fin de %1$s n\'attend pas d\'être validée.</string>
     <string name="screen_no_run">Aucun passage pour l\'instant.</string>
+    <string name="field_notify">Prévenir</string>
+    <string name="schema_notify">Une notification quand une étape entre dans cet état.</string>
+    <string name="field_stage_told">Dernier état annoncé</string>
+    <string name="schema_stage_told">L\'état dont l\'app a prévenu en dernier, pour ne pas le redire.</string>
+    <string name="notification_entered">%1$s : %2$s</string>
+    <string name="field_opens">Un passage s\'ouvre</string>
+    <string name="schema_opens">Quand un passage commence : à la main, à chaque unité du calendrier, ou dès que le précédent se ferme.</string>
+    <string name="opens_manual">À la main</string>
+    <string name="opens_scheduled">À chaque unité du calendrier</string>
+    <string name="opens_chained">Dès que le précédent se ferme</string>
+    <string name="field_lasts">Durée d\'un passage</string>
+    <string name="schema_lasts">Pour un passage ouvert à la main ou enchaîné : il se ferme après cette durée. Sans elle, il dure jusqu\'à ce qu\'on l\'arrête ou que sa racine le ferme.</string>
+    <string name="section_scheduled">L\'unité du calendrier</string>
+    <string name="field_unit">Un passage par</string>
+    <string name="schema_unit">L\'unité du calendrier dont chaque passage couvre une, de son début à sa fin.</string>
+    <string name="path_check_unit">Un passage ouvert à chaque unité du calendrier dit laquelle.</string>
 </resources>

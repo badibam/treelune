@@ -21,6 +21,9 @@ object PathStages {
     const val PLANNED_END = "planned_end"
     const val AWAITING = "awaiting"
 
+    /** The state last told of the stage (notified, emitted): a note of the app's, out of the history. */
+    const val TOLD = "told"
+
     /**
      * The stage [entity] holds.
      *

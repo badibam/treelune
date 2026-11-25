@@ -195,4 +195,20 @@
     <string name="path_error_closed">This run is closed: its stages change no more.</string>
     <string name="path_error_not_awaiting">The end of %1$s is not awaiting confirmation.</string>
     <string name="screen_no_run">No run yet.</string>
+    <string name="field_notify">Notify</string>
+    <string name="schema_notify">A notification when a stage enters this state.</string>
+    <string name="field_stage_told">Last state told</string>
+    <string name="schema_stage_told">The state the app told last, so as not to tell it again.</string>
+    <string name="notification_entered">%1$s: %2$s</string>
+    <string name="field_opens">A run opens</string>
+    <string name="schema_opens">When a run starts: by hand, at each unit of the calendar, or as soon as the one before closes.</string>
+    <string name="opens_manual">By hand</string>
+    <string name="opens_scheduled">At each unit of the calendar</string>
+    <string name="opens_chained">As soon as the one before closes</string>
+    <string name="field_lasts">Length of a run</string>
+    <string name="schema_lasts">For a run opened by hand or chained: it closes after this length. Without one, it lasts until it is stopped or its root closes it.</string>
+    <string name="section_scheduled">The unit of the calendar</string>
+    <string name="field_unit">One run a</string>
+    <string name="schema_unit">The unit of the calendar each run covers one of, from its start to its end.</string>
+    <string name="path_check_unit">A run opened at each unit of the calendar says which.</string>
 </resources>

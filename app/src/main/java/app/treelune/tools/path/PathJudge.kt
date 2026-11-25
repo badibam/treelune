@@ -41,6 +41,23 @@ object PathJudge : ToolScheduler {
 
     override suspend fun checkScheduled(context: Context) = detached { judgeAll(context) { true } }
 
+    /**
+     * The next instant a run's planned end comes, or a run is to open at its unit's start: the
+     * core wakes the app then rather than at its next ring.
+     */
+    override suspend fun nextAction(context: Context): Long? {
+        val now = System.currentTimeMillis()
+        val ids = pathIds(context)
+        return ids.mapNotNull { id ->
+            val path = PathRead.of(context, id) ?: return@mapNotNull null
+            val ends = path.runs().filter { !path.isClosed(it) }.mapNotNull { it.plannedEnd }
+            val next = path.grammar.unit?.takeIf { path.grammar.opens == Opens.SCHEDULED }?.let { unit ->
+                app.treelune.core.selection.TimeResolver.at(now).instant(app.treelune.core.selection.TimePoint.Relative(unit, 1, app.treelune.core.selection.Edge.START))
+            }
+            (ends + listOfNotNull(next)).filter { it > now }.minOrNull()
+        }.minOrNull()
+    }
+
     private suspend fun judgeAll(context: Context, which: (String) -> Boolean) = judging.withLock {
         val paths = AppDatabase.getDatabase(context).toolInstanceDao().getAllToolInstances().filter { it.tooltype == PathRows.TOOLTYPE && which(it.id) }
         for (path in paths) {

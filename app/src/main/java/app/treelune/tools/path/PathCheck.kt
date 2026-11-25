@@ -28,6 +28,7 @@ object PathCheck {
         val keys = grammar.kinds.map { it.key }.toSet()
         if (grammar.rootKind !in keys) return own("path_check_root_kind").format(grammar.rootKind, keys.joinToString(", "))
         duplicate(grammar.linkTypes.map { it.key })?.let { return own("path_check_link_type_twice").format(it) }
+        if (grammar.opens == Opens.SCHEDULED && grammar.unit == null) return own("path_check_unit")
 
         val types = mutableMapOf<String, Pair<String, app.treelune.core.fields.FieldType>>()
         for (kind in grammar.kinds) {

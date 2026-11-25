@@ -5,6 +5,10 @@ import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.fields.FieldType
+import app.treelune.core.selection.Edge
+import app.treelune.core.selection.PeriodType
+import app.treelune.core.selection.TimePoint
+import app.treelune.core.selection.TimeResolver
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.services.OperationResult
 import app.treelune.core.strings.Strings
@@ -298,20 +302,37 @@ class PathService(private val context: Context) : ExecutableService {
     private suspend fun start(path: PathRead, params: JSONObject): OperationResult {
         val now = System.currentTimeMillis()
         path.currentRun()?.let { close(path, it, now) }
-        val latest = path.runs().firstOrNull()
-        val copy = params.optString("plan") != "empty" && latest != null
-        val rootKind = path.grammar.kind(path.grammar.rootKind) ?: throw Refused(s.tool("path_problem_kind").format(path.grammar.rootKind))
-        val name = params.optString("name").takeIf { it.isNotBlank() } ?: latest?.name ?: rootKind.name
-        val root = if (copy) copyPlan(path, latest!!, name, now) else create(path.toolId, name, emptyMap(), PathStages.state(rootKind.key, null, 0, emptyList(), listOf(Move(now, Move.START))))
-        return OperationResult.success(mapOf("run" to root, "copied" to copy))
+        val root = open(path, params.optString("name").takeIf { it.isNotBlank() }, now, copy = params.optString("plan") != "empty")
+        return OperationResult.success(mapOf("run" to root))
     }
+
+    /**
+     * A run opened at [at], named [name] or as the latest run, its plan copied from the latest
+     * run when [copy] and there is one, an empty plan otherwise. Its planned end is the rhythm's:
+     * the end of the unit [at] falls in for a run opened at each unit, [at] plus its length
+     * otherwise, none without one.
+     */
+    private suspend fun open(path: PathRead, name: String?, at: Long, copy: Boolean): String {
+        val latest = path.runs().firstOrNull()
+        val rootKind = path.grammar.kind(path.grammar.rootKind) ?: throw Refused(s.tool("path_problem_kind").format(path.grammar.rootKind))
+        val named = name ?: latest?.name ?: rootKind.name
+        val plannedEnd = when (path.grammar.opens) {
+            Opens.SCHEDULED -> path.grammar.unit?.let { unit -> unitBound(unit, at, Edge.END) }
+            else -> path.grammar.lasts?.let { at + it }
+        }
+        return if (copy && latest != null) copyPlan(path, latest, named, at, plannedEnd)
+        else create(path.toolId, named, emptyMap(), PathStages.state(rootKind.key, null, 0, emptyList(), listOf(Move(at, Move.START)), plannedEnd = plannedEnd))
+    }
+
+    /** The [edge] of the unit of the calendar [at] falls in. */
+    private fun unitBound(unit: PeriodType, at: Long, edge: Edge): Long = TimeResolver.at(at).instant(TimePoint.Relative(unit, 0, edge))
 
     /**
      * A new run whose plan is [from]'s: its stages copied with their plan fields, never the
      * fields to fill nor the moves; what designates a stage of [from] — a link, a Reference field
      * of the plan — designating its copy. Its root opened at [now].
      */
-    private suspend fun copyPlan(path: PathRead, from: Stage, name: String, now: Long): String {
+    private suspend fun copyPlan(path: PathRead, from: Stage, name: String, now: Long, plannedEnd: Long?): String {
         val stages = PathOrder.planOrder(path.stages.filter { it.run == from.run })
         val ids = mutableMapOf<String, String>()
         fun translated(value: Any?): Any? = when (value) {
@@ -324,7 +345,8 @@ class PathService(private val context: Context) : ExecutableService {
             val kind = path.grammar.kind(stage.kind)
             val fields = stage.fields.filterKeys { key -> kind?.planFields?.any { it.name == key } == true }
             ids[stage.id] = create(path.toolId, if (stage.isRoot) name else stage.name, fields,
-                PathStages.state(stage.kind, stage.parent?.let { ids.getValue(it) }, stage.position, emptyList(), if (stage.isRoot) listOf(Move(now, Move.START)) else emptyList()))
+                PathStages.state(stage.kind, stage.parent?.let { ids.getValue(it) }, stage.position, emptyList(), if (stage.isRoot) listOf(Move(now, Move.START)) else emptyList(),
+                    plannedEnd = plannedEnd.takeIf { stage.isRoot }))
         }
         for (stage in stages) {
             val kind = path.grammar.kind(stage.kind)
@@ -352,7 +374,9 @@ class PathService(private val context: Context) : ExecutableService {
     private suspend fun validate(path: PathRead, params: JSONObject): OperationResult {
         val run = path.stage(params.optString("run"))?.takeIf { it.isRoot } ?: throw Refused(s.tool("path_error_run").format(params.optString("run")))
         if (path.entity(run.id)?.state?.let { JSONObject(it).has(PathStages.AWAITING) } != true) throw Refused(s.tool("path_error_not_awaiting").format(run.name))
-        close(path, run, System.currentTimeMillis())
+        val now = System.currentTimeMillis()
+        close(path, run, now)
+        chain(path, now)
         return OperationResult.success(mapOf("run" to run.id))
     }
 
@@ -381,13 +405,78 @@ class PathService(private val context: Context) : ExecutableService {
             val stage = path.stage(id) ?: continue
             setState(id, mapOf(PathStages.MOVES to (stage.moves + moves).map { JsonUtils.toMap(it.toJson()) }))
         }
-        val fresh = if (outcome.records.isEmpty()) path else PathRead.of(context, path.toolId) ?: return OperationResult.success(emptyMap())
+        val written = if (outcome.records.isEmpty()) path else PathRead.of(context, path.toolId) ?: return OperationResult.success(emptyMap())
+        // Told before a run closes, while its stages still compute
+        tell(written, now)
+        val fresh = PathRead.of(context, path.toolId) ?: return OperationResult.success(emptyMap())
         val ending = fresh.runs().filter { !fresh.isClosed(it) }.filter { root -> root.id in outcome.closes || (root.plannedEnd != null && root.plannedEnd <= now) }
+        var closed = 0
         for (root in ending) {
-            if (!path.grammar.confirm) close(fresh, root, now)
+            if (!path.grammar.confirm) { close(fresh, root, now); closed++ }
             else if (fresh.entity(root.id)?.state?.let { JSONObject(it).has(PathStages.AWAITING) } != true) setState(root.id, mapOf(PathStages.AWAITING to now))
         }
-        return OperationResult.success(mapOf("records" to outcome.records.size, "closed" to ending.size))
+        // The rhythm: the next run chained once one closed, or opened at its unit's start
+        if (closed > 0) chain(fresh, now)
+        if (path.grammar.opens == Opens.SCHEDULED) PathRead.of(context, path.toolId)?.let { scheduled(it, now) }
+        // Then the stages of a run the rhythm opened
+        if (closed > 0 || path.grammar.opens == Opens.SCHEDULED) PathRead.of(context, path.toolId)?.let { tell(it, now) }
+        return OperationResult.success(mapOf("records" to outcome.records.size, "closed" to closed))
+    }
+
+    /** For a Path whose runs are chained, the next opened at [now], its plan copied, unless one is open already. */
+    private suspend fun chain(path: PathRead, now: Long) {
+        if (path.grammar.opens != Opens.CHAINED) return
+        val fresh = PathRead.of(context, path.toolId) ?: return
+        if (fresh.runs().none { !fresh.isClosed(it) && fresh.entity(it.id)?.state?.let { s -> JSONObject(s).has(PathStages.AWAITING) } != true }) open(fresh, null, now, copy = true)
+    }
+
+    /**
+     * For a Path whose runs open at each unit of the calendar, the run of the unit [now] falls in,
+     * opened at its start, its plan copied, when none started in it: the run before, if still
+     * open, closes first, unless it awaits validation, which it keeps waiting for.
+     */
+    private suspend fun scheduled(path: PathRead, now: Long) {
+        val unit = path.grammar.unit ?: return
+        val start = unitBound(unit, now, Edge.START)
+        val latest = path.runs().firstOrNull()
+        if (latest != null && (latest.moves.firstOrNull { it.state == Move.START }?.at ?: Long.MIN_VALUE) >= start) return
+        path.currentRun()?.let { current ->
+            if (path.entity(current.id)?.state?.let { JSONObject(it).has(PathStages.AWAITING) } != true) close(path, current, now)
+        }
+        open(PathRead.of(context, path.toolId) ?: return, null, start, copy = true)
+    }
+
+    /**
+     * What the app tells when a stage enters a state (EventPoints): for each stage of an open run
+     * whose state is not the one last told, its state's notification and event, if it has them;
+     * the state told noted on the stage, out of the history. A stage seen for the first time
+     * tells the state it is in.
+     */
+    private suspend fun tell(path: PathRead, now: Long) {
+        val tellers = path.grammar.kinds.filter { kind -> kind.states.any { it.notify || it.emitEvent != null } }.map { it.key }.toSet()
+        if (tellers.isEmpty()) return
+        val outcome = path.replay(now)
+        val title = path.config.optString("name").ifEmpty { s.tool("display_name") }
+        for (stage in path.stages.filter { it.kind in tellers }) {
+            val root = path.stage(stage.run) ?: continue
+            if (path.isClosed(root)) continue
+            val state = outcome.states[stage.id]?.state ?: continue
+            val told = path.entity(stage.id)?.state?.let { JSONObject(it).optString(PathStages.TOLD).takeIf { t -> t.isNotEmpty() } }
+            if (state == told) continue
+            val rule = path.grammar.kind(stage.kind)?.state(state)
+            if (rule?.notify == true) {
+                val sent = coordinator.processUserAction("notifications.send", mapOf(
+                    "title" to title,
+                    "content" to s.tool("notification_entered").format(stage.name, rule.name),
+                    "priority" to "default",
+                    "icon_name" to (path.grammar.kind(stage.kind)?.icon ?: path.config.optString("icon_name").ifEmpty { PathToolType.getDefaultIconName() }),
+                    "tool_instance_id" to path.toolId
+                ))
+                if (!sent.isSuccess) app.treelune.core.utils.LogManager.service("Path ${path.toolId}: ${stage.name} not notified: ${sent.error}", "ERROR")
+            }
+            rule?.emitEvent?.let { app.treelune.core.events.EventPoints.emit(context, app.treelune.core.events.EventPoints.stored(it), stage.id) }
+            setState(stage.id, mapOf(PathStages.TOLD to state))
+        }
     }
 
     private suspend fun state(path: PathRead): OperationResult {
