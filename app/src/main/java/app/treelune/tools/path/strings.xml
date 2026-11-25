@@ -4,6 +4,7 @@
     <string name="path_error_self_links_type">A stage\'s links are read by their type: {"self": "links", "type": "…"}.</string>
     <string name="path_error_self_unknown">\"%1$s\" is neither a fact of a stage nor a field of the kind %2$s.</string>
     <string name="path_error_self_from">A relative date starts from %1$s of the stage judged, which has none.</string>
+    <string name="path_error_self_offset">A relative date moves by %1$s of the stage judged, which has none.</string>
     <string name="path_error_rule_field">A rule compares values read, never a field of an entry: read the stage judged with {"self": …}.</string>
     <string name="path_error_rule_reading_group">A rule reads the Path\'s views without grouping them nor computing per row.</string>
     <string name="path_problem_loop">These stages wait for one another, and no state can be computed: %1$s.</string>

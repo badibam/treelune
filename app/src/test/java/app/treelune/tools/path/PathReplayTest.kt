@@ -182,11 +182,16 @@ class PathReplayTest {
     }
 
     @Test
-    fun `a vaccine expired ten years after its last injection, its own last move read against the instant judged`() {
-        val stages = listOf(root(kind = "book"), stage("tetanus", "vaccine", "root", 0, listOf(Move(t0, "injected"))))
-        assertEquals("injected", replay(VACCINES, stages, t0 + 365 * day).states.of("tetanus"))
-        assertEquals("expired", replay(VACCINES, stages, t0 + 3700 * day).states.of("tetanus"))
-        assertEquals("to_do", replay(VACCINES, listOf(root(kind = "book"), stage("tetanus", "vaccine", "root", 0)), t0).states.of("tetanus"))
+    fun `a vaccine expired once its last injection plus its own validity is past`() {
+        fun vaccine(id: String, years: Int, moves: List<Move> = listOf(Move(t0, "injected"))) =
+            stage(id, "vaccine", "root", 0, moves).copy(fields = mapOf("validity" to years))
+        val book = listOf(root(kind = "book"), vaccine("tetanus", 10), vaccine("flu", 1))
+        val later = replay(VACCINES, book, t0 + 400 * day)
+        assertEquals("injected", later.states.of("tetanus"))
+        assertEquals("expired", later.states.of("flu"))
+        assertEquals("expired", replay(VACCINES, book, t0 + 3700 * day).states.of("tetanus"))
+        assertEquals("to_do", replay(VACCINES, listOf(root(kind = "book"), vaccine("tetanus", 10, emptyList())), t0).states.of("tetanus"))
+        assertEquals(emptyList<PathReplay.Problem>(), later.problems)
     }
 
     @Test
@@ -284,13 +289,14 @@ class PathReplayTest {
                 {"key": "ongoing"}]},
             {"key": "criterion", "states": [{"key": "done", "manual": true}, {"key": "todo"}]}]}"""
 
-        /** Vaccines: expired ten years after the last injection, a date relative to the stage's own last move. */
+        /** Vaccines: expired when the last injection plus the vaccine's validity, in years, is past. */
         val VACCINES = """{"root_kind": "book", "kinds": [
             {"key": "book", "contains": ["vaccine"], "states": [{"key": "ongoing"}]},
-            {"key": "vaccine", "states": [
+            {"key": "vaccine", "plan_fields": [{"name": "validity", "display_name": "Validity", "type": "NUMERIC"}], "states": [
                 {"key": "expired", "when": {"all": [
                     {"left": {"self": "last_move"}, "op": "=", "right": {"constant": "injected"}},
-                    {"left": {"self": "last_move_at"}, "op": "<=", "right": {"constant": {"relative": {"unit": "YEAR", "offset": -10, "edge": "SAME"}}}}]}},
+                    {"left": {"constant": {"relative": {"unit": "YEAR", "offset": {"self": "validity"}, "edge": "SAME"}, "from": {"self": "last_move_at"}}},
+                     "op": "<=", "right": {"constant": {"relative": "NOW"}}}]}},
                 {"key": "injected", "manual": true},
                 {"key": "to_do"}]}]}"""
     }
