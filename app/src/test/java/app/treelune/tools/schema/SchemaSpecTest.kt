@@ -1,5 +1,6 @@
 package app.treelune.tools.schema
 
+import app.treelune.core.drawing.diagram.*
 import app.treelune.core.selection.ReferenceKind
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -22,7 +23,7 @@ class SchemaSpecTest {
     /** The key of the refusal, with its values, in place of its text. */
     private val own: (String) -> String = { key -> key + (1..(valuesOf[key] ?: 1)).joinToString("") { " %$it\$s" } }
 
-    private fun read(json: String) = SchemaSpec.of(JSONObject(json), own)
+    private fun read(json: String) = SchemaConfig.read(JSONObject(json), own)
 
     private fun refusal(json: String): String =
         assertThrows(IllegalArgumentException::class.java) { read(json) }.message.orEmpty()
@@ -41,11 +42,11 @@ class SchemaSpecTest {
             ],
             "edges": [{"from": "A", "to": "B", "label": "nourrit", "line": "dotted", "head": false}]
         }""")
-        assertEquals(SchemaDirection.BOTTOM_UP, spec.direction)
-        assertEquals(SchemaShape.DIAMOND, spec.nodes[0].shape)
+        assertEquals(DiagramDirection.BOTTOM_UP, spec.direction)
+        assertEquals(DiagramShape.DIAMOND, spec.nodes[0].shape)
         assertEquals(ReferenceKind.TOOL_INSTANCE, spec.nodes[0].thing?.kind)
-        assertEquals(SchemaShape.ROUNDED, spec.nodes[1].shape)
-        assertEquals(SchemaLine.DOTTED, spec.edges[0].line)
+        assertEquals(DiagramShape.ROUNDED, spec.nodes[1].shape)
+        assertEquals(DiagramLine.DOTTED, spec.edges[0].line)
         assertEquals(false, spec.edges[0].head)
         assertEquals(setOf("out", "in"), spec.holders)
         assertEquals(listOf("in", "out"), spec.ancestors("A").toList())
@@ -55,16 +56,16 @@ class SchemaSpecTest {
     @Test
     fun `an empty schema reads, top to bottom`() {
         val spec = read("{}")
-        assertEquals(SchemaDirection.TOP_DOWN, spec.direction)
+        assertEquals(DiagramDirection.TOP_DOWN, spec.direction)
         assertTrue(spec.nodes.isEmpty())
     }
 
     @Test
     fun `a box is outlined and not faded unless it says otherwise, an unknown fill refused`() {
         val spec = read("""{"nodes": [{"id": "A", "label": "a"}, {"id": "B", "label": "b", "fill": "full", "faded": true}]}""")
-        assertEquals(SchemaFill.OUTLINE, spec.nodes[0].fill)
+        assertEquals(DiagramFill.OUTLINE, spec.nodes[0].fill)
         assertFalse(spec.nodes[0].faded)
-        assertEquals(SchemaFill.FULL, spec.nodes[1].fill)
+        assertEquals(DiagramFill.FULL, spec.nodes[1].fill)
         assertTrue(spec.nodes[1].faded)
         assertTrue(refusal("""{"nodes": [{"id": "A", "label": "a", "fill": "solid"}]}""").startsWith("error_fill A"))
     }

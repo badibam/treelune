@@ -65,7 +65,6 @@
     <string name="schema_head">Si elle finit par une pointe ; false pour un simple trait</string>
     <string name="schema_folded">Si une boîte qui en contient d\'autres s\'ouvre repliée, dessinée en boîte</string>
     <string name="thing_deleted">supprimée</string>
-    <string name="group_folded">%1$s (%2$d)</string>
     <string name="screen_empty">Ce schéma est vide. Ajoute ses boîtes dans sa config, importe un texte Mermaid, ou demande-le à l\'IA.</string>
     <string name="screen_problem">Ce schéma ne peut pas être dessiné : %1$s</string>
     <string name="tile_problem">Dessin impossible</string>
@@ -93,10 +92,7 @@
     <string name="mermaid_error_long">« %1$s » est trop long : %2$d caractères au plus.</string>
     <string name="mermaid_error_long_line">Ligne %1$d : « %2$s » est trop long : %3$d caractères au plus.</string>
     <!-- Said under a schema the app folded to fit -->
-    <string name="auto_folded_one">1 groupe replié pour tenir dans l\'écran</string>
-    <string name="auto_folded">%1$d groupes repliés pour tenir dans l\'écran</string>
     <!-- The underlined word closing a cut text, which a touch shows whole -->
-    <string name="cut_more">suite</string>
     <string name="open_thing">Ouvrir</string>
     <!-- Why a config is refused, naming the id at fault -->
     <string name="error_direction">Direction « %1$s » inconnue : TD (de haut en bas) ou BT (de bas en haut).</string>

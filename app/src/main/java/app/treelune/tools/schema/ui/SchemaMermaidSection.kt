@@ -1,5 +1,7 @@
 package app.treelune.tools.schema.ui
 
+import app.treelune.tools.schema.SchemaConfig
+import app.treelune.core.drawing.diagram.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,7 +37,7 @@ import app.treelune.tools.schema.MermaidError
 import app.treelune.tools.schema.MermaidImport
 import app.treelune.tools.schema.SchemaKeys
 import app.treelune.tools.schema.SchemaMermaid
-import app.treelune.tools.schema.SchemaSpec
+import app.treelune.core.drawing.diagram.DiagramSpec
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
@@ -64,7 +66,7 @@ fun SchemaMermaidSection(config: JSONObject, onChange: (JSONObject) -> Unit) {
                     onClick = {
                         scope.launch {
                             val spec = try {
-                                SchemaSpec.of(config) { s.tool(it) }
+                                SchemaConfig.read(config) { s.tool(it) }
                             } catch (e: IllegalArgumentException) {
                                 UI.Toast(e.message.orEmpty())
                                 return@launch

@@ -1,5 +1,6 @@
 package app.treelune.tools.schema
 
+import app.treelune.core.drawing.diagram.*
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -19,7 +20,7 @@ class SchemaMermaidTest {
 
     private fun read(text: String, existing: JSONObject = JSONObject()) = mermaid.read(text, existing) { null }
 
-    private fun spec(text: String, existing: JSONObject = JSONObject()) = SchemaSpec.of(read(text, existing).applyTo(JSONObject()), own)
+    private fun spec(text: String, existing: JSONObject = JSONObject()) = SchemaConfig.read(read(text, existing).applyTo(JSONObject()), own)
 
     private fun refusal(text: String) = assertThrows(MermaidError::class.java) { read(text) }.message.orEmpty()
 
@@ -34,7 +35,7 @@ class SchemaMermaidTest {
                 E --> F@{ shape: stadium, label: "extended" }
         """.trimIndent())
         assertEquals(
-            listOf(SchemaShape.RECT, SchemaShape.ROUNDED, SchemaShape.STADIUM, SchemaShape.CIRCLE, SchemaShape.DIAMOND, SchemaShape.STADIUM),
+            listOf(DiagramShape.RECT, DiagramShape.ROUNDED, DiagramShape.STADIUM, DiagramShape.CIRCLE, DiagramShape.DIAMOND, DiagramShape.STADIUM),
             s.nodes.map { it.shape }
         )
         assertEquals(listOf("rect", "rounded", "pill", "circle", "diamond", "extended"), s.nodes.map { it.label })
@@ -61,15 +62,15 @@ class SchemaMermaidTest {
                 A -->|piped| K
         """.trimIndent())
         val edge = { to: String -> s.edges.single { it.to == to } }
-        assertTrue(edge("B").head && edge("B").line == SchemaLine.NORMAL)
+        assertTrue(edge("B").head && edge("B").line == DiagramLine.NORMAL)
         assertFalse(edge("C").head)
-        assertEquals(SchemaLine.DOTTED, edge("D").line)
+        assertEquals(DiagramLine.DOTTED, edge("D").line)
         assertFalse(edge("E").head)
-        assertEquals(SchemaLine.THICK, edge("F").line)
+        assertEquals(DiagramLine.THICK, edge("F").line)
         assertFalse(edge("G").head)
         assertEquals("text", edge("H").label)
         assertEquals("dotted", edge("I").label)
-        assertEquals(SchemaLine.DOTTED, edge("I").line)
+        assertEquals(DiagramLine.DOTTED, edge("I").line)
         assertEquals("thick", edge("J").label)
         assertEquals("piped", edge("K").label)
     }
@@ -145,7 +146,7 @@ class SchemaMermaidTest {
                     B --> C
                 end
         """.trimIndent())
-        val s = SchemaSpec.of(read.applyTo(JSONObject()), own)
+        val s = SchemaConfig.read(read.applyTo(JSONObject()), own)
         assertEquals("G", s.edges.first { it.from == "A" }.to)
         assertEquals(4, s.nodes.size)
         assertEquals(1, read.holders)
@@ -200,7 +201,7 @@ class SchemaMermaidTest {
         assertEquals("New", group.label)
         assertEquals("BLUE", group.color?.name)
         assertTrue(group.folded)
-        assertEquals(SchemaShape.DIAMOND, group.shape)
+        assertEquals(DiagramShape.DIAMOND, group.shape)
     }
 
     @Test

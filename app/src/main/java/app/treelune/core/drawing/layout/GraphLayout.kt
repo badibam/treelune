@@ -7,8 +7,9 @@ import kotlin.random.Random
 
 /*
  * The placement of a drawing of boxes, arrows and nested groups, laid out from top to bottom for a
- * phone held upright; the Schema tool draws with it (tools/schema, SchemaScene). Plain Kotlin, with
- * no Android type: what it computes can be run and measured on a computer.
+ * phone held upright; the diagram the Schema and the Path draw is laid out with it
+ * (core/drawing/diagram, DiagramScene). Plain Kotlin, with no Android type: what it computes can be
+ * run and measured on a computer.
  *
  * The method is the layered one (Sugiyama), applied scope by scope:
  *  - a scope is the whole drawing or one group; a child group is one opaque node of its

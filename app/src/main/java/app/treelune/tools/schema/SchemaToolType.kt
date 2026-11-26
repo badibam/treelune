@@ -1,5 +1,6 @@
 package app.treelune.tools.schema
 
+import app.treelune.core.drawing.diagram.*
 import app.treelune.core.fields.settings.ElementKeys
 import android.content.Context
 import androidx.compose.runtime.Composable
@@ -72,7 +73,7 @@ object SchemaToolType : ToolTypeContract {
             SettingNode.Field(field(SchemaKeys.COLOR, s.tool("field_color"), FieldType.CHOICE, s.tool("schema_color"), mapOf("options" to ChoiceSettings.storedOptions(
                 colors, colors.associateWith { shared.shared("tag_color_${it.lowercase()}") }, TagColor.entries.associate { it.name to it })))),
             SettingNode.Field(field(SchemaKeys.FILL, s.tool("field_fill"), FieldType.CHOICE, s.tool("schema_fill"),
-                choice(SchemaFill.entries.map { it.key }) { s.tool("fill_$it") }), default = SchemaFill.OUTLINE.key),
+                choice(DiagramFill.entries.map { it.key }) { s.tool("fill_$it") }), default = DiagramFill.OUTLINE.key),
             SettingNode.Field(field(SchemaKeys.FADED, s.tool("field_faded"), FieldType.BOOLEAN, s.tool("schema_faded")))
         )
     }
@@ -83,7 +84,7 @@ object SchemaToolType : ToolTypeContract {
         return listOf(
             SettingNode.Section(s.tool("section_schema"), listOf(
                 SettingNode.Field(field(SchemaKeys.DIRECTION, s.tool("field_direction"), FieldType.CHOICE, s.tool("schema_direction"),
-                    choice(SchemaDirection.entries.map { it.key }) { s.tool("direction_${it.lowercase()}") }), required = true, default = SchemaDirection.TOP_DOWN.key),
+                    choice(DiagramDirection.entries.map { it.key }) { s.tool("direction_${it.lowercase()}") }), required = true, default = DiagramDirection.TOP_DOWN.key),
                 SettingNode.Field(field(SchemaKeys.PARTS, s.tool("field_parts"), FieldType.BOOLEAN, s.tool("schema_parts_top"))),
                 SettingNode.ListOf(SchemaKeys.NODES, s.tool("field_nodes"), SettingNode.Item.Of(listOf(
                     SettingNode.Field(field(SchemaKeys.ID, s.tool("field_id"), FieldType.TEXT, s.tool("schema_node_id"), short()), systemWritten = true, newId = true),
@@ -91,7 +92,7 @@ object SchemaToolType : ToolTypeContract {
                     SettingNode.Field(field(SchemaKeys.THING, s.tool("field_thing"), FieldType.REFERENCE, s.tool("schema_thing"),
                         mapOf(ReferenceTarget.TARGET to mapOf(ReferenceTarget.KINDS to things)))),
                     SettingNode.Field(field(SchemaKeys.SHAPE, s.tool("field_shape"), FieldType.CHOICE, s.tool("schema_shape"),
-                        choice(SchemaShape.entries.map { it.key }) { s.tool("shape_$it") }), default = SchemaShape.ROUNDED.key),
+                        choice(DiagramShape.entries.map { it.key }) { s.tool("shape_$it") }), default = DiagramShape.ROUNDED.key),
                     SettingNode.Field(field(SchemaKeys.ICON, s.tool("field_icon"), FieldType.TEXT, s.tool("schema_icon"), short()), icon = true)
                 ) + look(context) + listOf(
                     SettingNode.Field(field(SchemaKeys.PARENT, s.tool("field_parent"), FieldType.TEXT, s.tool("schema_parent"), short()), rowField = true),
@@ -103,7 +104,7 @@ object SchemaToolType : ToolTypeContract {
                     SettingNode.Field(field(SchemaKeys.TO, s.tool("field_to"), FieldType.TEXT, s.tool("schema_to"), short()), required = true, rowField = true),
                     SettingNode.Field(field(SchemaKeys.LABEL, s.tool("field_edge_label"), FieldType.TEXT, s.tool("schema_edge_label"), short())),
                     SettingNode.Field(field(SchemaKeys.LINE, s.tool("field_line"), FieldType.CHOICE, s.tool("schema_line"),
-                        choice(SchemaLine.entries.map { it.key }) { s.tool("line_$it") }), default = SchemaLine.NORMAL.key),
+                        choice(DiagramLine.entries.map { it.key }) { s.tool("line_$it") }), default = DiagramLine.NORMAL.key),
                     SettingNode.Field(field(SchemaKeys.HEAD, s.tool("field_head"), FieldType.BOOLEAN, s.tool("schema_head")), default = true)
                 ), description = s.tool("schema_edge")), summary = listOf(SchemaKeys.FROM, SchemaKeys.TO, SchemaKeys.LABEL), description = s.tool("schema_edges"))
             ))
@@ -129,7 +130,7 @@ object SchemaToolType : ToolTypeContract {
     override fun ConfigTools(config: JSONObject, onChange: (JSONObject) -> Unit) = app.treelune.tools.schema.ui.SchemaMermaidSection(config, onChange)
 
     override suspend fun refuseConfig(config: JSONObject, toolId: String?, context: Context): String? = try {
-        val spec = SchemaSpec.of(config) { s(context).tool(it) }
+        val spec = SchemaConfig.read(config) { s(context).tool(it) }
         // A box's icon is a name of the vocabulary, a former one included
         spec.nodes.firstOrNull { node -> node.icon?.let { app.treelune.core.icons.Icons.storedName(context, it) == null } == true }
             ?.let { s(context).tool("error_icon").format(it.label ?: it.id, it.icon) }

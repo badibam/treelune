@@ -1,5 +1,6 @@
 package app.treelune.tools.schema
 
+import app.treelune.core.drawing.diagram.*
 import app.treelune.core.fields.ReferenceTarget
 import app.treelune.core.selection.Reference
 import app.treelune.core.validation.FieldLimits
@@ -49,10 +50,10 @@ class SchemaMermaid(private val own: (String) -> String) {
      * The flowchart text of [spec], a linked box by its text or the current name of its thing, a box
      * that holds others as a subgraph.
      */
-    fun write(spec: SchemaSpec, nameOf: (Reference) -> String?): String {
+    fun write(spec: DiagramSpec, nameOf: (Reference) -> String?): String {
         val out = StringBuilder("flowchart ${spec.direction.key}\n")
         val children = spec.nodes.filter { it.parent != null }.groupBy { it.parent!! }
-        fun box(node: SchemaNode, indent: String) {
+        fun box(node: DiagramNode, indent: String) {
             val text = quoted(node.label ?: node.thing?.let(nameOf) ?: node.id)
             if (node.id in spec.holders) {
                 out.append(indent).append("subgraph ").append(node.id).append(" [").append(text).append("]\n")
@@ -61,20 +62,20 @@ class SchemaMermaid(private val own: (String) -> String) {
                 return
             }
             val shape = when (node.shape) {
-                SchemaShape.RECT -> "[$text]"
-                SchemaShape.ROUNDED -> "($text)"
-                SchemaShape.STADIUM -> "([$text])"
-                SchemaShape.CIRCLE -> "(($text))"
-                SchemaShape.DIAMOND -> "{$text}"
+                DiagramShape.RECT -> "[$text]"
+                DiagramShape.ROUNDED -> "($text)"
+                DiagramShape.STADIUM -> "([$text])"
+                DiagramShape.CIRCLE -> "(($text))"
+                DiagramShape.DIAMOND -> "{$text}"
             }
             out.append(indent).append(node.id).append(shape).append('\n')
         }
         spec.nodes.filter { it.parent == null }.forEach { box(it, "    ") }
         spec.edges.forEach { edge ->
             val link = when (edge.line) {
-                SchemaLine.NORMAL -> if (edge.head) "-->" else "---"
-                SchemaLine.DOTTED -> if (edge.head) "-.->" else "-.-"
-                SchemaLine.THICK -> if (edge.head) "==>" else "==="
+                DiagramLine.NORMAL -> if (edge.head) "-->" else "---"
+                DiagramLine.DOTTED -> if (edge.head) "-.->" else "-.-"
+                DiagramLine.THICK -> if (edge.head) "==>" else "==="
             }
             val label = edge.label?.let { "|${quoted(it)}|" }.orEmpty()
             out.append("    ").append(edge.from).append(' ').append(link).append(label).append(' ').append(edge.to).append('\n')
@@ -90,15 +91,15 @@ class SchemaMermaid(private val own: (String) -> String) {
 
     private class ReadBox(val id: String) {
         var label: String? = null
-        var shape: SchemaShape? = null
+        var shape: DiagramShape? = null
         var parent: String? = null
         var subgraph = false
     }
 
-    private class ReadEdge(val from: String, val to: String, val label: String?, val line: SchemaLine, val head: Boolean, val atLine: Int)
+    private class ReadEdge(val from: String, val to: String, val label: String?, val line: DiagramLine, val head: Boolean, val atLine: Int)
 
     /** One end of a link as written: the id, and its text and shape when it gives them. */
-    private class Written(val id: String, val label: String?, val shape: SchemaShape?)
+    private class Written(val id: String, val label: String?, val shape: DiagramShape?)
 
     /**
      * [text] converted.
@@ -190,7 +191,7 @@ class SchemaMermaid(private val own: (String) -> String) {
             label?.let { checkLength(it, BOX_TEXT_LENGTH, null) }
             // Mermaid gives a subgraph no shape: one that holds others keeps the one it had, shown when folded
             val holds = box.id in holders
-            val shape = box.shape?.key ?: (if (holds) before?.optString(SchemaKeys.SHAPE)?.takeIf { it.isNotEmpty() } else null) ?: (if (holds) null else SchemaShape.RECT.key)
+            val shape = box.shape?.key ?: (if (holds) before?.optString(SchemaKeys.SHAPE)?.takeIf { it.isNotEmpty() } else null) ?: (if (holds) null else DiagramShape.RECT.key)
             JSONObject().put(SchemaKeys.ID, box.id).apply {
                 shape?.let { put(SchemaKeys.SHAPE, it) }
                 label?.let { put(SchemaKeys.LABEL, it) }
@@ -202,7 +203,7 @@ class SchemaMermaid(private val own: (String) -> String) {
             }
         })
 
-        val target = if (written == "BT") SchemaDirection.BOTTOM_UP.key else SchemaDirection.TOP_DOWN.key
+        val target = if (written == "BT") DiagramDirection.BOTTOM_UP.key else DiagramDirection.TOP_DOWN.key
         val notes = buildList {
             if (written == "LR" || written == "RL") add(own("mermaid_note_direction").format(written, target))
             if (approximated > 0) add(own("mermaid_note_shapes").format(approximated))
@@ -212,7 +213,7 @@ class SchemaMermaid(private val own: (String) -> String) {
         val result = MermaidImport(target, nodeArray, JSONArray(arrows), notes)
         // What the config's own check refuses is said now, not at the save
         try {
-            SchemaSpec.of(result.applyTo(JSONObject()), own)
+            SchemaConfig.read(result.applyTo(JSONObject()), own)
         } catch (e: IllegalArgumentException) {
             throw MermaidError(e.message.orEmpty())
         }
@@ -356,7 +357,7 @@ class SchemaMermaid(private val own: (String) -> String) {
             val label = clean(text.substring(start, end.first))
             at = end.first + end.second.length
             if (shape.shape == null) approximated++
-            return Written(id, label.ifEmpty { null }, shape.shape ?: SchemaShape.RECT)
+            return Written(id, label.ifEmpty { null }, shape.shape ?: DiagramShape.RECT)
         }
 
         /** `@{ shape: diamond, label: "text" }`. */
@@ -374,10 +375,10 @@ class SchemaMermaid(private val own: (String) -> String) {
             val name = Regex("""shape\s*:\s*([\w-]+)""").find(body)?.groupValues?.get(1)?.lowercase()
             val shape = name?.let { NAMED_SHAPES[it] }
             if (name != null && shape == null) approximated++
-            return Written(id, label?.ifEmpty { null }, shape ?: if (name != null) SchemaShape.RECT else null)
+            return Written(id, label?.ifEmpty { null }, shape ?: if (name != null) DiagramShape.RECT else null)
         }
 
-        private inner class Link(val line: SchemaLine, val head: Boolean, val both: Boolean, val label: String?, val visible: Boolean = true)
+        private inner class Link(val line: DiagramLine, val head: Boolean, val both: Boolean, val label: String?, val visible: Boolean = true)
 
         private fun link(): Link? {
             val rest = text.substring(at)
@@ -387,14 +388,14 @@ class SchemaMermaid(private val own: (String) -> String) {
                     return Link(kind, found.groupValues[2].endsWith(">"), both = false, label = clean(found.groupValues[1]))
                 }
             }
-            Regex("^~{3,}").find(rest)?.let { at += it.value.length; return Link(SchemaLine.NORMAL, false, false, null, visible = false) }
+            Regex("^~{3,}").find(rest)?.let { at += it.value.length; return Link(DiagramLine.NORMAL, false, false, null, visible = false) }
             val found = PLAIN.find(rest) ?: return null
             at += found.value.length
             val body = found.groupValues[2]
             val kind = when {
-                body.startsWith("=") -> SchemaLine.THICK
-                body.contains('.') -> SchemaLine.DOTTED
-                else -> SchemaLine.NORMAL
+                body.startsWith("=") -> DiagramLine.THICK
+                body.contains('.') -> DiagramLine.DOTTED
+                else -> DiagramLine.NORMAL
             }
             val before = found.groupValues[1]
             val after = found.groupValues[3]
@@ -412,7 +413,7 @@ class SchemaMermaid(private val own: (String) -> String) {
     }
 
     /** A way to write a box's shape; [shape] null for one a schema does not have, drawn as a rectangle. */
-    private class WrittenShape(val open: String, val closes: List<String>, val shape: SchemaShape?)
+    private class WrittenShape(val open: String, val closes: List<String>, val shape: DiagramShape?)
 
     private companion object {
         const val ID = """[\p{L}\p{N}_]+(?:[-.][\p{L}\p{N}_]+)*"""
@@ -423,33 +424,33 @@ class SchemaMermaid(private val own: (String) -> String) {
         // The longest opening first: « (( » must not read as « ( »
         val SHAPES = listOf(
             WrittenShape("(((", listOf(")))"), null),
-            WrittenShape("((", listOf("))"), SchemaShape.CIRCLE),
-            WrittenShape("([", listOf("])"), SchemaShape.STADIUM),
+            WrittenShape("((", listOf("))"), DiagramShape.CIRCLE),
+            WrittenShape("([", listOf("])"), DiagramShape.STADIUM),
             WrittenShape("[[", listOf("]]"), null),
             WrittenShape("[(", listOf(")]"), null),
             WrittenShape("[/", listOf("/]", "\\]"), null),
             WrittenShape("[\\", listOf("\\]", "/]"), null),
             WrittenShape("{{", listOf("}}"), null),
-            WrittenShape("(", listOf(")"), SchemaShape.ROUNDED),
-            WrittenShape("[", listOf("]"), SchemaShape.RECT),
-            WrittenShape("{", listOf("}"), SchemaShape.DIAMOND),
+            WrittenShape("(", listOf(")"), DiagramShape.ROUNDED),
+            WrittenShape("[", listOf("]"), DiagramShape.RECT),
+            WrittenShape("{", listOf("}"), DiagramShape.DIAMOND),
             WrittenShape(">", listOf("]"), null)
         )
 
         // The names of Mermaid 11's shapes a schema has, with their aliases
         val NAMED_SHAPES = mapOf(
-            "rect" to SchemaShape.RECT, "proc" to SchemaShape.RECT, "process" to SchemaShape.RECT, "rectangle" to SchemaShape.RECT,
-            "rounded" to SchemaShape.ROUNDED, "event" to SchemaShape.ROUNDED,
-            "stadium" to SchemaShape.STADIUM, "pill" to SchemaShape.STADIUM, "terminal" to SchemaShape.STADIUM,
-            "circle" to SchemaShape.CIRCLE, "circ" to SchemaShape.CIRCLE,
-            "diamond" to SchemaShape.DIAMOND, "diam" to SchemaShape.DIAMOND, "decision" to SchemaShape.DIAMOND, "question" to SchemaShape.DIAMOND
+            "rect" to DiagramShape.RECT, "proc" to DiagramShape.RECT, "process" to DiagramShape.RECT, "rectangle" to DiagramShape.RECT,
+            "rounded" to DiagramShape.ROUNDED, "event" to DiagramShape.ROUNDED,
+            "stadium" to DiagramShape.STADIUM, "pill" to DiagramShape.STADIUM, "terminal" to DiagramShape.STADIUM,
+            "circle" to DiagramShape.CIRCLE, "circ" to DiagramShape.CIRCLE,
+            "diamond" to DiagramShape.DIAMOND, "diam" to DiagramShape.DIAMOND, "decision" to DiagramShape.DIAMOND, "question" to DiagramShape.DIAMOND
         )
 
         // `-- text -->`, `== text ==>`, `-. text .->`, with or without a head
         val INLINE = listOf(
-            Regex("""^--\s+(.+?)\s*(-{2,}>|-{3,})""") to SchemaLine.NORMAL,
-            Regex("""^==\s+(.+?)\s*(={2,}>|={3,})""") to SchemaLine.THICK,
-            Regex("""^-\.\s+(.+?)\s*(\.+->|\.+-)""") to SchemaLine.DOTTED
+            Regex("""^--\s+(.+?)\s*(-{2,}>|-{3,})""") to DiagramLine.NORMAL,
+            Regex("""^==\s+(.+?)\s*(={2,}>|={3,})""") to DiagramLine.THICK,
+            Regex("""^-\.\s+(.+?)\s*(\.+->|\.+-)""") to DiagramLine.DOTTED
         )
 
         // `-->`, `---`, `==>`, `-.->`, `<-->`, `--o`, `--x`; an o or an x only when it stands apart from a lowercase word

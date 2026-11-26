@@ -1,4 +1,4 @@
-package app.treelune.tools.schema.ui
+package app.treelune.core.drawing.diagram
 
 import android.content.Context
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -43,12 +43,12 @@ import app.treelune.core.strings.Strings
 import app.treelune.core.tools.ToolRequests
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
-import app.treelune.tools.schema.SchemaDetail
-import app.treelune.tools.schema.SchemaScene
-import app.treelune.tools.schema.SchemaSceneBuilder
-import app.treelune.tools.schema.SchemaSpec
-import app.treelune.tools.schema.SchemaText
-import app.treelune.tools.schema.SchemaTouch
+import app.treelune.core.drawing.diagram.DiagramDetail
+import app.treelune.core.drawing.diagram.DiagramScene
+import app.treelune.core.drawing.diagram.DiagramSceneBuilder
+import app.treelune.core.drawing.diagram.DiagramSpec
+import app.treelune.core.drawing.diagram.DiagramText
+import app.treelune.core.drawing.diagram.DiagramTouch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
@@ -61,19 +61,13 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
-/** A schema's config as read for display: drawn with the current names and icons of its things, or why it cannot be. */
-sealed interface SchemaReading {
-    data class Problem(val message: String) : SchemaReading
-    data class Drawn(val spec: SchemaSpec, val things: Map<Reference, ThingShown>) : SchemaReading
-
-    companion object {
-        suspend fun of(config: JSONObject, context: Context): SchemaReading {
-            val s = Strings.`for`(tool = "schema", context = context)
-            val spec = try { SchemaSpec.of(config) { s.tool(it) } } catch (e: IllegalArgumentException) { return Problem(e.message.orEmpty()) }
-            val things = thingsShown(spec.nodes.mapNotNull { it.thing }, context) ?: return Problem(s.tool("mermaid_names_failed"))
-            return Drawn(spec, things)
-        }
-    }
+/**
+ * A diagram as read for display: drawn with the current names and icons of its things, or why it
+ * cannot be. The Schema reads its config into one (SchemaConfig), a Path its run.
+ */
+sealed interface DiagramReading {
+    data class Problem(val message: String) : DiagramReading
+    data class Drawn(val spec: DiagramSpec, val things: Map<Reference, ThingShown>) : DiagramReading
 }
 
 /** What a box shows of its thing: its current [name], null once it no longer exists, and its [icon], null when it has none. */
@@ -106,14 +100,14 @@ suspend fun thingsShown(things: List<Reference>, context: Context): Map<Referenc
  * the edges allow: the drawing shifts sideways and [pageScroll], the page's scroll, follows.
  */
 @Composable
-fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((SchemaTouch) -> Unit)?, modifier: Modifier = Modifier, reduced: Boolean = false, pageScroll: ScrollState? = null, keptOpen: Set<String> = emptySet(), across: Boolean = false) {
+fun DiagramView(read: DiagramReading.Drawn, folded: Set<String>, onTouch: ((DiagramTouch) -> Unit)?, modifier: Modifier = Modifier, reduced: Boolean = false, pageScroll: ScrollState? = null, keptOpen: Set<String> = emptySet(), across: Boolean = false) {
     val context = LocalContext.current
     val density = LocalDensity.current.density
     val style = UI.drawingTextStyle()
     val unit = UI.drawingUnit()
     val measurer = rememberTextMeasurer()
     val text = remember(style, measurer) {
-        object : SchemaText {
+        object : DiagramText {
             // A layout asks for the same few texts thousands of times, and measuring one is slow
             // Locked: a layout made obsolete may still be running beside the next one
             private val widths = HashMap<String, Float>()
@@ -121,7 +115,7 @@ fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((Schema
             override val height = measurer.measure("Ag", style).size.height.toFloat()
         }
     }
-    val s = remember { Strings.`for`(tool = "schema", context = context) }
+    val s = remember { Strings.`for`(context = context) }
     val sideScroll = rememberScrollState()
     val scrolling = rememberCoroutineScope()
     // The drawing's left in the view once a group was held in place; null keeps it centered
@@ -142,7 +136,7 @@ fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((Schema
             val key = folded to keptOpen
             lastShown = scenes[key] ?: withContext(Dispatchers.Default) {
                 val start = System.currentTimeMillis()
-                val builder = SchemaSceneBuilder(density, unit, text) { s.tool(it) }
+                val builder = DiagramSceneBuilder(density, unit, text) { s.shared("diagram_$it") }
                 val nameOf = { thing: Reference -> read.things[thing]?.name }
                 val iconOf = { thing: Reference -> read.things[thing]?.icon }
                 if (!reduced) Shown(builder.build(read.spec, nameOf, folded, width, keptOpen, fit = true, iconOf = iconOf)
@@ -172,11 +166,11 @@ fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((Schema
         val touch = if (onTouch == null) Modifier else Modifier.pointerInput(scene, left) {
             detectTapGestures { offset ->
                 val found = scene.hitAt(offset.x, offset.y) ?: return@detectTapGestures
-                (found as? SchemaTouch.Group)?.let { group ->
+                (found as? DiagramTouch.Group)?.let { group ->
                     scene.groupArea(group.id)?.let { anchor = GroupAnchor(group.id, it.left * shownScale + left, it.top * shownScale - (pageScroll?.value ?: 0)) }
                 }
                 // One end of a cut arrow: the page scrolls until the other end stands where it was touched
-                (found as? SchemaTouch.Ref)?.let { ref ->
+                (found as? DiagramTouch.Ref)?.let { ref ->
                     val from = scene.refArea(ref.id)
                     val to = scene.refArea(ref.pair)
                     if (from != null && to != null && pageScroll != null) scrolling.launch { pageScroll.animateScrollBy((to.top - from.top) * shownScale) }
@@ -196,7 +190,7 @@ fun SchemaView(read: SchemaReading.Drawn, folded: Set<String>, onTouch: ((Schema
                 UI.Drawing(scene.drawing, Modifier.offset { IntOffset(left.toInt(), 0) }.then(shown))
             }
             if (onTouch != null && scene.autoFolded.isNotEmpty()) UI.Text(
-                if (scene.autoFolded.size == 1) s.tool("auto_folded_one") else s.tool("auto_folded").format(scene.autoFolded.size),
+                if (scene.autoFolded.size == 1) s.shared("diagram_auto_folded_one") else s.shared("diagram_auto_folded").format(scene.autoFolded.size),
                 TextType.CAPTION
             )
         }
@@ -216,7 +210,7 @@ private fun Modifier.shownAt(scale: Float): Modifier = if (scale == 1f) this els
 }
 
 /** A schema laid out for where it shows: none on a tile it cannot fit even in dots; [log] says how it was chosen. */
-private data class Shown(val scene: SchemaScene?, val log: String = "")
+private data class Shown(val scene: DiagramScene?, val log: String = "")
 
 /**
  * A tile's drawing at the richest level of detail that holds (docs/design/progression.md): one
@@ -226,16 +220,16 @@ private data class Shown(val scene: SchemaScene?, val log: String = "")
  * the scale it will really be shown at, a pixel theme's whole steps included: in steps of a third,
  * a drawing wanting 0.61 shows at 0.33, and the next level, at 0.67, fills the tile better.
  */
-private fun tileShown(spec: SchemaSpec, builder: SchemaSceneBuilder, nameOf: (Reference) -> String?, iconOf: (Reference) -> String?,
+private fun tileShown(spec: DiagramSpec, builder: DiagramSceneBuilder, nameOf: (Reference) -> String?, iconOf: (Reference) -> String?,
                       folded: Set<String>, width: Float, available: Float, room: Float, across: Boolean, unit: Float): Shown {
-    val levels = SchemaDetail.entries
+    val levels = DiagramDetail.entries
     val expected = levels.firstOrNull { detail ->
         val area = builder.boxesArea(spec, nameOf, folded, width, detail, iconOf, across) * SPREAD
         area <= 0f || sqrt(available * room / area) >= BOUNDS.getValue(detail)
     } ?: levels.last()
     val tried = mutableListOf<String>()
     for (detail in levels.drop(levels.indexOf(expected))) {
-        val scene = builder.build(spec, nameOf, folded, width, fit = detail == SchemaDetail.TEXT, iconOf = iconOf, across = across, detail = detail, aspect = available / room)
+        val scene = builder.build(spec, nameOf, folded, width, fit = detail == DiagramDetail.TEXT, iconOf = iconOf, across = across, detail = detail, aspect = available / room)
         val scale = tileScale(scene, available, room, unit)
         tried += "$detail at ${"%.2f".format(scale)}"
         if (scale >= BOUNDS.getValue(detail)) return Shown(scene, "expected $expected, ${tried.joinToString()}")
@@ -248,7 +242,7 @@ private fun tileShown(spec: SchemaSpec, builder: SchemaSceneBuilder, nameOf: (Re
  * drawing in whole pixels ([unit] screen pixels to one of its own), a whole number of screen pixels
  * to each of its own, at least one.
  */
-private fun tileScale(scene: SchemaScene, available: Float, room: Float, unit: Float): Float {
+private fun tileScale(scene: DiagramScene, available: Float, room: Float, unit: Float): Float {
     val wanted = min(1f, min(available / scene.drawing.width, room / scene.drawing.height))
     return if (unit > 1f) max(1f, floor(wanted * unit)) / unit else wanted
 }
@@ -257,7 +251,7 @@ private fun tileScale(scene: SchemaScene, available: Float, room: Float, unit: F
  * The smallest a tile shows a drawing at, per level, against its full size; to judge on the phone.
  * Below the last, nothing is drawn.
  */
-private val BOUNDS = mapOf(SchemaDetail.TEXT to 0.6f, SchemaDetail.COMPACT to 0.6f, SchemaDetail.ICON to 0.5f, SchemaDetail.SHAPE to 0.5f, SchemaDetail.DOT to 0.5f)
+private val BOUNDS = mapOf(DiagramDetail.TEXT to 0.6f, DiagramDetail.COMPACT to 0.6f, DiagramDetail.ICON to 0.5f, DiagramDetail.SHAPE to 0.5f, DiagramDetail.DOT to 0.5f)
 
 /**
  * How much more room a drawing takes than its boxes alone, its gaps, arrows and groups. Set on the
@@ -268,36 +262,6 @@ private const val SPREAD = 8f
 
 /** Where a touched group stood: its left in the view, its top against the page's scroll. */
 private data class GroupAnchor(val id: String, val x: Float, val y: Float)
-
-/** Opens what a box designates; says why when it cannot. */
-suspend fun openThing(thing: Reference, context: Context) {
-    val coordinator = Coordinator(context)
-    val id = thing.id ?: return
-    val s = Strings.`for`(tool = "schema", context = context)
-    when (thing.kind) {
-        ReferenceKind.TOOL_INSTANCE -> ToolRequests.open(id)
-        ReferenceKind.ZONE -> Navigator.open(Place.Zone(id))
-        ReferenceKind.ENTRY -> {
-            val result = coordinator.processUserAction("tool_data.get_single", mapOf("entry_id" to id))
-            val tool = (result.data?.get("entry") as? Map<*, *>)?.get("tool_instance_id") as? String
-            if (tool != null) ToolRequests.open(tool, id) else UI.Toast(result.error ?: s.tool("thing_deleted"))
-        }
-        ReferenceKind.VARIABLE -> {
-            val result = coordinator.processUserAction("variables.get", mapOf("variable_id" to id))
-            val zone = (result.data?.get("variable") as? Map<*, *>)?.get("zone_id") as? String
-            if (zone != null) Navigator.open(Place.Variable(zone, id)) else UI.Toast(result.error ?: s.tool("thing_deleted"))
-        }
-        // An event has no page of its own: the zone that holds it
-        ReferenceKind.EVENT -> {
-            val result = coordinator.processUserAction("events.get", mapOf("event_id" to id))
-            val zone = (result.data?.get("event") as? Map<*, *>)?.get("zone_id") as? String
-            if (zone != null) Navigator.open(Place.Zone(zone)) else UI.Toast(result.error ?: s.tool("thing_deleted"))
-        }
-        // A view's row: the tool whose view gives it, opened there as its type understands it
-        ReferenceKind.ROW -> ToolRequests.open(id, app.treelune.core.tools.OpenAt.Row(thing.view!!, thing.row!!))
-        ReferenceKind.APP -> Unit
-    }
-}
 
 /** The width a schema is laid out at on a tile before being scaled down, in dp. */
 private const val READING_WIDTH = 340f

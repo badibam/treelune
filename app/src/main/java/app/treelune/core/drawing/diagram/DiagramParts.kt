@@ -1,8 +1,8 @@
-package app.treelune.tools.schema
+package app.treelune.core.drawing.diagram
 
 /**
  * A schema's content read in parts (docs/design/progression.md, « La linéarisation »): what a box
- * in [SchemaNode.parts] holds, or the schema's top level in [SchemaSpec.parts], is stacked one part
+ * in [DiagramNode.parts] holds, or the schema's top level in [DiagramSpec.parts], is stacked one part
  * under the other, each part one of the boxes it holds with all that is inside it.
  *
  * An arrow from a part to the next one, both ends the parts themselves, is said by the order: it is
@@ -10,13 +10,13 @@ package app.treelune.tools.schema
  * parts, goes back up, or starts or ends inside a part, or comes into a part from outside the
  * stack) becomes a pair of references, the same letter at both ends.
  *
- * Works on what stays visible ([SchemaVisible]): a folded box is one part, the arrows of what it
+ * Works on what stays visible ([DiagramVisible]): a folded box is one part, the arrows of what it
  * holds reaching it. Arrows are taken as placed, turned for a schema running upward, so that the
  * parts stack in the order the arrows run on the page.
  *
  * @param upward Whether the schema runs bottom to top, its arrows placed turned
  */
-internal class SchemaParts(spec: SchemaSpec, visible: SchemaVisible, upward: Boolean) {
+internal class DiagramParts(spec: DiagramSpec, visible: DiagramVisible, upward: Boolean) {
 
     private val parentOf: Map<String, String?> = spec.nodes.associate { it.id to it.parent }
     private val order = spec.nodes.withIndex().associate { (i, node) -> node.id to i }

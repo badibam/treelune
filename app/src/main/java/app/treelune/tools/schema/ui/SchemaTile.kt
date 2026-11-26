@@ -1,5 +1,6 @@
 package app.treelune.tools.schema.ui
 
+import app.treelune.core.drawing.diagram.*
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,9 +31,9 @@ fun rememberSchemaTile(tool: ToolInstance): ToolTile {
     val s = remember { Strings.`for`(tool = "schema", context = context) }
     val config = remember(tool.config_json) { JSONObject(tool.config_json) }
 
-    var reading by app.treelune.core.ui.rememberShown<SchemaReading?>("tile:${tool.id}:reading") { null }
+    var reading by app.treelune.core.ui.rememberShown<DiagramReading?>("tile:${tool.id}:reading") { null }
     var version by remember { mutableIntStateOf(0) }
-    LaunchedEffect(tool.id, config.toString(), version) { reading = SchemaReading.of(config, context) }
+    LaunchedEffect(tool.id, config.toString(), version) { reading = schemaReading(config, context) }
     LaunchedEffect(tool.id) {
         DataChangeNotifier.changes.collect { event -> if (event.mayChangeReadings()) version++ }
     }
@@ -42,7 +43,7 @@ fun rememberSchemaTile(tool: ToolInstance): ToolTile {
             /** Never laid by the tile, which has none: what stands where the schema cannot be drawn. */
             @Composable
             override fun Summary() {
-                if (reading is SchemaReading.Problem) UI.Text(s.tool("tile_problem"), TextType.CAPTION, maxLines = 2)
+                if (reading is DiagramReading.Problem) UI.Text(s.tool("tile_problem"), TextType.CAPTION, maxLines = 2)
             }
 
             @Composable
@@ -54,13 +55,13 @@ fun rememberSchemaTile(tool: ToolInstance): ToolTile {
             /** The schema in [room], nothing where not even its dots hold; why it cannot be drawn, in its place. */
             @Composable
             private fun Drawn(room: app.treelune.core.look.TileSize.Room) {
-                val read = reading as? SchemaReading.Drawn ?: return Summary()
+                val read = reading as? DiagramReading.Drawn ?: return Summary()
                 if (read.spec.nodes.isEmpty()) return
                 val folded = read.spec.nodes.filter { it.folded && it.id in read.spec.holders }.map { it.id }.toSet()
                 // Sideways when the body has more columns than rows, a square one staying upright
                 // (docs/design/progression.md): read on the cells, never by placing both ways
-                if (room.rows == null) SchemaView(read, folded, onTouch = null)
-                else SchemaView(read, folded, onTouch = null, modifier = Modifier.fillMaxSize(), reduced = true,
+                if (room.rows == null) DiagramView(read, folded, onTouch = null)
+                else DiagramView(read, folded, onTouch = null, modifier = Modifier.fillMaxSize(), reduced = true,
                     // A top level in parts fills the tile as a grid of them, each running down
                     across = room.width > room.rows && !read.spec.parts)
             }

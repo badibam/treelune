@@ -1,5 +1,6 @@
 package app.treelune.tools.schema
 
+import app.treelune.core.drawing.diagram.*
 import app.treelune.core.drawing.DrawPoint
 import app.treelune.core.drawing.DrawShape
 import app.treelune.core.drawing.PathStep
@@ -14,7 +15,7 @@ import org.junit.Test
 /** What a schema's drawing promises, without a phone: where heads point, what folding leaves, what is cut. */
 class SchemaSceneTest {
 
-    private val text = object : SchemaText {
+    private val text = object : DiagramText {
         override fun width(text: String) = text.length * 7f
         override val height = 16f
     }
@@ -28,14 +29,14 @@ class SchemaSceneTest {
         }
     }
 
-    private fun spec(json: String) = SchemaSpec.of(JSONObject(json), own)
+    private fun spec(json: String) = SchemaConfig.read(JSONObject(json), own)
 
     private fun scene(json: String, folded: Set<String> = emptySet(), names: (Reference) -> String? = { null }) =
-        SchemaSceneBuilder(1f, 1f, text, own).build(spec(json), names, folded, 340f)
+        DiagramSceneBuilder(1f, 1f, text, own).build(spec(json), names, folded, 340f)
 
-    private fun SchemaScene.labels() = drawing.shapes.filterIsInstance<DrawShape.Label>().map { it.text }
+    private fun DiagramScene.labels() = drawing.shapes.filterIsInstance<DrawShape.Label>().map { it.text }
 
-    private fun SchemaScene.heads() = drawing.shapes.filterIsInstance<DrawShape.Arrowhead>()
+    private fun DiagramScene.heads() = drawing.shapes.filterIsInstance<DrawShape.Arrowhead>()
 
     private val chain = """"nodes": [{"id": "A", "label": "first"}, {"id": "B", "label": "second"}], "edges": [{"from": "A", "to": "B"}]"""
 
@@ -45,11 +46,11 @@ class SchemaSceneTest {
             val paths = scene("""{"nodes": [{"id": "A", "label": "a", "color": "GREEN"$box}]}""").drawing.shapes.filterIsInstance<DrawShape.Path>()
             return paths.single { it.filled }.opacity to paths.single { !it.filled }.opacity
         }
-        assertEquals(SchemaSceneBuilder.SURFACE_OPACITY to 1f, painted(""))
-        assertEquals(SchemaSceneBuilder.FULL_OPACITY to 1f, painted(""", "fill": "full""""))
+        assertEquals(DiagramSceneBuilder.SURFACE_OPACITY to 1f, painted(""))
+        assertEquals(DiagramSceneBuilder.FULL_OPACITY to 1f, painted(""", "fill": "full""""))
         val (fill, border) = painted(""", "fill": "full", "faded": true""")
-        assertEquals(SchemaSceneBuilder.FULL_OPACITY * SchemaSceneBuilder.FADED_OPACITY, fill, 0.001f)
-        assertEquals(SchemaSceneBuilder.FADED_OPACITY, border, 0.001f)
+        assertEquals(DiagramSceneBuilder.FULL_OPACITY * DiagramSceneBuilder.FADED_OPACITY, fill, 0.001f)
+        assertEquals(DiagramSceneBuilder.FADED_OPACITY, border, 0.001f)
     }
 
     @Test
@@ -65,7 +66,7 @@ class SchemaSceneTest {
         assertTrue(above.drawing.height > plain.drawing.height)
         assertTrue(plain.drawing.shapes.none { it is DrawShape.Icon })
 
-        val beside = SchemaSceneBuilder(1f, 1f, text, own).build(spec(json), { null }, emptySet(), 340f, across = true)
+        val beside = DiagramSceneBuilder(1f, 1f, text, own).build(spec(json), { null }, emptySet(), 340f, across = true)
         val sideIcon = beside.drawing.shapes.filterIsInstance<DrawShape.Icon>().single()
         val sideLabel = beside.drawing.shapes.filterIsInstance<DrawShape.Label>().single()
         assertTrue(sideIcon.center.x + sideIcon.size / 2 < sideLabel.at.x - text.width(sideLabel.text) / 2)
@@ -74,7 +75,7 @@ class SchemaSceneTest {
     @Test
     fun `a linked box without an icon shows its thing's, its own icon first`() {
         val thing = """{"kind": "ZONE", "id": "z"}"""
-        fun iconsOf(json: String) = SchemaSceneBuilder(1f, 1f, text, own)
+        fun iconsOf(json: String) = DiagramSceneBuilder(1f, 1f, text, own)
             .build(spec(json), { "Balcony" }, emptySet(), 340f, iconOf = { "flower" })
             .drawing.shapes.filterIsInstance<DrawShape.Icon>().map { it.name }
         assertEquals(listOf("flower"), iconsOf("""{"nodes": [{"id": "A", "thing": $thing}]}"""))
@@ -83,7 +84,7 @@ class SchemaSceneTest {
 
     @Test
     fun `a schema running across puts the target right of its start, its head a side triangle`() {
-        val scene = SchemaSceneBuilder(1f, 1f, text, own).build(spec("""{"direction": "TD", $chain}"""), { null }, emptySet(), 340f, across = true)
+        val scene = DiagramSceneBuilder(1f, 1f, text, own).build(spec("""{"direction": "TD", $chain}"""), { null }, emptySet(), 340f, across = true)
         val first = scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first { it.text == "first" }
         val second = scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first { it.text == "second" }
         assertTrue(second.at.x > first.at.x)
@@ -93,37 +94,37 @@ class SchemaSceneTest {
     private val levels = """{"nodes": [{"id": "A", "label": "with an icon", "icon": "leaf", "parent": "G"}, {"id": "B", "label": "without", "shape": "diamond", "parent": "G"},
         {"id": "G", "label": "a group"}], "edges": [{"from": "A", "to": "B", "label": "feeds"}]}"""
 
-    private fun at(detail: SchemaDetail) = SchemaSceneBuilder(1f, 1f, text, own).build(spec(levels), { null }, emptySet(), 340f, detail = detail)
+    private fun at(detail: DiagramDetail) = DiagramSceneBuilder(1f, 1f, text, own).build(spec(levels), { null }, emptySet(), 340f, detail = detail)
 
     @Test
     fun `below its text a drawing writes nothing, its arrows' texts and groups' titles included`() {
-        assertTrue(at(SchemaDetail.TEXT).labels().containsAll(listOf("with an icon", "without", "feeds", "a group")))
-        listOf(SchemaDetail.ICON, SchemaDetail.SHAPE, SchemaDetail.DOT).forEach { detail ->
+        assertTrue(at(DiagramDetail.TEXT).labels().containsAll(listOf("with an icon", "without", "feeds", "a group")))
+        listOf(DiagramDetail.ICON, DiagramDetail.SHAPE, DiagramDetail.DOT).forEach { detail ->
             assertTrue("$detail writes", at(detail).labels().isEmpty())
         }
     }
 
     @Test
     fun `compact, a box writes one short line and a group its title, an arrow nothing`() {
-        val labels = at(SchemaDetail.COMPACT).labels()
+        val labels = at(DiagramDetail.COMPACT).labels()
         assertTrue(labels.containsAll(listOf("without", "a group")))
         // A text longer than the short line is cut on it
         assertTrue(labels.any { it.startsWith("with an") && it.endsWith("…") })
         assertFalse("feeds" in labels)
-        assertEquals(listOf("leaf"), at(SchemaDetail.COMPACT).drawing.shapes.filterIsInstance<DrawShape.Icon>().map { it.name })
+        assertEquals(listOf("leaf"), at(DiagramDetail.COMPACT).drawing.shapes.filterIsInstance<DrawShape.Icon>().map { it.name })
     }
 
     @Test
     fun `at the icon level a box shows its icon alone, a box without one its shape alone`() {
-        val icons = at(SchemaDetail.ICON).drawing.shapes.filterIsInstance<DrawShape.Icon>()
+        val icons = at(DiagramDetail.ICON).drawing.shapes.filterIsInstance<DrawShape.Icon>()
         assertEquals(listOf("leaf"), icons.map { it.name })
-        assertTrue(at(SchemaDetail.SHAPE).drawing.shapes.none { it is DrawShape.Icon })
+        assertTrue(at(DiagramDetail.SHAPE).drawing.shapes.none { it is DrawShape.Icon })
     }
 
     @Test
     fun `the room the boxes take shrinks from one level to the next`() {
-        val builder = SchemaSceneBuilder(1f, 1f, text, own)
-        val areas = SchemaDetail.entries.map { builder.boxesArea(spec(levels), { null }, emptySet(), 340f, it) }
+        val builder = DiagramSceneBuilder(1f, 1f, text, own)
+        val areas = DiagramDetail.entries.map { builder.boxesArea(spec(levels), { null }, emptySet(), 340f, it) }
         assertEquals(areas.sortedDescending(), areas)
         assertTrue(areas.first() > areas.last())
     }
@@ -151,9 +152,9 @@ class SchemaSceneTest {
 
     @Test
     fun `every shape of box and a loop on a box are drawn`() {
-        val nodes = SchemaShape.entries.joinToString(",") { """{"id": "${it.key}", "label": "${it.key}", "shape": "${it.key}"}""" }
+        val nodes = DiagramShape.entries.joinToString(",") { """{"id": "${it.key}", "label": "${it.key}", "shape": "${it.key}"}""" }
         val scene = scene("""{"nodes": [$nodes], "edges": [{"from": "rect", "to": "rect"}, {"from": "rect", "to": "circle"}]}""")
-        assertTrue(scene.labels().containsAll(SchemaShape.entries.map { it.key }))
+        assertTrue(scene.labels().containsAll(DiagramShape.entries.map { it.key }))
     }
 
     private val grouped = """{
@@ -182,7 +183,7 @@ class SchemaSceneTest {
     fun `a touch on a group's title finds the group`() {
         val scene = scene(grouped)
         val title = scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first { it.text == "Group" }
-        assertEquals(SchemaTouch.Group("G", folded = false), scene.hitAt(title.at.x + 2f, title.at.y + 2f))
+        assertEquals(DiagramTouch.Group("G", folded = false), scene.hitAt(title.at.x + 2f, title.at.y + 2f))
     }
 
     @Test
@@ -194,7 +195,7 @@ class SchemaSceneTest {
         assertTrue(scene.labels()[2].endsWith("…"))
         assertEquals(1, scene.drawing.shapes.filterIsInstance<DrawShape.Segment>().size)
         val line = scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first()
-        val touch = scene.hitAt(line.at.x, line.at.y + 2f) as? SchemaTouch.Box
+        val touch = scene.hitAt(line.at.x, line.at.y + 2f) as? DiagramTouch.Box
         assertNotNull(touch)
         assertTrue(touch!!.cut)
         assertEquals(long, touch.text)
@@ -211,7 +212,7 @@ class SchemaSceneTest {
     fun `an arrow reaches the real outline of a diamond, beside its middle too`() {
         val scene = scene("""{"nodes": [{"id": "A", "label": "left one"}, {"id": "B", "label": "right one"}, {"id": "D", "label": "a wide decision", "shape": "diamond"}],
             "edges": [{"from": "A", "to": "D"}, {"from": "B", "to": "D"}]}""")
-        val diamond = scene.hits.first { (it.second as? SchemaTouch.Box)?.node?.id == "D" }.first
+        val diamond = scene.hits.first { (it.second as? DiagramTouch.Box)?.node?.id == "D" }.first
         scene.heads().forEach { head ->
             val middle = (diamond.left + diamond.right) / 2
             val offCenter = kotlin.math.abs(head.at.x - middle) / ((diamond.right - diamond.left) / 2)
@@ -265,7 +266,7 @@ class SchemaSceneTest {
     fun `lines leave a diamond near its point, not at its corners`() {
         val scene = scene("""{"nodes": [{"id": "D", "label": "a rather wide decision", "shape": "diamond"}, {"id": "A", "label": "left answer"}, {"id": "B", "label": "right answer"}],
             "edges": [{"from": "D", "to": "A"}, {"from": "D", "to": "B"}]}""")
-        val diamond = scene.hits.first { (it.second as? SchemaTouch.Box)?.node?.id == "D" }.first
+        val diamond = scene.hits.first { (it.second as? DiagramTouch.Box)?.node?.id == "D" }.first
         val middle = (diamond.left + diamond.right) / 2
         val reach = (diamond.right - diamond.left) * 0.35f / 2 + 0.5f
         scene.drawing.shapes.filterIsInstance<DrawShape.Path>().filter { !it.filled }.mapNotNull { it.steps.firstOrNull() as? PathStep.MoveTo }
@@ -292,7 +293,7 @@ class SchemaSceneTest {
             "edges": [{"from": "work", "to": "lunch"}, {"from": "work", "to": "link"}, {"from": "link", "to": "gone"},
                 {"from": "lunch", "to": "nap"}, {"from": "lunch", "to": "read"}, {"from": "nap", "to": "end"}, {"from": "read", "to": "end"}]
         }"""
-        fun x(scene: SchemaScene, name: String) = scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first { it.text == name }.at.x
+        fun x(scene: DiagramScene, name: String) = scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first { it.text == name }.at.x
         val open = scene(json)
         val closed = scene(json, folded = setOf("G"))
         assertEquals(x(open, "lunch") < x(open, "neighbour"), x(closed, "lunch") < x(closed, "neighbour"))
@@ -305,7 +306,7 @@ class SchemaSceneTest {
     }"""
 
     private fun fitted(width: Float, keptOpen: Set<String> = emptySet(), unit: Float = 1f) =
-        SchemaSceneBuilder(1f, unit, text, own).build(spec(wide), { null }, emptySet(), width, keptOpen, fit = true)
+        DiagramSceneBuilder(1f, unit, text, own).build(spec(wide), { null }, emptySet(), width, keptOpen, fit = true)
 
     @Test
     fun `a schema too wide folds a group to fit, and says which`() {
@@ -313,7 +314,7 @@ class SchemaSceneTest {
         val scene = fitted(110f)
         assertEquals(setOf("G"), scene.autoFolded)
         assertTrue(scene.drawing.width <= 110.5f)
-        assertEquals(SchemaTouch.Group("G", folded = true), scene.hits.last { it.second is SchemaTouch.Group }.second)
+        assertEquals(DiagramTouch.Group("G", folded = true), scene.hits.last { it.second is DiagramTouch.Group }.second)
     }
 
     @Test
@@ -325,7 +326,7 @@ class SchemaSceneTest {
 
     @Test
     fun `what is shown smaller stays readable, and fits, or is left to scroll`() {
-        val open = SchemaSceneBuilder(1f, 1f, text, own).build(spec(wide), { null }, emptySet(), 10000f).drawing.width
+        val open = DiagramSceneBuilder(1f, 1f, text, own).build(spec(wide), { null }, emptySet(), 10000f).drawing.width
         val scene = fitted(open * 0.7f, keptOpen = setOf("G"))
         assertTrue(scene.scale >= 0.75f)
         assertTrue(scene.scale == 1f || scene.drawing.width * scene.scale <= open * 0.7f + 1f)
@@ -350,7 +351,7 @@ class SchemaSceneTest {
         assertEquals(3, heads.size)
         // Onto the frame's top, not into it: one head on its border, the other inside on the second box
         assertEquals(1, heads.count { kotlin.math.abs(it.at.y + it.size / 2 - frame.top) < 1f })
-        val after = scene.hits.first { (it.second as? SchemaTouch.Box)?.node?.id == "Z" }.first
+        val after = scene.hits.first { (it.second as? DiagramTouch.Box)?.node?.id == "Z" }.first
         assertTrue(after.top > frame.bottom)
     }
 
@@ -361,7 +362,7 @@ class SchemaSceneTest {
         assertEquals(listOf("hammer"), open.drawing.shapes.filterIsInstance<DrawShape.Icon>().map { it.name })
         val closed = scene(frames, folded = setOf("G"))
         assertTrue("Phase (2)" in closed.labels())
-        val box = closed.hits.first { it.second == SchemaTouch.Group("G", folded = true) }.first
+        val box = closed.hits.first { it.second == DiagramTouch.Group("G", folded = true) }.first
         // A diamond's outline starts at the middle of its top
         val outline = closed.drawing.shapes.filterIsInstance<DrawShape.Path>().first { path ->
             (path.steps.firstOrNull() as? PathStep.MoveTo)?.to?.let { kotlin.math.abs(it.y - box.top) < 0.5f && kotlin.math.abs(it.x - (box.left + box.right) / 2) < 0.5f } == true
@@ -374,11 +375,11 @@ class SchemaSceneTest {
         val json = """{"nodes": [{"id": "G", "thing": {"kind": "ZONE", "id": "z"}}, {"id": "B", "label": "inside", "parent": "G"}]}"""
         val scene = scene(json, names = { "Balcony" })
         val title = scene.drawing.shapes.filterIsInstance<DrawShape.Label>().first { it.text == "Balcony" }
-        val touch = scene.hitAt(title.at.x + 2f, title.at.y + 2f) as? SchemaTouch.Box
+        val touch = scene.hitAt(title.at.x + 2f, title.at.y + 2f) as? DiagramTouch.Box
         assertEquals("G", touch?.node?.id)
         assertNotNull(touch?.open)
         val band = scene.groupArea("G")!!
-        assertEquals(SchemaTouch.Group("G", folded = false), scene.hitAt(band.right - 2f, title.at.y + 2f))
+        assertEquals(DiagramTouch.Group("G", folded = false), scene.hitAt(band.right - 2f, title.at.y + 2f))
     }
 
     /**
@@ -401,7 +402,7 @@ class SchemaSceneTest {
         ]
     }"""
 
-    private fun SchemaScene.top(id: String) = hits.first { (it.second as? SchemaTouch.Box)?.node?.id == id || (it.second as? SchemaTouch.Group)?.id == id }.first.top
+    private fun DiagramScene.top(id: String) = hits.first { (it.second as? DiagramTouch.Box)?.node?.id == id || (it.second as? DiagramTouch.Group)?.id == id }.first.top
 
     @Test
     fun `parts stack in the arrows' order, the next part told by the order alone`() {
@@ -415,9 +416,9 @@ class SchemaSceneTest {
     @Test
     fun `the short line to the next part keeps clear of a letter hanging in the gap`() {
         val scene = scene(house)
-        val pause = scene.hits.first { (it.second as? SchemaTouch.Box)?.node?.id == "pause" }.first
+        val pause = scene.hits.first { (it.second as? DiagramTouch.Box)?.node?.id == "pause" }.first
         val second = scene.groupArea("second")!!
-        val letter = scene.hits.first { (it.second as? SchemaTouch.Ref)?.let { r -> scene.refArea(r.id)!!.top > pause.bottom && scene.refArea(r.id)!!.bottom < second.top } == true }.first
+        val letter = scene.hits.first { (it.second as? DiagramTouch.Ref)?.let { r -> scene.refArea(r.id)!!.top > pause.bottom && scene.refArea(r.id)!!.bottom < second.top } == true }.first
         // The head landing on Second work's top stands beside the letter, not under it
         val head = scene.heads().first { kotlin.math.abs(it.at.y + it.size / 2 - second.top) < 1f }
         assertTrue(head.at.x < letter.left || head.at.x > letter.right)
@@ -426,7 +427,7 @@ class SchemaSceneTest {
     @Test
     fun `an arrow the order does not tell becomes the same letter at both ends, each touch giving the other`() {
         val scene = scene(house)
-        val refs = scene.hits.mapNotNull { it.second as? SchemaTouch.Ref }
+        val refs = scene.hits.mapNotNull { it.second as? DiagramTouch.Ref }
         assertEquals(listOf("A", "A", "B", "B"), refs.map { it.letter }.sorted())
         refs.forEach { ref -> assertEquals(ref.id, refs.single { it.id == ref.pair }.pair) }
         // The arrow's text stays on its first half, by Walls
@@ -444,7 +445,7 @@ class SchemaSceneTest {
                 {"id": "P", "label": "first", "parent": "S"}, {"id": "Q", "label": "second", "parent": "S"}],
             "edges": [{"from": "A", "to": "S"}, {"from": "A", "to": "Q"}, {"from": "P", "to": "Q"}]
         }""")
-        assertEquals(2, scene.hits.count { it.second is SchemaTouch.Ref })
+        assertEquals(2, scene.hits.count { it.second is DiagramTouch.Ref })
         // A to the stack's frame, the cut arrow's two halves, and P to Q told by the order, a short line
         assertEquals(4, scene.heads().size)
         assertTrue(scene.top("P") < scene.top("Q"))
@@ -454,7 +455,7 @@ class SchemaSceneTest {
     fun `parts folded away leave their arrows to the folded box`() {
         val scene = scene(house, folded = setOf("shell", "second"))
         // Walls to Joinery now runs from the folded Shell to the folded Second work, skipping the pause: still cut
-        assertEquals(4, scene.hits.count { it.second is SchemaTouch.Ref })
+        assertEquals(4, scene.hits.count { it.second is DiagramTouch.Ref })
     }
 
     @Test
@@ -466,8 +467,8 @@ class SchemaSceneTest {
                 {"id": "sword", "label": "Sword"}],
             "edges": [{"from": "focus", "to": "bolt"}, {"from": "bolt", "to": "sword"}, {"from": "smith", "to": "sword"}, {"from": "potions", "to": "focus"}]}""")
         val outOf = { id: String ->
-            val box = scene.hits.first { (it.second as? SchemaTouch.Box)?.node?.id == id }.first
-            scene.hits.mapNotNull { it.second as? SchemaTouch.Ref }.filter { scene.refArea(it.id)!!.top > box.top }
+            val box = scene.hits.first { (it.second as? DiagramTouch.Box)?.node?.id == id }.first
+            scene.hits.mapNotNull { it.second as? DiagramTouch.Ref }.filter { scene.refArea(it.id)!!.top > box.top }
                 .minBy { scene.refArea(it.id)!!.top - box.bottom + kotlin.math.abs(scene.refArea(it.id)!!.left - box.left) }.letter
         }
         assertEquals(listOf("A", "B", "C"), listOf(outOf("smith"), outOf("potions"), outOf("bolt")))
@@ -475,7 +476,7 @@ class SchemaSceneTest {
 
     @Test
     fun `on a wide tile a top level in parts fills it as a grid`() {
-        val builder = SchemaSceneBuilder(1f, 1f, text, own)
+        val builder = DiagramSceneBuilder(1f, 1f, text, own)
         val column = builder.build(spec(house), { null }, emptySet(), 340f)
         val grid = builder.build(spec(house), { null }, emptySet(), 340f, aspect = 2f)
         assertTrue(grid.drawing.height < column.drawing.height)

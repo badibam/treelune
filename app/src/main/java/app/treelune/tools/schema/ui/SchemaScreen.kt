@@ -1,5 +1,6 @@
 package app.treelune.tools.schema.ui
 
+import app.treelune.core.drawing.diagram.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,7 +31,7 @@ import app.treelune.core.ui.pageScroll
 import app.treelune.core.utils.DataChangeNotifier
 import app.treelune.core.utils.JsonUtils
 import app.treelune.tools.schema.SchemaToolType
-import app.treelune.tools.schema.SchemaTouch
+import app.treelune.core.drawing.diagram.DiagramTouch
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
@@ -49,14 +50,14 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
     val s = remember { Strings.`for`(tool = "schema", context = context) }
 
     var config by app.treelune.core.ui.rememberShown<JSONObject?>("page:$toolInstanceId:config") { null }
-    var reading by app.treelune.core.ui.rememberShown<SchemaReading?>("page:$toolInstanceId:reading") { null }
+    var reading by app.treelune.core.ui.rememberShown<DiagramReading?>("page:$toolInstanceId:reading") { null }
     var version by remember { mutableIntStateOf(0) }
     // Groups folded for this visit, starting from what the config says; a config changed starts over
     var folded by remember { mutableStateOf<Set<String>?>(null) }
     // The groups the person opened, which the app never folds to make room
     var keptOpen by remember { mutableStateOf<Set<String>>(emptySet()) }
     // The box whose whole text is open in a window
-    var opened by remember { mutableStateOf<SchemaTouch.Box?>(null) }
+    var opened by remember { mutableStateOf<DiagramTouch.Box?>(null) }
     val pageScrollState = rememberScrollState()
 
     LaunchedEffect(toolInstanceId, version) {
@@ -64,15 +65,15 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
         @Suppress("UNCHECKED_CAST")
         val loaded = ((tool.data?.get("tool_instance") as? Map<*, *>)?.get("config") as? Map<String, Any?>)?.let { JsonUtils.toJSONObject(it) }
         if (loaded == null) {
-            reading = SchemaReading.Problem(tool.error ?: s.shared("tools_loading_config"))
+            reading = DiagramReading.Problem(tool.error ?: s.shared("tools_loading_config"))
             return@LaunchedEffect
         }
         val changed = loaded.toString() != config?.toString()
-        val read = SchemaReading.of(loaded, context)
+        val read = schemaReading(loaded, context)
         config = loaded
         reading = read
         if (changed || folded == null) {
-            folded = (read as? SchemaReading.Drawn)?.spec?.let { spec -> spec.nodes.filter { it.folded && it.id in spec.holders }.map { it.id }.toSet() }.orEmpty()
+            folded = (read as? DiagramReading.Drawn)?.spec?.let { spec -> spec.nodes.filter { it.folded && it.id in spec.holders }.map { it.id }.toSet() }.orEmpty()
             keptOpen = emptySet()
             opened = null
         }
@@ -98,12 +99,12 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
         )
         when (val read = reading) {
             null -> UI.LoadingIndicator()
-            is SchemaReading.Problem -> UI.Text(s.tool("screen_problem").format(read.message), TextType.ERROR)
-            is SchemaReading.Drawn -> if (read.spec.nodes.isEmpty()) UI.Text(s.tool("screen_empty"), TextType.CAPTION) else {
+            is DiagramReading.Problem -> UI.Text(s.tool("screen_problem").format(read.message), TextType.ERROR)
+            is DiagramReading.Drawn -> if (read.spec.nodes.isEmpty()) UI.Text(s.tool("screen_empty"), TextType.CAPTION) else {
                 val shownFolded = folded.orEmpty()
-                SchemaView(read, shownFolded, onTouch = { touch ->
+                DiagramView(read, shownFolded, onTouch = { touch ->
                     when (touch) {
-                        is SchemaTouch.Group -> if (touch.folded) {
+                        is DiagramTouch.Group -> if (touch.folded) {
                             folded = shownFolded - touch.id
                             keptOpen = keptOpen + touch.id
                         } else {
@@ -111,8 +112,8 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
                             keptOpen = keptOpen - touch.id
                         }
                         // The view scrolls to the other end itself
-                        is SchemaTouch.Ref -> Unit
-                        is SchemaTouch.Box -> {
+                        is DiagramTouch.Ref -> Unit
+                        is DiagramTouch.Box -> {
                             val thing = touch.open
                             when {
                                 touch.cut -> opened = touch
