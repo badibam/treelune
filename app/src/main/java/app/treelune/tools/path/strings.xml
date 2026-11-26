@@ -222,4 +222,18 @@
     <string name="sheet_move_start">Opened</string>
     <string name="sheet_move_end">Closed</string>
     <string name="sheet_by_effect">by an effect</string>
+    <string name="edit_add_link">+ %1$s</string>
+    <string name="edit_move">Move to…</string>
+    <string name="pick_link">What does it wait for? (%1$s)</string>
+    <string name="pick_group">Where does it go?</string>
+    <string name="pick_self">This is the stage itself.</string>
+    <string name="pick_linked">It is already linked.</string>
+    <string name="pick_ancestor">It holds this stage, and is computed after it.</string>
+    <string name="pick_loop">It already waits for this stage: they would wait for one another.</string>
+    <string name="pick_inside">This is the stage itself or its content.</string>
+    <string name="pick_contains">A stage %1$s does not hold a stage %2$s.</string>
+    <string name="delete_what">Delete “%1$s” and everything in it:</string>
+    <string name="delete_count">%1$s: %2$d</string>
+    <string name="delete_moves">Moves noted: %1$d</string>
+    <string name="delete_waiting">%1$d stages waited for it and will wait for nothing any more.</string>
 </resources>

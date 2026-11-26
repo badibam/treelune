@@ -86,7 +86,7 @@ private suspend fun sheet(context: android.content.Context, toolId: String, stag
  * state now and since when; a button per manual state, refused ones greyed and saying why when
  * touched, a lower state of the ladder a step back; its plan fields; its fields to fill, written
  * from here; its links by type, each opening the sheet of the stage it comes from; its states
- * in the run. A closed run's stage is read only.
+ * in the run; its plan edited by « Modifier » (StageEdit). A closed run's stage is read only.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -132,7 +132,10 @@ fun StageSheet(toolInstanceId: String, stageId: String, onName: (String) -> Unit
             subtitle = found?.takeIf { grammar!!.kinds.count { k -> k.key != grammar.rootKind } >= 2 && !it.stage.isRoot }?.kind?.name,
             icon = found?.kind?.icon,
             leftButton = ButtonAction.BACK,
-            onLeftClick = onBack
+            onLeftClick = onBack,
+            // Its plan edited apart, never by a touch of its use; a closed run's not at all
+            rightButton = ButtonAction.EDIT.takeIf { found != null && !found.closed },
+            onRightClick = { parts.open(PathParts.edit(stageId)) }
         )
         when (val current = shown) {
             null -> UI.LoadingIndicator()

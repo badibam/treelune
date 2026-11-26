@@ -222,4 +222,18 @@
     <string name="sheet_move_start">Ouvert</string>
     <string name="sheet_move_end">Fermé</string>
     <string name="sheet_by_effect">par un effet</string>
+    <string name="edit_add_link">+ %1$s</string>
+    <string name="edit_move">Déplacer vers…</string>
+    <string name="pick_link">Qu\'attend-elle ? (%1$s)</string>
+    <string name="pick_group">Où la mettre ?</string>
+    <string name="pick_self">C\'est l\'étape elle-même.</string>
+    <string name="pick_linked">Elle est déjà liée.</string>
+    <string name="pick_ancestor">Elle contient cette étape, et se calcule après elle.</string>
+    <string name="pick_loop">Elle attend déjà cette étape : elles s\'attendraient l\'une l\'autre.</string>
+    <string name="pick_inside">C\'est l\'étape elle-même ou son contenu.</string>
+    <string name="pick_contains">Une étape %1$s ne contient pas d\'étape %2$s.</string>
+    <string name="delete_what">Supprimer « %1$s » et tout ce qu\'elle contient :</string>
+    <string name="delete_count">%1$s : %2$d</string>
+    <string name="delete_moves">Mouvements notés : %1$d</string>
+    <string name="delete_waiting">%1$d étapes l\'attendaient et n\'attendront plus rien.</string>
 </resources>
