@@ -52,7 +52,10 @@ enum class DiagramLine(val key: String) {
  * text as its title; its [shape] then serves only when it is folded, drawn as a box again, as it
  * is at first when [folded]. In [parts], what it holds is read as parts stacked one under the
  * other rather than as one graph (docs/design/progression.md, « La linéarisation »). Its [fill]
- * and whether it is [faded] say how it is painted, set by hand (not this season, planned).
+ * and whether it is [faded] say how it is painted, set by hand (not this season, planned). A box
+ * may carry a [readout], a short form written under its text, and a [gauge] from 0 to 1, a bar
+ * at its bottom while it has text, its fill rising from the bottom once it has none (a Path's
+ * stage, its kind's readout).
  */
 data class DiagramNode(
     val id: String,
@@ -65,7 +68,9 @@ data class DiagramNode(
     val folded: Boolean = false,
     val parts: Boolean = false,
     val fill: DiagramFill = DiagramFill.OUTLINE,
-    val faded: Boolean = false
+    val faded: Boolean = false,
+    val readout: String? = null,
+    val gauge: Float? = null
 )
 
 /** An arrow between two boxes; without [head], a plain line; in [color], a name of the palette, or the theme's ink without one. */

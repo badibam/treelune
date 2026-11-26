@@ -425,25 +425,28 @@ class DiagramSceneBuilder(private val density: Float, private val unit: Float, p
                 else -> shapes += DrawShape.Path(outline, fill(box.color), SURFACE_OPACITY * fade, 0f, null, true)
             }
             shapes += DrawShape.Path(outline, stroke(box.color, InkLevel.MEDIUM), fade, border, null, false)
-            // The icon and the text centered together in the box, the icon above or beside
+            // Its gauge: a bar at the bottom of a box with text, the fill rising from the bottom of one without
+            box.node.gauge?.let { gauge -> shapes += gaugeShapes(gauge, rect, box, solid || box.lines.isEmpty(), fade) }
+            // The icon and the text centered together in the box above its gauge, the icon above or beside
             val centerX = (rect.left + rect.right) / 2
-            val middleY = (rect.top + rect.bottom) / 2
-            val textHeight = box.lines.size * text.height
+            val middleY = (rect.top + rect.bottom - gaugeRoom(box.node, box.lines.isNotEmpty())) / 2
+            val readout = readoutLine(box.node, mode)
+            val textHeight = (box.lines.size + (if (readout != null) 1 else 0)) * text.height
             val iconColor = if (box.node.faded) DrawColor.Ink(InkLevel.MEDIUM) else stroke(box.color, InkLevel.STRONG)
             when {
-                box.icon == null -> writeLines(box, centerX, middleY - textHeight / 2, shapes)
+                box.icon == null -> writeLines(box, centerX, middleY - textHeight / 2, shapes, readout)
                 // The icon alone, at its own size
                 box.lines.isEmpty() -> shapes += DrawShape.Icon(box.icon, DrawPoint(centerX, middleY), box.iconSize, iconColor)
                 box.iconBeside -> {
                     val textWidth = textWidth(box.lines, box.cut)
                     val startX = centerX - (iconRoom() + textWidth) / 2
                     shapes += DrawShape.Icon(box.icon, DrawPoint(startX + iconSize() / 2, middleY), iconSize(), iconColor)
-                    writeLines(box, startX + iconRoom() + textWidth / 2, middleY - textHeight / 2, shapes)
+                    writeLines(box, startX + iconRoom() + textWidth / 2, middleY - textHeight / 2, shapes, readout)
                 }
                 else -> {
                     val startY = middleY - (iconRoom() + textHeight) / 2
                     shapes += DrawShape.Icon(box.icon, DrawPoint(centerX, startY + iconSize() / 2), iconSize(), iconColor)
-                    writeLines(box, centerX, startY + iconRoom(), shapes)
+                    writeLines(box, centerX, startY + iconRoom(), shapes, readout)
                 }
             }
             hits += rect to (if (box.folded) DiagramTouch.Group(box.id, folded = true) else DiagramTouch.Box(box.node, box.whole, box.cut, box.open))
@@ -547,7 +550,36 @@ class DiagramSceneBuilder(private val density: Float, private val unit: Float, p
      * A box's text. What is underlined can be touched: the whole text of a linked box, and the
      * word that closes a cut text, which a touch shows whole.
      */
-    private fun writeLines(box: Measured, centerX: Float, top: Float, shapes: MutableList<DrawShape>) {
+    /** The short form of [node]'s readout as [mode] writes it: under its text at the richest level, nowhere below. */
+    private fun readoutLine(node: DiagramNode, mode: Mode): String? =
+        node.readout?.takeIf { it.isNotBlank() && mode.detail == DiagramDetail.TEXT }?.let { ellipsize(it.trim(), dp(150f)) }
+
+    /** The room a gauge bar takes at the bottom of a box with text; none without a gauge or without text. */
+    private fun gaugeRoom(node: DiagramNode, withText: Boolean = true): Float = if (node.gauge != null && withText) dp(GAUGE_BAR + 3f) else 0f
+
+    /**
+     * [gauge] drawn on [box] at [rect], in its colour: [rising], the fill rising from its bottom
+     * inside its border (a box without text); otherwise a bar along its bottom, its empty part
+     * pale, its full part strong.
+     */
+    private fun gaugeShapes(gauge: Float, rect: DrawRect, box: Measured, rising: Boolean, fade: Float): List<DrawShape> {
+        val color = box.color?.let { DrawColor.Palette(it) } ?: DrawColor.Ink(InkLevel.MEDIUM)
+        val inset = thin()
+        val fraction = gauge.coerceIn(0f, 1f)
+        if (rising) {
+            val inner = DrawRect(rect.left + inset, rect.top + inset, rect.right - inset, rect.bottom - inset)
+            val top = inner.bottom - (inner.bottom - inner.top) * fraction
+            return listOf(DrawShape.Box(DrawRect(inner.left, top, inner.right, inner.bottom), color, GAUGE_RISING_OPACITY * fade))
+        }
+        val side = dp(8f)
+        val bar = DrawRect(rect.left + side, rect.bottom - dp(4f) - dp(GAUGE_BAR), rect.right - side, rect.bottom - dp(4f))
+        return listOf(
+            DrawShape.Box(bar, color, GAUGE_EMPTY_OPACITY * fade),
+            DrawShape.Box(DrawRect(bar.left, bar.top, bar.left + (bar.right - bar.left) * fraction, bar.bottom), color, fade)
+        )
+    }
+
+    private fun writeLines(box: Measured, centerX: Float, top: Float, shapes: MutableList<DrawShape>, readout: String? = null) {
         // A faded box's text in the medium ink, still read
         val ink = DrawColor.Ink(if (box.node.faded) InkLevel.MEDIUM else InkLevel.STRONG)
         val linked = box.open != null
@@ -555,6 +587,8 @@ class DiagramSceneBuilder(private val density: Float, private val unit: Float, p
             val y = lineTop + text.height - dp(1f)
             shapes += DrawShape.Segment(DrawPoint(from, y), DrawPoint(to, y), ink, max(unit, dp(1f)), null)
         }
+        // The readout's short form under the text, quieter
+        readout?.let { shapes += DrawShape.Label(it, DrawPoint(centerX, top + box.lines.size * text.height), TextAnchor.MIDDLE, TextBaseline.TOP, DrawColor.Ink(InkLevel.MEDIUM)) }
         box.lines.forEachIndexed { i, line ->
             val lineTop = top + i * text.height
             if (box.cut && i == box.lines.lastIndex) {
@@ -625,8 +659,11 @@ class DiagramSceneBuilder(private val density: Float, private val unit: Float, p
         val across = mode.across
         val beside = icon != null && across
         val above = icon != null && !across
-        val w = (if (above) max(textWidth(lines, cut), iconSize()) else textWidth(lines, cut)) + (if (beside) iconRoom() else 0f) + 2 * dp(10f)
-        val h = lines.size * text.height + (if (above) iconRoom() else 0f) + 2 * dp(6f)
+        // Its readout's short form on a line of its own under the text, written only at the richest level
+        val readout = readoutLine(node, mode)
+        val textBlock = max(textWidth(lines, cut), readout?.let { text.width(it) } ?: 0f)
+        val w = (if (above) max(textBlock, iconSize()) else textBlock) + (if (beside) iconRoom() else 0f) + 2 * dp(10f)
+        val h = (lines.size + (if (readout != null) 1 else 0)) * text.height + (if (above) iconRoom() else 0f) + 2 * dp(6f) + gaugeRoom(node)
         val (width, height) = when (shape) {
             DiagramShape.RECT, DiagramShape.ROUNDED -> max(w, dp(56f)) to h
             DiagramShape.STADIUM -> max(w + h / 2, dp(56f)) to h
@@ -828,6 +865,11 @@ class DiagramSceneBuilder(private val density: Float, private val unit: Float, p
         const val ICON_ALONE = 1.5f
         // The longest line a compact box or group title writes, in dp
         const val COMPACT_LINE = 80f
+
+        /** A gauge's bar at the bottom of a box with text, in dp; its empty part, and a fill rising in a box without text, as opaque as this. */
+        const val GAUGE_BAR = 4f
+        const val GAUGE_EMPTY_OPACITY = 0.3f
+        const val GAUGE_RISING_OPACITY = 0.55f
         // The smallest a drawing is shown at for its text to stay readable; to judge on the phone
         const val MIN_SCALE = 0.75f
         // How close to a side of its box a line's end counts as standing on it, in pixels

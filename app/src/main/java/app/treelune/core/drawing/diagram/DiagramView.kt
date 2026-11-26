@@ -93,14 +93,15 @@ suspend fun thingsShown(things: List<Reference>, context: Context): Map<Referenc
  * A schema laid out at the width it is given and drawn by the theme. On a screen, a drawing still
  * wider than the width scrolls sideways. [reduced], it is laid out at a reading width and scaled
  * down to the room, for a tile; [across], it runs from left to right, laid out at a reading height
- * in the same proportion (a wide tile), nothing of it where not even its dots hold; [onTouch]
- * null leaves the touch to the tile.
+ * in the same proportion (a wide tile), [none] in its place where not even its dots hold;
+ * [onTouch] null leaves the touch to the tile.
  *
  * A group touched stays where it is on the screen while the schema changes around it, as far as
  * the edges allow: the drawing shifts sideways and [pageScroll], the page's scroll, follows.
  */
 @Composable
-fun DiagramView(read: DiagramReading.Drawn, folded: Set<String>, onTouch: ((DiagramTouch) -> Unit)?, modifier: Modifier = Modifier, reduced: Boolean = false, pageScroll: ScrollState? = null, keptOpen: Set<String> = emptySet(), across: Boolean = false) {
+fun DiagramView(read: DiagramReading.Drawn, folded: Set<String>, onTouch: ((DiagramTouch) -> Unit)?, modifier: Modifier = Modifier, reduced: Boolean = false, pageScroll: ScrollState? = null, keptOpen: Set<String> = emptySet(), across: Boolean = false,
+                none: @Composable () -> Unit = {}) {
     val context = LocalContext.current
     val density = LocalDensity.current.density
     val style = UI.drawingTextStyle()
@@ -146,8 +147,8 @@ fun DiagramView(read: DiagramReading.Drawn, folded: Set<String>, onTouch: ((Diag
             }.also { scenes[key] = it }
         }
         val shown = lastShown ?: return@BoxWithConstraints UI.LoadingIndicator()
-        // On a tile, a schema too dense even in dots shows nothing of it
-        val scene = shown.scene ?: return@BoxWithConstraints
+        // On a tile, a diagram too dense even in dots shows what its owner gives instead
+        val scene = shown.scene ?: return@BoxWithConstraints none()
         val shownScale = scene.scale
         val free = available - scene.drawing.width * shownScale
         // Computed while composing, for the first frame of the new drawing to stand right already
