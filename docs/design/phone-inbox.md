@@ -20,3 +20,11 @@ La décision :
 L'idée : une tuile cachée n'apparaît que quand un bouton à bascule, une icône en haut à droite avec les autres, montre les cachées ; le fil d'Ariane passe sous la rangée des boutons, sur sa propre ligne (aujourd'hui dans la même rangée, entre le retour et ceux de droite, `UI.PageHeader`), sur toutes les pages.
 
 - Se cache toute tuile d'une page : outil, variable, Tâche, routine, repère, et les zones sur l'accueil. Un seul mécanisme, celui de la grille de la page, pas un réglage par sorte d'élément.
+- Les cachées d'un groupe gardent leur groupe et vont dans sa partie cachée, une section fantôme rangée juste après lui : sa propre grille, où elles se rangent entre elles (place, taille) comme dans un groupe. La partie sans groupe a la sienne, l'accueil aussi (les groupes de zones). Les positions d'une tuile cachée valent dans cette grille, jamais dans la grille visible, qui change sans elles.
+- Le stockage : un « caché » à côté de ce que chaque élément porte déjà de sa place (groupe, `grid_x`, `grid_y`, `tile_size`).
+- Cacher et montrer passent par le mode Ranger (`GridEditor`), qui déplace déjà une tuile aux flèches d'une section à la voisine en changeant son groupe : une partie cachée n'y est qu'une section de plus. Descendre une tuile dans la partie cachée la cache, l'en sortir la montre. Un bouton « Cacher » dans la barre de déplacement l'envoie d'un coup dans la partie cachée de son groupe.
+- Le mode Ranger montre toujours les parties cachées, même vides, pour qu'on puisse y descendre une tuile. Hors de lui, avec la bascule ouverte, une partie cachée vide ne se montre pas.
+- La bascule ne se souvient pas : chaque visite repart cachées masquées.
+- Un groupe dont toutes les tuiles sont cachées disparaît, titre compris, bascule fermée ; il revient avec la bascule et en mode Ranger.
+- Une tuile cachée qui attend quelque chose (une marque d'attente, un chronomètre qui tourne) met sa marque sur le bouton à bascule, la tuile de la zone gardant la sienne.
+- Un repère caché remonte toujours en tête de page s'il y est réglé : cacher sa tuile ne touche pas sa place en tête.
