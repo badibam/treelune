@@ -96,7 +96,8 @@ object SchemaToolType : ToolTypeContract {
                     SettingNode.Field(field(SchemaKeys.ICON, s.tool("field_icon"), FieldType.TEXT, s.tool("schema_icon"), short()), icon = true)
                 ) + look(context) + listOf(
                     SettingNode.Field(field(SchemaKeys.PARENT, s.tool("field_parent"), FieldType.TEXT, s.tool("schema_parent"), short()), rowField = true),
-                    SettingNode.Field(field(SchemaKeys.FOLDED, s.tool("field_folded"), FieldType.BOOLEAN, s.tool("schema_folded"))),
+                    SettingNode.Field(field(SchemaKeys.FOLD, s.tool("field_fold"), FieldType.CHOICE, s.tool("schema_fold"),
+                        choice(DiagramFold.entries.map { it.key }) { s.tool("fold_$it") }), default = DiagramFold.FIT.key),
                     SettingNode.Field(field(SchemaKeys.PARTS, s.tool("field_parts"), FieldType.BOOLEAN, s.tool("schema_parts")))
                 ), description = s.tool("schema_node")), summary = listOf(SchemaKeys.LABEL, SchemaKeys.THING), description = s.tool("schema_nodes")),
                 SettingNode.ListOf(SchemaKeys.EDGES, s.tool("field_edges"), SettingNode.Item.Of(listOf(

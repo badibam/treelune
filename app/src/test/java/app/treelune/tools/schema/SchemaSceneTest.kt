@@ -325,6 +325,14 @@ class SchemaSceneTest {
     }
 
     @Test
+    fun `a group set never folded stays open however narrow, shown smaller or left to scroll`() {
+        val never = spec(wide).let { spec -> spec.copy(nodes = spec.nodes.map { if (it.id == "G") it.copy(fold = app.treelune.core.drawing.diagram.DiagramFold.OPEN) else it }) }
+        val scene = DiagramSceneBuilder(1f, 1f, text, own).build(never, { null }, emptySet(), 110f, fit = true)
+        assertTrue(scene.autoFolded.isEmpty())
+        assertTrue("member one" in scene.labels())
+    }
+
+    @Test
     fun `what is shown smaller stays readable, and fits, or is left to scroll`() {
         val open = DiagramSceneBuilder(1f, 1f, text, own).build(spec(wide), { null }, emptySet(), 10000f).drawing.width
         val scene = fitted(open * 0.7f, keptOpen = setOf("G"))

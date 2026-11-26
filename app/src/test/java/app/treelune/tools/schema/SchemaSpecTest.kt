@@ -37,7 +37,7 @@ class SchemaSpecTest {
             "nodes": [
                 {"id": "A", "shape": "diamond", "thing": {"kind": "TOOL_INSTANCE", "id": "t1"}, "color": "RED", "parent": "in"},
                 {"id": "B", "label": "Ce qu'il me reste", "parent": "in"},
-                {"id": "out", "label": "Dehors", "folded": true},
+                {"id": "out", "label": "Dehors", "fold": "folded"},
                 {"id": "in", "label": "Dedans", "parent": "out"}
             ],
             "edges": [{"from": "A", "to": "B", "label": "nourrit", "line": "dotted", "head": false}]
@@ -50,7 +50,8 @@ class SchemaSpecTest {
         assertEquals(false, spec.edges[0].head)
         assertEquals(setOf("out", "in"), spec.holders)
         assertEquals(listOf("in", "out"), spec.ancestors("A").toList())
-        assertTrue(spec.nodes[2].folded)
+        assertEquals(app.treelune.core.drawing.diagram.DiagramFold.FOLDED, spec.nodes[2].fold)
+        assertEquals(app.treelune.core.drawing.diagram.DiagramFold.FIT, spec.nodes[3].fold)
     }
 
     @Test

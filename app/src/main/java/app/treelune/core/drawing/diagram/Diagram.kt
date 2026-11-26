@@ -25,6 +25,18 @@ enum class DiagramFill(val key: String) {
     }
 }
 
+/**
+ * Whether a box holding others is folded: [FOLDED] at first, a touch opening it; [OPEN], never folded
+ * by the app; [FIT], folded by the app only for the drawing to fit its room, the widest first.
+ */
+enum class DiagramFold(val key: String) {
+    FOLDED("folded"), OPEN("open"), FIT("fit");
+
+    companion object {
+        fun of(key: String): DiagramFold? = entries.firstOrNull { it.key == key }
+    }
+}
+
 /** A box's shape, by its name in Mermaid 11's `@{ shape: … }`. */
 enum class DiagramShape(val key: String) {
     RECT("rect"), ROUNDED("rounded"), STADIUM("stadium"), CIRCLE("circle"), DIAMOND("diamond");
@@ -50,7 +62,7 @@ enum class DiagramLine(val key: String) {
  *
  * A box may stand inside another, its [parent]. One that holds others is drawn as a frame, its
  * text as its title; its [shape] then serves only when it is folded, drawn as a box again, as it
- * is at first when [folded]. In [parts], what it holds is read as parts stacked one under the
+ * is at first when its [fold] says so, and the app folds it to make room only when its [fold] lets it. In [parts], what it holds is read as parts stacked one under the
  * other rather than as one graph (docs/design/progression.md, « La linéarisation »). Its [fill]
  * and whether it is [faded] say how it is painted, set by hand (not this season, planned). A box
  * may carry a [readout], a short form written under its text, and a [gauge] from 0 to 1, a bar
@@ -65,7 +77,7 @@ data class DiagramNode(
     val color: TagColor?,
     val icon: String? = null,
     val parent: String? = null,
-    val folded: Boolean = false,
+    val fold: DiagramFold = DiagramFold.FIT,
     val parts: Boolean = false,
     val fill: DiagramFill = DiagramFill.OUTLINE,
     val faded: Boolean = false,

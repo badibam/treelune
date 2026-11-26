@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 121
+        const val VERSION = 122
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2363,6 +2363,27 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** A Schema box's `folded` become `fold`, one of three values: see SchemaFoldAtV122. */
+        private val MIGRATION_121_122 = object : ConnectionMigration(121, 122) {
+            override fun migrate(database: MigrationDatabase) {
+                val v = app.treelune.core.versioning.SchemaFoldAtV122
+                var rewritten = 0
+                database.query("SELECT id, tooltype, config_json FROM tool_instances").use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getString(0)
+                        // A config that cannot be read stays as it was and is logged: reading it then fails with the reason
+                        try {
+                            v.toolConfig(cursor.getString(1), cursor.getString(2))?.let { database.execSQL("UPDATE tool_instances SET config_json = ? WHERE id = ?", arrayOf<Any?>(it, id)); rewritten++ }
+                        } catch (e: Exception) {
+                            LogManager.database("MIGRATION 121->122: tool $id left as it was: ${e.message}", "ERROR", e)
+                        }
+                    }
+                }
+                app.treelune.core.versioning.HistoryCopies.rewrite(database, "tool_instances") { v.historyCopy(it) }
+                LogManager.database("MIGRATION 121->122: $rewritten schema(s) with their boxes' folding in three values", "INFO")
+            }
+        }
+
         /**
          * A variable's series is a view of the variable, which a selection names: each selection of a
          * variable gets `"view": "series"`, the history's copies with them: see SeriesViewAtV121.
@@ -3747,7 +3768,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_117_118,
                     MIGRATION_118_119,
                     MIGRATION_119_120,
-                    MIGRATION_120_121
+                    MIGRATION_120_121,
+                    MIGRATION_121_122
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

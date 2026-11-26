@@ -4,6 +4,7 @@ import app.treelune.core.drawing.diagram.*
 import app.treelune.core.drawing.diagram.DiagramDirection
 import app.treelune.core.drawing.diagram.DiagramEdge
 import app.treelune.core.drawing.diagram.DiagramFill
+import app.treelune.core.drawing.diagram.DiagramFold
 import app.treelune.core.drawing.diagram.DiagramLine
 import app.treelune.core.drawing.diagram.DiagramNode
 import app.treelune.core.drawing.diagram.DiagramShape
@@ -30,7 +31,7 @@ object SchemaKeys {
     const val LINE = "line"
     const val HEAD = "head"
     const val PARENT = "parent"
-    const val FOLDED = "folded"
+    const val FOLD = "fold"
     const val PARTS = "parts"
 }
 
@@ -78,8 +79,9 @@ object SchemaConfig {
         val label = json.text(SchemaKeys.LABEL)
         if (label == null && thing == null) refuse(own("error_node_empty").format(id))
         val fill = json.text(SchemaKeys.FILL)?.let { DiagramFill.of(it) ?: refuse(own("error_fill").format(id, it)) } ?: DiagramFill.OUTLINE
+        val fold = json.text(SchemaKeys.FOLD)?.let { DiagramFold.of(it) ?: refuse(own("error_fold").format(id, it)) } ?: DiagramFold.FIT
         return DiagramNode(id, label, shape, thing, color(json, id, own), json.text(SchemaKeys.ICON),
-            json.text(SchemaKeys.PARENT), json.optBoolean(SchemaKeys.FOLDED, false), json.optBoolean(SchemaKeys.PARTS, false),
+            json.text(SchemaKeys.PARENT), fold, json.optBoolean(SchemaKeys.PARTS, false),
             fill, json.optBoolean(SchemaKeys.FADED, false))
     }
 

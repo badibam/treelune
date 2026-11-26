@@ -157,7 +157,8 @@ class DiagramSceneBuilder(private val density: Float, private val unit: Float, p
     /**
      * @param nameOf The current name of a thing, null when it no longer exists
      * @param folded The groups folded for this visit
-     * @param keptOpen The groups the person opened: the app never folds them to make room
+     * @param keptOpen The groups the person opened: the app never folds them to make room, nor
+     *   those whose [DiagramNode.fold] is [DiagramFold.OPEN]
      * @param fit Whether a schema too wide is made to fit: tighter, then groups folded, then
      *   shown smaller down to [MIN_SCALE]; what still does not fit is left to scroll sideways
      * @param iconOf The icon of a thing, which a linked box without its own shows; null for none
@@ -190,9 +191,10 @@ class DiagramSceneBuilder(private val density: Float, private val unit: Float, p
         // Each try is a whole placement, slow on a phone: never every group at every round
         var best = tight
         var auto = emptySet<String>()
+        val neverFolded = keptOpen + spec.nodes.filter { it.fold == DiagramFold.OPEN }.map { it.id }
         val useless = mutableSetOf<String>()
         while (!best.fits()) {
-            val widest = best.visible.frames.filter { it.id !in keptOpen && it.id !in useless }
+            val widest = best.visible.frames.filter { it.id !in neverFolded && it.id !in useless }
                 .maxByOrNull { best.placement.groups[it.id]?.let { rect -> if (across) rect.height else rect.width } ?: 0f } ?: break
             val next = placed(folded + auto + widest.id, Spacing.TIGHT)
             if (next.extent() >= best.extent() - 0.5f) useless += widest.id

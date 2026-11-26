@@ -3,7 +3,7 @@
     <!-- Strings of the schema tooltype -->
     <string name="display_name">Schema</string>
     <string name="usage">For drawing boxes and arrows: an organisation, a loop, what feeds what.\n## What it does\n- Draws them at the phone\'s width, top to bottom or bottom to top\n- Puts boxes inside a box, which becomes a group, one inside another, folded with a touch\n- A box can link to a thing of the app, whose current name it shows, and open it\n## Not made for\n- A timeline (Agenda), a table (Records), figures (Chart)</string>
-    <string name="guide_config">## The schema\n- Direction: top to bottom, or bottom to top\n\n## Boxes\n- Id: the short name arrows use\n- Text: what the box says\n- Link: a thing of the app, whose name the box shows when it has no text\n- Shape, Icon, Color\n- Fill: outline, its colour pale (the default), or full; Faded: for what is not there now\n- Inside: the box that holds it; a box holding others is drawn as a group, its text as its title\n- Starts folded: a group drawn as a box until touched\n\n## Arrows\n- From, To: two boxes, groups included, never a group and what it holds\n- Text on the arrow, Line, Arrowhead\n\n## Mermaid\n- Import Mermaid: paste a flowchart; what it gives shows before it replaces the schema\n- Copy as Mermaid: the schema as text, without its links</string>
+    <string name="guide_config">## The schema\n- Direction: top to bottom, or bottom to top\n\n## Boxes\n- Id: the short name arrows use\n- Text: what the box says\n- Link: a thing of the app, whose name the box shows when it has no text\n- Shape, Icon, Color\n- Fill: outline, its colour pale (the default), or full; Faded: for what is not there now\n- Inside: the box that holds it; a box holding others is drawn as a group, its text as its title\n- Folding: folded at first, a group drawn as a box until touched; never folded; or folded only to fit\n\n## Arrows\n- From, To: two boxes, groups included, never a group and what it holds\n- Text on the arrow, Line, Arrowhead\n\n## Mermaid\n- Import Mermaid: paste a flowchart; what it gives shows before it replaces the schema\n- Copy as Mermaid: the schema as text, without its links</string>
     <string name="guide_screen">## The schema\nTouch a linked box to open what it designates, a box whose text is cut to read it whole; a group\'s underlined title does the same.\nTouch the rest of a group\'s title to fold or unfold it, for this visit: nothing is saved.\nTo change the schema, open its config.</string>
     <string name="ai_detail">A diagram in the vocabulary of Mermaid flowcharts, stored as JSON, never as Mermaid text; convert any Mermaid text you are given, a subgraph being a box that the boxes inside it name as their parent. Written for a phone held upright: direction TD or BT only, about ten boxes readable at a glance, short labels. When a box stands for a thing of the app, set its thing rather than a label, so that it follows its name. A box that holds others is drawn as a group, its label as its title; arrows join any two boxes, a group included, never a group and what it holds. Keeps no entries.</string>
     <string name="tagline">Boxes and arrows: an organisation, a loop, what feeds what</string>
@@ -32,7 +32,10 @@
     <string name="line_dotted">Dotted</string>
     <string name="line_thick">Thick</string>
     <string name="field_head">Arrowhead</string>
-    <string name="field_folded">Starts folded</string>
+    <string name="field_fold">Folding</string>
+    <string name="fold_folded">Folded at first</string>
+    <string name="fold_open">Never folded</string>
+    <string name="fold_fit">To fit</string>
     <string name="field_parts">In parts</string>
     <string name="schema_parts">Whether what a box holds is read as parts stacked one under the other, in the order of the arrows, rather than as one drawing; an arrow from one part to the next is said by the order, any other between parts by a pair of letters</string>
     <string name="schema_parts_top">Whether the boxes at the top of the schema are read as parts stacked one under the other, in the order of the arrows, rather than as one drawing</string>
@@ -63,7 +66,7 @@
     <string name="schema_edge_label">Short text on the arrow</string>
     <string name="schema_line">Its line</string>
     <string name="schema_head">Whether it ends in a head; false for a plain line</string>
-    <string name="schema_folded">Whether a box holding others opens folded, drawn as a box</string>
+    <string name="schema_fold">How a box holding others folds, drawn as a box: folded at first; never folded by the app; or folded by the app only for the schema to fit (the default)</string>
     <string name="thing_deleted">deleted</string>
     <string name="screen_empty">This schema is empty. Add its boxes in its config, import a Mermaid text, or ask the AI.</string>
     <string name="screen_problem">This schema cannot be drawn: %1$s</string>
@@ -103,6 +106,7 @@
     <string name="error_node_empty">Box “%1$s” has neither a text nor a link.</string>
     <string name="error_color">“%1$s”: unknown color “%2$s”.</string>
     <string name="error_fill">“%1$s”: unknown fill “%2$s” (outline, full).</string>
+    <string name="error_fold">“%1$s”: unknown folding “%2$s” (folded, open, fit).</string>
     <string name="error_icon">Box “%1$s”: no icon is named “%2$s”.</string>
     <string name="error_edge_end">An arrow lacks its start or its end.</string>
     <string name="error_edge_unknown">An arrow names the box “%1$s”, which does not exist.</string>

@@ -189,7 +189,7 @@ class SchemaMermaidTest {
     fun `a box whose id stays keeps what Mermaid cannot say`() {
         val existing = JSONObject("""{
             "nodes": [{"id": "A", "label": "old", "color": "RED", "icon": "leaf", "thing": {"kind": "ZONE", "id": "z"}, "parent": "G"},
-                {"id": "G", "label": "old", "color": "BLUE", "folded": true, "shape": "diamond"}]
+                {"id": "G", "label": "old", "color": "BLUE", "fold": "folded", "shape": "diamond"}]
         }""")
         val s = spec("flowchart TD\nsubgraph G [New]\nA[new]\nend", existing)
         val box = s.nodes.first { it.id == "A" }
@@ -200,7 +200,7 @@ class SchemaMermaidTest {
         val group = s.nodes.first { it.id == "G" }
         assertEquals("New", group.label)
         assertEquals("BLUE", group.color?.name)
-        assertTrue(group.folded)
+        assertEquals(app.treelune.core.drawing.diagram.DiagramFold.FOLDED, group.fold)
         assertEquals(DiagramShape.DIAMOND, group.shape)
     }
 

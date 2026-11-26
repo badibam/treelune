@@ -73,7 +73,7 @@ fun SchemaScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigure
         config = loaded
         reading = read
         if (changed || folded == null) {
-            folded = (read as? DiagramReading.Drawn)?.spec?.let { spec -> spec.nodes.filter { it.folded && it.id in spec.holders }.map { it.id }.toSet() }.orEmpty()
+            folded = (read as? DiagramReading.Drawn)?.spec?.let { spec -> spec.nodes.filter { it.fold == app.treelune.core.drawing.diagram.DiagramFold.FOLDED && it.id in spec.holders }.map { it.id }.toSet() }.orEmpty()
             keptOpen = emptySet()
             opened = null
         }
