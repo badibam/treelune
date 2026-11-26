@@ -58,7 +58,9 @@ object FiltersOnOptions {
     /** What a filter names is read from the stored condition alone: no tool, variable or row is looked up. */
     private val unread = object : ConfigConditions.Sources {
         override suspend fun toolFields(toolInstanceId: String): Map<String, app.treelune.core.fields.FieldDefinition> = emptyMap()
-        override suspend fun variableField(id: String): app.treelune.core.fields.FieldDefinition? = null
+        // A view's rows too (a Path's stages, a variable's series): nothing read, the filter judged on what it stores
+        override suspend fun targetFields(target: app.treelune.core.selection.Reference, view: String?): Map<String, app.treelune.core.fields.FieldDefinition> = emptyMap()
+        override suspend fun variableField(id: String, value: String): app.treelune.core.fields.FieldDefinition? = null
         override suspend fun rowFields(root: JSONObject, path: List<Any>): Map<String, app.treelune.core.fields.FieldDefinition> = emptyMap()
     }
 
