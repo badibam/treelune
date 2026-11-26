@@ -10,7 +10,7 @@ La version la plus simple, une Icône 1×h dont l'icône reste seule en haut, ne
 
 ## La règle
 
-Une tuile en icônes est sa tuile normale moins tout le texte : l'icône de la chose, et ce que son résumé dit sans mots — son geste canonique, à défaut un état. Pas de mot ; un nombre seulement là où il compte ce qui attend (Flashcards, Messages). La valeur d'une variable est du texte (« 16 h ») : qui veut la lire en icônes pose un Repère dessus.
+Une tuile en icônes est sa tuile normale moins tout le texte : l'icône de la chose, et ce que son résumé dit sans mots — son geste canonique, à défaut un état. Pas de mot ; un nombre seulement là où il compte ce qui attend (Flashcards, Messages). Exception, la variable (décidé le 2026-11-26) : sa première valeur montrée sur la tuile, sans libellé, dans sa seconde case.
 
 ## La tuile d'un outil, d'une Tâche, d'une routine
 
@@ -30,7 +30,8 @@ Trois formes : l'Icône (1×1, celle d'aujourd'hui), la paire en colonne (1×2),
 | Flashcards | le nombre de cartes à revoir, une coche sans | ouvre l'outil (le paquet se choisit sur son écran) |
 | Messages | le nombre de non lus, une coche sans | ouvre l'outil (sur « Non lus ») |
 | Repère | son cœur, dans la couleur de son état | ouvre le Repère |
-| Graphique, variable | rien, l'icône seule centrée ; dans la bande d'une zone, une case, « avec son résumé » grisé | |
+| Graphique | rien, l'icône seule centrée ; dans la bande d'une zone, une case, « avec son résumé » grisé | |
+| Variable | sa première valeur montrée sur la tuile, sans libellé, à la plus grande taille de texte qui tient | |
 
 Quand la case 2 montre ce qui attend (Flashcards, Messages), l'icône perd son point : la même chose ne se lit pas deux fois. Une case 2 d'état ouvre l'outil comme l'icône ; seul un geste fait autre chose.
 
