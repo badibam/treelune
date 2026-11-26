@@ -15,7 +15,7 @@ La décision :
 - À vérifier avant de coder : si le formulaire de config écrit aujourd'hui un `false` explicite. Si oui, une migration doit décider ce que deviennent ces `false` (les lire comme « Non » rend absolus des refus qui n'en étaient peut-être pas ; les lire comme « Selon la place » efface les « Non » posés à la main).
 - Ce que touchent les trois valeurs : `DiagramNode.folded` (core, partagé avec le Parcours, qui ne règle pas de repli), `SchemaConfig`, le champ du formulaire (`SchemaToolType`, `field_folded`), le format Mermaid (`SchemaMermaid` n'écrit que `true`), ce que l'IA lit du schéma.
 
-## En cours : cacher une tuile
+## Cacher une tuile
 
 L'idée : une tuile cachée n'apparaît que quand un bouton à bascule, une icône en haut à droite avec les autres, montre les cachées ; le fil d'Ariane passe sous la rangée des boutons, sur sa propre ligne (aujourd'hui dans la même rangée, entre le retour et ceux de droite, `UI.PageHeader`), sur toutes les pages.
 
@@ -28,3 +28,5 @@ L'idée : une tuile cachée n'apparaît que quand un bouton à bascule, une icô
 - Un groupe dont toutes les tuiles sont cachées disparaît, titre compris, bascule fermée ; il revient avec la bascule et en mode Ranger.
 - Une tuile cachée qui attend quelque chose (une marque d'attente, un chronomètre qui tourne) met sa marque sur le bouton à bascule, la tuile de la zone gardant la sienne.
 - Un repère caché remonte toujours en tête de page s'il y est réglé : cacher sa tuile ne touche pas sa place en tête.
+- L'IA, celle de l'app comme celle du connecteur (`ZONE_CONTENTS`, `app_context`), voit les cachées comme les autres, marquées cachées : une cachée travaille toujours, et l'ignorer ferait recréer ou casser une tuyauterie. Elle peut cacher une tuile, comme elle en déplace en rangeant une page (`docs/design/ai-page-layout.md`).
+- Cacher ne touche que la page : une cachée choisie comme pièce sur la tuile de sa zone y reste, une boîte du Schéma ou un lien qui la vise l'ouvre toujours.
