@@ -98,6 +98,7 @@ class ReadoutService(private val context: Context) : ExecutableService {
         "settings" to JsonUtils.toMap(ReadoutSettings.of(readout)),
         "grid_x" to readout.gridX,
         "grid_y" to readout.gridY,
+        "hidden" to readout.hidden,
         "updated_at" to readout.updatedAt,
         "tools_read" to toolsRead(JSONObject(readout.settingsJson)).toList(),
         // A tool it opens is reached through its zone

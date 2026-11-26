@@ -33,7 +33,8 @@ class ZoneContents(private val context: Context) {
         val groups = ToolPositions.zoneGroups(zone.tool_groups)
         val tiles = tiles(zone.id)
         val sections = (groups.map { it as String? } + null).mapNotNull { section ->
-            val held = tiles.filter { ToolPositions.section(it.group, groups) == section }.sortedWith(compareBy({ it.row }, { it.column }))
+            // The shown tiles, then the hidden part's, each in reading order
+            val held = tiles.filter { ToolPositions.section(it.group, groups) == section }.sortedWith(compareBy({ it.hidden }, { it.row }, { it.column }))
             if (held.isEmpty() && section == null) null
             else mapOf<String, Any?>("group" to section, "tiles" to held.map { it.described })
         }
@@ -42,6 +43,7 @@ class ZoneContents(private val context: Context) {
             put("name", zone.name)
             put("description", zone.description)
             put("group", zone.group)
+            if (zone.hidden) put("hidden", true)
             put("tile_size", zone.tile_size)
             put("icon_name", zone.icon_name)
             put(IconColor.KEY, zone.icon_color)
@@ -52,8 +54,10 @@ class ZoneContents(private val context: Context) {
         }
     }
 
-    /** One tile: its section's group, its place, and what is said of it. */
-    private class Tile(val group: String?, val column: Int, val row: Int, val described: Map<String, Any?>)
+    /** One tile: its section's group, whether it is hidden, its place, and what is said of it, `hidden` true for a hidden one. */
+    private class Tile(val group: String?, val hidden: Boolean, val column: Int, val row: Int, described: Map<String, Any?>) {
+        val described: Map<String, Any?> = if (hidden) described + ("hidden" to true) else described
+    }
 
     private fun look(kind: String, id: String, name: String, mode: String, icon: String?, color: String?, texture: String?, more: Map<String, Any?> = emptyMap()) =
         linkedMapOf<String, Any?>("kind" to kind, "id" to id, "name" to name) + more +
@@ -66,7 +70,7 @@ class ZoneContents(private val context: Context) {
             val declared = ToolTypeManager.getToolType(tool.tooltype)?.getEntryFields(config, context)
                 ?: throw IllegalStateException("Tool ${tool.id}: unknown type ${tool.tooltype}")
             val keys = fieldKeys(declared, extra)
-            Tile(config.optString("group").takeIf { it.isNotEmpty() }, tool.grid_x, tool.grid_y, look("tool", tool.id, config.optString("name"), config.optString("tile_size"),
+            Tile(config.optString("group").takeIf { it.isNotEmpty() }, tool.hidden, tool.grid_x, tool.grid_y, look("tool", tool.id, config.optString("name"), config.optString("tile_size"),
                 config.optString("icon_name").takeIf { it.isNotEmpty() }, config.optString(IconColor.KEY).takeIf { it.isNotEmpty() }, config.optString(Texture.KEY).takeIf { it.isNotEmpty() },
                 buildMap<String, Any?> {
                     put("tooltype", tool.tooltype)
@@ -75,16 +79,16 @@ class ZoneContents(private val context: Context) {
                 }))
         }
         val variables = database.variableDao().getByZone(zoneId).map {
-            Tile(it.group, it.gridX, it.gridY, look("variable", it.id, it.label, it.tileSize, it.iconName, it.iconColor, it.texture, mapOf("variable_name" to it.name)))
+            Tile(it.group, it.hidden, it.gridX, it.gridY, look("variable", it.id, it.label, it.tileSize, it.iconName, it.iconColor, it.texture, mapOf("variable_name" to it.name)))
         }
         val routines = database.aiDao().getRoutinesByZone(zoneId).map {
-            Tile(it.group, it.gridX, it.gridY, look("routine", it.id, it.name, it.tileSize, it.iconName, it.iconColor, it.texture, mapOf("is_enabled" to it.isEnabled)))
+            Tile(it.group, it.hidden, it.gridX, it.gridY, look("routine", it.id, it.name, it.tileSize, it.iconName, it.iconColor, it.texture, mapOf("is_enabled" to it.isEnabled)))
         }
         val tasks = database.taskDao().getByZone(zoneId).map {
-            Tile(it.group, it.gridX, it.gridY, look("task", it.id, it.name, it.tileSize, it.iconName, it.iconColor, it.texture, mapOf("is_enabled" to it.isEnabled)))
+            Tile(it.group, it.hidden, it.gridX, it.gridY, look("task", it.id, it.name, it.tileSize, it.iconName, it.iconColor, it.texture, mapOf("is_enabled" to it.isEnabled)))
         }
         val readouts = database.readoutDao().getByZone(zoneId).map {
-            Tile(it.group, it.gridX, it.gridY, look("readout", it.id, it.name, it.tileSize, it.iconName, it.iconColor, it.texture))
+            Tile(it.group, it.hidden, it.gridX, it.gridY, look("readout", it.id, it.name, it.tileSize, it.iconName, it.iconColor, it.texture))
         }
         return tools + variables + routines + tasks + readouts
     }
@@ -123,7 +127,7 @@ class ZoneContents(private val context: Context) {
         /** [zones] in the home screen's order: by section, its groups' then the ungrouped, each in reading order. */
         fun ordered(zones: List<Zone>, zoneGroups: List<String>): List<Zone> {
             val sections = zoneGroups.map { it as String? } + null
-            return zones.sortedWith(compareBy<Zone>({ sections.indexOf(ZonePositions.section(it.group, zoneGroups)) }, { it.grid_y }, { it.grid_x }))
+            return zones.sortedWith(compareBy<Zone>({ sections.indexOf(ZonePositions.section(it.group, zoneGroups)) }, { it.hidden }, { it.grid_y }, { it.grid_x }))
         }
     }
 }

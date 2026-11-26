@@ -537,7 +537,8 @@ class PartImport(private val context: Context) {
      * The new zones of each section of the home screen as one block under that section's last
      * row, keeping their arrangement in the file: their columns, their order down, the rows left
      * empty by the zones the part does not bring closed (Grid.closeEmptyRows); the zones already
-     * there stay where they are. Each created zone arrived alone on a row of its own, in column 0.
+     * there stay where they are, its hidden part untouched: a zone arrives shown. Each created zone
+     * arrived alone on a row of its own, in column 0.
      */
     private suspend fun placeNewZones(newZones: List<JSONObject>) {
         if (newZones.isEmpty()) return
@@ -545,7 +546,7 @@ class PartImport(private val context: Context) {
         val stored = database.zoneDao().getAllZones()
         val newIds = newZones.map { it.getString("id") }.toSet()
         val sections = newZones.groupBy { ZonePositions.section(it.optString("group").takeIf { g -> g.isNotEmpty() }, groups) }.map { (section, arriving) ->
-            val there = stored.filter { it.id !in newIds && ZonePositions.section(it.group, groups) == section }.map { ZonePositions.tile(it) }
+            val there = stored.filter { it.id !in newIds && ZonePositions.part(it, groups) == app.treelune.core.grid.Section(section) }.map { ZonePositions.tile(it) }
             val block = arriving.map { zone ->
                 val size = app.treelune.core.look.TileSize.ofStored(zone.getString("tile_size")).cells
                 Grid.Tile(zone.getString("id"), zone.getInt("grid_x"), zone.getInt("grid_y"), size.width, size.height)

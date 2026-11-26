@@ -17,6 +17,7 @@ import org.json.JSONObject
 object PageArrangement {
 
     private const val TILE = "tile"
+    private const val HIDDEN = "hidden"
     private val LOOK_KEYS = listOf(Looks.TILE_SIZE, Looks.ICON, IconColor.KEY, Texture.KEY)
     private val TILE_KEYS = setOf(TILE) + LOOK_KEYS + listOf(ItemLayout.WIDTH, ItemLayout.LINES)
     private val ZONE_TILE_KEYS = LOOK_KEYS.toSet() + setOf(TilePieces.KEY, TilePieces.ICONS)
@@ -26,8 +27,8 @@ object PageArrangement {
     /** Refused, nothing written: the text [key] of the shared strings, with [args]. */
     data class Refused(val key: String, val args: List<Any> = emptyList()) : Outcome
 
-    /** A tile of a listed section: its section, its place, and the look settings given for it (null takes one out). */
-    data class Placed(val id: String, val section: String?, val column: Int, val row: Int, val changes: Map<String, Any?>)
+    /** A tile of a listed section: its section, whether it is hidden there, its place in that part, and the look settings given for it (null takes one out). */
+    data class Placed(val id: String, val section: String?, val column: Int, val row: Int, val changes: Map<String, Any?>, val hidden: Boolean = false)
 
     /** What changes on the zone's own tile; [pieces] and [piecesInIcons] null when not given. */
     data class ZoneTileChange(val changes: Map<String, Any?>, val pieces: List<TilePieces.Piece>?, val piecesInIcons: Boolean?)
@@ -61,6 +62,7 @@ object PageArrangement {
                 emptied += name
             }
             val ordered = mutableListOf<Pair<PageTile, Map<String, Any?>>>()
+            val hidden = mutableMapOf<String, Boolean>()
             for (j in 0 until entries.length()) {
                 val entry = entries.get(j)
                 val mark = (if (entry is JSONObject) entry.optString(TILE) else entry as? String).orEmpty().trim().uppercase()
@@ -70,15 +72,21 @@ object PageArrangement {
                     is Read.No -> return read.refused
                     is Read.Yes -> read.values
                 } else emptyMap()
+                // Hidden or shown as given, as it was otherwise
+                hidden[tile.id] = if (entry is JSONObject && entry.has(HIDDEN)) entry.get(HIDDEN) as? Boolean
+                    ?: return Refused("page_error_value", listOf(HIDDEN, entry.get(HIDDEN))) else tile.hidden
                 ordered += tile to changes
             }
-            val laid = Grid.pack(ordered.map { (tile, changes) ->
-                val size = (changes[Looks.TILE_SIZE] as? String)?.let { TileSize.parse(it) } ?: tile.size
-                size.cells.let { Grid.Tile(tile.id, 0, 0, it.width, it.height) }
-            }).associateBy { it.id }
+            // The shown tiles laid in the section's grid, the hidden ones in its hidden part's
+            val laid = ordered.partition { (tile, _) -> hidden.getValue(tile.id) }.toList().flatMap { part ->
+                Grid.pack(part.map { (tile, changes) ->
+                    val size = (changes[Looks.TILE_SIZE] as? String)?.let { TileSize.parse(it) } ?: tile.size
+                    size.cells.let { Grid.Tile(tile.id, 0, 0, it.width, it.height) }
+                })
+            }.associateBy { it.id }
             ordered.forEach { (tile, changes) ->
                 val at = laid.getValue(tile.id)
-                placed += Placed(tile.id, name, at.column, at.row, changes)
+                placed += Placed(tile.id, name, at.column, at.row, changes, hidden.getValue(tile.id))
             }
         }
 
@@ -116,7 +124,7 @@ object PageArrangement {
     private fun changes(entry: JSONObject, allowed: Set<String>): Read {
         val values = mutableMapOf<String, Any?>()
         for (key in entry.keys()) {
-            if (key == TILE || key == TilePieces.KEY || key == TilePieces.ICONS) continue
+            if (key == TILE || key == HIDDEN || key == TilePieces.KEY || key == TilePieces.ICONS) continue
             if (key !in allowed) return Read.No(Refused("page_error_key", listOf(key, allowed.joinToString(", "))))
             val value = entry.get(key)
             values[key] = when {

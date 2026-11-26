@@ -1546,6 +1546,9 @@
     <string name="action_record">Record</string>
     <string name="action_device">From the phone</string>
     <string name="action_arrange">Arrange</string>
+    <string name="action_hidden_tiles">Hidden tiles</string>
+    <string name="action_hide">Hide</string>
+    <string name="action_show">Show</string>
     <string name="grid_leave_title">Leave the zone?</string>
     <string name="grid_leave_message">The move in progress will be cancelled.</string>
     <string name="action_repeat">Again</string>
@@ -3431,6 +3434,9 @@
     <string name="event_none">None yet: an event is made here, or where a Task or a routine chooses one (“New event…”).</string>
     <string name="grid_mode_title">Arranging</string>
     <string name="grid_mode_hint">Touch a tile to move it</string>
+    <!-- The hidden part of a section, under it: the tiles of its group hidden from the page -->
+    <string name="label_hidden_part">Hidden</string>
+    <string name="message_no_hidden_tiles">Move a tile down here, or touch “Hide”, to hide it</string>
     <string name="grid_mode_done">Done</string>
     <string name="ai_read_user_contents">Contents of the zones read</string>
     <string name="ai_read_user_contents_of">\'%1$s\': contents read</string>

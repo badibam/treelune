@@ -64,7 +64,8 @@ fun toolInstanceOf(map: Map<String, Any?>) = ToolInstance(
     grid_x = (map["grid_x"] as Number).toInt(),
     grid_y = (map["grid_y"] as Number).toInt(),
     created_at = (map["created_at"] as Number).toLong(),
-    updated_at = (map["updated_at"] as Number).toLong()
+    updated_at = (map["updated_at"] as Number).toLong(),
+    hidden = map["hidden"] as Boolean
 )
 
 /**

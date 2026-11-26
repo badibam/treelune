@@ -17,12 +17,14 @@ data class PageTile(
     val row: Int,
     val itemWidth: String? = null,
     val itemLines: Int? = null,
-    val inOneColumn: Grid.Size? = null
+    val inOneColumn: Grid.Size? = null,
+    /** Hidden from the page: in its section's hidden part, its place counted there */
+    val hidden: Boolean = false
 ) {
     val gridTile: Grid.Tile get() = size.cells.let { Grid.Tile(id, column, row, it.width, it.height, inOneColumn) }
 }
 
-/** A section of a page: its name, null for the ungrouped one, and its tiles in reading order. */
+/** A section of a page: its name, null for the ungrouped one, and its tiles in reading order, the shown ones then the hidden ones. */
 data class PageSection(val name: String?, val tiles: List<PageTile>)
 
 /** The tile of the zone a page shows, as it stands on the home screen. */
@@ -67,11 +69,17 @@ object PagePlan {
         page.zoneTile?.let { add(zoneTileLine(it, page)) }
         page.sections.forEach { section ->
             add("## ${section.name ?: UNGROUPED}")
-            addAll(drawing(section.tiles.map { it.gridTile }, page))
-            if (page.oneColumn && section.tiles.isNotEmpty()) {
+            val (hidden, shown) = section.tiles.partition { it.hidden }
+            addAll(drawing(shown.map { it.gridTile }, page))
+            if (page.oneColumn && shown.isNotEmpty()) {
                 add("one column:")
-                val grows = section.tiles.filter { it.size.followsContent }.map { it.id }.toSet()
-                addAll(drawing(Grid.oneColumn(section.tiles.map { it.gridTile }, grows), page))
+                val grows = shown.filter { it.size.followsContent }.map { it.id }.toSet()
+                addAll(drawing(Grid.oneColumn(shown.map { it.gridTile }, grows), page))
+            }
+            // The hidden part, a grid of its own just after the section, shown only on demand
+            if (hidden.isNotEmpty()) {
+                add("hidden part:")
+                addAll(drawing(hidden.map { it.gridTile }, page))
             }
             section.tiles.forEach { add(line(it, page)) }
         }
@@ -88,6 +96,7 @@ object PagePlan {
     private fun line(tile: PageTile, page: Page): String = buildString {
         append("${mark(tile.id, tile.size.inIcons, page)} ${tile.kind} «${tile.name}» ${tile.size.stored} ${tile.iconName ?: "-"} ${tile.iconColor ?: "-"} ${tile.texture ?: "-"}")
         if (tile.size.body != null && tile.itemWidth != null) append(" item_width=${tile.itemWidth} item_lines=${tile.itemLines}")
+        if (tile.hidden) append(" hidden")
     }
 
     /** A tile's mark, in lower case for a tile in icons, so that the drawing tells it from a tile with text. */

@@ -17,7 +17,7 @@ fun ButtonAction.defaultType(): ButtonType {
         ButtonAction.DELETE, ButtonAction.STOP -> ButtonType.DANGER
 
         // DEFAULT: Actions neutres/navigation standard
-        ButtonAction.CANCEL, ButtonAction.BACK, ButtonAction.TO_TOP, ButtonAction.REFRESH, ButtonAction.RESET, ButtonAction.LEFT, ButtonAction.RIGHT, ButtonAction.UP, ButtonAction.DOWN, ButtonAction.ARRANGE, ButtonAction.INTERRUPT, ButtonAction.PAUSE, ButtonAction.RESUME, ButtonAction.VIEW, ButtonAction.HISTORY, ButtonAction.GUIDE, ButtonAction.COPY, ButtonAction.IDENTITY, ButtonAction.STATS, ButtonAction.BULLET_LIST, ButtonAction.NUMBERED_LIST -> ButtonType.DEFAULT
+        ButtonAction.CANCEL, ButtonAction.BACK, ButtonAction.TO_TOP, ButtonAction.REFRESH, ButtonAction.RESET, ButtonAction.LEFT, ButtonAction.RIGHT, ButtonAction.UP, ButtonAction.DOWN, ButtonAction.ARRANGE, ButtonAction.INTERRUPT, ButtonAction.PAUSE, ButtonAction.RESUME, ButtonAction.VIEW, ButtonAction.HISTORY, ButtonAction.GUIDE, ButtonAction.COPY, ButtonAction.IDENTITY, ButtonAction.STATS, ButtonAction.BULLET_LIST, ButtonAction.NUMBERED_LIST, ButtonAction.HIDDEN_TILES, ButtonAction.HIDE, ButtonAction.SHOW -> ButtonType.DEFAULT
     }
 }
 
@@ -72,6 +72,9 @@ fun ButtonAction.label(): String {
         ButtonAction.BULLET_LIST -> s.shared("action_bullet_list")
         ButtonAction.NUMBERED_LIST -> s.shared("action_numbered_list")
         ButtonAction.FILL -> s.shared("action_fill")
+        ButtonAction.HIDDEN_TILES -> s.shared("action_hidden_tiles")
+        ButtonAction.HIDE -> s.shared("action_hide")
+        ButtonAction.SHOW -> s.shared("action_show")
     }
 }
 

@@ -2,22 +2,6 @@
 
 Les items de la section « En provenance du tel » de `TODO.md`, tranchés un à un, pour implémentation ultérieure.
 
-## Cacher une tuile
-
-L'idée : une tuile cachée n'apparaît que quand un bouton à bascule, une icône en haut à droite avec les autres, montre les cachées ; le fil d'Ariane passe sous la rangée des boutons, sur sa propre ligne (aujourd'hui dans la même rangée, entre le retour et ceux de droite, `UI.PageHeader`), sur toutes les pages.
-
-- Se cache toute tuile d'une page : outil, variable, Tâche, routine, repère, et les zones sur l'accueil. Un seul mécanisme, celui de la grille de la page, pas un réglage par sorte d'élément.
-- Les cachées d'un groupe gardent leur groupe et vont dans sa partie cachée, une section fantôme rangée juste après lui : sa propre grille, où elles se rangent entre elles (place, taille) comme dans un groupe. La partie sans groupe a la sienne, l'accueil aussi (les groupes de zones). Les positions d'une tuile cachée valent dans cette grille, jamais dans la grille visible, qui change sans elles.
-- Le stockage : un « caché » à côté de ce que chaque élément porte déjà de sa place (groupe, `grid_x`, `grid_y`, `tile_size`).
-- Cacher et montrer passent par le mode Ranger (`GridEditor`), qui déplace déjà une tuile aux flèches d'une section à la voisine en changeant son groupe : une partie cachée n'y est qu'une section de plus. Descendre une tuile dans la partie cachée la cache, l'en sortir la montre. Un bouton « Cacher » dans la barre de déplacement l'envoie d'un coup dans la partie cachée de son groupe.
-- Le mode Ranger montre toujours les parties cachées, même vides, pour qu'on puisse y descendre une tuile. Hors de lui, avec la bascule ouverte, une partie cachée vide ne se montre pas.
-- La bascule ne se souvient pas : chaque visite repart cachées masquées.
-- Un groupe dont toutes les tuiles sont cachées disparaît, titre compris, bascule fermée ; il revient avec la bascule et en mode Ranger.
-- Une tuile cachée qui attend quelque chose (une marque d'attente, un chronomètre qui tourne) met sa marque sur le bouton à bascule, la tuile de la zone gardant la sienne.
-- Un repère caché remonte toujours en tête de page s'il y est réglé : cacher sa tuile ne touche pas sa place en tête.
-- L'IA, celle de l'app comme celle du connecteur (`ZONE_CONTENTS`, `app_context`), voit les cachées comme les autres, marquées cachées : une cachée travaille toujours, et l'ignorer ferait recréer ou casser une tuyauterie. Elle peut cacher une tuile, comme elle en déplace en rangeant une page (`docs/design/ai-page-layout.md`).
-- Cacher ne touche que la page : une cachée choisie comme pièce sur la tuile de sa zone y reste, une boîte du Schéma ou un lien qui la vise l'ouvre toujours.
-
 ## Une variable à plusieurs valeurs
 
 L'idée : une variable qui rend plusieurs valeurs d'un coup (« Apports du jour » : calories, protéines, glucides), sa série portant plusieurs champs par ligne, qu'un Graphique ou un repère lit ensemble. Aujourd'hui une variable rend une valeur, et sa série (la vue `series`, `VariableSeries`) une ligne par pas avec le seul `data.value`.
@@ -28,7 +12,7 @@ L'idée : une variable qui rend plusieurs valeurs d'un coup (« Apports du jour 
 - La migration donne la clé `value` à la valeur unique de chaque variable existante : sa série garde `data.value`, ce qui la lit ne change pas ; une valeur ajoutée arrive en `data.<clé>` à côté.
 - La tuile montre une ligne par valeur, dans l'ordre de la liste, sous le libellé de la variable ; une case « Sur la tuile » par valeur, cochée par défaut, retire une valeur de calcul. La taille de la tuile reste celle choisie : ce qui ne tient pas est coupé par « … », jamais la tuile ne grandit seule. Une variable d'une valeur se montre comme aujourd'hui.
 - La place d'une valeur sur la tuile passe par la brique `ItemLayout`, réglée pour toute la tuile comme Notes : en demi (2 cases) le libellé au-dessus de la valeur, en entière le libellé et la valeur côte à côte ; « Une colonne » les empile déjà. Le nombre de lignes n'est pas proposé (une valeur, c'est un libellé et une valeur). Une variable d'une valeur n'en a pas besoin : sa valeur se place comme aujourd'hui selon la taille de la tuile, à côté de l'en-tête en 4×1, dessous en 2×2 (`VariableCard`, `UI.LookCard`).
-- Une valeur s'écrit dans la plus grande taille qui la fait tenir sur une ligne à sa place, plafonnée, le thème donnant ses crans (le retro, des multiples entiers de son pixel) ; le libellé reste petit. Aujourd'hui elle est en `TextType.BODY` sur deux lignes, dans une demi-tuile. Même règle que celle voulue pour les icônes de zone en retro (« le plus grand cran qui tient ») : à poser une fois pour les deux.
+- Une valeur s'écrit dans la plus grande taille qui la fait tenir sur une ligne à sa place, plafonnée, le thème donnant ses crans (le retro, des multiples entiers de son pixel) ; le libellé reste petit. Aujourd'hui elle est en `TextType.BODY` sur deux lignes, dans une demi-tuile. Même règle que celle des icônes de zone (« le plus grand cran qui tient », `largestItemIcon`, codée le 2026-11-26) : les crans d'un texte à poser à côté de ceux d'une icône.
 - En taille icônes à deux cases, l'icône en case 1, la valeur en case 2, par la case que `UI.LookCard` offre déjà (`second`, que remplissent la Tâche, la routine, Messages) ; la variable gagne ainsi cette taille. Une seule valeur y va, la première de la liste parmi celles « Sur la tuile » : sans libellé, plusieurs nombres ne se distingueraient pas.
 - Ce que l'IA écrit et lit d'une variable (`CREATE_VARIABLE`, `UPDATE_VARIABLE`, le connecteur) suit le modèle : une liste de valeurs, chacune sa clé, son libellé, son champ et sa formule, les termes à côté.
 

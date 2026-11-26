@@ -27,6 +27,11 @@ object ToolPositions {
     fun section(tool: ToolInstance, zoneGroups: List<String>): String? =
         section(JSONObject(tool.config_json).optString("group").takeIf { it.isNotEmpty() }, zoneGroups)
 
+    /** The section, its visible or hidden part, a tile with [group] and [hidden] stands in. */
+    fun part(group: String?, hidden: Boolean, zoneGroups: List<String>): Section = Section(section(group, zoneGroups), hidden)
+
+    fun part(tool: ToolInstance, zoneGroups: List<String>): Section = Section(section(tool, zoneGroups), tool.hidden)
+
     /** A zone's tool_groups column as the list of its groups. */
     fun zoneGroups(toolGroups: String?): List<String> =
         toolGroups?.let { json -> JSONArray(json).let { array -> (0 until array.length()).map { array.getString(it) } } } ?: emptyList()

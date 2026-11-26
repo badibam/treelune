@@ -841,7 +841,8 @@ class RoutineService(private val context: Context) : ExecutableService {
         "execution_history" to json.decodeFromString<List<String>>(entity.executionHistoryJson),
         "access" to app.treelune.core.utils.JsonUtils.toList(entity.accessJson),
         "grid_x" to entity.gridX,
-        "grid_y" to entity.gridY
+        "grid_y" to entity.gridY,
+        "hidden" to entity.hidden
     ) + app.treelune.core.utils.JsonUtils.toMap(RoutineSettings.of(entity))
 
     /** An operation said in words, its routine by its name: what a validation card and a result line show. */

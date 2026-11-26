@@ -32,7 +32,9 @@ data class VariableRow(
     val gridX: Int,
     val gridY: Int,
     val definition: Map<*, *>,
-    val toolsRead: Set<String>
+    val toolsRead: Set<String>,
+    /** Hidden from its page, in its section's hidden part (docs/design/phone-inbox.md) */
+    val hidden: Boolean = false
 ) {
     val tile: Grid.Tile get() = look.tileSize.cells.let { Grid.Tile(id, gridX, gridY, it.width, it.height) }
 
@@ -45,7 +47,8 @@ data class VariableRow(
             gridX = (map["grid_x"] as Number).toInt(),
             gridY = (map["grid_y"] as Number).toInt(),
             definition = map["definition"] as? Map<*, *> ?: emptyMap<String, Any>(),
-            toolsRead = (map["tools_read"] as? List<*>)?.map { it.toString() }?.toSet() ?: emptySet()
+            toolsRead = (map["tools_read"] as? List<*>)?.map { it.toString() }?.toSet() ?: emptySet(),
+            hidden = map["hidden"] as Boolean
         )
     }
 }

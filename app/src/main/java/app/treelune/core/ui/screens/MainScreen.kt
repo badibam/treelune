@@ -551,22 +551,26 @@ private fun HomeScreenBody(zones: ZonesState) {
     }
     val piecesOf = { zone: Zone -> app.treelune.core.ui.components.listedPieces(zone.tile_pieces, pieceTiles[zone.id].orEmpty()) }
 
-    // The order of the tree: the zones as the home screen shows them, each zone's groups as its screen does
-    val zoneOrder = (zoneGroups.map { it as String? } + null).flatMap { group ->
-        zones.list.filter { app.treelune.core.grid.ZonePositions.section(it.group, zoneGroups) == group }.sortedWith(compareBy({ it.grid_y }, { it.grid_x })).map { it.id }
+    // The order of the tree: the zones as the home screen shows them, each section's shown ones then its hidden ones, each zone's groups as its screen does
+    val zoneOrder = app.treelune.core.grid.Section.ordered(zoneGroups).flatMap { section ->
+        zones.list.filter { app.treelune.core.grid.ZonePositions.part(it, zoneGroups) == section }.sortedWith(compareBy({ it.grid_y }, { it.grid_x })).map { it.id }
     }
     val groupsOf = { zoneId: String -> app.treelune.core.grid.ToolPositions.zoneGroups(zones.list.firstOrNull { it.id == zoneId }?.tool_groups) }
     fun rising(place: app.treelune.core.readouts.ReadoutSettings.Place) = app.treelune.core.readouts.ui.risingTo(readouts, place, zoneOrder, groupsOf)
 
-    // The edit mode of the zone groups' grids, a section named by its group, "" for the ungrouped one
+    // The edit mode of the zone groups' grids, a section named by its key (Section.key): a group's,
+    // "" for the ungrouped one, or the hidden part just after it
     val gridEditor = app.treelune.core.ui.components.rememberGridEditor(
         placeOperation = "zones.place",
         placeParams = emptyMap(),
-        sectionTiles = { key -> app.treelune.core.grid.ZonePositions.tiles(zones.list, zoneGroups, key.ifEmpty { null }) },
-        // Its groups, then the ungrouped section: what an arrow crosses into
-        sectionOrder = { zoneGroups + "" },
+        sectionTiles = { key -> app.treelune.core.grid.ZonePositions.tiles(zones.list, zoneGroups, app.treelune.core.grid.Section.ofKey(key)) },
+        // Its groups, then the ungrouped section, each followed by its hidden part: what an arrow crosses into
+        sectionOrder = { app.treelune.core.grid.Section.ordered(zoneGroups).map { it.key } },
         onError = { errorMessage = it }
     )
+
+    // Whether the hidden zones show, never remembered from a visit to the next
+    var showHidden by remember { mutableStateOf(false) }
     app.treelune.core.ui.components.CloseEditOnLeave(gridEditor)
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -593,7 +597,16 @@ private fun HomeScreenBody(zones: ZonesState) {
                 onLeftClick = { Navigator.push(Place.Settings) },
                 onRightClick = { Navigator.push(Place.HomeConfig) },
                 // Organising and adding, once for the whole page, before its gear: a zone created chooses its group in its form
-                beforeRight = { app.treelune.core.ui.components.GridHeaderButtons(zones.list.isNotEmpty(), gridEditor) { Navigator.push(Place.CreateZone) } },
+                beforeRight = {
+                    // A hidden zone with something waiting or running marks the button that shows them
+                    val waiting = app.treelune.core.ui.LocalWaiting.current
+                    val running = app.treelune.core.ui.LocalRunning.current
+                    val hiddenZones = zones.list.filter { it.hidden }
+                    app.treelune.core.ui.components.GridHeaderButtons(zones.list.isNotEmpty(), gridEditor,
+                        if (hiddenZones.isEmpty()) null else app.treelune.core.ui.components.HiddenTiles(showHidden,
+                            hiddenZones.any { waiting.zone(it.id) || running.zone(it.id) }) { showHidden = !showHidden }
+                    ) { Navigator.push(Place.CreateZone) }
+                },
                 // The Guide's book after the settings, marked while a tutorial waits
                 afterLeft = {
                     Box {
@@ -613,38 +626,52 @@ private fun HomeScreenBody(zones: ZonesState) {
             } else {
                 // The readouts raised to the head of the home screen
                 app.treelune.core.readouts.ui.ReadoutLines(rising(app.treelune.core.readouts.ReadoutSettings.Place.HOME_HEAD))
-                // For each defined group, display its section (always shown, even if empty)
-                zoneGroups.forEach { groupName ->
-                    ZoneGroupSection(
-                        groupName = groupName,
-                        zones = zones.list,
-                        groupHead = rising(app.treelune.core.readouts.ReadoutSettings.Place.ZONE_GROUP_HEAD),
+                // The section a zone stands in (Section.key); while a move crosses sections, where it puts it
+                val keyOf = { zone: Zone -> gridEditor.sectionOf(zone.id) ?: app.treelune.core.grid.ZonePositions.part(zone, zoneGroups).key }
+                val editing = gridEditor.anyEditing
+                val groupHead = rising(app.treelune.core.readouts.ReadoutSettings.Place.ZONE_GROUP_HEAD)
+                // Each group, then the ungrouped section, each followed by its hidden part
+                (zoneGroups.map { it as String? } + null).forEach { group ->
+                    val shownKey = app.treelune.core.grid.Section(group).key
+                    val hiddenKey = app.treelune.core.grid.Section(group, hidden = true).key
+                    val shown = zones.list.filter { keyOf(it) == shownKey }
+                    val hidden = zones.list.filter { keyOf(it) == hiddenKey }
+                    // A group whose zones are all hidden goes, title included, while they are; an
+                    // empty group stays. Beside groups, the ungrouped section shows only when it
+                    // holds a zone (one is added from the page's header); without groups it is the
+                    // page's one section, kept unless all of it is hidden. In edit mode every
+                    // section and every hidden part is there: a zone crosses in
+                    val shownThere = when {
+                        editing -> true
+                        shown.isNotEmpty() -> true
+                        hidden.isNotEmpty() -> showHidden
+                        else -> group != null || zoneGroups.isEmpty()
+                    }
+                    val title = group ?: s.shared(if (zoneGroups.isNotEmpty()) "label_ungrouped" else "label_zones")
+                    if (shownThere) ZoneGroupSection(
+                        key = shownKey,
+                        title = title,
+                        zones = shown,
+                        // The readouts of its zones raised to its head, a hidden zone's too: hiding leaves its place at the head
+                        groupHead = groupHead.filter { readout -> (shown + hidden).any { it.id == readout.zoneId } },
+                        empty = s.shared(if (group != null) "message_no_zones_in_group" else "message_no_ungrouped_zones"),
                         piecesOf = piecesOf,
-                        configuredGroups = zoneGroups,
                         editor = gridEditor,
                         onZoneClick = { zone -> Navigator.push(Place.Zone(zone.id)) },
-                        onZoneLongClick = { zone -> Navigator.push(Place.ZoneConfig(zone.id)) },
-                        context = context
+                        onZoneLongClick = { zone -> Navigator.push(Place.ZoneConfig(zone.id)) }
+                    )
+                    if (editing || (showHidden && hidden.isNotEmpty())) ZoneGroupSection(
+                        key = hiddenKey,
+                        title = s.shared("label_hidden_part"),
+                        zones = hidden,
+                        groupHead = emptyList(),
+                        empty = s.shared("message_no_hidden_tiles"),
+                        piecesOf = piecesOf,
+                        editor = gridEditor,
+                        onZoneClick = { zone -> Navigator.push(Place.Zone(zone.id)) },
+                        onZoneLongClick = { zone -> Navigator.push(Place.ZoneConfig(zone.id)) }
                     )
                 }
-
-                // The "Ungrouped" section: zones with no group, or a group the home screen no longer
-                // has. Beside groups, shown only when it holds one: a zone is added from the page's
-                // header, not from its section. Without groups it is the page's one section, kept
-                val ungroupedHolds = zones.list.any { app.treelune.core.grid.ZonePositions.section(it.group, zoneGroups) == null }
-                // In edit mode it is always there, last: a zone crosses into it
-                if (zoneGroups.isEmpty() || ungroupedHolds || gridEditor.anyEditing) ZoneGroupSection(
-                    groupName = null, // null = ungrouped
-                    zones = zones.list,
-                    groupHead = rising(app.treelune.core.readouts.ReadoutSettings.Place.ZONE_GROUP_HEAD),
-                    piecesOf = piecesOf,
-                    hasConfiguredGroups = zoneGroups.isNotEmpty(),
-                    configuredGroups = zoneGroups, // Pass list to filter orphaned zones
-                    editor = gridEditor,
-                    onZoneClick = { zone -> Navigator.push(Place.Zone(zone.id)) },
-                    onZoneLongClick = { zone -> Navigator.push(Place.ZoneConfig(zone.id)) },
-                    context = context
-                )
             }
         }
         if (gridEditor.anyEditing) app.treelune.core.ui.components.GridEditBar(gridEditor)
@@ -661,38 +688,24 @@ private fun HomeScreenBody(zones: ZonesState) {
 }
 
 /**
- * Zone group section component
- * Displays zones belonging to a specific group (or ungrouped zones if groupName is null)
- * under its title; adding and organising are the page header's (GridHeaderButtons)
+ * A section of the home screen, [key] (Section.key) titled [title]: a zone group's, the ungrouped
+ * one, or a hidden part; its [zones] on its grid, in edit mode while the page is, or [empty] when
+ * it holds none, the readouts of [groupHead] raised to its head. Adding and organising are the
+ * page header's (GridHeaderButtons).
  */
 @Composable
 private fun ZoneGroupSection(
-    groupName: String?,
+    key: String,
+    title: String,
     zones: List<Zone>,
     groupHead: List<app.treelune.core.readouts.ui.ReadoutRow>,
+    empty: String,
     /** The pieces a zone's tile lists, found among its own (ListedPiece). */
     piecesOf: (Zone) -> List<app.treelune.core.ui.components.ListedPiece>,
-    hasConfiguredGroups: Boolean = true,
-    configuredGroups: List<String>,
     editor: app.treelune.core.ui.components.GridEditor,
     onZoneClick: (Zone) -> Unit,
-    onZoneLongClick: (Zone) -> Unit,
-    context: android.content.Context
+    onZoneLongClick: (Zone) -> Unit
 ) {
-    val s = remember { Strings.`for`(context = context) }
-
-    // The zones shown here: of this group, or for the ungrouped section of none the home screen has;
-    // while a move crosses sections, where it puts them (GridEditor.sectionOf)
-    val key = groupName ?: ""
-    val groupZones = zones.filter { (editor.sectionOf(it.id) ?: (app.treelune.core.grid.ZonePositions.section(it.group, configuredGroups) ?: "")) == key }
-
-    // Determine section label
-    val sectionLabel = when {
-        groupName != null -> groupName
-        hasConfiguredGroups -> s.shared("label_ungrouped")
-        else -> s.shared("label_zones")
-    }
-
     // One block: its title, its readouts, its grid, close together; the page puts one space
     // between two sections, never its own between each of their parts
     Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
@@ -705,17 +718,15 @@ private fun ZoneGroupSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             UI.Text(
-                text = sectionLabel,
+                text = title,
                 type = TextType.HEADING
             )
         }
     }
 
-    // The readouts of its zones raised to its head
-    app.treelune.core.readouts.ui.ReadoutLines(groupHead.filter { readout -> groupZones.any { it.id == readout.zoneId } })
+    app.treelune.core.readouts.ui.ReadoutLines(groupHead)
 
-    // Display zones or empty message
-    if (groupZones.isEmpty()) {
+    if (zones.isEmpty()) {
         UI.Card(type = CardType.DEFAULT) {
             Box(
                 modifier = Modifier
@@ -724,11 +735,7 @@ private fun ZoneGroupSection(
                 contentAlignment = Alignment.Center
             ) {
                 UI.Text(
-                    text = if (groupName != null) {
-                        s.shared("message_no_zones_in_group")
-                    } else {
-                        s.shared("message_no_ungrouped_zones")
-                    },
+                    text = empty,
                     type = TextType.CAPTION,
                     fillMaxWidth = true,
                     textAlign = TextAlign.Center
@@ -737,7 +744,7 @@ private fun ZoneGroupSection(
         }
     } else {
         // The zones on their grid, in edit mode while the page is
-        app.treelune.core.ui.components.GridLayout(groupZones, groupZones.map { app.treelune.core.ui.components.zoneGridTile(it, piecesOf(it)) }, groupZones.map { app.treelune.core.look.TileSize.ofStored(it.tile_size).followsContent }, editor.gridEdit(key)) { zone ->
+        app.treelune.core.ui.components.GridLayout(zones, zones.map { app.treelune.core.ui.components.zoneGridTile(it, piecesOf(it)) }, zones.map { app.treelune.core.look.TileSize.ofStored(it.tile_size).followsContent }, editor.gridEdit(key)) { zone ->
             UI.ZoneCard(
                 zone = zone,
                 pieces = piecesOf(zone),
@@ -770,5 +777,6 @@ private fun zoneFrom(map: Map<String, Any?>): Zone = Zone(
     validate = map["validate"] as Boolean,
     readout_columns = app.treelune.core.readouts.ReadoutColumns.stored(map[app.treelune.core.readouts.ReadoutColumns.KEY] as? String),
     tile_pieces = (map[app.treelune.core.look.TilePieces.KEY] as? List<*>)?.let { app.treelune.core.look.TilePieces.write(app.treelune.core.look.TilePieces.of(JsonUtils.toJSONArray(it))) },
-    tile_pieces_icons = map[app.treelune.core.look.TilePieces.ICONS] as Boolean
+    tile_pieces_icons = map[app.treelune.core.look.TilePieces.ICONS] as Boolean,
+    hidden = map["hidden"] as Boolean
 )

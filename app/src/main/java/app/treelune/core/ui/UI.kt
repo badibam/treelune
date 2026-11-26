@@ -891,10 +891,11 @@ object UI {
         if (leftButton == ButtonAction.BACK && onLeftClick != null) {
             BackHandler(onBack = onLeftClick)
         }
-        // One bar over the title: the left button and those after it, the places before this one
-        // in a place of the stack, the right button at the end. The title takes the whole width.
+        // One bar over the title: the left button and those after it, the right button at the end
+        // and those before it; under it on a line of its own, the places before this one in a
+        // place of the stack, with the whole width. The title takes the whole width.
         val breadcrumb = app.treelune.core.navigation.LocalBreadcrumb.current
-        if (leftButton != null || rightButton != null || afterLeft != null || beforeRight != null || breadcrumb != null) {
+        if (leftButton != null || rightButton != null || afterLeft != null || beforeRight != null) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(Space.XS),
@@ -907,11 +908,12 @@ object UI {
                     }
                 }
                 afterLeft?.invoke()
-                Box(modifier = Modifier.weight(1f)) { breadcrumb?.let { app.treelune.core.navigation.BreadcrumbLine(it) } }
+                Spacer(modifier = Modifier.weight(1f))
                 beforeRight?.invoke()
                 rightButton?.let { ActionButton(action = it, display = ButtonDisplay.ICON, onClick = onRightClick ?: {}) }
             }
         }
+        breadcrumb?.let { Box(modifier = Modifier.fillMaxWidth()) { app.treelune.core.navigation.BreadcrumbLine(it) } }
         // A page's title and description are read: selectable, nothing else answering their touch
         if (titleShown) Selectable { CurrentTheme.current.PageHeader(title, subtitle, icon, iconColor, appMark) }
     }

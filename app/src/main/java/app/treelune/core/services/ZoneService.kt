@@ -23,6 +23,7 @@ import app.treelune.core.utils.LogManager
 import app.treelune.core.grid.ToolPositions
 import app.treelune.core.grid.Grid
 import app.treelune.core.grid.Groups
+import app.treelune.core.grid.Section
 import app.treelune.core.grid.ZonePositions
 import app.treelune.core.database.entities.Zone as ZoneEntity
 import app.treelune.core.database.transaction
@@ -139,7 +140,7 @@ class ZoneService(private val context: Context) : ExecutableService {
         // At the bottom of its section's grid on the home screen
         val newZone = database.transaction {
             val groups = zoneGroups()
-            val tile = Grid.arrive(ZonePositions.tiles(zoneDao.getAllZones(), groups, ZonePositions.section(group, groups)), placing.id, ZonePositions.size(placing)).last()
+            val tile = Grid.arrive(ZonePositions.tiles(zoneDao.getAllZones(), groups, ZonePositions.part(placing, groups)), placing.id, ZonePositions.size(placing)).last()
             placing.copy(grid_x = tile.column, grid_y = tile.row).also { writes.insertZone(it) }
         }
 
@@ -234,8 +235,8 @@ class ZoneService(private val context: Context) : ExecutableService {
     private suspend fun move(before: ZoneEntity, after: ZoneEntity): ZoneEntity {
         val groups = zoneGroups()
         val zones = zoneDao.getAllZones()
-        val from = ZonePositions.section(before.group, groups)
-        val to = ZonePositions.section(after.group, groups)
+        val from = ZonePositions.part(before, groups)
+        val to = ZonePositions.part(after, groups)
         if (from != to) {
             write(ZonePositions.moved(zones, Grid.leave(ZonePositions.tiles(zones, groups, from), before.id)))
             val tile = Grid.arrive(ZonePositions.tiles(zoneDao.getAllZones().filter { it.id != after.id }, groups, to), after.id, ZonePositions.size(after)).last()
@@ -250,16 +251,11 @@ class ZoneService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * The places of the zones of one zone group section, moved in the home screen's edit mode:
-     * `group` (absent for the ungrouped one) and `places`, `{zone_id: {"grid_x", "grid_y"}}` for
-     * every zone of the section. Written in one go, or refused when they do not lay the section
-     * out (Grid.isLaidOut).
-     */
-    /**
      * The zones of the home screen's sections put where the grid editor leaves them: `sections`,
-     * each `group` (none: the ungrouped section) and `places` (each zone's id -> `grid_x`,
-     * `grid_y`), every zone of the section named once; a zone named in a section it is not shown
-     * in crosses into it, its group becoming that section's. All or nothing.
+     * each `group` (none: the ungrouped section), `hidden` for its hidden part, and `places` (each
+     * zone's id -> `grid_x`, `grid_y`), every zone of the section named once; a zone named in a
+     * section it does not stand in crosses into it, its group and whether it is hidden becoming
+     * that section's. All or nothing.
      */
     private suspend fun handlePlace(params: JSONObject): OperationResult {
         val groups = zoneGroups()
@@ -268,14 +264,14 @@ class ZoneService(private val context: Context) : ExecutableService {
             database.transaction {
                 val byId = zoneDao.getAllZones().associateBy { it.id }
                 // A zone that crossed takes its new section's group first
-                for ((group, places) in sections) for (id in places.keys) {
+                for ((given, places) in sections) for (id in places.keys) {
                     val zone = byId[id] ?: throw IllegalStateException("zone $id")
-                    val section = ZonePositions.section(group, groups)
-                    if (ZonePositions.section(zone.group, groups) != section) writes.updateZone(zone.copy(group = section, updated_at = System.currentTimeMillis()))
+                    val section = Section(ZonePositions.section(given.group, groups), given.hidden)
+                    if (ZonePositions.part(zone, groups) != section) writes.updateZone(zone.copy(group = section.group, hidden = section.hidden, updated_at = System.currentTimeMillis()))
                 }
-                sections.sumOf { (group, places) ->
-                    val section = ZonePositions.section(group, groups)
-                    val zones = zoneDao.getAllZones().filter { ZonePositions.section(it.group, groups) == section }
+                sections.sumOf { (given, places) ->
+                    val section = Section(ZonePositions.section(given.group, groups), given.hidden)
+                    val zones = zoneDao.getAllZones().filter { ZonePositions.part(it, groups) == section }
                     if (places.keys != zones.map { it.id }.toSet()) throw IllegalStateException("section $section")
                     val placed = zones.map { zone -> places.getValue(zone.id).let { (x, y) -> ZonePositions.tile(zone).copy(column = x, row = y) } }
                     if (!Grid.isLaidOut(placed)) throw IllegalStateException("section $section")
@@ -292,13 +288,13 @@ class ZoneService(private val context: Context) : ExecutableService {
         return OperationResult.success(mapOf("count" to count))
     }
 
-    /** The `sections` a placement gives, each its group (null for none) and its places; null when they do not read. */
-    private fun sectionsOf(params: JSONObject): List<Pair<String?, Map<String, Pair<Int, Int>>>>? {
+    /** The `sections` a placement gives, each its section (its group, null for none, and whether it is the hidden part) and its places; null when they do not read. */
+    private fun sectionsOf(params: JSONObject): List<Pair<Section, Map<String, Pair<Int, Int>>>>? {
         val array = params.optJSONArray("sections") ?: return null
         return (0 until array.length()).map { i ->
             val section = array.optJSONObject(i) ?: return null
             val places = section.optJSONObject("places") ?: return null
-            section.optString("group").takeIf { it.isNotEmpty() } to
+            Section(section.optString("group").takeIf { it.isNotEmpty() }, section.optBoolean("hidden", false)) to
                 places.keys().asSequence().associateWith { id -> places.getJSONObject(id).let { it.getInt("grid_x") to it.getInt("grid_y") } }
         }
     }
@@ -314,7 +310,7 @@ class ZoneService(private val context: Context) : ExecutableService {
         val zone = zoneDao.getZoneById(params.optString("zone_id"))
             ?: return OperationResult.error(s.shared("service_error_zone_not_found"))
         val groups = ToolPositions.zoneGroups(zone.tool_groups)
-        val sections = sectionsOf(params)?.map { (group, places) -> ToolPositions.section(group, groups) to places }
+        val sections = sectionsOf(params)?.map { (given, places) -> Section(ToolPositions.section(given.group, groups), given.hidden) to places }
             ?: return OperationResult.error(s.shared("service_error_grid_places"))
         try {
             database.transaction { app.treelune.core.grid.SectionGrid(context).placeSections(zone.id, groups, sections) }
@@ -507,7 +503,7 @@ class ZoneService(private val context: Context) : ExecutableService {
         database.transaction {
             val groups = zoneGroups()
             val zones = zoneDao.getAllZones()
-            write(ZonePositions.moved(zones, Grid.leave(ZonePositions.tiles(zones, groups, ZonePositions.section(existingZone.group, groups)), zoneId)))
+            write(ZonePositions.moved(zones, Grid.leave(ZonePositions.tiles(zones, groups, ZonePositions.part(existingZone, groups)), zoneId)))
             database.aiDao().getRoutinesByZone(zoneId).forEach { writes.deleteRoutine(it.id) }
             // A Task hangs from its zone by its column alone: deleted row by row, its runs going with it by cascade
             database.taskDao().getByZone(zoneId).forEach { writes.deleteTask(it.id) }
@@ -609,6 +605,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             if (params.optBoolean("include_position", false)) {
                 zoneMap["grid_x"] = zone.grid_x
                 zoneMap["grid_y"] = zone.grid_y
+                zoneMap["hidden"] = zone.hidden
             }
 
             zoneMap

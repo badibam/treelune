@@ -1036,6 +1036,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             if (includePosition) {
                 resultMap["grid_x"] = tool.grid_x
                 resultMap["grid_y"] = tool.grid_y
+                resultMap["hidden"] = tool.hidden
             }
 
             // Conditionally add config_json and timestamps based on include_config parameter
@@ -1107,6 +1108,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             if (includePosition) {
                 resultMap["grid_x"] = tool.grid_x
                 resultMap["grid_y"] = tool.grid_y
+                resultMap["hidden"] = tool.hidden
             }
 
             // Conditionally add config_json and timestamps based on include_config parameter

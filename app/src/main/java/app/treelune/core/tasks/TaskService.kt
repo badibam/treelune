@@ -118,6 +118,7 @@ class TaskService(private val context: Context) : ExecutableService {
             "steps" to JsonUtils.toList(JSONArray(task.stepsJson)),
             "grid_x" to task.gridX,
             "grid_y" to task.gridY,
+            "hidden" to task.hidden,
             "updated_at" to task.updatedAt,
             "last_run" to last?.let { runOf(it) },
             "condition_judgements" to app.treelune.core.triggers.ConditionTriggers.judgements(context, app.treelune.core.triggers.ConditionTriggers.TASK, task.id, task.triggersJson)

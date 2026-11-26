@@ -49,7 +49,9 @@ data class ReadoutRow(
     val settings: JSONObject,
     val toolsRead: Set<String>,
     /** The zone of the tool or the zone it opens; null for the app */
-    val targetZoneId: String?
+    val targetZoneId: String?,
+    /** Hidden from its page, in its section's hidden part (docs/design/phone-inbox.md) */
+    val hidden: Boolean = false
 ) {
     val tile: Grid.Tile get() = look.tileSize.cells.let { Grid.Tile(id, gridX, gridY, it.width, it.height) }
 
@@ -68,7 +70,8 @@ data class ReadoutRow(
                 gridY = (map["grid_y"] as Number).toInt(),
                 settings = settings,
                 toolsRead = (map["tools_read"] as? List<*>)?.map { it.toString() }?.toSet() ?: emptySet(),
-                targetZoneId = map["target_zone_id"] as? String
+                targetZoneId = map["target_zone_id"] as? String,
+                hidden = map["hidden"] as Boolean
             )
         }
 

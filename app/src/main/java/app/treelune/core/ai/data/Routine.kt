@@ -52,7 +52,9 @@ data class Routine(
     val look: app.treelune.core.look.Look,
     /** Its place in the grid of its group's section (SectionGrid) */
     val gridX: Int,
-    val gridY: Int
+    val gridY: Int,
+    /** Hidden from its page, in its section's hidden part (docs/design/phone-inbox.md) */
+    val hidden: Boolean = false
 ) {
     /** Whether it can be run alone: its Run button */
     val runsAlone: Boolean get() = RoutineSettings.runsAlone(usage)
@@ -104,7 +106,8 @@ data class Routine(
                 look = app.treelune.core.look.Looks.read(RoutineSettings.LOOK,
                     app.treelune.core.utils.JsonUtils.toJSONObject(map.entries.associate { it.key.toString() to it.value })),
                 gridX = (map["grid_x"] as Number).toInt(),
-                gridY = (map["grid_y"] as Number).toInt()
+                gridY = (map["grid_y"] as Number).toInt(),
+                hidden = map["hidden"] as Boolean
             )
         }
     }

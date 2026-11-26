@@ -173,23 +173,27 @@ private fun ZoneScreenBody(zone: Zone) {
         }
     }
 
-    // The edit mode of the sections' grids, a section named by its group, "" for the ungrouped one
+    // The edit mode of the sections' grids, a section named by its key (Section.key): a group's,
+    // "" for the ungrouped one, or the hidden part just after it
     val gridEditor = app.treelune.core.ui.components.rememberGridEditor(
         placeOperation = "zones.place_section",
         placeParams = mapOf("zone_id" to zone.id),
         // The section's tools and variables, laid on the same grid
         sectionTiles = { key ->
-            val section = key.ifEmpty { null }
-            toolInstances.filter { ToolPositions.section(it, zoneToolGroups) == section }.map { app.treelune.core.grid.SectionItem.of(it).tile } +
-                variables.filter { ToolPositions.section(it.group, zoneToolGroups) == section }.map { it.tile } +
-                routines.filter { ToolPositions.section(it.group, zoneToolGroups) == section }.map { it.tile } +
-                tasks.filter { ToolPositions.section(it.group, zoneToolGroups) == section }.map { it.tile } +
-                readouts.filter { ToolPositions.section(it.group, zoneToolGroups) == section }.map { it.tile }
+            val section = app.treelune.core.grid.Section.ofKey(key)
+            toolInstances.filter { ToolPositions.part(it, zoneToolGroups) == section }.map { app.treelune.core.grid.SectionItem.of(it).tile } +
+                variables.filter { ToolPositions.part(it.group, it.hidden, zoneToolGroups) == section }.map { it.tile } +
+                routines.filter { ToolPositions.part(it.group, it.hidden, zoneToolGroups) == section }.map { it.tile } +
+                tasks.filter { ToolPositions.part(it.group, it.hidden, zoneToolGroups) == section }.map { it.tile } +
+                readouts.filter { ToolPositions.part(it.group, it.hidden, zoneToolGroups) == section }.map { it.tile }
         },
-        // Its groups, then the ungrouped section: what an arrow crosses into
-        sectionOrder = { zoneToolGroups + "" },
+        // Its groups, then the ungrouped section, each followed by its hidden part: what an arrow crosses into
+        sectionOrder = { app.treelune.core.grid.Section.ordered(zoneToolGroups).map { it.key } },
         onError = { errorMessage = it }
     )
+
+    // Whether the hidden tiles show, never remembered from a visit to the next
+    var showHidden by remember { mutableStateOf(false) }
 
     app.treelune.core.ui.components.CloseEditOnLeave(gridEditor)
 
@@ -220,8 +224,17 @@ private fun ZoneScreenBody(zone: Zone) {
             onRightClick = { Navigator.push(Place.ZoneConfig(zone.id)) },
             // Organising and adding, once for the whole page, before its gear
             beforeRight = {
+                // A hidden tile waiting for something or running marks the button that shows them
+                val waiting = app.treelune.core.ui.LocalWaiting.current
+                val running = app.treelune.core.ui.LocalRunning.current
+                val hiddenTools = toolInstances.filter { it.hidden }
+                val hiddenRoutines = routines.filter { it.hidden }
+                val anyHidden = hiddenTools.isNotEmpty() || hiddenRoutines.isNotEmpty() || variables.any { it.hidden } || tasks.any { it.hidden } || readouts.any { it.hidden }
                 app.treelune.core.ui.components.GridHeaderButtons(
-                    toolInstances.isNotEmpty() || variables.isNotEmpty() || routines.isNotEmpty() || tasks.isNotEmpty() || readouts.isNotEmpty(), gridEditor
+                    toolInstances.isNotEmpty() || variables.isNotEmpty() || routines.isNotEmpty() || tasks.isNotEmpty() || readouts.isNotEmpty(), gridEditor,
+                    if (!anyHidden) null else app.treelune.core.ui.components.HiddenTiles(showHidden,
+                        hiddenTools.any { waiting.tool(it.id) || running.tool(it.id) } || hiddenRoutines.any { waiting.routine(it.id) || running.routine(it.id) }
+                    ) { showHidden = !showHidden }
                 ) { adding = !adding }
             }
         )
@@ -253,56 +266,48 @@ private fun ZoneScreenBody(zone: Zone) {
                 )
             }
 
-            // The section a tile is shown in: its group's, or the ungrouped one (""); while a move
-            // crosses sections, where it puts it (GridEditor.sectionOf)
-            fun keyOf(id: String, stored: String?): String = gridEditor.sectionOf(id) ?: (stored ?: "")
-            fun toolKey(tool: ToolInstance) = keyOf(tool.id, ToolPositions.section(tool, zoneToolGroups))
-            fun groupKey(id: String, group: String?) = keyOf(id, ToolPositions.section(group, zoneToolGroups))
+            // The section a tile stands in (Section.key): its group's or the ungrouped one, shown or
+            // hidden; while a move crosses sections, where it puts it (GridEditor.sectionOf)
+            fun keyOf(id: String, group: String?, hidden: Boolean): String =
+                gridEditor.sectionOf(id) ?: ToolPositions.part(group, hidden, zoneToolGroups).key
+            val editing = gridEditor.anyEditing
 
-            // For each defined group, display its section (always shown, even if empty)
-            zoneToolGroups.forEach { groupName ->
-                GroupSection(
-                    groupName = groupName,
-                    variables = variables.filter { groupKey(it.id, it.group) == groupName },
-                    onOpenVariable = openVariable,
-                    toolInstances = toolInstances.filter { toolKey(it) == groupName },
-                    routines = routines.filter { groupKey(it.id, it.group) == groupName },
-                    tasks = tasks.filter { groupKey(it.id, it.group) == groupName },
-                    readouts = readouts.filter { groupKey(it.id, it.group) == groupName },
-                    onToolClick = { toolId -> openTool(toolId, null) },
-                    onOpenEntry = { tool, entry -> openTool(tool.id, entry) },
-                    editor = gridEditor,
-                    onToolLongClick = configureTool,
-                    routineActions = routineActions,
-                    context = context
+            // Each group, then the ungrouped section, each followed by its hidden part
+            (zoneToolGroups.map { it as String? } + null).forEach { group ->
+                val shownKey = app.treelune.core.grid.Section(group).key
+                val hiddenKey = app.treelune.core.grid.Section(group, hidden = true).key
+                fun <T> held(items: List<T>, key: String, id: (T) -> String, group: (T) -> String?, hidden: (T) -> Boolean) =
+                    items.filter { keyOf(id(it), group(it), hidden(it)) == key }
+                fun part(key: String) = SectionParts(
+                    held(toolInstances, key, { it.id }, { ToolPositions.section(it, zoneToolGroups) }, { it.hidden }),
+                    held(variables, key, { it.id }, { it.group }, { it.hidden }),
+                    held(routines, key, { it.id }, { it.group }, { it.hidden }),
+                    held(tasks, key, { it.id }, { it.group }, { it.hidden }),
+                    held(readouts, key, { it.id }, { it.group }, { it.hidden })
                 )
+                val shown = part(shownKey)
+                val hidden = part(hiddenKey)
+                // A group whose tiles are all hidden goes, title included, while they are; an empty
+                // group stays. Beside groups, the ungrouped section shows only when it holds
+                // something; without groups it is the page's one section, kept unless all of it is
+                // hidden. In edit mode every section and every hidden part is there: a tile crosses in
+                val shownThere = when {
+                    editing -> true
+                    !shown.isEmpty -> true
+                    !hidden.isEmpty -> showHidden
+                    else -> group != null || zoneToolGroups.isEmpty()
+                }
+                if (shownThere) {
+                    val title = group ?: s.shared(if (zoneToolGroups.isNotEmpty()) "label_ungrouped" else "label_tools_and_routines")
+                    // The readouts of the group raised to its head, hidden ones too: hiding a tile leaves its place at the head
+                    Section(shownKey, title, shown, shown.readouts + hidden.readouts, s.shared("message_no_items_in_group"), gridEditor,
+                        { toolId -> openTool(toolId, null) }, configureTool, { tool, entry -> openTool(tool.id, entry) }, openVariable, routineActions, context)
+                }
+                if (editing || (showHidden && !hidden.isEmpty)) {
+                    Section(hiddenKey, s.shared("label_hidden_part"), hidden, emptyList(), s.shared("message_no_hidden_tiles"), gridEditor,
+                        { toolId -> openTool(toolId, null) }, configureTool, { tool, entry -> openTool(tool.id, entry) }, openVariable, routineActions, context)
+                }
             }
-
-            // Ungrouped section: items with no group, or a group the zone does not have
-            val ungroupedTools = toolInstances.filter { toolKey(it) == "" }
-            val ungroupedRoutines = routines.filter { groupKey(it.id, it.group) == "" }
-            val ungroupedVariables = variables.filter { groupKey(it.id, it.group) == "" }
-            val ungroupedTasks = tasks.filter { groupKey(it.id, it.group) == "" }
-            val ungroupedReadouts = readouts.filter { groupKey(it.id, it.group) == "" }
-            // Beside groups, shown only when it holds something: what is made is added from the
-            // page's header, not from its section. Without groups it is the page's one section, kept
-            val ungroupedHolds = listOf(ungroupedTools, ungroupedVariables, ungroupedRoutines, ungroupedTasks, ungroupedReadouts).any { it.isNotEmpty() }
-            // In edit mode it is always there, last: a tile crosses into it
-            if (zoneToolGroups.isEmpty() || ungroupedHolds || gridEditor.anyEditing) UngroupedSection(
-                    toolInstances = ungroupedTools,
-                    variables = ungroupedVariables,
-                    onOpenVariable = openVariable,
-                    routines = ungroupedRoutines,
-                    tasks = ungroupedTasks,
-                    readouts = ungroupedReadouts,
-                    hasConfiguredGroups = zoneToolGroups.isNotEmpty(),
-                    onToolClick = { toolId -> openTool(toolId, null) },
-                    onOpenEntry = { tool, entry -> openTool(tool.id, entry) },
-                    editor = gridEditor,
-                    onToolLongClick = configureTool,
-                    routineActions = routineActions,
-                    context = context
-                )
         }
     }
     if (gridEditor.anyEditing) app.treelune.core.ui.components.GridEditBar(gridEditor)
@@ -431,58 +436,28 @@ private fun AddMenu(
     }
 }
 
-/** A group's section: its title, then its tools, variables, routines and Tasks on their grid. */
-@Composable
-private fun GroupSection(
-    groupName: String,
-    variables: List<app.treelune.core.ui.variables.VariableRow>,
-    onOpenVariable: (String) -> Unit,
-    toolInstances: List<ToolInstance>,
-    routines: List<app.treelune.core.ai.data.Routine>,
-    tasks: List<app.treelune.core.tasks.Task>,
-    readouts: List<app.treelune.core.readouts.ui.ReadoutRow>,
-    onToolClick: (String) -> Unit,
-    onOpenEntry: (ToolInstance, app.treelune.core.tools.OpenAt) -> Unit,
-    editor: app.treelune.core.ui.components.GridEditor,
-    onToolLongClick: (ToolInstance) -> Unit,
-    routineActions: app.treelune.core.ai.ui.routine.RoutineActions,
-    context: android.content.Context
+/** What one part of a section holds, its shown or its hidden tiles, each kind apart. */
+private class SectionParts(
+    val tools: List<ToolInstance>,
+    val variables: List<app.treelune.core.ui.variables.VariableRow>,
+    val routines: List<app.treelune.core.ai.data.Routine>,
+    val tasks: List<app.treelune.core.tasks.Task>,
+    val readouts: List<app.treelune.core.readouts.ui.ReadoutRow>
 ) {
-    Section(groupName, groupName, toolInstances, variables, routines, tasks, readouts, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions, context)
+    val isEmpty: Boolean get() = tools.isEmpty() && variables.isEmpty() && routines.isEmpty() && tasks.isEmpty() && readouts.isEmpty()
 }
 
-/** The ungrouped section: titled « Ungrouped » beside groups, « Tools and routines » without any. */
-@Composable
-private fun UngroupedSection(
-    toolInstances: List<ToolInstance>,
-    variables: List<app.treelune.core.ui.variables.VariableRow>,
-    onOpenVariable: (String) -> Unit,
-    routines: List<app.treelune.core.ai.data.Routine>,
-    tasks: List<app.treelune.core.tasks.Task>,
-    readouts: List<app.treelune.core.readouts.ui.ReadoutRow>,
-    hasConfiguredGroups: Boolean,
-    onToolClick: (String) -> Unit,
-    onOpenEntry: (ToolInstance, app.treelune.core.tools.OpenAt) -> Unit,
-    editor: app.treelune.core.ui.components.GridEditor,
-    onToolLongClick: (ToolInstance) -> Unit,
-    routineActions: app.treelune.core.ai.ui.routine.RoutineActions,
-    context: android.content.Context
-) {
-    val s = remember { Strings.`for`(context = context) }
-    val title = s.shared(if (hasConfiguredGroups) "label_ungrouped" else "label_tools_and_routines")
-    Section("", title, toolInstances, variables, routines, tasks, readouts, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions, context)
-}
-
-/** A section [key] titled [title] over a divider, its grid, or the line saying it is empty. */
+/**
+ * A section [key] titled [title] over a divider: a group's, the ungrouped one, or a hidden part;
+ * the readouts of [head] raised to its head, its grid, or [empty] when it holds nothing.
+ */
 @Composable
 private fun Section(
     key: String,
     title: String,
-    tools: List<ToolInstance>,
-    variables: List<app.treelune.core.ui.variables.VariableRow>,
-    routines: List<app.treelune.core.ai.data.Routine>,
-    tasks: List<app.treelune.core.tasks.Task>,
-    readouts: List<app.treelune.core.readouts.ui.ReadoutRow>,
+    parts: SectionParts,
+    head: List<app.treelune.core.readouts.ui.ReadoutRow>,
+    empty: String,
     editor: app.treelune.core.ui.components.GridEditor,
     onToolClick: (String) -> Unit,
     onToolLongClick: (ToolInstance) -> Unit,
@@ -491,7 +466,6 @@ private fun Section(
     routineActions: app.treelune.core.ai.ui.routine.RoutineActions,
     context: android.content.Context
 ) {
-    val s = remember { Strings.`for`(context = context) }
     // One block: its title, its readouts, its grid, close together; the page puts one space
     // between two sections, never its own between each of their parts
     Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
@@ -501,11 +475,11 @@ private fun Section(
         }
     }
     // The readouts raised to the head of their group, over its grid
-    app.treelune.core.readouts.ui.ReadoutLines(readouts.filter { app.treelune.core.readouts.ReadoutSettings.Place.GROUP_HEAD in it.places }.sortedWith(compareBy({ it.gridY }, { it.gridX })))
-    SectionGrid(key, tools, variables, routines, tasks, readouts, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions)
-    if (tools.isEmpty() && variables.isEmpty() && routines.isEmpty() && tasks.isEmpty() && readouts.isEmpty()) {
+    app.treelune.core.readouts.ui.ReadoutLines(head.filter { app.treelune.core.readouts.ReadoutSettings.Place.GROUP_HEAD in it.places }.sortedWith(compareBy({ it.hidden }, { it.gridY }, { it.gridX })))
+    SectionGrid(key, parts.tools, parts.variables, parts.routines, parts.tasks, parts.readouts, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions)
+    if (parts.isEmpty) {
         UI.Text(
-            text = s.shared("message_no_items_in_group"),
+            text = empty,
             type = TextType.CAPTION,
             fillMaxWidth = true,
             textAlign = TextAlign.Center

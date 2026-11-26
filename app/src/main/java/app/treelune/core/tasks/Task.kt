@@ -23,7 +23,9 @@ data class Task(
     val gridY: Int,
     val updatedAt: Long,
     /** The last judgement of each condition its triggers name */
-    val conditionJudgements: List<app.treelune.core.triggers.ui.ConditionJudgementLine> = emptyList()
+    val conditionJudgements: List<app.treelune.core.triggers.ui.ConditionJudgementLine> = emptyList(),
+    /** Hidden from its page, in its section's hidden part (docs/design/phone-inbox.md) */
+    val hidden: Boolean = false
 ) {
     val name: String get() = look.name
 
@@ -64,7 +66,8 @@ data class Task(
                 gridX = (map["grid_x"] as Number).toInt(),
                 gridY = (map["grid_y"] as Number).toInt(),
                 updatedAt = (map["updated_at"] as Number).toLong(),
-                conditionJudgements = app.treelune.core.triggers.ui.ConditionJudgementLine.list(map["condition_judgements"])
+                conditionJudgements = app.treelune.core.triggers.ui.ConditionJudgementLine.list(map["condition_judgements"]),
+                hidden = map["hidden"] as Boolean
             )
         }
     }

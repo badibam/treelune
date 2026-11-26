@@ -34,11 +34,13 @@ import kotlinx.coroutines.launch
  * whole page, every group section at once. The tile being moved goes about its section by the
  * arrows; past its section's top or bottom it crosses into the section above or below, in the
  * page's order ([sectionOrder]), arriving by the side it crossed (Grid.enter), its group to change
- * with it. A section is named by its key (its group, "" for the ungrouped one).
+ * with it. A section is named by its key (app.treelune.core.grid.Section.key): a group's, "" for the
+ * ungrouped one, or its hidden part's, just after it, where a tile arriving is hidden (« Hide »
+ * sends it there at once, « Show » back).
  *
  * A move is written when it is validated, when another tile is touched or when the edit mode is
  * closed, in one write ([placeOperation], given [placeParams] and `sections`, each touched
- * section's group and places); "Cancel" puts every section it touched back as it was when the
+ * section's group, whether it is a hidden part, and places); "Cancel" puts every section it touched back as it was when the
  * tile was touched. What is being edited survives recreation.
  */
 class GridEditor internal constructor(
@@ -100,6 +102,24 @@ class GridEditor internal constructor(
 
     fun canMove(direction: Grid.Direction): Boolean = next(direction) != null
 
+    /** Whether the tile touched stands in a hidden part, where its button shows it rather than hides it. */
+    val selectedHidden: Boolean get() = section.value?.let { app.treelune.core.grid.Section.ofKey(it).hidden } ?: false
+
+    /** The tile touched sent at once to the end of its group's hidden part, or back to the end of its group's grid when it is hidden. */
+    fun hideOrShow() {
+        val key = section.value ?: return
+        val id = selected.value ?: return
+        val touched = sections(draft.value)
+        val places = touched[key] ?: return
+        val from = app.treelune.core.grid.Section.ofKey(key)
+        val target = (if (from.hidden) from.shown else from.hiding).key
+        val tile = places.single { it.id == id }
+        val oneColumn = app.treelune.core.themes.CurrentTheme.oneColumn
+        val arrived = Grid.arrive(touched[target] ?: sectionTiles(target), id, Grid.Size(tile.width, tile.height))
+        section.value = target
+        draft.value = encode(touched + mapOf(key to Grid.exit(places, id, oneColumn), target to arrived))
+    }
+
     /** The section the tile ends in and every touched section's places, after [direction]; null when it cannot go. */
     private fun next(direction: Grid.Direction): Pair<String, Map<String, List<Grid.Tile>>>? {
         val key = section.value ?: return null
@@ -144,7 +164,9 @@ class GridEditor internal constructor(
         scope.launch {
             val result = coordinator.processUserAction(placeOperation, placeParams + mapOf(
                 "sections" to touched.map { (key, places) ->
-                    mapOf("group" to key, "places" to places.associate { it.id to mapOf("grid_x" to it.column, "grid_y" to it.row) })
+                    val section = app.treelune.core.grid.Section.ofKey(key)
+                    mapOf("group" to (section.group ?: ""), "hidden" to section.hidden,
+                        "places" to places.associate { it.id to mapOf("grid_x" to it.column, "grid_y" to it.row) })
                 }
             ))
             if (!result.isSuccess) {
@@ -156,7 +178,7 @@ class GridEditor internal constructor(
         }
     }
 
-    /** Places by section kept as text, each tile with its size: "key|id,column,row,width,height;…" a section a line. */
+    /** Places by section kept as text, each tile with its size: "key|id,column,row,width,height;…" a section a line (a hidden part's key starts with a control character, never "|" nor a line's end). */
     private fun encode(sections: Map<String, List<Grid.Tile>>): String = sections.entries.sortedBy { it.key }.joinToString("\n") { (key, tiles) ->
         key + "|" + tiles.sortedBy { it.id }.joinToString(";") { "${it.id},${it.column},${it.row},${it.width},${it.height}" }
     }
@@ -206,7 +228,7 @@ fun CloseEditOnLeave(editor: GridEditor) {
  * The bar of the edit mode, the full width under the screen for as long as the mode lasts: what
  * the mode is and how to move a tile, and « Done », which closes it, the move in progress written.
  * A tile touched, a cross of four arrows, each greyed where the tile has nowhere to go, the
- * validation in its middle, and "Cancel" beside. The phone's back key closes the mode as « Done ».
+ * validation in its middle, and beside it « Hide » (« Show » for a hidden tile) and "Cancel". The phone's back key closes the mode as « Done ».
  */
 @Composable
 fun GridEditBar(editor: GridEditor) {
@@ -250,19 +272,33 @@ fun GridEditBar(editor: GridEditor) {
                     }
                     Arrow(ButtonAction.DOWN, Grid.Direction.DOWN)
                 }
-                UI.ActionButton(action = ButtonAction.CANCEL, display = ButtonDisplay.LABEL, onClick = { editor.cancel() })
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                    UI.ActionButton(action = if (editor.selectedHidden) ButtonAction.SHOW else ButtonAction.HIDE, display = ButtonDisplay.LABEL, onClick = { editor.hideOrShow() })
+                    UI.ActionButton(action = ButtonAction.CANCEL, display = ButtonDisplay.LABEL, onClick = { editor.cancel() })
+                }
             }
         }
     }
 }
 
 /**
+ * Whether a page shows its hidden tiles ([open]), never remembered from a visit to the next, and
+ * whether one of them waits for something or runs ([marked]), which marks its button.
+ */
+class HiddenTiles(val open: Boolean, val marked: Boolean, val toggle: () -> Unit)
+
+/**
  * The buttons of a page of grids (a zone, the home screen), once for the whole page, in its header
- * before its gear (PageHeader's beforeRight): its edit mode, on while it lasts (shown when it has
- * tiles), and adding, off while it is in edit mode.
+ * before its gear (PageHeader's beforeRight): the one that shows its hidden tiles, on while they
+ * are shown, there only when it has some ([hidden]); its edit mode, on while it lasts (shown when
+ * it has tiles); and adding, off while it is in edit mode.
  */
 @Composable
-fun GridHeaderButtons(hasTiles: Boolean, editor: GridEditor, onAdd: () -> Unit) {
+fun GridHeaderButtons(hasTiles: Boolean, editor: GridEditor, hidden: HiddenTiles?, onAdd: () -> Unit) {
+    if (hidden != null) Box {
+        UI.ActionButton(action = ButtonAction.HIDDEN_TILES, display = ButtonDisplay.ICON, active = hidden.open, onClick = hidden.toggle)
+        if (hidden.marked) Box(modifier = Modifier.align(Alignment.TopEnd)) { UI.WaitingMark() }
+    }
     if (hasTiles) UI.ActionButton(
         action = ButtonAction.ARRANGE,
         display = ButtonDisplay.ICON,

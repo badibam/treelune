@@ -65,7 +65,7 @@ class PageLayout(private val context: Context) {
             // A long row of icons folds by its pieces in one column; a piece with its summary counts its two cells
             val folded = if (size.inIcons && !size.vertical && size.length > IconStrips.ONE_COLUMN_ROW)
                 IconStrips.oneColumn(size, listOf(1) + TilePieces.read(zone.tile_pieces).map { if (it.summary) 2 else 1 }) else null
-            ZonePositions.section(zone.group, groups) to PageTile(zone.id, "zone", zone.name, size, zone.icon_name, zone.icon_color, zone.texture, zone.grid_x, zone.grid_y, inOneColumn = folded)
+            ZonePositions.section(zone.group, groups) to PageTile(zone.id, "zone", zone.name, size, zone.icon_name, zone.icon_color, zone.texture, zone.grid_x, zone.grid_y, inOneColumn = folded, hidden = zone.hidden)
         }
         return Page(null, sections(groups, tiles) { it.first }, null, oneColumn)
     }
@@ -73,7 +73,7 @@ class PageLayout(private val context: Context) {
     /** [groups] then the ungrouped section when it holds a tile, each with its tiles in reading order. */
     private fun sections(groups: List<String>, tiles: List<Pair<String?, PageTile>>, section: (Pair<String?, PageTile>) -> String?): List<PageSection> =
         (groups.map { it as String? } + null).mapNotNull { name ->
-            val held = tiles.filter { section(it) == name }.map { it.second }.sortedWith(compareBy({ it.row }, { it.column }))
+            val held = tiles.filter { section(it) == name }.map { it.second }.sortedWith(compareBy({ it.hidden }, { it.row }, { it.column }))
             if (name == null && held.isEmpty()) null else PageSection(name, held)
         }
 
@@ -86,19 +86,19 @@ class PageLayout(private val context: Context) {
             val type = ToolTypeManager.getToolType(tool.tooltype) ?: throw IllegalStateException("Tool ${tool.id}: unknown type ${tool.tooltype}")
             val items = ToolConfigSettings.itemLayout(type, config)
             at(config.text("group")) to PageTile(tool.id, "tool", config.optString("name"), size(config.getString(Looks.TILE_SIZE)), config.text(Looks.ICON), config.text(IconColor.KEY), config.text(Texture.KEY),
-                tool.grid_x, tool.grid_y, items?.width?.stored, items?.lines)
+                tool.grid_x, tool.grid_y, items?.width?.stored, items?.lines, hidden = tool.hidden)
         }
         val variables = database.variableDao().getByZone(zoneId).map {
-            at(it.group) to PageTile(it.id, "variable", it.label, size(it.tileSize), it.iconName, it.iconColor, it.texture, it.gridX, it.gridY)
+            at(it.group) to PageTile(it.id, "variable", it.label, size(it.tileSize), it.iconName, it.iconColor, it.texture, it.gridX, it.gridY, hidden = it.hidden)
         }
         val routines = database.aiDao().getRoutinesByZone(zoneId).map {
-            at(it.group) to PageTile(it.id, "routine", it.name, size(it.tileSize), it.iconName, it.iconColor, it.texture, it.gridX, it.gridY)
+            at(it.group) to PageTile(it.id, "routine", it.name, size(it.tileSize), it.iconName, it.iconColor, it.texture, it.gridX, it.gridY, hidden = it.hidden)
         }
         val tasks = database.taskDao().getByZone(zoneId).map {
-            at(it.group) to PageTile(it.id, "task", it.name, size(it.tileSize), it.iconName, it.iconColor, it.texture, it.gridX, it.gridY)
+            at(it.group) to PageTile(it.id, "task", it.name, size(it.tileSize), it.iconName, it.iconColor, it.texture, it.gridX, it.gridY, hidden = it.hidden)
         }
         val readouts = database.readoutDao().getByZone(zoneId).map {
-            at(it.group) to PageTile(it.id, "readout", it.name, size(it.tileSize), it.iconName, it.iconColor, it.texture, it.gridX, it.gridY)
+            at(it.group) to PageTile(it.id, "readout", it.name, size(it.tileSize), it.iconName, it.iconColor, it.texture, it.gridX, it.gridY, hidden = it.hidden)
         }
         return tools + variables + routines + tasks + readouts
     }
@@ -171,33 +171,33 @@ class PageLayout(private val context: Context) {
                     }
                 }
                 type.refuseConfig(config, tool.id, context)?.let { throw Refusal(it) }
-                val updated = tool.copy(config_json = config.toString(), grid_x = tile.column, grid_y = tile.row)
-                if (JsonUtils.toMap(JSONObject(tool.config_json)) != JsonUtils.toMap(config) || updated.grid_x != tool.grid_x || updated.grid_y != tool.grid_y) {
+                val updated = tool.copy(config_json = config.toString(), grid_x = tile.column, grid_y = tile.row, hidden = tile.hidden)
+                if (JsonUtils.toMap(JSONObject(tool.config_json)) != JsonUtils.toMap(config) || updated.grid_x != tool.grid_x || updated.grid_y != tool.grid_y || updated.hidden != tool.hidden) {
                     toWrite += { writes.updateTool(updated.copy(updated_at = now)) }
                 }
             } ?: variables[tile.id]?.let { variable ->
                 noItems(variable.label, changes)
                 val look = looked(VariableLook.SPEC, variable.iconName, variable.iconColor, variable.texture, variable.tileSize, changes)
                 val icon = look.icon ?: throw Refusal(s.shared("page_error_value").format(Looks.ICON, "null"))
-                val updated = variable.copy(group = tile.section, iconName = icon, iconColor = look.color, texture = look.texture, tileSize = look.size, gridX = tile.column, gridY = tile.row)
+                val updated = variable.copy(group = tile.section, iconName = icon, iconColor = look.color, texture = look.texture, tileSize = look.size, gridX = tile.column, gridY = tile.row, hidden = tile.hidden)
                 if (updated != variable) toWrite += { writes.updateVariable(updated.copy(updatedAt = now)) }
             } ?: routines[tile.id]?.let { routine ->
                 noItems(routine.name, changes)
                 val look = looked(RoutineSettings.LOOK, routine.iconName, routine.iconColor, routine.texture, routine.tileSize, changes)
                 val icon = look.icon ?: throw Refusal(s.shared("page_error_value").format(Looks.ICON, "null"))
-                val updated = routine.copy(group = tile.section, iconName = icon, iconColor = look.color, texture = look.texture, tileSize = look.size, gridX = tile.column, gridY = tile.row)
+                val updated = routine.copy(group = tile.section, iconName = icon, iconColor = look.color, texture = look.texture, tileSize = look.size, gridX = tile.column, gridY = tile.row, hidden = tile.hidden)
                 if (updated != routine) toWrite += { writes.updateRoutine(updated.copy(updatedAt = now)) }
             } ?: tasks[tile.id]?.let { task ->
                 noItems(task.name, changes)
                 val look = looked(TaskSettings.LOOK, task.iconName, task.iconColor, task.texture, task.tileSize, changes)
                 val icon = look.icon ?: throw Refusal(s.shared("page_error_value").format(Looks.ICON, "null"))
-                val updated = task.copy(group = tile.section, iconName = icon, iconColor = look.color, texture = look.texture, tileSize = look.size, gridX = tile.column, gridY = tile.row)
+                val updated = task.copy(group = tile.section, iconName = icon, iconColor = look.color, texture = look.texture, tileSize = look.size, gridX = tile.column, gridY = tile.row, hidden = tile.hidden)
                 if (updated != task) toWrite += { writes.updateTask(updated.copy(updatedAt = now)) }
             } ?: readouts[tile.id]?.let { readout ->
                 noItems(readout.name, changes)
                 val look = looked(ReadoutSettings.LOOK, readout.iconName, readout.iconColor, readout.texture, readout.tileSize, changes)
                 val icon = look.icon ?: throw Refusal(s.shared("page_error_value").format(Looks.ICON, "null"))
-                val updated = readout.copy(group = tile.section, iconName = icon, iconColor = look.color, texture = look.texture, tileSize = look.size, gridX = tile.column, gridY = tile.row)
+                val updated = readout.copy(group = tile.section, iconName = icon, iconColor = look.color, texture = look.texture, tileSize = look.size, gridX = tile.column, gridY = tile.row, hidden = tile.hidden)
                 if (updated != readout) toWrite += { writes.updateReadout(updated.copy(updatedAt = now)) }
             } ?: throw IllegalStateException("tile ${tile.id} is not of zone $zoneId")
         }
@@ -219,7 +219,7 @@ class PageLayout(private val context: Context) {
             if (updated.tile_size != zone.tile_size) {
                 val homeGroups = AppConfigService(context).getZoneGroups()
                 val zones = database.zoneDao().getAllZones()
-                val resized = Grid.resize(ZonePositions.tiles(zones, homeGroups, ZonePositions.section(zone.group, homeGroups)), zone.id, ZonePositions.size(updated))
+                val resized = Grid.resize(ZonePositions.tiles(zones, homeGroups, ZonePositions.part(zone, homeGroups)), zone.id, ZonePositions.size(updated))
                 ZonePositions.moved(zones.filter { it.id != zone.id }, resized).forEach { writes.moveZone(it.id, it.grid_x, it.grid_y) }
                 resized.single { it.id == zone.id }.let { placed = updated.copy(grid_x = it.column, grid_y = it.row) }
             }
@@ -236,7 +236,7 @@ class PageLayout(private val context: Context) {
             val zone = zones[tile.id] ?: throw IllegalStateException("zone ${tile.id}")
             noItems(zone.name, tile.changes)
             val look = looked(ZoneSettings.LOOK, zone.icon_name, zone.icon_color, zone.texture, zone.tile_size, tile.changes)
-            val updated = zone.copy(group = tile.section, icon_name = look.icon, icon_color = look.color, texture = look.texture, tile_size = look.size, grid_x = tile.column, grid_y = tile.row)
+            val updated = zone.copy(group = tile.section, icon_name = look.icon, icon_color = look.color, texture = look.texture, tile_size = look.size, grid_x = tile.column, grid_y = tile.row, hidden = tile.hidden)
             if (updated.group != null && updated.group !in arranged.groups) throw IllegalStateException("zone ${tile.id}: group ${updated.group}")
             checkZone(updated)?.let { throw Refusal(it) }
             if (updated != zone) toWrite += { writes.updateZone(updated.copy(updated_at = now)) }

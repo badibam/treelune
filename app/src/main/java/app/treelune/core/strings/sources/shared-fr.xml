@@ -1546,6 +1546,9 @@
     <string name="action_record">Enregistrer</string>
     <string name="action_device">Depuis le téléphone</string>
     <string name="action_arrange">Disposer</string>
+    <string name="action_hidden_tiles">Tuiles cachées</string>
+    <string name="action_hide">Cacher</string>
+    <string name="action_show">Montrer</string>
     <string name="grid_leave_title">Quitter la zone ?</string>
     <string name="grid_leave_message">Le déplacement en cours sera annulé.</string>
     <string name="action_repeat">Encore</string>
@@ -3431,6 +3434,9 @@
     <string name="event_none">Aucun pour l\'instant : un événement se crée ici, ou là où une Tâche ou une routine en choisit un (« Nouvel événement… »).</string>
     <string name="grid_mode_title">Organisation</string>
     <string name="grid_mode_hint">Touche une tuile pour la déplacer</string>
+    <!-- The hidden part of a section, under it: the tiles of its group hidden from the page -->
+    <string name="label_hidden_part">Cachées</string>
+    <string name="message_no_hidden_tiles">Descends une tuile ici, ou touche « Cacher », pour la cacher</string>
     <string name="grid_mode_done">Terminer</string>
     <string name="ai_read_user_contents">Contenu des zones lu</string>
     <string name="ai_read_user_contents_of">« %1$s » : contenu lu</string>

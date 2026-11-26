@@ -78,6 +78,52 @@ class SectionCrossingServiceTest {
     }
 
     @Test
+    fun `a tile hidden in its group's hidden part, placed there among the hidden ones, the shown grid without it, shown again by undo`() = runBlocking<Unit> {
+        val zone = ok("zones.create", mapOf("name" to "Hiding", "tool_groups" to listOf("A")))["zone_id"] as String
+        val kept = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to "notes", "config" to mapOf("name" to "Kept", "group" to "A", "tile_size" to "4x1")))["tool_instance_id"] as String
+        val hidden = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to "notes", "config" to mapOf("name" to "Hidden", "group" to "A", "tile_size" to "4x1")))["tool_instance_id"] as String
+        assertEquals(0 to 1, database.toolInstanceDao().getToolInstanceById(hidden)!!.let { it.grid_x to it.grid_y })
+
+        // Down into A's hidden part: hidden, its place counted there, its group kept
+        ok("zones.place_section", mapOf("zone_id" to zone, "sections" to listOf(
+            mapOf("group" to "A", "places" to mapOf(kept to place(0, 0))),
+            mapOf("group" to "A", "hidden" to true, "places" to mapOf(hidden to place(0, 0)))
+        )))
+        val stored = database.toolInstanceDao().getToolInstanceById(hidden)!!
+        assertTrue(stored.hidden)
+        assertEquals("A", JSONObject(stored.config_json).getString("group"))
+        assertEquals(0 to 0, stored.grid_x to stored.grid_y)
+
+        // A tile created after arrives in the shown grid, under the one kept, never over the hidden one's place
+        val later = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to "notes", "config" to mapOf("name" to "Later", "group" to "A", "tile_size" to "4x1")))["tool_instance_id"] as String
+        assertEquals(0 to 1, database.toolInstanceDao().getToolInstanceById(later)!!.let { it.grid_x to it.grid_y })
+        assertFalse(database.toolInstanceDao().getToolInstanceById(later)!!.hidden)
+
+        // What the AI reads marks it hidden, after the shown ones
+        val plan = ok("zones.page_plan", mapOf("zone_id" to zone))["plan"] as String
+        assertTrue(plan, plan.contains("hidden part:"))
+        assertTrue(plan, Regex("""«Hidden» 4x1 .* hidden$""", RegexOption.MULTILINE).containsMatchIn(plan))
+    }
+
+    @Test
+    fun `a tile hidden by the AI's arrangement, and shown again`() = runBlocking<Unit> {
+        val zone = ok("zones.create", mapOf("name" to "Arranged hiding", "tool_groups" to listOf("A")))["zone_id"] as String
+        ok("tools.create", mapOf("zone_id" to zone, "tooltype" to "notes", "config" to mapOf("name" to "One", "group" to "A", "tile_size" to "4x1")))
+        val two = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to "notes", "config" to mapOf("name" to "Two", "group" to "A", "tile_size" to "4x1")))["tool_instance_id"] as String
+        fun print(plan: String) = plan.lineSequence().first().removePrefix("plan ")
+        val before = ok("zones.page_plan", mapOf("zone_id" to zone))["plan"] as String
+        ok("zones.arrange", mapOf("zone_id" to zone, "plan" to print(before), "sections" to listOf(
+            mapOf("name" to "A", "tiles" to listOf("T1", mapOf("tile" to "T2", "hidden" to true)))
+        )))
+        assertTrue(database.toolInstanceDao().getToolInstanceById(two)!!.let { it.hidden && it.grid_x == 0 && it.grid_y == 0 })
+        val after = ok("zones.page_plan", mapOf("zone_id" to zone))["plan"] as String
+        ok("zones.arrange", mapOf("zone_id" to zone, "plan" to print(after), "sections" to listOf(
+            mapOf("name" to "A", "tiles" to listOf("T1", mapOf("tile" to "T2", "hidden" to false)))
+        )))
+        assertTrue(database.toolInstanceDao().getToolInstanceById(two)!!.let { !it.hidden && it.grid_y == 1 })
+    }
+
+    @Test
     fun `a zone crosses into another group of the home screen`() = runBlocking<Unit> {
         val held = ((ok("app_config.get", mapOf("category" to "main_screen"))["settings"] as Map<*, *>)["zone_groups"] as? List<*>).orEmpty()
             .map { it as String }.filter { it != "Near" && it != "Far" }

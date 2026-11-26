@@ -424,6 +424,7 @@ class VariableService(private val context: Context) : ExecutableService {
             "tile_size" to entity.tileSize,
             "grid_x" to entity.gridX,
             "grid_y" to entity.gridY,
+            "hidden" to entity.hidden,
             "definition" to JsonUtils.toMap(definition),
             "tools_read" to toolsRead(entity, dao.getAll().associateBy { it.id }).toList()
         )
