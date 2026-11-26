@@ -128,7 +128,7 @@ object AgendaToolType : ToolTypeContract {
      * What the schema cannot say: a whole day lasts days, an event at a time a duration, never
      * both; and every reminder reads as a relative instant.
      */
-    override suspend fun refuseConfig(config: JSONObject, context: Context): String? {
+    override suspend fun refuseConfig(config: JSONObject, toolId: String?, context: Context): String? {
         val s = s(context)
         AgendaSeries.of(config).forEach { series ->
             val raw = config.getJSONArray(SERIES_LIST).let { list -> (0 until list.length()).map { list.getJSONObject(it) }.first { it.optString("key") == series.key } }

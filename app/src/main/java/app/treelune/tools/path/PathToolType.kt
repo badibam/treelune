@@ -174,7 +174,27 @@ object PathToolType : ToolTypeContract {
         return completed
     }
 
-    override suspend fun refuseConfig(config: JSONObject, context: Context): String? = PathCheck.refuse(config) { s(context).tool(it) }
+    override suspend fun refuseConfig(config: JSONObject, toolId: String?, context: Context): String? =
+        PathCheck.refuse(config) { s(context).tool(it) } ?: toolId?.let { refuseLoops(context, it, config) }
+
+    /**
+     * Why [config] cannot be the grammar of the Path [toolId] as its open runs stand: a rule that
+     * comes to read a link type whose links already loop there, the loop named. A closed run is
+     * computed no more, its loops harmless.
+     */
+    private suspend fun refuseLoops(context: Context, toolId: String, config: JSONObject): String? {
+        val grammar = PathGrammar.fromJson(config)
+        val read = PathOrder.linkTypesRead(grammar)
+        if (read.isEmpty()) return null
+        val path = PathRead.of(context, toolId, config)
+        for (root in path.runs().filter { !path.isClosed(it) }) {
+            val loop = PathOrder.of(path.stages.filter { it.run == root.id }, read) as? PathOrder.Result.Loop ?: continue
+            val types = read.filter { type -> loop.stages.any { stage -> stage.links.any { it.type == type && loop.stages.any { o -> o.id == it.from } } } }
+            val names = types.map { type -> grammar.linkTypes.firstOrNull { it.key == type }?.name ?: type }
+            return s(context).tool("path_check_loop").format(names.joinToString(", "), loop.stages.joinToString(", ") { it.name })
+        }
+        return null
+    }
 
     override fun conditionSources(base: app.treelune.core.conditions.ConfigConditions.Sources, config: JSONObject, context: Context): app.treelune.core.conditions.ConfigConditions.Sources =
         PathConditionSources(base, completeConfig(config, null)) { s(context).tool(it) }

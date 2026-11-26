@@ -152,4 +152,26 @@ class PathServiceTest {
         assertTrue(next.id != first)
         assertEquals(listOf("Stretch"), read.stages.filter { it.run == next.id && !it.isRoot }.map { it.name })
     }
+
+    @Test
+    fun `links looping freely while no rule reads their type, a config coming to read it refused, the loop named`() = runBlocking {
+        val zone = ok("zones.create", mapOf("name" to "Guitar"))["zone_id"] as String
+        fun config(rule: String?) = json("""{"name": "Guitar", "root_kind": "tree", "link_types": [{"key": "see", "name": "See also"}], "kinds": [
+            {"name": "Tree", "key": "tree", "contains": ["skill"], "states": [{"key": "open", "name": "Open"}]},
+            {"name": "Skill", "key": "skill", "states": [{"key": "done", "name": "Done", "manual": true}, ${rule?.let { "{\"key\": \"ready\", \"name\": \"Ready\", \"when\": $it}," } ?: ""} {"key": "todo", "name": "To do"}]}]}""")
+        val path = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to PathRows.TOOLTYPE, "config" to config(null)))["tool_instance_id"] as String
+        ok("path.start", mapOf("tool_instance_id" to path, "name" to "Spring"))
+        // Each waits for the other through « See also », which no rule reads: drawn, never computed
+        ok("path.write_plan", mapOf("tool_instance_id" to path, "stages" to listOf(
+            mapOf("key" to "a", "kind" to "skill", "name" to "Chords", "links" to listOf(mapOf("from" to "b", "type" to "see"))),
+            mapOf("key" to "b", "kind" to "skill", "name" to "Scales", "links" to listOf(mapOf("from" to "a", "type" to "see")))
+        )))
+        val linked = """{"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "self"}, "view": "stages", "filters": [
+            {"left": {"field": "id"}, "op": "in", "right": {"self": "links", "type": "see"}},
+            {"left": {"field": "data.state"}, "op": "in", "right": {"constant": ["done"]}}]}, "reduction": "COUNT"}}"""
+        val refused = coordinator.processUserAction("tools.update", mapOf("tool_instance_id" to path,
+            "config" to config("""{"left": $linked, "op": ">", "right": {"constant": 0}}""")))
+        assertFalse(refused.isSuccess)
+        assertTrue(refused.error, refused.error!!.contains("Chords") && refused.error!!.contains("Scales"))
+    }
 }

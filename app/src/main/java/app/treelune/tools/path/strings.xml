@@ -28,6 +28,7 @@
     <string name="path_check_record_manual">The state %2$s of %1$s is either noted by hand or written by its rule, not both.</string>
     <string name="path_check_note_if">The state %2$s of %1$s says when it may be noted, and it is not noted by hand.</string>
     <string name="path_check_closes_run">The state %2$s of %1$s closes the run, which only a state of the root\'s kind does.</string>
+    <string name="path_check_loop">A rule reads the links “%1$s”, and in an open run these stages already wait for one another through them: %2$s. Remove one of these links first.</string>
     <string name="path_check_unanchored">The rule of the state %2$s of %1$s reads the state of stages without saying which, relative to the stage judged: filter on its content (data.ancestors = self.id), its links (id in self.links of a type) or the stage before it (id = self.previous).</string>
     <string name="path_check_effect_state">An effect of %1$s gives the state “%2$s”, which no kind has.</string>
     <string name="display_name">Path</string>

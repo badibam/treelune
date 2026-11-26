@@ -122,7 +122,7 @@ object FlashcardsToolType : ToolTypeContract {
      * What only reading the app tells: the source is one tool that keeps entries, not a deck; its
      * filters read; every field the deck names is one of its fields, and none a reference.
      */
-    override suspend fun refuseConfig(config: JSONObject, context: Context): String? {
+    override suspend fun refuseConfig(config: JSONObject, toolId: String?, context: Context): String? {
         val s = s(context)
         val deck = try { FlashcardsDeck.of(config) { s.shared(it) } } catch (e: IllegalArgumentException) {
             return s.tool("error_source_reads").format(e.message ?: "")

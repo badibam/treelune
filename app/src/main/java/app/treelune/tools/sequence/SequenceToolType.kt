@@ -394,7 +394,7 @@ object SequenceToolType : ToolTypeContract {
         return completed
     }
 
-    override suspend fun refuseConfig(config: JSONObject, context: Context): String? = when (SequenceVariants.of(config)) {
+    override suspend fun refuseConfig(config: JSONObject, toolId: String?, context: Context): String? = when (SequenceVariants.of(config)) {
         SequenceVariants.STEPS -> SequencePlan.endless(config)?.let { s(context).tool("error_auto_next_without_length").format(it) }
         SequenceVariants.PROGRAMS -> SequenceVariants.programs(config).firstNotNullOfOrNull { program ->
             SequencePlan.endless(program)?.let { s(context).tool("error_program_auto_next_without_length").format(program.optString(SequenceVariants.PROGRAM_NAME), it) }

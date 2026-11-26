@@ -267,7 +267,7 @@ object ChartToolType : ToolTypeContract {
 
     override fun getRowFields(): RowFields = ChartRowFields
 
-    override suspend fun refuseConfig(config: JSONObject, context: Context): String? = ChartCheck(context).refuse(config)
+    override suspend fun refuseConfig(config: JSONObject, toolId: String?, context: Context): String? = ChartCheck(context).refuse(config)
 
     override fun getService(context: Context): ExecutableService? = null
 

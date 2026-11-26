@@ -328,11 +328,12 @@ interface ToolTypeContract {
 
     /**
      * Why [config] may not be stored, beyond what its schema says, or null when it may: what only
-     * reading the app tells, such as a chart's column that none of its sources gives.
+     * reading the app tells, such as a chart's column that none of its sources gives, or what the
+     * tool's own entries say against it ([toolId], null at its creation, when it has none).
      * ToolInstanceService asks it on every create and update, whoever the caller, once the schema
      * holds and the config is complete.
      */
-    suspend fun refuseConfig(config: JSONObject, context: Context): String? = null
+    suspend fun refuseConfig(config: JSONObject, toolId: String?, context: Context): String? = null
 
     /**
      * Why [after] may not replace [before], or null when it may, for a change [byAPerson] or not:

@@ -128,7 +128,7 @@ object SchemaToolType : ToolTypeContract {
     @Composable
     override fun ConfigTools(config: JSONObject, onChange: (JSONObject) -> Unit) = app.treelune.tools.schema.ui.SchemaMermaidSection(config, onChange)
 
-    override suspend fun refuseConfig(config: JSONObject, context: Context): String? = try {
+    override suspend fun refuseConfig(config: JSONObject, toolId: String?, context: Context): String? = try {
         val spec = SchemaSpec.of(config) { s(context).tool(it) }
         // A box's icon is a name of the vocabulary, a former one included
         spec.nodes.firstOrNull { node -> node.icon?.let { app.treelune.core.icons.Icons.storedName(context, it) == null } == true }

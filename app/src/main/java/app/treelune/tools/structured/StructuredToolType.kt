@@ -80,7 +80,7 @@ object StructuredToolType : ToolTypeContract {
             ?: listOf(app.treelune.core.fields.SortKey("name", ascending = true))
 
     /** The default sort names fields of the sheets with an order, each once (EntrySort.parse): a field removed since is named. */
-    override suspend fun refuseConfig(config: JSONObject, context: Context): String? {
+    override suspend fun refuseConfig(config: JSONObject, toolId: String?, context: Context): String? {
         val sort = config.optJSONArray(DEFAULT_SORT)?.takeIf { it.length() > 0 } ?: return null
         val s = Strings.`for`(tool = "structured", context = context)
         val fields = app.treelune.core.fields.EntryFilters.sortableFields(getEntryFields(config, context),

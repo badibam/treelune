@@ -159,7 +159,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             JSONObject(storedConfigJson).optBoolean(app.treelune.core.tools.ToolConfigSettings.VALIDATE_DATA, false), s)?.let { return OperationResult.error(it) }
         checkConfig(toolType, storedConfigJson)?.let { return OperationResult.error(it) }
         refuseFieldValues(toolType, JSONObject(storedConfigJson), null)?.let { return OperationResult.error(it) }
-        ToolTypeManager.getToolType(toolType)?.refuseConfig(JSONObject(storedConfigJson), context)?.let { return OperationResult.error(it) }
+        ToolTypeManager.getToolType(toolType)?.refuseConfig(JSONObject(storedConfigJson), null, context)?.let { return OperationResult.error(it) }
         refuseConditions(toolType, storedConfigJson)?.let { return OperationResult.error(it) }
         app.treelune.core.events.EventPoints.refusal(JSONObject(storedConfigJson), null, context, s)?.let { return OperationResult.error(it) }
 
@@ -332,7 +332,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             closedToAiRefusal(existingTool, JSONObject(configJson))?.let { return OperationResult.error(it) }
             // A config sent without its tile size keeps the one the tool had
             configJson = withTileSize(configJson, JSONObject(existingTool.config_json).getString("tile_size"))
-            ToolTypeManager.getToolType(existingTool.tooltype)?.refuseConfig(JSONObject(configJson), context)?.let { return OperationResult.error(it) }
+            ToolTypeManager.getToolType(existingTool.tooltype)?.refuseConfig(JSONObject(configJson), existingTool.id, context)?.let { return OperationResult.error(it) }
             refuseConditions(existingTool.tooltype, configJson)?.let { return OperationResult.error(it) }
             app.treelune.core.events.EventPoints.refusal(JSONObject(configJson), existingTool.id, context, s)?.let { return OperationResult.error(it) }
         }

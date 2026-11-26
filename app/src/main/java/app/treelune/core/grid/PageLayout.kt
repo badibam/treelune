@@ -170,7 +170,7 @@ class PageLayout(private val context: Context) {
                         config.put(ItemLayout.LINES, lines)
                     }
                 }
-                type.refuseConfig(config, context)?.let { throw Refusal(it) }
+                type.refuseConfig(config, tool.id, context)?.let { throw Refusal(it) }
                 val updated = tool.copy(config_json = config.toString(), grid_x = tile.column, grid_y = tile.row)
                 if (JsonUtils.toMap(JSONObject(tool.config_json)) != JsonUtils.toMap(config) || updated.grid_x != tool.grid_x || updated.grid_y != tool.grid_y) {
                     toWrite += { writes.updateTool(updated.copy(updated_at = now)) }

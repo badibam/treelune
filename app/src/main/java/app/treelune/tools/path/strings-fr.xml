@@ -28,6 +28,7 @@
     <string name="path_check_record_manual">L\'état %2$s de %1$s se note à la main ou s\'inscrit par sa règle, pas les deux.</string>
     <string name="path_check_note_if">L\'état %2$s de %1$s dit quand il peut se noter, et il ne se note pas à la main.</string>
     <string name="path_check_closes_run">L\'état %2$s de %1$s ferme le passage, ce que seul un état de la sorte de la racine fait.</string>
+    <string name="path_check_loop">Une règle lit les liens « %1$s », et dans un passage ouvert ces étapes s\'y attendent déjà l\'une l\'autre : %2$s. Retire d\'abord un de ces liens.</string>
     <string name="path_check_unanchored">La règle de l\'état %2$s de %1$s lit l\'état d\'étapes sans dire lesquelles par rapport à l\'étape jugée : filtre sur son contenu (data.ancestors = self.id), ses liens (id in self.links d\'un type) ou l\'étape d\'avant (id = self.previous).</string>
     <string name="path_check_effect_state">Un effet de %1$s donne l\'état « %2$s », qu\'aucune sorte n\'a.</string>
     <string name="display_name">Parcours</string>
