@@ -45,6 +45,7 @@ Chaque pan de ta vie devient une **zone** : le sport, un projet, un potager, une
 - **Agenda** — Les rendez-vous et les événements à heure, qui passent d'eux-mêmes, avec leurs rappels
 - **Flashcards** — Des cartes à réviser tirées d'un autre outil, chacune revenant juste avant d'être oubliée
 - **Schéma** — Des boîtes et des flèches : une organisation, une boucle, ce qui nourrit quoi
+- **Parcours** — Où tu en es dans ce qui se fait par étapes : un programme, des niveaux, un arbre de compétences, une habitude
 <!-- /tools -->
 
 Chaque outil se règle : ses champs, ses unités, ses rappels, son affichage sur la zone.

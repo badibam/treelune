@@ -45,6 +45,7 @@ Each part of your life becomes a **zone**: training, a project, a vegetable patc
 - **Calendar** — Appointments and events at a time, which pass by themselves, with reminders
 - **Flashcards** — Cards to review drawn from another tool, each coming back just before it is forgotten
 - **Schema** — Boxes and arrows: an organisation, a loop, what feeds what
+- **Path** — Where you stand in what goes by stages: a programme, levels, a skill tree, a habit
 <!-- /tools -->
 
 Each tool can be set up: its fields, its units, its reminders, how it shows on the zone.
