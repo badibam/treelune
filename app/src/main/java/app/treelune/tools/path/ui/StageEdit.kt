@@ -67,6 +67,8 @@ fun StageEdit(toolInstanceId: String, stageId: String, onName: (String) -> Unit,
     LaunchedEffect(toolInstanceId, stageId) {
         try {
             path = PathRead.of(context, toolInstanceId)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             problem = e.message
         }
