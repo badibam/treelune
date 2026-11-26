@@ -160,6 +160,17 @@ sealed class Place {
         override fun parent() = Zone(zoneId)
     }
 
+    /**
+     * A page inside a tool, opened from its screens (ToolTypeContract.PartScreen): [part] is what
+     * its tool type writes to name it (a Path's stage, its plan), read by that tool type alone.
+     */
+    data class ToolPart(val id: String, override val zoneId: String, val part: String) : Place() {
+        override val kind = "tool_part"
+        override val chatButton = true
+        override val parameters get() = listOf(id, zoneId, part)
+        override fun parent() = Tool(id, zoneId)
+    }
+
     /** A tool's configuration: an existing tool's when [toolId] is set, a new one's of [tooltype] otherwise. */
     data class ToolConfig(override val zoneId: String, val tooltype: String, val toolId: String?) : Place() {
         override val kind = "tool_config"
@@ -270,6 +281,7 @@ sealed class Place {
                 "zone" -> Zone(r(1))
                 "zone_config" -> ZoneConfig(r(1))
                 "tool" -> Tool(r(1), r(2))
+                "tool_part" -> ToolPart(r(1), r(2), r(3))
                 "tool_config" -> ToolConfig(r(1), r(2), p(3))
                 "variable" -> Variable(r(1), p(2))
                 "routine" -> Routine(r(1), r(2))

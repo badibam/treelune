@@ -116,6 +116,16 @@ interface ToolTypeContract {
     )
 
     /**
+     * A page inside the tool (Place.ToolPart), which its screens open by LocalToolParts with [part],
+     * a name of its own making (a Path's stage, its plan). It names itself for the breadcrumb by
+     * [onName]; [onGone] takes it off the stack when what it shows is gone (a stage deleted).
+     * A tool type that opens none has none.
+     */
+    @Composable
+    fun PartScreen(toolInstanceId: String, configJson: String, part: String, onName: (String) -> Unit, onBack: () -> Unit, onGone: () -> Unit): Unit =
+        throw IllegalStateException("${this::class.simpleName} has no page inside it: '$part'")
+
+    /**
      * What the second cell of its tile in icons is (docs/design/icon-tiles.md): what its summary
      * says without words — a gesture, a state, what waits counted —, drawn by its tile's Second;
      * [IconSecond.NONE] by default, the icon alone. Known without the tile, for a zone's tile that

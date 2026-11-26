@@ -232,7 +232,8 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
     fun name(text: String) = SideEffect { Navigator.name(place, text) }
 
     // A tool's page lays its ground once its tool is read; a zone's page on its texture, any other on none
-    if (place is Place.Tool) return ToolPlace(place, zone!!.name)
+    if (place is Place.Tool) return ToolPlace(place.id, place.zoneId, place, zone!!.name)
+    if (place is Place.ToolPart) return ToolPlace(place.id, place.zoneId, place, zone!!.name)
     val texture = if (place is Place.Zone) ItemTexture.of(zone!!.texture, zone.icon_name, IconColor.of(zone.icon_color)) else null
     Page(texture) {
         when (place) {
@@ -309,7 +310,7 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                     onDelete = { Navigator.dropZone(place.id) }
                 )
             }
-            is Place.Tool -> throw IllegalStateException("A tool's place lays its own page (ToolPlace)")
+            is Place.Tool, is Place.ToolPart -> throw IllegalStateException("A tool's place lays its own page (ToolPlace)")
             is Place.ToolConfig -> {
                 name(s.shared(if (place.toolId == null) "nav_new_tool" else "nav_configuration"))
                 val toolType = requireNotNull(ToolTypeManager.getToolType(place.tooltype)) { "No tool type '${place.tooltype}'" }
@@ -394,48 +395,65 @@ private fun Page(texture: ItemTexture?, content: @Composable () -> Unit) {
 }
 
 /**
- * A tool's screen, the tool read by its id and read again when its zone's tools change (its
- * config saved). A tool that is not found any more (deleted from its config screen) leaves.
+ * A tool's screen, or a page inside it ([place] a Place.ToolPart), the tool read by its id and read
+ * again when its zone's tools change (its config saved). A tool that is not found any more
+ * (deleted from its config screen) leaves, and its pages with it.
  */
 @Composable
-private fun ToolPlace(place: Place.Tool, zoneName: String) {
+private fun ToolPlace(toolId: String, zoneId: String, place: Place, zoneName: String) {
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     // The entry to open, taken from the stack once and kept by the place across recreation
-    val opening by rememberSaveable(stateSaver = OpenAt.Saver) { mutableStateOf(Navigator.take(place)) }
+    val opening by rememberSaveable(stateSaver = OpenAt.Saver) { mutableStateOf(if (place is Place.Tool) Navigator.take(place) else null) }
     var tool by remember { mutableStateOf<Map<*, *>?>(null) }
     var version by remember { mutableStateOf(0) }
-    LaunchedEffect(place.id, version) {
-        val result = coordinator.processUserAction("tools.get", mapOf("tool_instance_id" to place.id))
+    LaunchedEffect(toolId, version) {
+        val result = coordinator.processUserAction("tools.get", mapOf("tool_instance_id" to toolId))
         if (result.status == CommandStatus.SUCCESS) {
             tool = result.data?.get("tool_instance") as Map<*, *>
         } else {
-            LogManager.ui("ToolPlace: tool ${place.id} not read, leaving its place: ${result.error}", "WARN")
+            LogManager.ui("ToolPlace: tool $toolId not read, leaving its place: ${result.error}", "WARN")
             Navigator.drop(place)
         }
     }
-    LaunchedEffect(place.id) {
+    LaunchedEffect(toolId) {
         DataChangeNotifier.changes.collect { event ->
-            if (event is DataChangeEvent.ToolsChanged && event.zoneId == place.zoneId) version++
+            if (event is DataChangeEvent.ToolsChanged && event.zoneId == zoneId) version++
         }
     }
     val current = tool ?: return
     val tooltype = current["tooltype"] as String
-    SideEffect { Navigator.name(place, current["name"] as String) }
+    if (place is Place.Tool) SideEffect { Navigator.name(place, current["name"] as String) }
+    // A page stacked alone names its tool in the breadcrumb
+    else SideEffect { Navigator.name(Place.Tool(toolId, zoneId), current["name"] as String) }
     val config = JsonUtils.toJSONObject(current["config"] as Map<String, Any?>)
     // The texture as its tile draws it (UI.ToolCard), its type's icon standing for none
     val settings = app.treelune.core.tools.ToolConfigSettings.read(tooltype, config, context)
     val texture = ItemTexture.of(settings.string(app.treelune.core.themes.Texture.KEY), settings.string("icon_name"), IconColor.of(settings.string(IconColor.KEY)))
+    val toolType = ToolTypeManager.getToolType(tooltype) ?: return
+    val parts = remember(toolId, zoneId) { app.treelune.core.tools.ToolParts { Navigator.push(Place.ToolPart(toolId, zoneId, it)) } }
     Page(texture) {
-        app.treelune.core.ui.components.ShownScreen {
-            ToolTypeManager.getToolType(tooltype)?.getUsageScreen(
-                toolInstanceId = place.id,
-                configJson = config.toString(),
-                zoneName = zoneName,
-                onNavigateBack = { Navigator.pop() },
-                onLongClick = { Navigator.push(Place.ToolConfig(place.zoneId, tooltype, place.id)) },
-                openAt = opening
-            )
+        CompositionLocalProvider(app.treelune.core.tools.LocalToolParts provides parts) {
+            app.treelune.core.ui.components.ShownScreen {
+                when (place) {
+                    is Place.ToolPart -> toolType.PartScreen(
+                        toolInstanceId = toolId,
+                        configJson = config.toString(),
+                        part = place.part,
+                        onName = { Navigator.name(place, it) },
+                        onBack = { Navigator.pop() },
+                        onGone = { Navigator.drop(place) }
+                    )
+                    else -> toolType.getUsageScreen(
+                        toolInstanceId = toolId,
+                        configJson = config.toString(),
+                        zoneName = zoneName,
+                        onNavigateBack = { Navigator.pop() },
+                        onLongClick = { Navigator.push(Place.ToolConfig(zoneId, tooltype, toolId)) },
+                        openAt = opening
+                    )
+                }
+            }
         }
     }
 }

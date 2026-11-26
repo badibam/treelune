@@ -9,9 +9,10 @@ home screen, a zone, a tool, the Guide, a routine. A screen of such a place scro
 line hides under the button, or « back to top » never shows, and only a phone shows it.
 
 The places marked in Place.kt are mapped to their screens' files below; a place marked and not
-mapped fails, so that a new place gets its screen named here. A tool place stands for every tool
-type's screen, found from the tool type's getUsageScreen, and for the screens it opens in its
-place (the Journal's entry, a Flashcards session): every composable of the tool's package it
+mapped fails, so that a new place gets its screen named here. A tool place and a page inside a
+tool stand for every tool type's screen, found from the tool type's getUsageScreen and its
+PartScreen, and for the screens it opens in its place (the Journal's entry, a Flashcards
+session): every composable of the tool's package it
 calls, and those they call, is read, and one that scrolls on its own needs the room too. A dialog
 (a function named …Dialog) floats above the button and is not followed; a function that hides
 the button (HideChatButton) needs no room.
@@ -66,8 +67,9 @@ def functions(package):
 
 
 def tool_screens():
-    """Each tool type's screens under the button: the composable its getUsageScreen calls, and
-    the composables of its package reached from it, dialogs left out; by (file, name, body)."""
+    """Each tool type's screens under the button: the composable its getUsageScreen calls, those
+    its PartScreen calls (its pages, Place.ToolPart), and the composables of its package reached
+    from them, dialogs left out; by (file, name, body)."""
     screens = []
     for tool_type in sorted(TOOLS.glob("*/*ToolType.kt")):
         text = tool_type.read_text(encoding="utf-8")
@@ -76,7 +78,12 @@ def tool_screens():
         known = functions(tool_type.parent)
         if called not in known:
             raise SystemExit(f"check_chat_space: no file holds {called}, the screen of {tool_type.parent.name}")
-        seen, todo = set(), [called]
+        roots = [called]
+        if "override fun PartScreen" in text:
+            part = text[text.index("override fun PartScreen"):]
+            part = part[:part.find("\n    }")]
+            roots += [n for n in re.findall(r"\b([A-Z]\w*)\(", part[len("override fun PartScreen("):]) if n in known]
+        seen, todo = set(), roots
         while todo:
             name = todo.pop()
             if name in seen or name.endswith("Dialog"):
@@ -103,6 +110,9 @@ def main():
     problems = []
     checked = set()
     for kind in marked_kinds():
+        # A tool's pages are read with its screens, from its PartScreen
+        if kind == "tool_part":
+            continue
         if kind == "tool":
             for path, name, body in tool_screens():
                 checked.add(path)

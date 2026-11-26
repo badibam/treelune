@@ -69,16 +69,18 @@ object UI {
     // INTERACTIVE
     // =====================================
     
+    /** A button; disabled, a touch on it says [refusal] when given, why it is (a state a Path's stage may not take now). */
     @Composable
     fun Button(
         type: ButtonType,
         size: Size = Size.M,
         state: ComponentState = ComponentState.NORMAL,
+        refusal: String? = null,
         onClick: () -> Unit,
         content: @Composable () -> Unit
     ) {
         val sound = rememberUISound()
-        RefusedWhenDisabled(state != ComponentState.DISABLED) {
+        RefusedWhenDisabled(state != ComponentState.DISABLED, refusal) {
             CurrentTheme.current.Button(type, size, state, { sound(UISignal.CONFIRM); onClick() }, content)
         }
     }
@@ -114,15 +116,16 @@ object UI {
      * What a disabled element is wrapped in: a touch on it is heard, and answered by the refusal
      * sound, in every theme (a touch with no answer reads as a screen that saw nothing). The
      * wrapper is there enabled too, so that an element enabled and disabled in turn stays the same.
+     * A [refusal] given is said too, in the band of the page (Toast).
      */
     @Composable
-    private fun RefusedWhenDisabled(enabled: Boolean, content: @Composable () -> Unit) {
+    private fun RefusedWhenDisabled(enabled: Boolean, refusal: String? = null, content: @Composable () -> Unit) {
         val sound = rememberUISound()
         Box(modifier = Modifier.clickable(
             enabled = !enabled,
             interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
             indication = null,
-            onClick = { sound(UISignal.REFUSE) }
+            onClick = { sound(UISignal.REFUSE); refusal?.let { Toast(it) } }
         )) { content() }
     }
     

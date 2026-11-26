@@ -38,6 +38,8 @@ object GuidePath {
             is Place.ZoneConfig -> t("guide_path_zone_config")
             is Place.CreateZone -> t("guide_path_zone_new")
             is Place.Tool -> t("guide_path_tool", n)
+            // A page inside a tool, touched on its screen by its name
+            is Place.ToolPart -> t("guide_path_settings_page", n)
             is Place.ToolConfig -> t(if (place.toolId != null) "guide_path_tool_config" else "guide_path_tool_new")
             is Place.Variable -> t("guide_path_variable")
             is Place.Routine -> t("guide_path_routine")

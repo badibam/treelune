@@ -20,7 +20,7 @@ class PlaceStackTest {
     private val everyPlace = listOf(
         Place.Home, Place.HomeConfig, Place.Settings, Place.SettingsPage("ai_providers"), Place.Identity("i1"),
         Place.Export, Place.Import("content://com.android.providers/document/primary%3ADownload%2FCuisine.zip"), Place.AIProviderKind, Place.AIProvider("p-1", null, null), Place.AIProvider(null, "openai", "p-1"),
-        Place.CreateZone, course, Place.ZoneConfig("z-course"), runs,
+        Place.CreateZone, course, Place.ZoneConfig("z-course"), runs, Place.ToolPart("t-runs", "z-course", "stage/e-1"),
         Place.ToolConfig("z-course", "tracking", "t-runs"), Place.ToolConfig("z-course", "chart", null),
         Place.Variable("z-course", null), Place.Variable("z-course", "v-1"),
         Place.Routine("a-1", "z-course"), Place.Execution("s-1", "a-1", "z-course"),
