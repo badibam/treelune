@@ -30,3 +30,9 @@ L'idée : une tuile cachée n'apparaît que quand un bouton à bascule, une icô
 - Un repère caché remonte toujours en tête de page s'il y est réglé : cacher sa tuile ne touche pas sa place en tête.
 - L'IA, celle de l'app comme celle du connecteur (`ZONE_CONTENTS`, `app_context`), voit les cachées comme les autres, marquées cachées : une cachée travaille toujours, et l'ignorer ferait recréer ou casser une tuyauterie. Elle peut cacher une tuile, comme elle en déplace en rangeant une page (`docs/design/ai-page-layout.md`).
 - Cacher ne touche que la page : une cachée choisie comme pièce sur la tuile de sa zone y reste, une boîte du Schéma ou un lien qui la vise l'ouvre toujours.
+
+## En cours : une variable à plusieurs valeurs
+
+L'idée : une variable qui rend plusieurs valeurs d'un coup (« Apports du jour » : calories, protéines, glucides), sa série portant plusieurs champs par ligne, qu'un Graphique ou un repère lit ensemble. Aujourd'hui une variable rend une valeur, et sa série (la vue `series`, `VariableSeries`) une ligne par pas avec le seul `data.value`.
+
+- Les termes (`Term` : une constante, une autre variable, une lecture d'entrées) se déclarent une fois dans la variable et chaque valeur a sa formule sur eux : une sélection, sa période et ses filtres écrits une fois au lieu d'être recopiés dans trois variables, chaque terme lu une fois par instant pour toutes les valeurs. Une valeur peut se calculer sur les autres termes partagés (« part des protéines = protéines × 4 / calories »).
