@@ -124,6 +124,7 @@ class BackupService(private val context: Context) : ExecutableService {
             tileSize = item.getString("tile_size"),
             gridX = item.getInt("grid_x"),
             gridY = item.getInt("grid_y"),
+            hidden = item.getBoolean("hidden"),
             // Absent from a backup made before version 115: run alone and opened as a conversation
             usage = item.optString(app.treelune.core.ai.data.RoutineSettings.USAGE).ifEmpty { app.treelune.core.ai.data.RoutineSettings.USAGE_ALONE_OR_CONVERSATION }
         )
@@ -141,6 +142,7 @@ class BackupService(private val context: Context) : ExecutableService {
             group = item.nullableString("group"),
             gridX = item.getInt("grid_x"),
             gridY = item.getInt("grid_y"),
+            hidden = item.getBoolean("hidden"),
             isEnabled = item.getBoolean("is_enabled"),
             scheduleJson = item.nullableString("schedule_json"),
             catchUp = item.nullableString("catch_up"),
@@ -169,6 +171,7 @@ class BackupService(private val context: Context) : ExecutableService {
             put("group", readout.group ?: JSONObject.NULL)
             put("grid_x", readout.gridX)
             put("grid_y", readout.gridY)
+            put("hidden", readout.hidden)
             put("settings_json", readout.settingsJson)
             put("created_at", readout.createdAt)
             put("updated_at", readout.updatedAt)
@@ -186,6 +189,7 @@ class BackupService(private val context: Context) : ExecutableService {
             group = item.nullableString("group"),
             gridX = item.getInt("grid_x"),
             gridY = item.getInt("grid_y"),
+            hidden = item.getBoolean("hidden"),
             settingsJson = item.getString("settings_json"),
             createdAt = item.getLong("created_at"),
             updatedAt = item.getLong("updated_at")
@@ -522,6 +526,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("validate", zone.validate)
                                 put("grid_x", zone.grid_x)
                                 put("grid_y", zone.grid_y)
+                                put("hidden", zone.hidden)
                                 put("created_at", zone.created_at)
                                 put("updated_at", zone.updated_at)
                                 if (zone.tool_groups != null) {
@@ -548,6 +553,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("enabled", instance.enabled)
                                 put("grid_x", instance.grid_x)
                                 put("grid_y", instance.grid_y)
+                                put("hidden", instance.hidden)
                                 put("created_at", instance.created_at)
                                 put("updated_at", instance.updated_at)
                             })
@@ -686,6 +692,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("tile_size", routine.tileSize)
                                 put("grid_x", routine.gridX)
                                 put("grid_y", routine.gridY)
+                                put("hidden", routine.hidden)
                                 put(app.treelune.core.ai.data.RoutineSettings.USAGE, routine.usage)
                                 if (routine.group != null) {
                                     put("group", routine.group)
@@ -710,6 +717,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("tile_size", variable.tileSize)
                                 put("grid_x", variable.gridX)
                                 put("grid_y", variable.gridY)
+                                put("hidden", variable.hidden)
                                 put("definition_json", variable.definitionJson)
                                 put("created_at", variable.createdAt)
                                 put("updated_at", variable.updatedAt)
@@ -763,6 +771,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("group", task.group ?: JSONObject.NULL)
                                 put("grid_x", task.gridX)
                                 put("grid_y", task.gridY)
+                                put("hidden", task.hidden)
                                 put("is_enabled", task.isEnabled)
                                 put("schedule_json", task.scheduleJson ?: JSONObject.NULL)
                                 put("catch_up", task.catchUp ?: JSONObject.NULL)
@@ -1173,6 +1182,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         tile_size = item.getString("tile_size"),
                         grid_x = item.getInt("grid_x"),
                         grid_y = item.getInt("grid_y"),
+                        hidden = item.getBoolean("hidden"),
                         created_at = item.getLong("created_at"),
                         updated_at = item.getLong("updated_at"),
                         tool_groups = item.optString("tool_groups", null),
@@ -1202,6 +1212,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         enabled = item.optBoolean("enabled", true),
                         grid_x = item.getInt("grid_x"),
                         grid_y = item.getInt("grid_y"),
+                        hidden = item.getBoolean("hidden"),
                         created_at = item.getLong("created_at"),
                         updated_at = item.getLong("updated_at")
                     )
@@ -1400,6 +1411,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         tileSize = item.getString("tile_size"),
                         gridX = item.getInt("grid_x"),
                         gridY = item.getInt("grid_y"),
+                        hidden = item.getBoolean("hidden"),
                         definitionJson = item.getString("definition_json"),
                         createdAt = item.getLong("created_at"),
                         updatedAt = item.getLong("updated_at")
@@ -1659,6 +1671,12 @@ class BackupService(private val context: Context) : ExecutableService {
             }
             if (fromVersion < 122 && toVersion >= 122) {
                 app.treelune.core.versioning.SchemaFoldAtV122.backup(data)
+            }
+            if (fromVersion < 123 && toVersion >= 123) {
+                // No tile was hidden
+                listOf("zones", "tool_instances", "routines", "variables", "tasks", "readouts").forEach { key ->
+                    data.optJSONArray(key)?.let { rows -> for (i in 0 until rows.length()) rows.getJSONObject(i).put("hidden", false) }
+                }
             }
 
             // Transform app settings

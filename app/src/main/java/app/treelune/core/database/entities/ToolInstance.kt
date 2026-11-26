@@ -27,5 +27,7 @@ data class ToolInstance(
     val grid_x: Int,
     val grid_y: Int,
     val created_at: Long = System.currentTimeMillis(),
-    val updated_at: Long = System.currentTimeMillis()
+    val updated_at: Long = System.currentTimeMillis(),
+    /** Hidden from its page until the page shows its hidden tiles: placed in its section's hidden part, grid_x and grid_y counted there (docs/design/phone-inbox.md). */
+    val hidden: Boolean = false
 )

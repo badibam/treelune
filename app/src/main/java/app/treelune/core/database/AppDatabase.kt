@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 122
+        const val VERSION = 123
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2363,6 +2363,24 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * A tile may be hidden from its page (docs/design/phone-inbox.md, « Cacher une tuile »): a
+         * column `hidden` on each table of what a page's grid holds, none hidden, the history's
+         * copies with it.
+         */
+        private val MIGRATION_122_123 = object : ConnectionMigration(122, 123) {
+            override fun migrate(database: MigrationDatabase) {
+                HIDDEN_TABLES.forEach { table ->
+                    database.execSQL("ALTER TABLE $table ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0")
+                    app.treelune.core.versioning.HistoryCopies.rewrite(database, table) { copy -> copy.apply { if (!has("hidden")) put("hidden", 0) } }
+                }
+                LogManager.database("MIGRATION 122->123: ${HIDDEN_TABLES.size} tables with their tiles' hidden column", "INFO")
+            }
+        }
+
+        /** The tables whose rows are tiles of a page, each with its column `hidden` from v123. */
+        private val HIDDEN_TABLES = listOf("zones", "tool_instances", "variables", "routines", "tasks", "readouts")
+
         /** A Schema box's `folded` become `fold`, one of three values: see SchemaFoldAtV122. */
         private val MIGRATION_121_122 = object : ConnectionMigration(121, 122) {
             override fun migrate(database: MigrationDatabase) {
@@ -3769,7 +3787,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_118_119,
                     MIGRATION_119_120,
                     MIGRATION_120_121,
-                    MIGRATION_121_122
+                    MIGRATION_121_122,
+                    MIGRATION_122_123
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

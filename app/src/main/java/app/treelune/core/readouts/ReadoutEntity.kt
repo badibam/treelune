@@ -39,7 +39,9 @@ data class ReadoutEntity(
     /** Its sentence, values, target, colours and places, ReadoutSettings' stored form */
     @ColumnInfo(name = "settings_json") val settingsJson: String,
     @ColumnInfo(name = "created_at") val createdAt: Long,
-    @ColumnInfo(name = "updated_at") val updatedAt: Long
+    @ColumnInfo(name = "updated_at") val updatedAt: Long,
+    /** Hidden from its page until the page shows its hidden tiles: placed in its section's hidden part, grid_x and grid_y counted there (docs/design/phone-inbox.md). */
+    val hidden: Boolean = false
 )
 
 @Dao

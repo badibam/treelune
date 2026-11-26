@@ -58,5 +58,7 @@ data class Zone(
      */
     val tile_pieces: String? = null,
     /** Whether its tile draws its pieces in icons rather than in text (TilePieces.ICONS, ZoneTileBody). */
-    val tile_pieces_icons: Boolean = false
+    val tile_pieces_icons: Boolean = false,
+    /** Hidden from its page until the page shows its hidden tiles: placed in its section's hidden part, grid_x and grid_y counted there (docs/design/phone-inbox.md). */
+    val hidden: Boolean = false
 )

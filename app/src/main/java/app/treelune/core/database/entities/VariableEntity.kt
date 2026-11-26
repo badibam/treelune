@@ -49,5 +49,7 @@ data class VariableEntity(
     @ColumnInfo(name = "grid_y") val gridY: Int,
     @ColumnInfo(name = "definition_json") val definitionJson: String,
     @ColumnInfo(name = "created_at") val createdAt: Long,
-    @ColumnInfo(name = "updated_at") val updatedAt: Long
+    @ColumnInfo(name = "updated_at") val updatedAt: Long,
+    /** Hidden from its page until the page shows its hidden tiles: placed in its section's hidden part, grid_x and grid_y counted there (docs/design/phone-inbox.md). */
+    val hidden: Boolean = false
 )

@@ -47,7 +47,9 @@ data class TaskEntity(
     /** What starts it beside its schedule, Triggers' stored form; null when nothing does */
     @ColumnInfo(name = "triggers_json") val triggersJson: String? = null,
     /** The event a run that ends well emits (EventPoints), its id; null for none */
-    @ColumnInfo(name = "emit_event") val emitEvent: String? = null
+    @ColumnInfo(name = "emit_event") val emitEvent: String? = null,
+    /** Hidden from its page until the page shows its hidden tiles: placed in its section's hidden part, grid_x and grid_y counted there (docs/design/phone-inbox.md). */
+    val hidden: Boolean = false
 )
 
 /**

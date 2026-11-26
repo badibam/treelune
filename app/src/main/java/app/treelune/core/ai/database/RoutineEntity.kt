@@ -78,5 +78,7 @@ data class RoutineEntity(
      */
     @ColumnInfo(name = "invited_for") val invitedFor: Long? = null,
     /** Whether its invitation waits for its conversation to be opened: its tile marked meanwhile */
-    @ColumnInfo(name = "invitation_waiting") val invitationWaiting: Boolean = false
+    @ColumnInfo(name = "invitation_waiting") val invitationWaiting: Boolean = false,
+    /** Hidden from its page until the page shows its hidden tiles: placed in its section's hidden part, grid_x and grid_y counted there (docs/design/phone-inbox.md). */
+    val hidden: Boolean = false
 )
