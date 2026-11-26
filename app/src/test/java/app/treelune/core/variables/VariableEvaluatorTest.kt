@@ -41,13 +41,34 @@ class VariableEvaluatorTest {
     })
 
     private fun formula(name: String, text: String, terms: Map<String, Term>, type: FieldType = FieldType.NUMERIC) =
-        StoredVariable(name, name, "z", VariableDefinition.Computed(text, terms, field(type)))
+        StoredVariable(name, name, "z", VariableDefinition(terms, listOf(VariableDefinition.Value("value", null, field(type), VariableDefinition.Expression.Computed(text)))))
 
-    private fun value(variable: StoredVariable, at: Long = 1000L): Any =
-        (runBlocking { evaluator.evaluate(variable, at) } as VariableValue.Value).value
+    private fun constant(name: String, value: Double) =
+        StoredVariable(name, name, "z", VariableDefinition(emptyMap(), listOf(VariableDefinition.Value("value", null, field(FieldType.NUMERIC), VariableDefinition.Expression.Constant(value)))))
+
+    private fun value(variable: StoredVariable, at: Long = 1000L, key: String = "value"): Any =
+        (runBlocking { evaluator.evaluate(variable, key, at) } as VariableValue.Value).value
 
     private fun causes(variable: StoredVariable): List<Cause> =
-        (runBlocking { evaluator.evaluate(variable, 1000L) } as VariableValue.Failed).causes
+        (runBlocking { evaluator.evaluate(variable, "value", 1000L) } as VariableValue.Failed).causes
+
+    @Test
+    fun `a variable of several values reads the terms they share once per instant, each value by its key`() {
+        readings["meals"] = Outcome.Value(2000.0)
+        readings["sport"] = Outcome.Value(80.0)
+        fun computed(key: String, label: String, text: String) = VariableDefinition.Value(key, label, field(FieldType.NUMERIC), VariableDefinition.Expression.Computed(text))
+        val intake = StoredVariable("intake", "intake", "z", VariableDefinition(
+            mapOf("kcal" to Term.Reading(meals, "data.kcal", Reduction.SUM), "protein" to Term.Reading(sport, "data.protein", Reduction.SUM)),
+            listOf(computed("calories", "Calories", "kcal"), computed("protein", "Protein", "protein"), computed("protein_share", "Protein share", "protein × 4 ÷ kcal × 100"))
+        ))
+        assertEquals(2000.0, value(intake, key = "calories"))
+        assertEquals(16.0, value(intake, key = "protein_share"))
+        // Each term read once at that instant for all three values
+        assertEquals(listOf(1000L, 1000L), readAt)
+        // Another variable reads one of them by its key; a key it has not fails, said
+        assertEquals(80.0, value(formula("p", "{var:intake.protein}", emptyMap()).also { variables["intake"] = intake }))
+        assertEquals(Cause.UNKNOWN_VALUE, (runBlocking { evaluator.evaluate(intake, "fat", 1000L) } as VariableValue.Failed).causes.single().reason)
+    }
 
     @Test
     fun `a variable read by several others is computed once per instant, its entries read once`() {
@@ -56,8 +77,8 @@ class VariableEvaluatorTest {
         variables["eaten"] = formula("eaten", "m", mapOf("m" to Term.Reading(meals, "data.kcal", Reduction.SUM)))
         variables["spent"] = formula("spent", "s", mapOf("s" to Term.Reading(sport, "data.kcal", Reduction.SUM)))
         // Two shares of one total, as a chart's columns read them
-        val eatenShare = formula("eaten_share", "{var:eaten} / ({var:eaten} + {var:spent}) * 100", emptyMap())
-        val spentShare = formula("spent_share", "{var:spent} / ({var:eaten} + {var:spent}) * 100", emptyMap())
+        val eatenShare = formula("eaten_share", "{var:eaten.value} / ({var:eaten.value} + {var:spent.value}) * 100", emptyMap())
+        val spentShare = formula("spent_share", "{var:spent.value} / ({var:eaten.value} + {var:spent.value}) * 100", emptyMap())
         assertEquals(80.0, value(eatenShare))
         assertEquals(20.0, value(spentShare))
         // Each reading once at that instant, however many formulas name its variable
@@ -69,7 +90,7 @@ class VariableEvaluatorTest {
 
     @Test
     fun `a constant is its value, a formula its terms read at the instant`() {
-        assertEquals(2100.0, value(StoredVariable("goal", "goal", "z", VariableDefinition.Constant(2100.0, field(FieldType.NUMERIC)))))
+        assertEquals(2100.0, value(constant("goal", 2100.0)))
         readings["meals"] = Outcome.Value(1800.0)
         readings["sport"] = Outcome.Value(300.0)
         val bilan = formula("bilan", "mange - depense", mapOf(
@@ -92,8 +113,8 @@ class VariableEvaluatorTest {
     fun `another variable is read at the same instant, by its id`() {
         readings["meals"] = Outcome.Value(1800.0)
         variables["mange"] = formula("mange", "total", mapOf("total" to Term.Reading(meals, "data.kcal", Reduction.SUM)))
-        variables["goal"] = StoredVariable("goal", "goal", "z", VariableDefinition.Constant(2100.0, field(FieldType.NUMERIC)))
-        assertEquals(300.0, value(formula("reste", "{var:goal} - {var:mange}", emptyMap())))
+        variables["goal"] = constant("goal", 2100.0)
+        assertEquals(300.0, value(formula("reste", "{var:goal.value} - {var:mange.value}", emptyMap())))
     }
 
     @Test
@@ -115,9 +136,9 @@ class VariableEvaluatorTest {
 
     @Test
     fun `a variable deleted or reached again fails, never loops`() {
-        assertEquals(Cause.VARIABLE_DELETED, causes(formula("x", "{var:gone} + 1", emptyMap())).single().reason)
-        variables["a"] = formula("a", "{var:b}", emptyMap())
-        variables["b"] = formula("b", "{var:a}", emptyMap())
+        assertEquals(Cause.VARIABLE_DELETED, causes(formula("x", "{var:gone.value} + 1", emptyMap())).single().reason)
+        variables["a"] = formula("a", "{var:b.value}", emptyMap())
+        variables["b"] = formula("b", "{var:a.value}", emptyMap())
         assertEquals(Cause.LOOP, causes(variables.getValue("a")).single().reason)
     }
 

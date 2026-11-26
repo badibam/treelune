@@ -6,15 +6,17 @@ package app.treelune.core.variables
  * code (docs/DATA.md, « Variables »).
  *
  * A name is a word of letters, digits and `_`, accents included (`quantité`), possibly dotted to
- * read through a reference (`aliment.kcal_100g`). A variable named in a stored formula is written
- * `{var:ID}`, which the text shows under its current name. A function is stored and read by the AI
+ * read through a reference (`aliment.kcal_100g`). A variable's value named in a stored formula is
+ * written `{var:ID.key}`, its key always there, even for a variable of one value, so that a value
+ * added later makes nothing that read it ambiguous; the text shows it under the variable's current
+ * name, followed by `.key` for a variable of several values. A function is stored and read by the AI
  * under its English name (`hours()`); the screen shows it and accepts it in the app's language
  * (`heures()`), from the strings.
  */
 sealed interface Formula {
     data class Number(val value: Double) : Formula
     data class Name(val name: String) : Formula
-    data class VariableRef(val id: String) : Formula
+    data class VariableRef(val id: String, val key: String) : Formula
     data class Negate(val operand: Formula) : Formula
     data class Binary(val op: Operator, val left: Formula, val right: Formula) : Formula
     data class Call(val function: Function, val argument: Formula) : Formula
@@ -96,17 +98,29 @@ sealed interface Formula {
         is Call -> Call(function, argument.mapNames(replace))
     }
 
-    /** The formula written back as text, a variable by [variableName], a function by [functionName] (its English name by default). */
-    fun text(variableName: (String) -> String, functionName: (Function) -> String = { it.canonical }): String = write(this, variableName, functionName, 0)
+    /** Every variable's value the formula reads. */
+    fun variableRefs(): List<VariableRef> = when (this) {
+        is Number, is Name, is Now -> emptyList()
+        is VariableRef -> listOf(this)
+        is Negate -> operand.variableRefs()
+        is Binary -> left.variableRefs() + right.variableRefs()
+        is Call -> argument.variableRefs()
+    }
+
+    /** The formula written back as text, a variable's value by [variableName], a function by [functionName] (its English name by default). */
+    fun text(variableName: (VariableRef) -> String, functionName: (Function) -> String = { it.canonical }): String = write(this, variableName, functionName, 0)
 
     companion object {
         /** Reads [text], or says where it does not read; a function by its English name, or by one of [aliases]. */
         fun parse(text: String, aliases: Map<String, Function> = emptyMap()): Parsed = Parser(text, aliases).parse()
 
-        private fun write(node: Formula, variableName: (String) -> String, functionName: (Function) -> String, parent: Int): String = when (node) {
+        /** A variable's value as a stored formula writes it. */
+        fun stored(ref: VariableRef): String = "{var:${ref.id}.${ref.key}}"
+
+        private fun write(node: Formula, variableName: (VariableRef) -> String, functionName: (Function) -> String, parent: Int): String = when (node) {
             is Number -> if (node.value % 1.0 == 0.0 && kotlin.math.abs(node.value) < 1e15) node.value.toLong().toString() else node.value.toString()
             is Name -> node.name
-            is VariableRef -> variableName(node.id)
+            is VariableRef -> variableName(node)
             is Negate -> "-" + write(node.operand, variableName, functionName, 3)
             is Call -> functionName(node.function) + "(" + write(node.argument, variableName, functionName, 0) + ")"
             is Now -> functionName(Function.NOW) + "()"
@@ -221,9 +235,11 @@ private class Parser(private val text: String, private val aliases: Map<String, 
         val start = at
         val end = text.indexOf('}', start)
         val inside = if (end < 0) "" else text.substring(start + 1, end)
-        if (!inside.startsWith("var:") || inside.length <= 4) throw Stop(start, Formula.Problem.UNEXPECTED, "{")
+        // `var:ID.key`, the key after the last dot
+        val ref = inside.removePrefix("var:")
+        if (!inside.startsWith("var:") || '.' !in ref || ref.startsWith('.') || ref.endsWith('.')) throw Stop(start, Formula.Problem.UNEXPECTED, "{")
         at = end + 1
-        return Formula.VariableRef(inside.removePrefix("var:"))
+        return Formula.VariableRef(ref.substringBeforeLast('.'), ref.substringAfterLast('.'))
     }
 }
 
@@ -246,5 +262,6 @@ data class Cause(val reason: String, val term: String? = null, val field: String
         const val UNKNOWN_NAME = "UNKNOWN_NAME"
         const val UNREADABLE = "UNREADABLE"
         const val NOT_A_NUMBER = "NOT_A_NUMBER"
+        const val UNKNOWN_VALUE = "UNKNOWN_VALUE"
     }
 }

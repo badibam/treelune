@@ -42,7 +42,8 @@ import java.util.UUID
 /**
  * The variables of the core (docs/DATA.md, « Variables »), for the screen and the AI alike.
  *
- * - create: `zone_id`, `name`, `definition` (a constant or a formula written with names),
+ * - create: `zone_id`, `name`, `definition` (its `values`, each a constant or a formula written
+ *   with names, and the `terms` they share),
  *   `group`?, and its look (VariableLook): `label`, `description`?, `icon_name` (`variable` when
  *   left out), `icon_color`?, `texture`?, `tile_size` (LINE when left out); it arrives at the
  *   end of its section's grid
@@ -53,12 +54,14 @@ import java.util.UUID
  *   the rows it leaves empty move up
  * - get, list (`zone_id`), list_all: each variable with its formula written with the current
  *   names, its terms and its field; never its value, which a list would freeze
- * - evaluate: `variable_id` or `name`, `at` (a list of instants, milliseconds): a value or a
- *   failure per instant, in the same order
+ * - evaluate: `variable_id` or `name`, `at` (a list of instants, milliseconds), `value` (one key)
+ *   or every value: under `results`, each value asked with a value or a failure per instant, in
+ *   the same order
  *
  * A write is checked as the screen checks it: a name unique in the app that a formula can write,
- * every name of the formula a term or a variable, every term readable, no variable reading
- * itself through others; a formula's field, when not given, is deduced from what it reads.
+ * every name of a formula a term or a variable's value (`name` for a variable of one value,
+ * `name.key` for one of several), every term readable, no variable reading itself through others;
+ * a formula's field, when not given, is deduced from what it reads.
  */
 class VariableService(private val context: Context) : ExecutableService {
 
@@ -222,60 +225,89 @@ class VariableService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * [json] as a definition to store: its formula with every variable it names by id, its terms
-     * readable, no loop, its field given or deduced.
+     * [json] as a definition to store: each value's formula with every variable's value it names
+     * by id and key, the terms they share readable, no loop, each field given or deduced. A single
+     * value given without a key takes [VariableDefinition.FIRST_KEY].
      */
     private suspend fun checkDefinition(json: JSONObject, name: String, id: String): VariableDefinition {
+        json.optJSONArray(VariableDefinition.VALUES)?.takeIf { it.length() == 1 }?.optJSONObject(0)
+            ?.takeIf { !it.has(VariableDefinition.KEY) }?.put(VariableDefinition.KEY, VariableDefinition.FIRST_KEY)
         val definition = try {
             VariableDefinition.fromJson(json, name) { s.shared(it) }
         } catch (e: IllegalArgumentException) {
             throw Refused(e.message ?: "")
         }
-        if (definition is VariableDefinition.Constant) return definition
-        definition as VariableDefinition.Computed
 
         val others = dao.getAll().filter { it.id != id }
         val byName = others.associateBy { it.name }
         definition.terms.keys.firstOrNull { it in byName }?.let { throw Refused(s.shared("variable_error_term_name").format(it)) }
         definition.terms.keys.firstOrNull { !NAME.matches(it) }?.let { throw Refused(s.shared("variable_error_name").format(it)) }
-
-        // The formula as written, then every name that is no term read as a variable's id
-        val written = when (val parsed = Formula.parse(definition.formula, aliases)) {
-            is Formula.Parsed.Unreadable -> throw Refused(s.shared("variable_error_formula").format(parsed.position + 1, s.shared("formula_problem_${parsed.problem.name.lowercase()}"), parsed.detail))
-            is Formula.Parsed.Read -> parsed.formula
-        }
-        val unknown = written.names().filter { it !in definition.terms && it !in byName }
-        if (unknown.isNotEmpty()) {
-            throw Refused(s.shared("variable_error_unknown_names").format(unknown.distinct().joinToString(", "),
-                (definition.terms.keys + byName.keys).joinToString(", ")))
-        }
-        val stored = written.mapNames { n -> byName[n]?.let { Formula.VariableRef(it.id) }.takeIf { n !in definition.terms } }
-        stored.variableIds().filter { ref -> others.none { it.id == ref } }.takeIf { it.isNotEmpty() }
-            ?.let { throw Refused(s.shared("variable_error_not_found").format(it.joinToString(", "))) }
-
         definition.terms.forEach { (termName, term) -> checkTerm(termName, term, others) }
 
+        // A name that is no term, read as a variable's value: `name` for one of one value, `name.key` otherwise
+        fun resolve(written: String): Formula? {
+            if (written in definition.terms) return null
+            byName[written]?.let { variable ->
+                val keys = keysOf(variable)
+                return Formula.VariableRef(variable.id, keys.singleOrNull()
+                    ?: throw Refused(s.shared("variable_error_value_needed").format(written, keys.joinToString(", ") { "$written.$it" })))
+            }
+            val variable = byName[written.substringBeforeLast('.', "")] ?: return null
+            val key = written.substringAfterLast('.')
+            if (key !in keysOf(variable)) throw Refused(s.shared("variable_error_value_unknown").format(written, keysOf(variable).joinToString(", ")))
+            return Formula.VariableRef(variable.id, key)
+        }
+
+        val values = definition.values.map { value ->
+            val expression = value.expression as? VariableDefinition.Expression.Computed ?: return@map value
+            // The formula as written, then every name that is no term read as a variable's value
+            val written = when (val parsed = Formula.parse(expression.formula, aliases)) {
+                is Formula.Parsed.Unreadable -> throw Refused(s.shared("variable_error_formula").format(parsed.position + 1, s.shared("formula_problem_${parsed.problem.name.lowercase()}"), parsed.detail))
+                is Formula.Parsed.Read -> parsed.formula
+            }
+            val unknown = written.names().filter { it !in definition.terms && resolve(it) == null }
+            if (unknown.isNotEmpty()) {
+                throw Refused(s.shared("variable_error_unknown_names").format(unknown.distinct().joinToString(", "),
+                    (definition.terms.keys + byName.keys).joinToString(", ")))
+            }
+            val stored = written.mapNames { resolve(it) }
+            stored.variableRefs().filter { ref -> others.none { it.id == ref.id && ref.key in keysOf(it) } }.takeIf { it.isNotEmpty() }
+                ?.let { refs -> throw Refused(s.shared("variable_error_not_found").format(refs.joinToString(", ") { "${it.id}.${it.key}" })) }
+
+            // Its instants held to a difference between two, whatever field is given
+            val leaves = leafFields(stored, definition.terms, others)
+            val leaf = { node: Formula -> leaves[node]?.takeIf { f -> f.type in FORMULA_LEAF_TYPES } }
+            FormulaType.problem(stored, leaf)?.let { throw Refused(problemText(it, stored)) }
+            val given = json.optJSONArray(VariableDefinition.VALUES)?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } }
+                ?.firstOrNull { it.optString(VariableDefinition.KEY) == value.key }?.has(VariableDefinition.FIELD) == true
+            val field = if (given) value.field else FormulaType.deduce(stored, leaf).let { FieldDefinition(name, name, null, it.type, false, it.config) }
+            value.copy(field = field, expression = VariableDefinition.Expression.Computed(stored.text({ Formula.stored(it) })))
+        }
+
         // No variable reading itself through others
-        val reads = (stored.variableIds() + definition.terms.values.filterIsInstance<Term.Variable>().map { it.id } +
+        val reads = (values.flatMap { refsOf(it) }.map { it.id } + definition.terms.values.filterIsInstance<Term.Variable>().map { it.id } +
             definition.terms.values.filterIsInstance<Term.Reading>().flatMap { it.keepTerms() }.filterIsInstance<Term.Variable>().map { it.id } +
             definition.terms.values.filterIsInstance<Term.Reading>().flatMap { app.treelune.core.fields.FilterTerms.variablesRead(it.selection.filters) } +
             // A term reading a variable's series reads that variable
             definition.terms.values.filterIsInstance<Term.Reading>().mapNotNull { it.selection.target.takeIf { t -> t.kind == app.treelune.core.selection.ReferenceKind.VARIABLE }?.id }).distinct()
         loop(id, reads, others)?.let { path -> throw Refused(s.shared("variable_error_loop").format((listOf(name) + path.map { p -> others.first { it.id == p }.name } + name).joinToString(" → "))) }
 
-        // Its instants held to a difference between two, whatever field is given
-        val leaves = leafFields(stored, definition.terms, others)
-        val leaf = { node: Formula -> leaves[node]?.takeIf { f -> f.type in FORMULA_LEAF_TYPES } }
-        FormulaType.problem(stored, leaf)?.let { throw Refused(problemText(it, stored)) }
-        val field = if (json.has("field")) definition.field else FormulaType.deduce(stored, leaf).let { FieldDefinition(name, name, null, it.type, false, it.config) }
         // Stored with each function under its English name, a formula per entry too
         val terms = definition.terms.mapValues { (_, term) ->
             if (term is Term.Reading && term.perEntry != null) {
-                term.copy(perEntry = (Formula.parse(term.perEntry, aliases) as Formula.Parsed.Read).formula.text({ it }))
+                term.copy(perEntry = (Formula.parse(term.perEntry, aliases) as Formula.Parsed.Read).formula.text({ Formula.stored(it) }))
             } else term
         }
-        return VariableDefinition.Computed(stored.text({ "{var:$it}" }), terms, field, definition.series)
+        return definition.copy(terms = terms, values = values)
     }
+
+    /** The variables' values a stored value's formula reads. */
+    private fun refsOf(value: VariableDefinition.Value): List<Formula.VariableRef> =
+        ((value.expression as? VariableDefinition.Expression.Computed)?.let { Formula.parse(it.formula) } as? Formula.Parsed.Read)?.formula?.variableRefs() ?: emptyList()
+
+    /** The keys of a stored variable's values, in their order; none when its definition does not read. */
+    private fun keysOf(variable: VariableEntity): List<String> = JSONObject(variable.definitionJson).optJSONArray(VariableDefinition.VALUES)
+        ?.let { a -> (0 until a.length()).mapNotNull { a.optJSONObject(it)?.optString(VariableDefinition.KEY)?.takeIf { k -> k.isNotEmpty() } } } ?: emptyList()
 
     /** The functions under their names in the app's language, which a formula written on screen uses. */
     private val aliases: Map<String, Formula.Function> by lazy { Formula.Function.localized { s.shared(it) } }
@@ -288,7 +320,7 @@ class VariableService(private val context: Context) : ExecutableService {
         when (term) {
             // A formula computes on numbers
             is Term.Constant -> if (term.value !is Number) throw Refused(s.shared("variable_error_constant_not_number").format(name, term.value.toString()))
-            is Term.Variable -> if (others.none { it.id == term.id }) throw Refused(s.shared("variable_error_not_found").format(term.id))
+            is Term.Variable -> if (others.none { it.id == term.id && term.value in keysOf(it) }) throw Refused(s.shared("variable_error_not_found").format("${term.id}.${term.value}"))
             is Term.Self -> throw Refused(s.shared("term_error_self").format(name))
             is Term.Reading -> {
                 fieldOf(term, name)
@@ -304,7 +336,7 @@ class VariableService(private val context: Context) : ExecutableService {
 
     /** The field [term] gives values of (TermFields), refused when it does not read; null for a formula per entry. */
     private suspend fun fieldOf(term: Term.Reading, name: String): FieldDefinition? = try {
-        TermFields.of(term, name, { s.shared(it) }, { target, view -> ToolFields.ofTarget(target, view, context, s) }) { null }
+        TermFields.of(term, name, { s.shared(it) }, { target, view -> ToolFields.ofTarget(target, view, context, s) }) { _, _ -> null }
     } catch (e: IllegalArgumentException) {
         throw Refused(e.message ?: "")
     }
@@ -324,7 +356,8 @@ class VariableService(private val context: Context) : ExecutableService {
     /** The variables a stored one reads, by id. */
     private fun readsOf(variable: VariableEntity): List<String> {
         val json = JSONObject(variable.definitionJson)
-        val formula = (Formula.parse(json.optString("formula")) as? Formula.Parsed.Read)?.formula
+        val formulas = json.optJSONArray(VariableDefinition.VALUES)?.let { a -> (0 until a.length()).mapNotNull { a.optJSONObject(it)?.optString(VariableDefinition.FORMULA)?.takeIf { f -> f.isNotEmpty() } } }.orEmpty()
+            .mapNotNull { (Formula.parse(it) as? Formula.Parsed.Read)?.formula }
         val terms = json.optJSONObject("terms")?.let { t -> t.keys().asSequence().map { t.getJSONObject(it) }.toList() } ?: emptyList()
         val variables = terms.mapNotNull { it.optString("variable").takeIf { v -> v.isNotEmpty() } } +
             terms.flatMap { keepTerms(it) }.filterIsInstance<Term.Variable>().map { it.id } +
@@ -332,7 +365,7 @@ class VariableService(private val context: Context) : ExecutableService {
             // A term reading a variable's series reads that variable
             terms.mapNotNull { it.optJSONObject("reading")?.optJSONObject("selection")?.optJSONObject("target")
                 ?.takeIf { t -> t.optString("kind") == app.treelune.core.selection.ReferenceKind.VARIABLE.name }?.optString("id")?.takeIf { v -> v.isNotEmpty() } }
-        return (formula?.variableIds() ?: emptyList()) + variables
+        return formulas.flatMap { it.variableIds() } + variables
     }
 
     /** The terms the groups of the reading [term] stands for are compared with; none for anything else. */
@@ -344,8 +377,8 @@ class VariableService(private val context: Context) : ExecutableService {
 
     /** What [problem] says, its part of the formula written as the user reads it, a variable under its name. */
     private suspend fun problemText(problem: FormulaType.Problem, formula: Formula): String {
-        val names = dao.getAll().associate { it.id to it.name }
-        fun written(part: Formula) = part.text({ names[it] ?: it }, { f -> s.shared("formula_function_${f.canonical}") })
+        val all = dao.getAll().associateBy { it.id }
+        fun written(part: Formula) = part.text({ writtenRef(it, all) }, { f -> s.shared("formula_function_${f.canonical}") })
         return when (problem) {
             is FormulaType.Problem.InstantMisused -> s.shared("variable_error_instant_misused").format(written(problem.part))
             is FormulaType.Problem.NotAnInstant -> s.shared("variable_error_not_an_instant").format(written(problem.part))
@@ -353,19 +386,26 @@ class VariableService(private val context: Context) : ExecutableService {
         }
     }
 
-    /** The field each name and variable of [formula] reads, null when unknown. */
+    /** A variable's value as the user and the AI write it: the variable's name, followed by `.key` when it has several values. */
+    private fun writtenRef(ref: Formula.VariableRef, all: Map<String, VariableEntity>): String {
+        val variable = all[ref.id] ?: return s.shared("pointer_target_deleted")
+        return if (keysOf(variable).size == 1) variable.name else "${variable.name}.${ref.key}"
+    }
+
+    /** The field each name and variable's value of [formula] reads, null when unknown. */
     private suspend fun leafFields(formula: Formula, terms: Map<String, Term>, others: List<VariableEntity>): Map<Formula, FieldDefinition?> {
         val leaves = mutableMapOf<Formula, FieldDefinition?>()
+        fun valueField(id: String, key: String) = others.firstOrNull { it.id == id }?.let { stored(it).definition.value(key)?.field }
         suspend fun fieldOf(leaf: Formula): FieldDefinition? = when (leaf) {
-            is Formula.VariableRef -> others.firstOrNull { it.id == leaf.id }?.let { stored(it).definition.field }
+            is Formula.VariableRef -> valueField(leaf.id, leaf.key)
             is Formula.Name -> when (val term = terms[leaf.name]) {
                 is Term.Reading -> fieldOf(term, leaf.name)
-                is Term.Variable -> others.firstOrNull { it.id == term.id }?.let { stored(it).definition.field }
+                is Term.Variable -> valueField(term.id, term.value)
                 else -> null
             }
             else -> null
         }
-        (formula.names().map { Formula.Name(it) } + formula.variableIds().map { Formula.VariableRef(it) }).forEach { leaves[it] = fieldOf(it) }
+        (formula.names().map { Formula.Name(it) } + formula.variableRefs()).forEach { leaves[it] = fieldOf(it) }
         return leaves
     }
 
@@ -404,12 +444,17 @@ class VariableService(private val context: Context) : ExecutableService {
         return direct + readsOf(entity).mapNotNull { all[it] }.flatMap { toolsRead(it, all, seen) }
     }
 
-    /** A variable as the screen and the AI read it: its formula with the current names, never its value. */
+    /** A variable as the screen and the AI read it: each value's formula with the current names, never its value. */
     private suspend fun describe(entity: VariableEntity): Map<String, Any?> {
         val definition = JSONObject(entity.definitionJson)
-        val names = dao.getAll().associate { it.id to it.name }
-        (Formula.parse(definition.optString("formula")) as? Formula.Parsed.Read)?.let { read ->
-            definition.put("formula", read.formula.text({ names[it] ?: s.shared("pointer_target_deleted") }))
+        val all = dao.getAll().associateBy { it.id }
+        definition.optJSONArray(VariableDefinition.VALUES)?.let { values ->
+            for (i in 0 until values.length()) {
+                val value = values.optJSONObject(i) ?: continue
+                (Formula.parse(value.optString(VariableDefinition.FORMULA)) as? Formula.Parsed.Read)?.let { read ->
+                    value.put(VariableDefinition.FORMULA, read.formula.text({ writtenRef(it, all) }))
+                }
+            }
         }
         return mapOf(
             "id" to entity.id,
@@ -431,10 +476,11 @@ class VariableService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * One variable at each instant of `at`; or, with `variable_ids`, several, computed by one
-     * evaluator: what they share (a total the shares divide by) is computed once per instant, and
-     * their results come under `variables`, in the order asked (a chart's columns). A read that
-     * fails is the operation's error, never a value's cause.
+     * One variable at each instant of `at`, its value of key `value` or all of them; or, with
+     * `variable_ids`, several, every value of each, computed by one evaluator: what they share (a
+     * total the shares divide by) is computed once per instant, and their results come under
+     * `variables`, in the order asked (a chart's columns). A read that fails is the operation's
+     * error, never a value's cause.
      */
     private suspend fun evaluate(params: JSONObject): OperationResult {
         val at = params.optJSONArray("at")?.let { a -> (0 until a.length()).map { (a.get(it) as? Number)?.toLong() ?: throw Refused(s.shared("variable_error_param").format("at")) } }
@@ -443,13 +489,13 @@ class VariableService(private val context: Context) : ExecutableService {
         return try {
             params.optJSONArray("variable_ids")?.let { ids ->
                 OperationResult.success(mapOf("variables" to (0 until ids.length()).map { i ->
-                    evaluated(dao.getById(ids.getString(i)) ?: throw Refused(s.shared("variable_error_not_found").format(ids.getString(i))), at, evaluator)
+                    evaluated(dao.getById(ids.getString(i)) ?: throw Refused(s.shared("variable_error_not_found").format(ids.getString(i))), at, evaluator, null)
                 }))
             } ?: run {
                 val entity = params.optString("variable_id").takeIf { it.isNotEmpty() }?.let { dao.getById(it) }
                     ?: params.optString("name").takeIf { it.isNotEmpty() }?.let { n -> dao.getAll().firstOrNull { it.name == n } }
                     ?: throw Refused(s.shared("variable_error_not_found").format(params.optString("variable_id").ifEmpty { params.optString("name") }))
-                OperationResult.success(evaluated(entity, at, evaluator))
+                OperationResult.success(evaluated(entity, at, evaluator, params.optString("value").takeIf { it.isNotEmpty() }))
             }
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
@@ -459,22 +505,31 @@ class VariableService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * [entity] at each of [at] by [evaluator], as `evaluate` answers it.
+     * [entity] at each of [at] by [evaluator], as `evaluate` answers it: its value of key [key], or
+     * every value, under `results`, each its `key`, `label`, `field` and a value or a failure per instant.
      *
      * @throws IllegalStateException when a read fails
      */
-    private suspend fun evaluated(entity: VariableEntity, at: List<Long>, evaluator: VariableEvaluator): Map<String, Any> {
+    private suspend fun evaluated(entity: VariableEntity, at: List<Long>, evaluator: VariableEvaluator, key: String?): Map<String, Any> {
         val variable = try { stored(entity) } catch (e: IllegalArgumentException) { throw Refused(e.message ?: "") }
-        val values = at.map { instant -> instant to evaluator.evaluate(variable, instant) }
+        val asked = if (key == null) variable.definition.values
+            else listOf(variable.definition.value(key) ?: throw Refused(s.shared("variable_error_value_unknown").format("${entity.name}.$key", variable.definition.values.joinToString(", ") { it.key })))
         return mapOf(
             "variable_id" to entity.id,
             "name" to entity.name,
-            "field" to JsonUtils.toMap(VariableDefinition.fieldJson(variable.definition.field)),
-            "values" to values.map { (instant, value) ->
-                when (value) {
-                    is VariableValue.Value -> mapOf("at" to instant, "value" to value.value)
-                    is VariableValue.Failed -> mapOf("at" to instant, "failure" to failure(value.causes))
-                }
+            "results" to asked.map { value ->
+                mapOf(
+                    "key" to value.key,
+                    "label" to (value.label ?: entity.label),
+                    "on_tile" to value.onTile,
+                    "field" to JsonUtils.toMap(VariableDefinition.fieldJson(value.field)),
+                    "values" to at.map { instant ->
+                        when (val computed = evaluator.evaluate(variable, value.key, instant)) {
+                            is VariableValue.Value -> mapOf("at" to instant, "value" to computed.value)
+                            is VariableValue.Failed -> mapOf("at" to instant, "failure" to failure(computed.causes))
+                        }
+                    }
+                )
             }
         )
     }

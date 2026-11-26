@@ -25,13 +25,15 @@ class AppConditionSources(private val context: Context, private val rows: RowFie
 
     override suspend fun targetFields(target: app.treelune.core.selection.Reference, view: String?): Map<String, FieldDefinition> = ToolFields.ofTarget(target, view, context, s)
 
-    override suspend fun variableField(id: String): FieldDefinition? {
+    override suspend fun variableField(id: String, value: String): FieldDefinition? {
         val result = Coordinator(context).processUserAction("variables.get", mapOf("variable_id" to id))
         if (!result.isSuccess) return null
         val variable = result.data?.get("variable") as? Map<*, *> ?: return null
         val name = variable["name"] as? String ?: id
         val definition = JsonUtils.toJSONObject((variable["definition"] as? Map<*, *>)?.entries?.associate { it.key.toString() to it.value } ?: return null)
-        return VariableDefinition.fromJson(definition, name) { s.shared(it) }.field.copy(displayName = name)
+        val read = VariableDefinition.fromJson(definition, name) { s.shared(it) }
+        val asked = read.value(value) ?: return null
+        return asked.field.copy(displayName = VariableDefinition.spoken(variable["label"] as? String ?: name, read, asked))
     }
 
     override suspend fun rowFields(root: JSONObject, path: List<Any>): Map<String, FieldDefinition>? = rows?.at(root, path, context)

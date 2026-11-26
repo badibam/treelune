@@ -8,8 +8,8 @@ import org.json.JSONObject
 
 /**
  * The Terme brick (docs/BRICKS.md): a value a formula or a condition reads, written once, taken
- * from a variable, or read from entries. Stored as `{"constant": …}`, `{"variable": "<id>"}` or
- * `{"reading": {…}}`.
+ * from a variable's value, or read from entries. Stored as `{"constant": …}`, `{"variable": "<id>",
+ * "value": "<key>"}` or `{"reading": {…}}`.
  */
 sealed interface Term {
 
@@ -60,8 +60,8 @@ sealed interface Term {
      */
     data class Constant(val value: Any) : Term
 
-    /** A variable, by its id. */
-    data class Variable(val id: String) : Term
+    /** A value of a variable: the variable by its id, the value by its key, always named (VariableDefinition.Value). */
+    data class Variable(val id: String, val value: String) : Term
 
     /**
      * A value of the thing a condition judges, read on it each time it is judged (`{"self":
@@ -96,13 +96,16 @@ sealed interface Term {
             is Map<*, *> -> JsonUtils.toJSONObject(value.entries.associate { it.key.toString() to it.value })
             else -> value
         })
-        is Variable -> JSONObject().put("variable", id)
+        is Variable -> JSONObject().put("variable", id).put(VARIABLE_VALUE, value)
         is Self -> JSONObject().put(SELF, key).apply { type?.let { put(SELF_TYPE, it) } }
     }
 
     companion object {
         /** The key of a reading's IfNone, in its stored form and in readings.read. */
         const val IF_NONE = "if_none"
+
+        /** The key of the value of a variable a term reads, beside `variable`. */
+        const val VARIABLE_VALUE = "value"
 
         /** The key of a value read on the thing judged (Self), and of the link type it reads. */
         const val SELF = "self"
@@ -147,7 +150,8 @@ sealed interface Term {
                 )
             }
             json.has("constant") && !json.isNull("constant") -> Constant(JsonUtils.toValue(json.get("constant"))!!)
-            json.optString("variable").isNotEmpty() -> Variable(json.getString("variable"))
+            json.optString("variable").isNotEmpty() -> Variable(json.getString("variable"),
+                json.optString(VARIABLE_VALUE).takeIf { it.isNotEmpty() } ?: throw IllegalArgumentException(text("term_error_variable_value").format(name)))
             json.optString(SELF).isNotEmpty() -> Self(json.getString(SELF), json.optString(SELF_TYPE).takeIf { it.isNotEmpty() })
             else -> throw IllegalArgumentException(text("variable_error_term").format(name))
         }

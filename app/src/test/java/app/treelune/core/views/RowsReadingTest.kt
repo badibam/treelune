@@ -59,7 +59,7 @@ class RowsReadingTest {
 
     @Test
     fun `a filter whose value is still to read, or on a field the rows lack, is refused`() {
-        val toRead = Conditions.onField("data.xp", ">", null).put(Conditions.RIGHT, JSONObject().put("variable", "goal"))
+        val toRead = Conditions.onField("data.xp", ">", null).put(Conditions.RIGHT, JSONObject().put("variable", "goal").put("value", "value"))
         assertThrows(IllegalStateException::class.java) { RowsReading.selected(rows, selection(toRead), fields, resolver) { it } }
         assertThrows(IllegalStateException::class.java) { RowsReading.selected(rows, selection(Conditions.onField("data.missing", "=", 1)), fields, resolver) { it } }
     }

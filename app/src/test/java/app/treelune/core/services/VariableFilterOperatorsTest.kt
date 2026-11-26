@@ -38,7 +38,7 @@ class VariableFilterOperatorsTest {
 
         suspend fun variable(name: String, op: String, right: String) = coordinator.processUserAction("variables.create", mapOf(
             "zone_id" to zone, "name" to name, "label" to name,
-            "definition" to JsonUtils.toMap(JSONObject("""{"kind": "FORMULA", "formula": "t", "terms": {"t": {"reading": {"selection": {
+            "definition" to JsonUtils.toMap(JSONObject("""{"values": [{"formula": "t"}], "terms": {"t": {"reading": {"selection": {
                 "target": {"kind": "TOOL_INSTANCE", "id": "$tool"},
                 "filters": [{"left": {"field": "data.value"}, "op": "$op", "right": {"constant": $right}}]}, "reduction": "COUNT"}}}}"""))
         ))

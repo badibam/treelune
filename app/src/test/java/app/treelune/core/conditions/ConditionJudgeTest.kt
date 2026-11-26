@@ -57,7 +57,7 @@ class ConditionJudgeTest {
 
     @Test
     fun theStoredForm_readsIntoSides() {
-        val condition = Condition.fromJson(JSONObject("""{"left": {"variable": "v1"}, "op": "between", "right": [{"constant": 1}, {"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "t1"}}, "reduction": "COUNT"}}]}"""), "c") { it }
+        val condition = Condition.fromJson(JSONObject("""{"left": {"variable": "v1", "value": "value"}, "op": "between", "right": [{"constant": 1}, {"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "t1"}}, "reduction": "COUNT"}}]}"""), "c") { it }
         assertTrue(condition.left is Condition.Side.Of)
         assertEquals(2, condition.right.size)
         assertTrue(Condition.fromJson(JSONObject("""{"left": {"field": "data.x"}, "op": "present"}"""), "c") { it }.left is Condition.Side.Field)
@@ -65,7 +65,7 @@ class ConditionJudgeTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun aBetweenWithOneBound_isRefused() {
-        Condition.fromJson(JSONObject("""{"left": {"variable": "v1"}, "op": "between", "right": {"constant": 1}}"""), "c") { it }
+        Condition.fromJson(JSONObject("""{"left": {"variable": "v1", "value": "value"}, "op": "between", "right": {"constant": 1}}"""), "c") { it }
     }
 
     @Test

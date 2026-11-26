@@ -49,7 +49,7 @@ class SectionCrossingServiceTest {
         val note = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to "notes", "config" to mapOf("name" to "Note", "group" to "A", "tile_size" to "icon")))["tool_instance_id"] as String
         val other = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to "notes", "config" to mapOf("name" to "Other", "group" to "B", "tile_size" to "icon")))["tool_instance_id"] as String
         val variable = ok("variables.create", mapOf("zone_id" to zone, "name" to "crossing_count", "label" to "Count", "group" to "B", "tile_size" to "icon",
-            "definition" to mapOf("kind" to "CONSTANT", "value" to 2, "field" to mapOf("type" to "NUMERIC"))))["variable_id"] as String
+            "definition" to mapOf("values" to listOf(mapOf("key" to "value", "constant" to 2, "field" to mapOf("type" to "NUMERIC"))))))["variable_id"] as String
 
         // The note down from A into the top of B, the variable down from B into the ungrouped section
         ok("zones.place_section", mapOf("zone_id" to zone, "sections" to listOf(

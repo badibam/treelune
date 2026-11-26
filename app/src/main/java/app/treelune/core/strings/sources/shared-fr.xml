@@ -247,7 +247,7 @@
     <string name="condition_schema_row_description">Une condition sur chaque ligne dessinée : {\"left\": côté, \"op\": ..., \"right\": côté}, chaque côté une colonne de la ligne, {\"field\": \"kcal\"}, ou une valeur écrite, {\"constant\": ...}, du type de la colonne d\'en face, une date ou une durée comme partout (partie E), jamais en millisecondes ; right est une paire de côtés pour between, absent pour absent et present. Plusieurs se combinent : {\"all\": [conditions]} est vraie quand chacune l\'est, {\"any\": [conditions]} quand l\'une l\'est, imbricables.</string>
     <string name="term_schema_description">Un terme, une clé parmi : %1$s.</string>
     <string name="term_schema_constant">{\"constant\": ...}, une valeur écrite, une date ou une durée comme partout (partie E)</string>
-    <string name="term_schema_variable">{\"variable\": \"id\"}, une variable par son id</string>
+    <string name="term_schema_variable">{\"variable\": \"id\", \"value\": \"clé\"}, une valeur d\'une variable, la variable par son id, la valeur par sa clé</string>
     <string name="term_schema_reading">{\"reading\": {\"selection\", \"field\"?, \"reduction\", \"group\"?}}, un champ d\'un outil réduit sur ses entrées, compté sans champ ; la période de sa sélection est relative à l\'instant lu, et sans période elle lit celle que donne le contexte. Sa cible peut être une variable qui a une série, {\"kind\": \"VARIABLE\", \"id\"} : une entrée par pas, `timestamp` et `data.value`, lue comme celles d\'un outil ; sa période a alors besoin d\'un début</string>
     <string name="reading_group_schema">Une lecture peut regrouper ses entrées, \"group\" : {\"field\" : le champ par lequel elle regroupe (\"timestamp\" pour la date de l\'entrée), \"unit\"? : DAY, WEEK ou MONTH (une date, obligatoire pour un instant), \"keep\"? : {\"op\", \"right\"} jugé sur la valeur de chaque groupe (le champ et la réduction de la lecture, par groupe), \"reduction\" : des groupes gardés, COUNT, SUM, AVERAGE, MIN ou MAX} ; « 2 par jour », comptés : {\"field\" : \"timestamp\", \"unit\" : \"DAY\", \"keep\" : {\"op\" : \">=\", \"right\" : {\"constant\" : 2}}, \"reduction\" : \"COUNT\"}. Regroupée par la date de l\'entrée, chaque unité de la période est un groupe, un groupe vide comptant 0 : finis la période à maintenant pour laisser de côté les jours à venir, et commence-la au début d\'un jour (« il y a 7 jours » coupe 8 jours). Un champ multiple met son entrée dans chacun de ses groupes : une somme sur tous les compte deux fois.</string>
     <string name="term_schema_reading_file">{\"reading\": {\"selection\": {\"target\": {\"kind\": \"ENTRY\", \"id\"}}, \"field\", \"reduction\": \"FIRST\"}}, le champ fichier d\'une entrée suivi, qui garde un seul fichier des sortes acceptées, relu à chaque usage</string>
@@ -1616,6 +1616,7 @@
     <string name="variable_error_loop">Une variable se lirait elle-même : %1$s.</string>
     <string name="variable_error_term">Le terme %1$s ne peut pas être lu.</string>
     <string name="term_error_self">Le terme %1$s lit l\'étape jugée ({"self": …}) : seules les règles d\'un Parcours jugent une étape.</string>
+    <string name="term_error_variable_value">Le terme %1$s lit une variable sans nommer sa valeur : {"variable": "&lt;id&gt;", "value": "&lt;clé&gt;"}.</string>
     <string name="rows_reading_term">Le filtre sur %1$s compare à une valeur à lire : lu ici, sa valeur doit être écrite.</string>
     <string name="variable_error_constant_value">Une constante demande une "value" numérique.</string>
     <string name="variable_error_constant_not_number">La constante %1$s n\'est pas un nombre (%2$s) : une formule calcule sur des nombres.</string>
@@ -1623,6 +1624,13 @@
     <string name="variable_error_not_an_instant">« %1$s » lit un jour ou une heure, sur lesquels une formule ne calcule pas : lis plutôt une date et heure.</string>
     <string name="variable_error_instant_result">Cette formule donne un instant, et une variable vaut un nombre ou une durée : soustrais-lui un autre instant.</string>
     <string name="variable_error_field">La variable %1$s demande son "field" : son type (NUMERIC, SCALE, DURATION) et ses réglages.</string>
+    <string name="variable_error_values">Une variable demande ses "values" : une liste d\'au moins une, chacune {"key", "formula" ou "constant", "field"?}.</string>
+    <string name="variable_error_value_key">« %1$s » n\'est pas une clé de valeur : lettres minuscules, chiffres et _, une lettre d\'abord.</string>
+    <string name="variable_error_value_kind">La valeur « %1$s » demande une "formula" ou une "constant".</string>
+    <string name="variable_error_value_key_twice">Deux valeurs ont la clé « %1$s ».</string>
+    <string name="variable_error_value_label">La valeur « %1$s » demande son "label" : une variable de plusieurs valeurs nomme chacune.</string>
+    <string name="variable_error_value_needed">%1$s a plusieurs valeurs : écris laquelle (%2$s).</string>
+    <string name="variable_error_value_unknown">Pas de valeur %1$s ; ses valeurs : %2$s.</string>
     <string name="variable_error_series_unit">Unité de série inconnue : %1$s. Acceptées : %2$s.</string>
     <string name="variable_error_kind">Sorte de variable inconnue : %1$s. Acceptées : CONSTANT, FORMULA.</string>
     <string name="variable_error_type">Une variable n\'est pas de type %1$s. Acceptés : %2$s.</string>
@@ -1646,6 +1654,7 @@
     <string name="variable_cause_unknown_name">nom inconnu</string>
     <string name="variable_cause_unreadable">illisible</string>
     <string name="variable_cause_not_a_number">pas un nombre</string>
+    <string name="variable_cause_unknown_value">pas de telle valeur</string>
     <string name="action_verbalize_variables_create">Création de la variable %1$s</string>
     <string name="action_verbalize_variables_update">Modification de la variable %1$s</string>
     <string name="action_verbalize_variables_delete">Suppression de la variable %1$s</string>
@@ -1856,6 +1865,7 @@
     <string name="variable_new">Nouvelle variable</string>
     <string name="variable_no_value">pas de valeur — %1$s</string>
     <string name="variable_value_now">Maintenant : %1$s</string>
+    <string name="variable_value_now_of">%1$s maintenant : %2$s</string>
     <string name="variable_series">Une valeur par</string>
     <string name="variable_series_none">— (seulement sa valeur du moment)</string>
     <string name="variable_series_hint">Se lit comme un outil qui aurait une entrée par %1$s, calculée à sa fin : un objectif, un graphique, une condition peuvent les compter ou en faire la moyenne. Ses termes doivent se placer par rapport à l\'instant lu (« du début du jour à maintenant »), sinon les jours passés sont faux.</string>
@@ -1867,6 +1877,12 @@
     <string name="variable_unknown_names">Inconnu : %1$s. Ajoute un terme, ou nomme une variable existante.</string>
     <string name="variable_terms">Termes</string>
     <string name="variable_add_term">Ajouter un terme</string>
+    <string name="variable_values">Valeurs</string>
+    <string name="variable_add_value">Ajouter une valeur</string>
+    <string name="variable_value_label">Libellé</string>
+    <string name="variable_value_key">Clé, que les formules écrivent après le nom de la variable</string>
+    <string name="variable_value_on_tile">Sur la tuile</string>
+    <string name="variable_term_value">Valeur</string>
     <string name="variable_term_name">Nom</string>
     <string name="variable_term_kind">Sorte de terme</string>
     <string name="variable_term_reading">Lecture d\'entrées</string>

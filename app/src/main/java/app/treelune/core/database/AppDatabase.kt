@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 123
+        const val VERSION = 124
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2364,6 +2364,36 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
+         * A variable is a list of values, each with a key, which whatever reads it names: each
+         * definition, each formula's `{var:ID}` and each term `{"variable"}` given the key `value`,
+         * the history's copies with them: see VariableValuesAtV124.
+         */
+        private val MIGRATION_123_124 = object : ConnectionMigration(123, 124) {
+            override fun migrate(database: MigrationDatabase) {
+                val v = app.treelune.core.versioning.VariableValuesAtV124
+                var rewritten = 0
+                (v.COLUMNS + ("variables" to listOf("definition_json"))).forEach { (table, columns) ->
+                    database.query("SELECT id, ${columns.joinToString(", ")} FROM $table").use { cursor ->
+                        while (cursor.moveToNext()) {
+                            val id = cursor.getString(0)
+                            columns.forEachIndexed { i, column ->
+                                val json = if (cursor.isNull(i + 1)) return@forEachIndexed else cursor.getString(i + 1).takeIf { it.isNotEmpty() } ?: return@forEachIndexed
+                                try {
+                                    (if (table == "variables") v.definition(json) else v.json(json))
+                                        ?.let { database.execSQL("UPDATE $table SET $column = ? WHERE id = ?", arrayOf<Any?>(it, id)); rewritten++ }
+                                } catch (e: Exception) {
+                                    LogManager.database("MIGRATION 123->124: $table $id $column left as it was: ${e.message}", "ERROR", e)
+                                }
+                            }
+                        }
+                    }
+                    app.treelune.core.versioning.HistoryCopies.rewrite(database, table) { v.row(table, it) }
+                }
+                LogManager.database("MIGRATION 123->124: $rewritten column(s) with their variables' values named", "INFO")
+            }
+        }
+
+        /**
          * A tile may be hidden from its page (docs/design/phone-inbox.md, « Cacher une tuile »): a
          * column `hidden` on each table of what a page's grid holds, none hidden, the history's
          * copies with it.
@@ -3788,7 +3818,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_119_120,
                     MIGRATION_120_121,
                     MIGRATION_121_122,
-                    MIGRATION_122_123
+                    MIGRATION_122_123,
+                    MIGRATION_123_124
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

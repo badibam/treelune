@@ -13,7 +13,7 @@ import app.treelune.core.selection.ReferenceKind
 /** A variable as stored: its id, its name, what it is. */
 data class StoredVariable(val id: String, val name: String, val zoneId: String, val definition: VariableDefinition)
 
-/** What a variable gives at one instant: a value in the stored form of its field, or why not. */
+/** What a variable's value gives at one instant: a value in the stored form of its field, or why not. */
 sealed interface VariableValue {
     data class Value(val value: Any, val field: FieldDefinition) : VariableValue
     data class Failed(val causes: List<Cause>) : VariableValue
@@ -34,10 +34,11 @@ interface VariableSources {
 }
 
 /**
- * Computes a variable at an instant (docs/DATA.md, « Variables »): a constant is its value; a
- * formula reads its terms at that instant, each reading's period relative to it, and another
- * variable at the same instant. Nothing is stored, nothing is made up: a term that fails, a
- * division by zero, a variable deleted since or reached again fail the value, with the causes.
+ * Computes a variable's values at an instant (docs/DATA.md, « Variables »): a constant is its
+ * value; a formula reads the variable's terms at that instant, each reading's period relative to
+ * it, each term read once for all its values, and another variable's value at the same instant.
+ * Nothing is stored, nothing is made up: a term that fails, a division by zero, a variable deleted
+ * since or reached again, a value of no such key fail the value, with the causes.
  */
 class VariableEvaluator(private val sources: VariableSources) {
 
@@ -46,49 +47,59 @@ class VariableEvaluator(private val sources: VariableSources) {
      * read of a chart): a share read beside the totals it divides reuses them rather than reading
      * the same entries again. Nothing outlives the evaluator.
      */
-    private val computed = mutableMapOf<Pair<String, Long>, VariableValue>()
+    private val computed = mutableMapOf<Triple<String, String, Long>, VariableValue>()
 
-    suspend fun evaluate(variable: StoredVariable, at: Long): VariableValue = evaluate(variable, at, emptySet())
+    /** Each term of a variable read once per instant, shared by its values: by variable, term and instant. */
+    private val termsRead = mutableMapOf<Triple<String, String, Long>, Outcome>()
 
-    private suspend fun evaluate(variable: StoredVariable, at: Long, visiting: Set<String>): VariableValue =
-        computed[variable.id to at] ?: compute(variable, at, visiting).also { computed[variable.id to at] = it }
+    /** The value of [key] of [variable] at [at]. */
+    suspend fun evaluate(variable: StoredVariable, key: String, at: Long): VariableValue = evaluate(variable, key, at, emptySet())
 
-    private suspend fun compute(variable: StoredVariable, at: Long, visiting: Set<String>): VariableValue {
-        val definition = variable.definition
-        val outcome = when (definition) {
-            is VariableDefinition.Constant -> Outcome.Value(definition.value)
-            is VariableDefinition.Computed -> when (val parsed = Formula.parse(definition.formula)) {
+    private suspend fun evaluate(variable: StoredVariable, key: String, at: Long, visiting: Set<String>): VariableValue =
+        computed[Triple(variable.id, key, at)] ?: compute(variable, key, at, visiting).also { computed[Triple(variable.id, key, at)] = it }
+
+    private suspend fun compute(variable: StoredVariable, key: String, at: Long, visiting: Set<String>): VariableValue {
+        val value = variable.definition.value(key) ?: return VariableValue.Failed(listOf(Cause(Cause.UNKNOWN_VALUE, term = "${variable.name}.$key")))
+        val outcome = when (val expression = value.expression) {
+            is VariableDefinition.Expression.Constant -> Outcome.Value(expression.value)
+            is VariableDefinition.Expression.Computed -> when (val parsed = Formula.parse(expression.formula)) {
                 is Formula.Parsed.Unreadable -> Outcome.Failed(listOf(Cause(Cause.UNREADABLE, term = variable.name)))
-                is Formula.Parsed.Read -> evaluateFormula(parsed.formula, definition.terms, at, visiting + variable.id)
+                is Formula.Parsed.Read -> evaluateFormula(parsed.formula, variable, at, visiting + variable.id)
             }
         }
         return when (outcome) {
             is Outcome.Failed -> VariableValue.Failed(outcome.causes)
-            is Outcome.Value -> VariableValue.Value(stored(outcome.number, definition.field), definition.field)
+            is Outcome.Value -> VariableValue.Value(stored(outcome.number, value.field), value.field)
         }
     }
 
-    /** The formula computed, each leaf read as a suspending lookup first. */
-    private suspend fun evaluateFormula(formula: Formula, terms: Map<String, Term>, at: Long, visiting: Set<String>): Outcome {
+    /** The formula computed on [variable]'s terms, each leaf read as a suspending lookup first. */
+    private suspend fun evaluateFormula(formula: Formula, variable: StoredVariable, at: Long, visiting: Set<String>): Outcome {
+        val terms = variable.definition.terms
         val leaves = mutableMapOf<Formula, Outcome>()
         for (leaf in leavesOf(formula)) {
             leaves[leaf] = when (leaf) {
                 is Formula.Name -> when (val term = terms[leaf.name]) {
                     null -> Outcome.Failed(listOf(Cause(Cause.UNKNOWN_NAME, term = leaf.name)))
-                    // The service refuses any other constant in a formula: one here was written around it
-                    is Term.Constant -> Outcome.Value((term.value as? Number)?.toDouble() ?: error("the constant '${leaf.name}' is not a number"))
-                    is Term.Variable -> other(term.id, at, visiting, leaf.name)
-                    is Term.Reading -> if (term.perEntry != null) perEntry(term, leaf.name, at) else named(sources.read(term, at), leaf.name)
-                    // The service refuses it: a variable judges nothing
-                    is Term.Self -> error("the term '${leaf.name}' reads a thing judged")
+                    else -> termsRead[Triple(variable.id, leaf.name, at)] ?: readTerm(term, leaf.name, at, visiting).also { termsRead[Triple(variable.id, leaf.name, at)] = it }
                 }
-                is Formula.VariableRef -> other(leaf.id, at, visiting, null)
+                is Formula.VariableRef -> other(leaf.id, leaf.key, at, visiting, null)
                 // The instant the variable is read at, not the clock: read yesterday, it is yesterday
                 is Formula.Now -> Outcome.Value(at.toDouble())
                 else -> error("not a leaf")
             }
         }
         return formula.evaluate { leaves.getValue(it) }
+    }
+
+    /** One term of a variable read at [at]. */
+    private suspend fun readTerm(term: Term, name: String, at: Long, visiting: Set<String>): Outcome = when (term) {
+        // The service refuses any other constant in a formula: one here was written around it
+        is Term.Constant -> Outcome.Value((term.value as? Number)?.toDouble() ?: error("the constant '$name' is not a number"))
+        is Term.Variable -> other(term.id, term.value, at, visiting, name)
+        is Term.Reading -> if (term.perEntry != null) perEntry(term, name, at) else named(sources.read(term, at), name)
+        // The service refuses it: a variable judges nothing
+        is Term.Self -> error("the term '$name' reads a thing judged")
     }
 
     private fun leavesOf(formula: Formula): Set<Formula> = when (formula) {
@@ -99,11 +110,11 @@ class VariableEvaluator(private val sources: VariableSources) {
         is Formula.Call -> leavesOf(formula.argument)
     }
 
-    /** Another variable at the same instant; its causes named by it. */
-    private suspend fun other(id: String, at: Long, visiting: Set<String>, term: String?): Outcome {
+    /** Another variable's value at the same instant; its causes named by it. */
+    private suspend fun other(id: String, key: String, at: Long, visiting: Set<String>, term: String?): Outcome {
         if (id in visiting) return Outcome.Failed(listOf(Cause(Cause.LOOP, term = term)))
         val variable = sources.variable(id) ?: return Outcome.Failed(listOf(Cause(Cause.VARIABLE_DELETED, term = term)))
-        return when (val value = evaluate(variable, at, visiting)) {
+        return when (val value = evaluate(variable, key, at, visiting)) {
             is VariableValue.Value -> Outcome.Value((value.value as Number).toDouble())
             is VariableValue.Failed -> Outcome.Failed(value.causes.map { it.copy(term = listOfNotNull(variable.name, it.term).joinToString(" › ")) })
         }

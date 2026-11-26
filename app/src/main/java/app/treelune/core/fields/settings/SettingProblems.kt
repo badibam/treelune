@@ -77,10 +77,10 @@ object SettingProblems {
     private fun side(side: JSONObject): Boolean =
         side.optString(Conditions.FIELD).isNotEmpty() || termWritten(side)
 
-    /** A term with what it needs: a written value, a variable's name, a reading. */
+    /** A term with what it needs: a written value, a variable and its value, a reading. */
     private fun termWritten(term: JSONObject): Boolean = when {
         term.has(Conditions.CONSTANT) -> !term.isNull(Conditions.CONSTANT) && term.opt(Conditions.CONSTANT).toString().isNotBlank()
-        term.has("variable") -> term.optString("variable").isNotEmpty()
+        term.has("variable") -> term.optString("variable").isNotEmpty() && term.optString(app.treelune.core.terms.Term.VARIABLE_VALUE).isNotEmpty()
         term.has("reading") -> term.optJSONObject("reading") != null
         else -> false
     }

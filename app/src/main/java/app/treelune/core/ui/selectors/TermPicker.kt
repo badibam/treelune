@@ -47,13 +47,7 @@ fun TermPicker(term: JSONObject, constantField: FieldDefinition, onChange: (JSON
             { value -> onChange(if (value == null) JSONObject().put(CONSTANT, JSONObject.NULL) else Term.Constant(value).toJson()) },
             context, required = true
         )
-        VARIABLE -> FieldInput(
-            FieldDefinition(VARIABLE, s.shared("variable_term_variable"), null, FieldType.REFERENCE, false,
-                mapOf(ReferenceTarget.TARGET to mapOf(ReferenceTarget.KINDS to listOf(ReferenceKind.VARIABLE.name)))),
-            shown.optString(VARIABLE).takeIf { it.isNotEmpty() }?.let { mapOf("kind" to ReferenceKind.VARIABLE.name, "id" to it) },
-            { value -> onChange(JSONObject().put(VARIABLE, ReferenceTarget.referenceOf(value)?.id ?: "")) },
-            context, required = true
-        )
+        VARIABLE -> VariableValuePicker(shown, s, onChange)
         else -> if (file) FollowedField(shown.getJSONObject(READING), constantField, s) { onChange(JSONObject().put(READING, it)) }
             else ReadingPicker(shown.getJSONObject(READING), s, where) { onChange(JSONObject().put(READING, it)) }
     }
@@ -105,6 +99,41 @@ private fun FollowedField(reading: JSONObject, value: FieldDefinition, s: String
             }
         )
     }
+}
+
+/**
+ * A variable's value as a term (`{"variable": id, "value": key}`): the variable, then, for one of
+ * several values, which of them; a variable of one value names its only one as soon as it is chosen.
+ */
+@Composable
+private fun VariableValuePicker(term: JSONObject, s: StringsContext, onChange: (JSONObject) -> Unit) {
+    val context = LocalContext.current
+    val id = term.optString(VARIABLE).takeIf { it.isNotEmpty() }
+    // The values of the variable chosen, key to label, in their order
+    var values by androidx.compose.runtime.remember(id) { androidx.compose.runtime.mutableStateOf<List<Pair<String, String>>>(emptyList()) }
+    androidx.compose.runtime.LaunchedEffect(id) {
+        if (id == null) return@LaunchedEffect
+        val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("variables.get", mapOf("variable_id" to id))
+        val variable = result.data?.get("variable") as? Map<*, *> ?: return@LaunchedEffect
+        values = (((variable["definition"] as? Map<*, *>)?.get(app.treelune.core.variables.VariableDefinition.VALUES)) as? List<*>).orEmpty()
+            .filterIsInstance<Map<*, *>>().mapNotNull { v -> (v["key"] as? String)?.let { it to ((v["label"] as? String) ?: it) } }
+        // One value: named at once
+        values.singleOrNull()?.let { (key, _) -> if (term.optString(Term.VARIABLE_VALUE) != key) onChange(JSONObject().put(VARIABLE, id).put(Term.VARIABLE_VALUE, key)) }
+    }
+    FieldInput(
+        FieldDefinition(VARIABLE, s.shared("variable_term_variable"), null, FieldType.REFERENCE, false,
+            mapOf(ReferenceTarget.TARGET to mapOf(ReferenceTarget.KINDS to listOf(ReferenceKind.VARIABLE.name)))),
+        id?.let { mapOf("kind" to ReferenceKind.VARIABLE.name, "id" to it) },
+        { value -> onChange(JSONObject().put(VARIABLE, ReferenceTarget.referenceOf(value)?.id ?: "")) },
+        context, required = true
+    )
+    if (id != null && values.size > 1) UI.FormSelection(
+        label = s.shared("variable_term_value"),
+        options = values.map { it.second },
+        selected = values.firstOrNull { it.first == term.optString(Term.VARIABLE_VALUE) }?.second ?: "",
+        onSelect = { label -> values.firstOrNull { it.second == label }?.let { (key, _) -> onChange(JSONObject().put(VARIABLE, id).put(Term.VARIABLE_VALUE, key)) } },
+        required = true
+    )
 }
 
 /** A term of [kind] with nothing chosen yet. */

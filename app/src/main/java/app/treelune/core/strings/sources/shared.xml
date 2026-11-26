@@ -247,7 +247,7 @@
     <string name="condition_schema_row_description">A condition on each row drawn: {\"left\": side, \"op\": ..., \"right\": side}, each side a column of the row, {\"field\": \"kcal\"}, or a written value, {\"constant\": ...}, of the type of the column on the other side, a date or a duration as everywhere (Part E), never in milliseconds; right is a pair of sides for between, absent for absent and present. Several combine: {\"all\": [conditions]} holds when each does, {\"any\": [conditions]} when one does, nestable.</string>
     <string name="term_schema_description">A term, one key among: %1$s.</string>
     <string name="term_schema_constant">{\"constant\": ...}, a written value, a date or a duration as everywhere (Part E)</string>
-    <string name="term_schema_variable">{\"variable\": \"id\"}, a variable by its id</string>
+    <string name="term_schema_variable">{\"variable\": \"id\", \"value\": \"key\"}, a value of a variable, the variable by its id, the value by its key</string>
     <string name="term_schema_reading">{\"reading\": {\"selection\", \"field\"?, \"reduction\", \"group\"?}}, a field of a tool reduced across its entries, counted without a field; its selection\'s period is relative to the instant read, and without one it reads the period the context gives. Its target may be a variable that has a series, {\"kind\": \"VARIABLE\", \"id\"}: one entry per step, `timestamp` and `data.value`, read as a tool\'s; its period then needs a start</string>
     <string name="reading_group_schema">A reading may group its entries, \"group\": {\"field\": the field it groups by (\"timestamp\" for the entry\'s date), \"unit\"?: DAY, WEEK or MONTH (a date, required for an instant), \"keep\"?: {\"op\", \"right\"} judged on each group\'s value (the reading\'s field and reduction, per group), \"reduction\": of the groups kept, COUNT, SUM, AVERAGE, MIN or MAX}; “2 per day”, counted: {\"field\": \"timestamp\", \"unit\": \"DAY\", \"keep\": {\"op\": \">=\", \"right\": {\"constant\": 2}}, \"reduction\": \"COUNT\"}. Grouped by the entry\'s date, each unit of the period is a group, an empty one counting 0: end the period at now to leave out the days to come, and start it at a day\'s start (“7 days ago” cuts 8 days). A multiple field puts its entry in each of its groups: a sum over all of them counts it twice.</string>
     <string name="term_schema_reading_file">{\"reading\": {\"selection\": {\"target\": {\"kind\": \"ENTRY\", \"id\"}}, \"field\", \"reduction\": \"FIRST\"}}, a file field of one entry followed, holding a single file of the kinds taken, read again at each use</string>
@@ -1616,6 +1616,7 @@
     <string name="variable_error_loop">A variable would read itself: %1$s.</string>
     <string name="variable_error_term">The term %1$s cannot be read.</string>
     <string name="term_error_self">The term %1$s reads the stage judged ({"self": …}): only the rules of a Path judge a stage.</string>
+    <string name="term_error_variable_value">The term %1$s reads a variable without naming its value: {"variable": "&lt;id&gt;", "value": "&lt;key&gt;"}.</string>
     <string name="rows_reading_term">The filter on %1$s compares with a value to read: read here, its value must be written.</string>
     <string name="variable_error_constant_value">A constant needs a numeric "value".</string>
     <string name="variable_error_constant_not_number">The constant %1$s is not a number (%2$s): a formula computes on numbers.</string>
@@ -1623,6 +1624,13 @@
     <string name="variable_error_not_an_instant">“%1$s” reads a day or a time of day, which a formula does not compute on: read a date and time instead.</string>
     <string name="variable_error_instant_result">This formula gives an instant, and a variable holds a number or a duration: subtract another instant from it.</string>
     <string name="variable_error_field">The variable %1$s needs its "field": its type (NUMERIC, SCALE, DURATION) and settings.</string>
+    <string name="variable_error_values">A variable needs its "values": a list of at least one, each {"key", "formula" or "constant", "field"?}.</string>
+    <string name="variable_error_value_key">“%1$s” is not a value's key: lower-case letters, digits and _, a letter first.</string>
+    <string name="variable_error_value_kind">The value “%1$s” needs a "formula" or a "constant".</string>
+    <string name="variable_error_value_key_twice">Two values have the key “%1$s”.</string>
+    <string name="variable_error_value_label">The value “%1$s” needs its "label": a variable of several values names each one.</string>
+    <string name="variable_error_value_needed">%1$s has several values: write which one (%2$s).</string>
+    <string name="variable_error_value_unknown">No value %1$s; its values: %2$s.</string>
     <string name="variable_error_series_unit">Unknown unit of a series: %1$s. Accepted: %2$s.</string>
     <string name="variable_error_kind">Unknown kind of variable: %1$s. Accepted: CONSTANT, FORMULA.</string>
     <string name="variable_error_type">A variable is not of type %1$s. Accepted: %2$s.</string>
@@ -1646,6 +1654,7 @@
     <string name="variable_cause_unknown_name">unknown name</string>
     <string name="variable_cause_unreadable">cannot be read</string>
     <string name="variable_cause_not_a_number">not a number</string>
+    <string name="variable_cause_unknown_value">no such value</string>
     <string name="action_verbalize_variables_create">Creating the variable %1$s</string>
     <string name="action_verbalize_variables_update">Changing the variable %1$s</string>
     <string name="action_verbalize_variables_delete">Deleting the variable %1$s</string>
@@ -1856,6 +1865,7 @@
     <string name="variable_new">New variable</string>
     <string name="variable_no_value">no value — %1$s</string>
     <string name="variable_value_now">Now: %1$s</string>
+    <string name="variable_value_now_of">%1$s now: %2$s</string>
     <string name="variable_series">One value per</string>
     <string name="variable_series_none">— (its value now only)</string>
     <string name="variable_series_hint">Read as a tool with one entry per %1$s, computed at its end: a goal, a chart, a condition can count or average them. Its terms must be placed relative to the instant read (“from the start of the day to now”), or the past days are wrong.</string>
@@ -1867,6 +1877,12 @@
     <string name="variable_unknown_names">Unknown: %1$s. Add a term, or name an existing variable.</string>
     <string name="variable_terms">Terms</string>
     <string name="variable_add_term">Add a term</string>
+    <string name="variable_values">Values</string>
+    <string name="variable_add_value">Add a value</string>
+    <string name="variable_value_label">Label</string>
+    <string name="variable_value_key">Key, which formulas write after the variable's name</string>
+    <string name="variable_value_on_tile">On the tile</string>
+    <string name="variable_term_value">Value</string>
     <string name="variable_term_name">Name</string>
     <string name="variable_term_kind">Kind of term</string>
     <string name="variable_term_reading">Reading of entries</string>

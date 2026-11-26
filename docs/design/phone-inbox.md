@@ -4,6 +4,8 @@ Les items de la section « En provenance du tel » de `TODO.md`, tranchés un à
 
 ## Une variable à plusieurs valeurs
 
+Codé le 2026-11-26 (migration 124) : le modèle (`VariableDefinition`, `values` et `terms` partagés), `{var:ID.key}`, `{"variable", "value"}`, la série en `data.<clé>`, l'écran (une carte par valeur), la tuile en version simple (une ligne par valeur, libellé et valeur côte à côte, coupée par « … »), ce que lit l'IA. Restent les trois derniers points ci-dessous : la place d'une valeur par `ItemLayout` (une colonne de plus sur la variable), la taille de la valeur au plus grand cran qui tient, la taille icônes à deux cases.
+
 L'idée : une variable qui rend plusieurs valeurs d'un coup (« Apports du jour » : calories, protéines, glucides), sa série portant plusieurs champs par ligne, qu'un Graphique ou un repère lit ensemble. Aujourd'hui une variable rend une valeur, et sa série (la vue `series`, `VariableSeries`) une ligne par pas avec le seul `data.value`.
 
 - Les termes (`Term` : une constante, une autre variable, une lecture d'entrées) se déclarent une fois dans la variable et chaque valeur a sa formule sur eux : une sélection, sa période et ses filtres écrits une fois au lieu d'être recopiés dans trois variables, chaque terme lu une fois par instant pour toutes les valeurs. Une valeur peut se calculer sur les autres termes partagés (« part des protéines = protéines × 4 / calories »).

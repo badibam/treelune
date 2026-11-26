@@ -94,7 +94,7 @@ class AccessTest {
         assertNull(refusal(mask, "tools", "create", mapOf("zone_id" to "health")))
         assertNull(refusal(mask, "tools", "update", mapOf("tool_instance_id" to "weight")))
         assertNull(refusal(mask, "variables", "update", mapOf("variable_id" to "v-kcal")))
-        assertNull(refusal(mask, "readings", "read", mapOf("variable" to "kcal")))
+        assertNull(refusal(mask, "readings", "read", mapOf("variable" to "kcal", "value" to "value")))
         assertNotNull(refusal(mask, "zones", "update", mapOf("zone_id" to "health")))
         // A tool moved into a zone out of reach
         assertNotNull(refusal(mask, "tools", "update", mapOf("tool_instance_id" to "weight", "zone_id" to "garden")))
@@ -148,7 +148,7 @@ class AccessTest {
     @Test
     fun aFilterComparedWithAVariable_readsIt() {
         val read = AccessMask(listOf(zone("health", AccessLevel.READ)))
-        fun over(variable: String) = listOf(mapOf("left" to mapOf("field" to "data.value"), "op" to ">", "right" to mapOf("variable" to variable)))
+        fun over(variable: String) = listOf(mapOf("left" to mapOf("field" to "data.value"), "op" to ">", "right" to mapOf("variable" to variable, "value" to "value")))
         // A variable of its zone, not one of the garden's
         assertNull(refusal(read, "tool_data", "get", mapOf("tool_instance_id" to "weight", "filters" to over("kcal"))))
         assertNotNull(refusal(read, "tool_data", "get", mapOf("tool_instance_id" to "weight", "filters" to over("sowing"))))

@@ -47,12 +47,11 @@ class VariableBatchReadTest {
             "field" to "timestamp", "reduction" to if (ifNone) "MIN" else "MAX"
         ) + (if (ifNone) mapOf("if_none" to "NOW") else emptyMap()))
         val variable = ok("variables.create", mapOf("zone_id" to zone, "name" to "fast_batch", "label" to "Fast", "definition" to mapOf(
-            "kind" to "FORMULA", "formula" to "first_today - last_yesterday",
             "terms" to mapOf(
                 "first_today" to latestOf(mapOf("start" to day(0, "START"), "end" to mapOf("relative" to "NOW")), ifNone = true),
                 "last_yesterday" to latestOf(mapOf("start" to day(-1, "START"), "end" to day(-1, "END")), ifNone = false)
             ),
-            "field" to mapOf("type" to "DURATION")
+            "values" to listOf(mapOf("formula" to "first_today - last_yesterday", "field" to mapOf("type" to "DURATION")))
         )))["variable_id"] as String
         for ((d, h) in listOf(10 to 20, 11 to 9, 11 to 21, 12 to 8, 13 to 19)) {
             ok("tool_data.create", mapOf("tool_instance_id" to meals, "name" to "Meal", "timestamp" to at(d, h), "data" to mapOf("value" to 1)))
@@ -62,17 +61,17 @@ class VariableBatchReadTest {
         val instants = listOf(at(11, 7), at(11, 12), at(12, 12), at(13, 12), at(14, 23))
         // A formula per entry over today's meals, whose entries the evaluator reads itself
         val doubled = ok("variables.create", mapOf("zone_id" to zone, "name" to "meals_doubled", "label" to "Doubled", "definition" to mapOf(
-            "kind" to "FORMULA", "formula" to "today",
             "terms" to mapOf("today" to mapOf("reading" to mapOf(
                 "selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to meals),
                     "period" to mapOf("start" to day(0, "START"), "end" to mapOf("relative" to "NOW"))),
                 "per_entry" to "value × 2", "reduction" to "SUM"
             ))),
-            "field" to mapOf("type" to "NUMERIC", "config" to mapOf("decimals" to 0))
+            "values" to listOf(mapOf("formula" to "today", "field" to mapOf("type" to "NUMERIC", "config" to mapOf("decimals" to 0))))
         )))["variable_id"] as String
         for (id in listOf(variable, doubled)) {
-            val together = ok("variables.evaluate", mapOf("variable_id" to id, "at" to instants))["values"] as List<*>
-            val alone = instants.map { instant -> (ok("variables.evaluate", mapOf("variable_id" to id, "at" to listOf(instant)))["values"] as List<*>).single() }
+            fun values(result: Map<String, Any?>) = ((result["results"] as List<*>).single() as Map<*, *>)["values"] as List<*>
+            val together = values(ok("variables.evaluate", mapOf("variable_id" to id, "at" to instants)))
+            val alone = instants.map { instant -> values(ok("variables.evaluate", mapOf("variable_id" to id, "at" to listOf(instant)))).single() }
             assertEquals(alone, together)
         }
     }

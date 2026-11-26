@@ -47,19 +47,21 @@ class FormulaTest {
 
     @Test
     fun `a variable is stored by its id and written back under its current name`() {
-        val stored = read("mange - depense").mapNames { if (it == "depense") Formula.VariableRef("v42") else null }
-        val text = stored.text({ "{var:$it}" })
-        assertEquals("mange - {var:v42}", text)
-        assertEquals(listOf("v42"), read(text).variableIds())
+        val stored = read("mange - depense").mapNames { if (it == "depense") Formula.VariableRef("v42", "value") else null }
+        val text = stored.text({ Formula.stored(it) })
+        assertEquals("mange - {var:v42.value}", text)
+        assertEquals(listOf(Formula.VariableRef("v42", "value")), read(text).variableRefs())
         assertEquals("mange - sport", read(text).text({ "sport" }))
+        // A key always there: a reference without one does not read
+        assertEquals(Formula.Problem.UNEXPECTED, (Formula.parse("{var:v42}") as Formula.Parsed.Unreadable).problem)
     }
 
     @Test
     fun `written back, the parentheses that matter stay and a function takes its English name, or the screen's`() {
-        assertEquals("(mange - depense) ÷ 7", read("(mange-depense)/7").text({ it }))
-        assertEquals("a - (b - c)", read("a - (b - c)").text({ it }))
-        assertEquals("km ÷ hours(temps)", read("km / heures(temps)").text({ it }))
-        assertEquals("km ÷ heures(temps)", read("km / hours(temps)").text({ it }, { f -> french.entries.first { it.value == f }.key }))
+        assertEquals("(mange - depense) ÷ 7", read("(mange-depense)/7").text({ Formula.stored(it) }))
+        assertEquals("a - (b - c)", read("a - (b - c)").text({ Formula.stored(it) }))
+        assertEquals("km ÷ hours(temps)", read("km / heures(temps)").text({ Formula.stored(it) }))
+        assertEquals("km ÷ heures(temps)", read("km / hours(temps)").text({ Formula.stored(it) }, { f -> french.entries.first { it.value == f }.key }))
         assertEquals(Formula.Problem.UNKNOWN_FUNCTION, (Formula.parse("heures(t)") as Formula.Parsed.Unreadable).problem)
     }
 
@@ -114,7 +116,7 @@ class FormulaTest {
     @Test
     fun `now() reads in either language, takes nothing, and is written back under its English name`() {
         assertEquals(Formula.Binary(Formula.Operator.MINUS, Formula.Now, Formula.Name("repas")), read("maintenant() - repas"))
-        assertEquals("now() - repas", read("maintenant() - repas").text({ it }))
+        assertEquals("now() - repas", read("maintenant() - repas").text({ Formula.stored(it) }))
         assertEquals(Formula.Problem.MISSING_CLOSING, unreadable("now(3)").problem)
     }
 

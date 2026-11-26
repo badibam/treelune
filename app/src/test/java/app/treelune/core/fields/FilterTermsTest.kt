@@ -45,12 +45,12 @@ class FilterTermsTest {
             assertTrue(written.error, written.isSuccess)
         }
         val goal = coordinator.processUserAction("variables.create", mapOf("zone_id" to zone, "name" to unique("kcal_goal"), "label" to "Kcal goal",
-            "definition" to mapOf("kind" to "CONSTANT", "value" to 2100, "field" to mapOf("type" to "NUMERIC"))))
+            "definition" to mapOf("values" to listOf(mapOf("key" to "value", "constant" to 2100, "field" to mapOf("type" to "NUMERIC"))))))
         assertTrue(goal.error, goal.isSuccess)
         return Meals(zone, tool, goal.data!!["variable_id"] as String)
     }
 
-    private fun overGoal(meals: Meals) = listOf(mapOf("left" to mapOf("field" to "data.value"), "op" to ">", "right" to mapOf("variable" to meals.goal)))
+    private fun overGoal(meals: Meals) = listOf(mapOf("left" to mapOf("field" to "data.value"), "op" to ">", "right" to mapOf("variable" to meals.goal, "value" to "value")))
 
     @Test
     fun `a query keeps the entries over the variable`() = runBlocking {
@@ -64,11 +64,11 @@ class FilterTermsTest {
     fun `a variable counts the days over another, its filter taken when it is written`() = runBlocking {
         val meals = meals()
         val over = coordinator.processUserAction("variables.create", mapOf("zone_id" to meals.zone, "name" to unique("days_over"), "label" to "Days over",
-            "definition" to JsonUtils.toMap(JSONObject().put("kind", "FORMULA").put("formula", "t").put("terms", JSONObject().put("t", JSONObject().put("reading",
+            "definition" to JsonUtils.toMap(JSONObject().put("values", org.json.JSONArray().put(JSONObject().put("formula", "t"))).put("terms", JSONObject().put("t", JSONObject().put("reading",
                 JSONObject().put("selection", JSONObject().put("target", JSONObject().put("kind", "TOOL_INSTANCE").put("id", meals.tool))
                     .put("filters", JsonUtils.toJSONArray(overGoal(meals)))).put("reduction", "COUNT")))))))
         assertTrue(over.error, over.isSuccess)
-        val read = TermReader(context).read(Term.Variable(over.data!!["variable_id"] as String), System.currentTimeMillis(), null)
+        val read = TermReader(context).read(Term.Variable(over.data!!["variable_id"] as String, "value"), System.currentTimeMillis(), null)
         assertEquals(2, ((read as TermReader.Read.Value).value as Number).toInt())
     }
 
@@ -76,9 +76,9 @@ class FilterTermsTest {
     fun `a filter compared with a text is refused when written`() = runBlocking {
         val meals = meals()
         val refused = coordinator.processUserAction("variables.create", mapOf("zone_id" to meals.zone, "name" to unique("named"), "label" to "Named",
-            "definition" to JsonUtils.toMap(JSONObject().put("kind", "FORMULA").put("formula", "t").put("terms", JSONObject().put("t", JSONObject().put("reading",
+            "definition" to JsonUtils.toMap(JSONObject().put("values", org.json.JSONArray().put(JSONObject().put("formula", "t"))).put("terms", JSONObject().put("t", JSONObject().put("reading",
                 JSONObject().put("selection", JSONObject().put("target", JSONObject().put("kind", "TOOL_INSTANCE").put("id", meals.tool))
-                    .put("filters", JsonUtils.toJSONArray(listOf(mapOf("left" to mapOf("field" to "name"), "op" to "=", "right" to mapOf("variable" to meals.goal))))))
+                    .put("filters", JsonUtils.toJSONArray(listOf(mapOf("left" to mapOf("field" to "name"), "op" to "=", "right" to mapOf("variable" to meals.goal, "value" to "value"))))))
                     .put("reduction", "COUNT")))))))
         assertFalse(refused.isSuccess)
     }
@@ -87,12 +87,12 @@ class FilterTermsTest {
     fun `a variable whose reading filters by itself is refused when written`() = runBlocking {
         val meals = meals()
         val created = coordinator.processUserAction("variables.create", mapOf("zone_id" to meals.zone, "name" to unique("loop"), "label" to "Loop",
-            "definition" to mapOf("kind" to "CONSTANT", "value" to 1, "field" to mapOf("type" to "NUMERIC"))))
+            "definition" to mapOf("values" to listOf(mapOf("key" to "value", "constant" to 1, "field" to mapOf("type" to "NUMERIC"))))))
         assertTrue(created.error, created.isSuccess)
         val id = created.data!!["variable_id"] as String
-        val itself = listOf(mapOf("left" to mapOf("field" to "data.value"), "op" to ">", "right" to mapOf("variable" to id)))
+        val itself = listOf(mapOf("left" to mapOf("field" to "data.value"), "op" to ">", "right" to mapOf("variable" to id, "value" to "value")))
         val changed = coordinator.processUserAction("variables.update", mapOf("variable_id" to id,
-            "definition" to JsonUtils.toMap(JSONObject().put("kind", "FORMULA").put("formula", "t").put("terms", JSONObject().put("t", JSONObject().put("reading",
+            "definition" to JsonUtils.toMap(JSONObject().put("values", org.json.JSONArray().put(JSONObject().put("formula", "t"))).put("terms", JSONObject().put("t", JSONObject().put("reading",
                 JSONObject().put("selection", JSONObject().put("target", JSONObject().put("kind", "TOOL_INSTANCE").put("id", meals.tool))
                     .put("filters", JsonUtils.toJSONArray(itself))).put("reduction", "COUNT")))))))
         // Refused when written: read, it would read itself without end

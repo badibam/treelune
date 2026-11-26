@@ -111,13 +111,15 @@ fun rememberTermField(term: JSONObject): FieldDefinition? {
     }
     val fields = rememberSourceFields(source, selection?.optString("view")?.takeIf { it.isNotEmpty() })
     val variableId = term.optString("variable").takeIf { it.isNotEmpty() }
-    var variableField by remember(variableId) { mutableStateOf<FieldDefinition?>(null) }
-    LaunchedEffect(variableId) {
+    var variableField by remember(variableId, term.optString(app.treelune.core.terms.Term.VARIABLE_VALUE)) { mutableStateOf<FieldDefinition?>(null) }
+    LaunchedEffect(variableId, term.optString(app.treelune.core.terms.Term.VARIABLE_VALUE)) {
         if (variableId == null) return@LaunchedEffect
         val result = Coordinator(context).processUserAction("variables.get", mapOf("variable_id" to variableId))
         if (!result.isSuccess) return@LaunchedEffect
-        val definition = (result.data?.get("definition") as? Map<*, *>)?.let { JsonUtils.toJSONObject(it.entries.associate { e -> e.key.toString() to e.value }) }
-        val declared = definition?.optJSONObject("field")
+        val definition = ((result.data?.get("variable") as? Map<*, *>)?.get("definition") as? Map<*, *>)?.let { JsonUtils.toJSONObject(it.entries.associate { e -> e.key.toString() to e.value }) }
+        // The field of the value the term reads
+        val values = definition?.optJSONArray(app.treelune.core.variables.VariableDefinition.VALUES)
+        val declared = values?.let { a -> (0 until a.length()).mapNotNull { a.optJSONObject(it) }.firstOrNull { it.optString("key") == term.optString(app.treelune.core.terms.Term.VARIABLE_VALUE) } }?.optJSONObject("field")
         // A formula whose type is deduced reads numbers
         variableField = FieldDefinition(variableId, variableId, null,
             declared?.optString("type")?.let { t -> FieldType.entries.firstOrNull { it.name == t } } ?: FieldType.NUMERIC, false,

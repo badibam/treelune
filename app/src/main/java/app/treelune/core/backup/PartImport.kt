@@ -436,13 +436,19 @@ class PartImport(private val context: Context) {
     }
 
     /**
-     * [definition] stored, in the form a create takes: the variables its formula reads by name,
-     * those brought under the name they arrive with. A constant has no formula.
+     * [definition] stored, in the form a create takes: the variables' values its formulas read as
+     * `name.key`, the variables brought under the name they arrive with. A constant has no formula.
      */
     private fun given(definition: JSONObject, names: Map<String, String>): JSONObject {
-        val formula = definition.optString("formula").takeIf { it.isNotEmpty() } ?: return definition
-        val read = Formula.parse(formula) as? Formula.Parsed.Read ?: throw Refused("Formula not read: $formula")
-        return definition.put("formula", read.formula.text({ id -> names[id] ?: throw Refused("Variable $id read by a formula and not brought") }))
+        val values = definition.optJSONArray(app.treelune.core.variables.VariableDefinition.VALUES) ?: return definition
+        for (i in 0 until values.length()) {
+            val value = values.optJSONObject(i) ?: continue
+            val formula = value.optString(app.treelune.core.variables.VariableDefinition.FORMULA).takeIf { it.isNotEmpty() } ?: continue
+            val read = Formula.parse(formula) as? Formula.Parsed.Read ?: throw Refused("Formula not read: $formula")
+            value.put(app.treelune.core.variables.VariableDefinition.FORMULA, read.formula.text({ ref ->
+                (names[ref.id] ?: throw Refused("Variable ${ref.id} read by a formula and not brought")) + "." + ref.key }))
+        }
+        return definition
     }
 
     /** What was written taken out again, the last first: the part arrives whole or not at all. */

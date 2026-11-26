@@ -260,7 +260,7 @@ class ReadoutService(private val context: Context) : ExecutableService {
             is Formula.Parsed.Read -> parsed.formula
         }
         // Its own values alone: a variable is read through a value that reads it
-        val unknown = formula.names().filter { it !in fields }.distinct() + formula.variableIds().map { "{var:$it}" }
+        val unknown = formula.names().filter { it !in fields }.distinct() + formula.variableRefs().map { Formula.stored(it) }
         if (unknown.isNotEmpty()) throw Refused(s.shared("readout_error_gauge_names").format(unknown.joinToString(", "), fields.keys.joinToString(", ")))
         val leaf = { node: Formula -> (node as? Formula.Name)?.let { fields[it.name] }?.takeIf { it.type in VariableService.FORMULA_LEAF_TYPES } }
         FormulaType.problem(formula, leaf)?.let { problem ->
@@ -269,9 +269,9 @@ class ReadoutService(private val context: Context) : ExecutableService {
                 is FormulaType.Problem.NotAnInstant -> problem.part
                 FormulaType.Problem.InstantResult -> formula
             }
-            throw Refused(s.shared("readout_error_gauge_instant").format(part.text({ it }, { f -> s.shared("formula_function_${f.canonical}") })))
+            throw Refused(s.shared("readout_error_gauge_instant").format(part.text({ Formula.stored(it) }, { f -> s.shared("formula_function_${f.canonical}") })))
         }
-        settings.put(ReadoutSettings.GAUGE, formula.text({ it }))
+        settings.put(ReadoutSettings.GAUGE, formula.text({ Formula.stored(it) }))
     }
 
     /** The functions under their names in the app's language, which a formula written on screen uses. */

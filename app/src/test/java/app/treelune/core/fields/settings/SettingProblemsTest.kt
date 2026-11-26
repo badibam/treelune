@@ -71,10 +71,10 @@ class SettingProblemsTest {
         assertTrue(problem(listOf(condition), "{}"))
         // Its operator left empty (a goal's criterion refused for it on saving)
         assertTrue(problem(listOf(condition), """{"condition": {"left": {"constant": 3}}}"""))
-        assertTrue(problem(listOf(condition), """{"condition": {"left": {"variable": "x"}, "op": ">", "right": {"constant": null}}}"""))
-        assertFalse(problem(listOf(condition), """{"condition": {"left": {"variable": "x"}, "op": ">", "right": {"constant": 2100}}}"""))
-        assertFalse(problem(listOf(condition), """{"condition": {"left": {"variable": "x"}, "op": "absent"}}"""))
-        assertTrue(problem(listOf(condition), """{"condition": {"left": {"variable": "x"}, "op": "between", "right": [{"constant": 1}]}}"""))
+        assertTrue(problem(listOf(condition), """{"condition": {"left": {"variable": "x", "value": "value"}, "op": ">", "right": {"constant": null}}}"""))
+        assertFalse(problem(listOf(condition), """{"condition": {"left": {"variable": "x", "value": "value"}, "op": ">", "right": {"constant": 2100}}}"""))
+        assertFalse(problem(listOf(condition), """{"condition": {"left": {"variable": "x", "value": "value"}, "op": "absent"}}"""))
+        assertTrue(problem(listOf(condition), """{"condition": {"left": {"variable": "x", "value": "value"}, "op": "between", "right": [{"constant": 1}]}}"""))
     }
 
     @Test

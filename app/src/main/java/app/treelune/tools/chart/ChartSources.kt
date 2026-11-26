@@ -78,7 +78,9 @@ class ChartSources(private val context: Context) {
             is Term.Variable -> {
                 val result = coordinator.processUserAction("variables.get", mapOf("variable_id" to term.id))
                 if (!result.isSuccess) throw IllegalStateException(result.error ?: s.tool("error_variable").format(column.name))
-                val declared = (result.data?.get("definition") as? Map<*, *>)?.get("field") as? Map<*, *>
+                // The field of the value the column reads
+                val declared = (((result.data?.get("variable") as? Map<*, *>)?.get("definition") as? Map<*, *>)?.get("values") as? List<*>).orEmpty()
+                    .filterIsInstance<Map<*, *>>().firstOrNull { it["key"] == term.value }?.get("field") as? Map<*, *>
                 // A formula whose type is deduced computes numbers
                 FieldDefinition(column.name, column.name, null,
                     FieldType.entries.firstOrNull { it.name == declared?.get("type") } ?: FieldType.NUMERIC, false,
@@ -144,7 +146,7 @@ class ChartSources(private val context: Context) {
      * instants (variables.evaluate with `variable_ids`): one evaluator for them all, so what they
      * share — the totals the shares divide — is read once per step rather than once per column.
      */
-    private val variableCells = mutableMapOf<Pair<List<Long>, String>, List<Cell>>()
+    private val variableCells = mutableMapOf<Pair<List<Long>, Pair<String, String>>, List<Cell>>()
 
     private suspend fun prefetchVariables(spec: ChartSpec, start: Long?, end: Long, now: Long, resolver: TimeResolver) {
         variableCells.clear()
@@ -159,7 +161,9 @@ class ChartSources(private val context: Context) {
                 if (!result.isSuccess) throw IllegalStateException(s.tool("error_column_read").format(
                     sources.flatMap { it.columns }.filter { it.term is Term.Variable }.joinToString(", ") { it.name }, result.error ?: ""))
                 (result.data?.get("variables") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().forEach { variable ->
-                    variableCells[instants to variable["variable_id"] as String] = cellsOf(variable["values"] as? List<*>)
+                    (variable["results"] as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().forEach { value ->
+                        variableCells[instants to (variable["variable_id"] as String to value["key"] as String)] = cellsOf(value["values"] as? List<*>)
+                    }
                 }
             }
     }
@@ -191,9 +195,9 @@ class ChartSources(private val context: Context) {
     /** A column read at every instant: a value or a failure each. */
     private suspend fun readColumn(column: GridColumn, source: Source.Grid, instants: List<Long>): List<Cell> {
         if (instants.isEmpty()) return emptyList()
-        (column.term as? Term.Variable)?.let { term -> variableCells[instants to term.id]?.let { return it } }
+        (column.term as? Term.Variable)?.let { term -> variableCells[instants to (term.id to term.value)]?.let { return it } }
         val result = when (val term = column.term) {
-            is Term.Variable -> coordinator.processUserAction("variables.evaluate", mapOf("variable_id" to term.id, "at" to instants))
+            is Term.Variable -> coordinator.processUserAction("variables.evaluate", mapOf("variable_id" to term.id, "value" to term.value, "at" to instants))
             is Term.Reading -> {
                 // Without a period of its own, a reading reads its step: the step's unit around the instant read
                 val selection = if (term.selection.period.isEmpty) term.selection.copy(period = EntryPeriod(
@@ -203,7 +207,10 @@ class ChartSources(private val context: Context) {
             is Term.Constant, is Term.Self -> throw IllegalStateException(s.tool("error_column_term").format(column.name))
         }
         if (!result.isSuccess) throw IllegalStateException(s.tool("error_column_read").format(column.name, result.error ?: ""))
-        return cellsOf(result.data?.get("values") as? List<*>)
+        // A variable's value comes under its result, a reading's at once
+        val values = if (column.term is Term.Variable) ((result.data?.get("results") as? List<*>)?.singleOrNull() as? Map<*, *>)?.get("values") as? List<*>
+            else result.data?.get("values") as? List<*>
+        return cellsOf(values)
     }
 
     /** A column's values as cells: a value, or a failure with its words and the entries to correct. */

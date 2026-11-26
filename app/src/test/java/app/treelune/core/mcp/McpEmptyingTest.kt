@@ -42,7 +42,7 @@ class McpEmptyingTest {
         val zoneId = zone.data!!["zone_id"] as String
         val variable = coordinator.processUserAction("variables.create", mapOf(
             "zone_id" to zoneId, "name" to "fast", "label" to "Fast", "description" to "Hours", "icon_color" to "RED", "texture" to "DOTS",
-            "definition" to mapOf("kind" to "CONSTANT", "value" to 2, "field" to mapOf("type" to "NUMERIC"))
+            "definition" to mapOf("values" to listOf(mapOf("key" to "value", "constant" to 2, "field" to mapOf("type" to "NUMERIC"))))
         ))
         assertTrue(variable.error, variable.isSuccess)
         val variableId = variable.data!!["variable_id"] as String

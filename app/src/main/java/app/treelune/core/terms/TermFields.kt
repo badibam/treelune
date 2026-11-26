@@ -27,7 +27,7 @@ object TermFields {
      * @param targetFields The fields of the entries a reading's target holds, a tool instance's or
      *   one entry's tool's, a variable's series', by path (ToolFields.ofTarget), throwing IllegalStateException when they
      *   cannot be read
-     * @param variableField The field of the variable of an id; null when there is no such variable
+     * @param variableField The field of a variable's value, by the variable's id and the value's key; null when there is no such value
      * @throws IllegalArgumentException naming what does not read: a variable that does not
      *   exist, a reading of no tool instance, a tool that cannot be read, a field it has not, a
      *   reduction its type does not take
@@ -37,10 +37,10 @@ object TermFields {
         name: String,
         text: (String) -> String,
         targetFields: suspend (app.treelune.core.selection.Reference, String?) -> Map<String, FieldDefinition>,
-        variableField: suspend (String) -> FieldDefinition?
+        variableField: suspend (String, String) -> FieldDefinition?
     ): FieldDefinition? = when (term) {
         is Term.Constant -> null
-        is Term.Variable -> variableField(term.id) ?: throw IllegalArgumentException(text("variable_error_not_found").format(term.id))
+        is Term.Variable -> variableField(term.id, term.value) ?: throw IllegalArgumentException(text("variable_error_not_found").format("${term.id}.${term.value}"))
         // Typed by whoever declares a thing judged (ConditionCheck), refused here where none is
         is Term.Self -> throw IllegalArgumentException(text("term_error_self").format(name))
         is Term.Reading -> reading(term, name, text, targetFields)

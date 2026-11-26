@@ -131,7 +131,7 @@ class SettingsSchemaGeneratorTest {
         fun valid(config: String) = validator.validate(mapper.readTree(config)).isEmpty()
         assertTrue(valid("""{"period": {"start": {"relative": {"unit": "DAY", "offset": -29, "edge": "START"}}, "end": 1790000000000},
             "selection": {"target": {"kind": "TOOL_INSTANCE", "id": "t1"}, "filters": [{"left": {"field": "data.kcal"}, "op": ">", "right": {"constant": 500}}]},
-            "term": {"variable": "v1"}, "field": "kcal",
+            "term": {"variable": "v1", "value": "value"}, "field": "kcal",
             "test": {"left": {"field": "kcal"}, "op": ">", "right": {"field": "goal"}}}"""))
         assertFalse(valid("""{"period": {}, "term": {"constant": 3}}"""))
         assertFalse(valid("""{"period": {"start": "yesterday"}}"""))

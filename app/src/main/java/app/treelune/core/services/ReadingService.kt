@@ -63,13 +63,16 @@ class ReadingService(private val context: Context) : ExecutableService {
     }
 
     private suspend fun read(params: JSONObject): OperationResult {
-        // A variable: computed at each instant asked, by the variables service
-        params.optString("variable").takeIf { it.isNotEmpty() }?.let { name ->
-            val result = Coordinator(context).processUserAction("variables.evaluate", mapOf(
-                "name" to name,
-                "at" to (params.optJSONArray("at")?.let { JsonUtils.toList(it) }
-                    ?: return OperationResult.error(s.shared("service_error_reading_param").format("at")))
-            ))
+        // A variable: computed at each instant asked, by the variables service; `name` for all its
+        // values, `name.key` for one
+        params.optString("variable").takeIf { it.isNotEmpty() }?.let { written ->
+            val (name, key) = if ('.' in written) written.substringBeforeLast('.') to written.substringAfterLast('.') else written to null
+            val result = Coordinator(context).processUserAction("variables.evaluate", buildMap {
+                put("name", name)
+                key?.let { put("value", it) }
+                put("at", (params.optJSONArray("at")?.let { JsonUtils.toList(it) }
+                    ?: return OperationResult.error(s.shared("service_error_reading_param").format("at"))))
+            })
             return if (result.isSuccess) OperationResult.success(result.data ?: emptyMap()) else OperationResult.error(result.error ?: "")
         }
         val selection = try {

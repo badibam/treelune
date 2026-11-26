@@ -42,12 +42,16 @@ import app.treelune.core.variables.Formula
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
+/** The keys of a variable's stored definition. */
+private typealias Def = app.treelune.core.variables.VariableDefinition.Companion
+
 /**
  * A variable seen and changed (docs/DATA.md, « Variables »): its name, its look (Looks: its label,
  * description, icon, colour, texture and the mode of its tile, the colour and the texture each on
- * a page of the form, which then fills the screen), a constant or a formula
- * written in text with buttons inserting the names and a check at each keystroke, its terms each
- * with its period relative to the instant it is read at, the type of its value, and its value now.
+ * a page of the form, which then fills the screen), the terms its values share, each with its
+ * period relative to the instant it is read at, then its values, each a constant or a formula
+ * written in text with buttons inserting the names and a check at each keystroke, its type, and
+ * with several its key, its label and whether its tile shows it; and its values now.
  * The service checks it again when it is saved, as it checks the AI's.
  *
  * The draft is the definition the service takes, written with names, kept as JSON across a rotation.
@@ -67,10 +71,13 @@ fun VariableScreen(zoneId: String, variableId: String?, onDone: () -> Unit) {
     val lookNodes = remember { app.treelune.core.look.Looks.nodes(app.treelune.core.variables.VariableLook.SPEC, s::shared) }
     var look by rememberSaveable(stateSaver = app.treelune.core.ui.JsonObjectSaver) { mutableStateOf(app.treelune.core.fields.settings.SettingDefaults.of(lookNodes)) }
     val pages = app.treelune.core.fields.settings.rememberSettingsPages()
-    var draft by rememberSaveable { mutableStateOf(JSONObject().put("kind", "FORMULA").put("formula", "").put("terms", JSONObject()).toString()) }
+    var draft by rememberSaveable { mutableStateOf(JSONObject().put(Def.TERMS, JSONObject())
+        .put(Def.VALUES, org.json.JSONArray().put(JSONObject().put(Def.KEY, Def.FIRST_KEY).put(Def.FORMULA, ""))).toString()) }
     var loaded by rememberSaveable { mutableStateOf(variableId == null) }
     var error by remember { mutableStateOf<String?>(null) }
-    var current by remember { mutableStateOf<String?>(null) }
+    // Each value now, by key: its value written, or why there is none
+    var current by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var currentError by remember { mutableStateOf<String?>(null) }
     var others by remember { mutableStateOf<List<VariableRow>>(emptyList()) }
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     // Its group among the zone's, none for the ungrouped section
@@ -94,8 +101,10 @@ fun VariableScreen(zoneId: String, variableId: String?, onDone: () -> Unit) {
                 @Suppress("UNCHECKED_CAST")
                 val definition = JsonUtils.toJSONObject(variable["definition"] as Map<String, Any?>)
                 // Shown with each function in the app's language, as it is written here
-                fun localized(text: String) = (Formula.parse(text) as? Formula.Parsed.Read)?.formula?.text({ it }, { f -> s.shared("formula_function_${f.canonical}") }) ?: text
-                definition.optString("formula").takeIf { it.isNotEmpty() }?.let { definition.put("formula", localized(it)) }
+                fun localized(text: String) = (Formula.parse(text) as? Formula.Parsed.Read)?.formula?.text({ Formula.stored(it) }, { f -> s.shared("formula_function_${f.canonical}") }) ?: text
+                definition.optJSONArray(Def.VALUES)?.let { values ->
+                    for (i in 0 until values.length()) values.optJSONObject(i)?.let { v -> v.optString(Def.FORMULA).takeIf { it.isNotEmpty() }?.let { v.put(Def.FORMULA, localized(it)) } }
+                }
                 definition.optJSONObject("terms")?.let { terms ->
                     terms.keys().forEach { key ->
                         terms.getJSONObject(key).optJSONObject("reading")?.let { r -> r.optString("per_entry").takeIf { it.isNotEmpty() }?.let { r.put("per_entry", localized(it)) } }
@@ -107,21 +116,30 @@ fun VariableScreen(zoneId: String, variableId: String?, onDone: () -> Unit) {
         }
         if (variableId != null) {
             val value = coordinator.processUserAction("variables.evaluate", mapOf("variable_id" to variableId, "at" to listOf(System.currentTimeMillis())))
-            val row = (value.data?.get("values") as? List<*>)?.firstOrNull() as? Map<*, *>
-            val field = (value.data?.get("field") as? Map<*, *>)?.let { fieldOf(name, it) }
-            current = when {
-                !value.isSuccess -> value.error
-                row?.get("failure") != null -> s.shared("variable_no_value").format((row["failure"] as Map<*, *>)["message"] as? String ?: "")
-                field != null && row?.get("value") != null -> field.formatValue(row["value"], context)
-                else -> null
-            }
+            if (!value.isSuccess) currentError = value.error
+            else current = (value.data?.get("results") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().mapNotNull { result ->
+                val row = (result["values"] as? List<*>)?.firstOrNull() as? Map<*, *>
+                val field = (result["field"] as? Map<*, *>)?.let { fieldOf(name, it) }
+                val written = when {
+                    row?.get("failure") != null -> s.shared("variable_no_value").format((row["failure"] as Map<*, *>)["message"] as? String ?: "")
+                    field != null && row?.get("value") != null -> field.formatValue(row["value"], context)
+                    else -> null
+                } ?: return@mapNotNull null
+                (result["key"] as String) to written
+            }.toMap()
         }
     }
 
     val json = JSONObject(draft)
     fun edit(change: JSONObject.() -> Unit) { draft = JSONObject(draft).apply(change).toString() }
-    val isFormula = json.optString("kind") == "FORMULA"
-    val terms = json.optJSONObject("terms") ?: JSONObject()
+    val terms = json.optJSONObject(Def.TERMS) ?: JSONObject()
+    val values = json.optJSONArray(Def.VALUES) ?: org.json.JSONArray()
+    // What a formula may name besides its terms: each other variable, by its name alone for one of
+    // one value, by `name.key` for each value of one of several
+    val variableTokens = others.flatMap { other ->
+        val keys = (other.definition[Def.VALUES] as? List<*>).orEmpty().mapNotNull { (it as? Map<*, *>)?.get(Def.KEY) as? String }
+        if (keys.size == 1) listOf(other.name) else keys.map { "${other.name}.$it" }
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(vertical = UI.Space.L),
@@ -138,7 +156,12 @@ fun VariableScreen(zoneId: String, variableId: String?, onDone: () -> Unit) {
             return@Column
         }
         if (pages.atRoot) {
-            current?.let { UI.Text(text = s.shared("variable_value_now").format(it), type = TextType.SUBTITLE) }
+            currentError?.let { UI.Text(text = s.shared("variable_value_now").format(it), type = TextType.SUBTITLE) }
+            // Its value now, or each of its values, by its label
+            if (values.length() == 1) current.values.firstOrNull()?.let { UI.Text(text = s.shared("variable_value_now").format(it), type = TextType.SUBTITLE) }
+            else (0 until values.length()).mapNotNull { values.optJSONObject(it) }.forEach { v ->
+                current[v.optString(Def.KEY)]?.let { UI.Text(text = s.shared("variable_value_now_of").format(v.optString(Def.LABEL).ifBlank { v.optString(Def.KEY) }, it), type = TextType.BODY) }
+            }
             UI.FormField(label = s.shared("label_name"), value = name, onChange = { name = it }, required = true)
         }
         app.treelune.core.fields.settings.SettingsForm(lookNodes, look, { look = it }, context,
@@ -147,53 +170,85 @@ fun VariableScreen(zoneId: String, variableId: String?, onDone: () -> Unit) {
         if (!pages.atRoot) return@Column
         if (groups.isNotEmpty()) app.treelune.core.ui.components.GroupSelector(groups, group, { group = it }, s.shared("label_group"))
 
-        val kinds = listOf("FORMULA" to s.shared("variable_kind_formula"), "CONSTANT" to s.shared("variable_kind_constant"))
-        UI.FormSelection(
-            label = s.shared("variable_kind"),
-            options = kinds.map { it.second },
-            selected = kinds.first { it.first == json.optString("kind") }.second,
-            onSelect = { label ->
-                val kind = kinds.first { it.second == label }.first
-                val series = json.optJSONObject(app.treelune.core.variables.VariableDefinition.SERIES)
-                draft = (if (kind == "CONSTANT") JSONObject().put("kind", "CONSTANT").put("value", 0)
-                    .put("field", JSONObject().put("type", "NUMERIC").put("config", JSONObject().put("decimals", 0)))
-                else JSONObject().put("kind", "FORMULA").put("formula", "").put("terms", JSONObject()))
-                    // Its series kept across the change of kind
-                    .apply { series?.let { put(app.treelune.core.variables.VariableDefinition.SERIES, it) } }.toString()
-            },
-            required = true
-        )
-
-        if (!isFormula) {
-            val field = fieldOf(name, JsonUtils.toMap(json.optJSONObject("field") ?: JSONObject()))
-            if (field != null) {
-                FieldInput(field.copy(displayName = s.shared("variable_value")), json.opt("value"), { v -> edit { put("value", v ?: 0) } }, context, required = true)
-            }
-        } else {
-            FormulaEditor(json.optString("formula"), terms.keys().asSequence().toList(), others.map { it.name }, s) { text -> edit { put("formula", text) } }
-
-            UI.Text(text = s.shared("variable_terms"), type = TextType.SUBTITLE)
-            terms.keys().asSequence().toList().forEach { termName ->
-                TermEditor(
-                    name = termName,
-                    term = terms.getJSONObject(termName),
-                    s = s,
-                    onRename = { newName -> edit { val t = getJSONObject("terms"); val v = t.remove(termName); t.put(newName, v) } },
-                    onChange = { term -> edit { getJSONObject("terms").put(termName, term) } },
-                    onRemove = { edit { getJSONObject("terms").remove(termName) } }
-                )
-            }
-            UI.Button(type = ButtonType.SECONDARY, onClick = {
-                edit {
-                    val t = getJSONObject("terms")
-                    var n = 1
-                    while (t.has("t$n")) n++
-                    t.put("t$n", JSONObject().put("constant", 0))
-                }
-            }) { UI.Text(text = s.shared("variable_add_term"), type = TextType.LABEL) }
+        // The terms its values share, each read once per instant for all of them
+        UI.Text(text = s.shared("variable_terms"), type = TextType.SUBTITLE)
+        terms.keys().asSequence().toList().forEach { termName ->
+            TermEditor(
+                name = termName,
+                term = terms.getJSONObject(termName),
+                s = s,
+                onRename = { newName -> edit { val t = optJSONObject(Def.TERMS) ?: JSONObject().also { put(Def.TERMS, it) }; val v = t.remove(termName); t.put(newName, v) } },
+                onChange = { term -> edit { (optJSONObject(Def.TERMS) ?: JSONObject().also { put(Def.TERMS, it) }).put(termName, term) } },
+                onRemove = { edit { optJSONObject(Def.TERMS)?.remove(termName) } }
+            )
         }
+        UI.Button(type = ButtonType.SECONDARY, onClick = {
+            edit {
+                val t = optJSONObject(Def.TERMS) ?: JSONObject().also { put(Def.TERMS, it) }
+                var n = 1
+                while (t.has("t$n")) n++
+                t.put("t$n", JSONObject().put("constant", 0))
+            }
+        }) { UI.Text(text = s.shared("variable_add_term"), type = TextType.LABEL) }
 
-        ValueTypeEditor(json.optJSONObject("field"), isFormula, s) { field -> edit { if (field == null) remove("field") else put("field", field) } }
+        // Its values, each in its card; with several, each its key, its label and whether the tile shows it
+        UI.Text(text = s.shared("variable_values"), type = TextType.SUBTITLE)
+        val several = values.length() > 1
+        (0 until values.length()).forEach { index ->
+            val value = values.getJSONObject(index)
+            fun editValue(change: JSONObject.() -> Unit) = edit { getJSONArray(Def.VALUES).getJSONObject(index).apply(change) }
+            UI.Card(type = CardType.DEFAULT) {
+                Column(modifier = Modifier.padding(UI.Space.M), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                    if (several) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                            androidx.compose.foundation.layout.Box(modifier = Modifier.weight(1f)) {
+                                UI.FormField(label = s.shared("variable_value_label"), value = value.optString(Def.LABEL), onChange = { t -> editValue { put(Def.LABEL, t) } }, required = true)
+                            }
+                            UI.ActionButton(action = ButtonAction.DELETE, display = app.treelune.core.ui.ButtonDisplay.ICON, onClick = { edit { getJSONArray(Def.VALUES).remove(index) } })
+                        }
+                        UI.FormField(label = s.shared("variable_value_key"), value = value.optString(Def.KEY), onChange = { t -> editValue { put(Def.KEY, t.trim()) } }, required = true)
+                    }
+                    val isFormula = !value.has(Def.CONSTANT)
+                    val kinds = listOf(true to s.shared("variable_kind_formula"), false to s.shared("variable_kind_constant"))
+                    UI.FormSelection(
+                        label = s.shared("variable_kind"),
+                        options = kinds.map { it.second },
+                        selected = kinds.first { it.first == isFormula }.second,
+                        onSelect = { label ->
+                            val formula = kinds.first { it.second == label }.first
+                            editValue {
+                                if (formula) { remove(Def.CONSTANT); remove(Def.FIELD); put(Def.FORMULA, "") }
+                                else { remove(Def.FORMULA); put(Def.CONSTANT, 0); put(Def.FIELD, JSONObject().put("type", "NUMERIC").put("config", JSONObject().put("decimals", 0))) }
+                            }
+                        },
+                        required = true
+                    )
+                    if (!isFormula) {
+                        val field = fieldOf(name, JsonUtils.toMap(value.optJSONObject(Def.FIELD) ?: JSONObject()))
+                        if (field != null) {
+                            FieldInput(field.copy(displayName = s.shared("variable_value")), value.opt(Def.CONSTANT), { v -> editValue { put(Def.CONSTANT, v ?: 0) } }, context, required = true)
+                        }
+                    } else {
+                        FormulaEditor(value.optString(Def.FORMULA), terms.keys().asSequence().toList(), variableTokens, s) { text -> editValue { put(Def.FORMULA, text) } }
+                    }
+                    ValueTypeEditor(value.optJSONObject(Def.FIELD), isFormula, s) { field -> editValue { if (field == null) remove(Def.FIELD) else put(Def.FIELD, field) } }
+                    if (several) UI.BooleanField(label = s.shared("variable_value_on_tile"), value = value.optBoolean(Def.ON_TILE, true),
+                        onValueChange = { on -> editValue { if (on == false) put(Def.ON_TILE, false) else remove(Def.ON_TILE) } }, required = true)
+                }
+            }
+        }
+        UI.Button(type = ButtonType.SECONDARY, onClick = {
+            edit {
+                val list = getJSONArray(Def.VALUES)
+                val taken = (0 until list.length()).map { list.getJSONObject(it).optString(Def.KEY) }.toSet()
+                var n = list.length() + 1
+                while ("value_$n" in taken) n++
+                // The first value gets a label once there are two, its own key kept
+                list.optJSONObject(0)?.let { first -> if (first.optString(Def.LABEL).isBlank()) first.put(Def.LABEL, look.optString("label")) }
+                list.put(JSONObject().put(Def.KEY, "value_$n").put(Def.LABEL, "").put(Def.FORMULA, ""))
+            }
+        }) { UI.Text(text = s.shared("variable_add_value"), type = TextType.LABEL) }
+
         SeriesEditor(json.optJSONObject(app.treelune.core.variables.VariableDefinition.SERIES)?.optString(app.treelune.core.variables.VariableDefinition.UNIT), s) { unit ->
             edit { if (unit == null) remove(app.treelune.core.variables.VariableDefinition.SERIES) else put(app.treelune.core.variables.VariableDefinition.SERIES, JSONObject().put(app.treelune.core.variables.VariableDefinition.UNIT, unit)) }
         }

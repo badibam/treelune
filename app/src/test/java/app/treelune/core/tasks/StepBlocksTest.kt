@@ -17,7 +17,7 @@ class StepBlocksTest {
     private val stored = JSONArray("""[
         {"type": "text", "text": "The session:"},
         {"type": "entry", "entry": {"received": {}}, "attach": false},
-        {"type": "value", "value": {"variable": "v-kcal"}},
+        {"type": "value", "value": {"variable": "v-kcal", "value": "value"}},
         {"type": "pointer", "pointer": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "weight"}}, "attach": {"config": false, "entries": true}}}
     ]""")
 

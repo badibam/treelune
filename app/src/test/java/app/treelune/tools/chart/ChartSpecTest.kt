@@ -25,12 +25,12 @@ class ChartSpecTest {
         $period,
         "layer": [
             {"source": "grid", "step": "day", "columns": [
-                {"name": "kcal_aliments", "term": {"variable": "v1"}},
-                {"name": "kcal_vides", "term": {"variable": "v2"}}],
+                {"name": "kcal_aliments", "term": {"variable": "v1", "value": "value"}},
+                {"name": "kcal_vides", "term": {"variable": "v2", "value": "value"}}],
              "transform": [{"fold": ["kcal_aliments", "kcal_vides"], "as": ["kind", "kcal"]}],
              "mark": {"type": "bar"},
              "encoding": {"x": {"field": "timestamp"}, "y": {"field": "kcal", "stack": "zero"}, "color": {"field": "kind", "scale": {"range": ["GREEN", "RED"]}}}},
-            {"source": "grid", "step": "day", "columns": [{"name": "objectif", "term": {"variable": "v3"}}],
+            {"source": "grid", "step": "day", "columns": [{"name": "objectif", "term": {"variable": "v3", "value": "value"}}],
              "mark": {"type": "line", "interpolate": "step-after", "strokeDash": [4, 4]},
              "encoding": {"x": {"field": "timestamp"}, "y": {"field": "objectif"}}},
             {"source": "grid", "step": "day", "columns": [{"name": "poids", "term": {"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "t1"}}, "field": "data.value", "reduction": "FIRST"}}}],
@@ -47,7 +47,7 @@ class ChartSpecTest {
         assertEquals(3, spec.layers.size)
         val bars = spec.layers[0]
         assertEquals(PeriodType.DAY, (bars.source as Source.Grid).step)
-        assertEquals(Term.Variable("v1"), (bars.source as Source.Grid).columns[0].term)
+        assertEquals(Term.Variable("v1", "value"), (bars.source as Source.Grid).columns[0].term)
         assertEquals(Transform.Fold(listOf("kcal_aliments", "kcal_vides"), "kind", "kcal"), bars.transforms.single())
         assertEquals(Stack.ZERO, bars.channel(Channel.Y)!!.stack)
         assertEquals(listOf(TagColor.GREEN, TagColor.RED), bars.channel(Channel.COLOR)!!.scale.range)

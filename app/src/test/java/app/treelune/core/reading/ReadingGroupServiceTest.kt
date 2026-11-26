@@ -80,12 +80,12 @@ class ReadingGroupServiceTest {
         val (zone, tool) = cups()
         val variable = coordinator.processUserAction("variables.create", mapOf(
             "zone_id" to zone, "name" to "max_cups", "label" to "Max cups",
-            "definition" to mapOf("kind" to "CONSTANT", "value" to 2, "field" to mapOf("type" to "NUMERIC"))
+            "definition" to mapOf("values" to listOf(mapOf("key" to "value", "constant" to 2, "field" to mapOf("type" to "NUMERIC"))))
         ))
         assertTrue(variable.error, variable.isSuccess)
         val attempt = EntryPeriod(TimePoint.Fixed(noon(14)), TimePoint.Fixed(noon(16) + 3_600_000))
         // The days at most 2 cups: the 15th (none) and the 16th (one), not the 14th (three)
-        val keep = JSONObject().put("op", "<=").put("right", JSONObject().put("variable", variable.data!!["variable_id"]))
+        val keep = JSONObject().put("op", "<=").put("right", JSONObject().put("variable", variable.data!!["variable_id"]).put("value", "value"))
         assertEquals(2, ((read(perDay(tool, keep), attempt) as TermReader.Read.Value).value as Number).toInt())
     }
 

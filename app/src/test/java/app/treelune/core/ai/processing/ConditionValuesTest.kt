@@ -26,7 +26,7 @@ class ConditionValuesTest {
             "sleep" -> mapOf("data.duration" to field("duration", FieldType.DURATION), "timestamp" to field("timestamp", FieldType.DATETIME))
             else -> mapOf("data.kcal" to field("kcal", FieldType.NUMERIC))
         }
-        override suspend fun variableField(id: String): FieldDefinition? = null
+        override suspend fun variableField(id: String, value: String): FieldDefinition? = null
         override suspend fun rowFields(root: JSONObject, path: List<Any>): Map<String, FieldDefinition>? = null
     }
 

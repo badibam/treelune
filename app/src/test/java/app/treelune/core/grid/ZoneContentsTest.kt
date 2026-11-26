@@ -43,7 +43,7 @@ class ZoneContentsTest {
         ok("tools.create", mapOf("zone_id" to zone, "tooltype" to "notes", "config" to mapOf("name" to "Shelf", "group" to "Library", "icon_name" to "book", "icon_color" to "BLUE")))
         ok("tools.create", mapOf("zone_id" to zone, "tooltype" to "notes", "config" to mapOf("name" to "Plan", "group" to "Today")))
         ok("variables.create", mapOf("zone_id" to zone, "name" to "goal_contents", "label" to "Goal", "group" to "Today",
-            "definition" to mapOf("kind" to "CONSTANT", "value" to 2, "field" to mapOf("type" to "NUMERIC"))))
+            "definition" to mapOf("values" to listOf(mapOf("key" to "value", "constant" to 2, "field" to mapOf("type" to "NUMERIC"))))))
         ok("tools.create", mapOf("zone_id" to zone, "tooltype" to "notes", "config" to mapOf("name" to "Loose")))
         ok("events.create", mapOf("zone_id" to zone, "name" to "Ready"))
 

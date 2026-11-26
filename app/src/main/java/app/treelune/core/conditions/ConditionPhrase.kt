@@ -173,7 +173,7 @@ class ConditionPhrase(
         return when {
             term.has(Conditions.FIELD) -> scope?.get(term.optString(Conditions.FIELD))
             term.has(Term.SELF) -> selfField(term)
-            term.has(Term.Kind.VARIABLE.key) -> try { sources.variableField(term.optString(Term.Kind.VARIABLE.key)) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { null }
+            term.has(Term.Kind.VARIABLE.key) -> try { sources.variableField(term.optString(Term.Kind.VARIABLE.key), term.optString(Term.VARIABLE_VALUE)) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: IllegalStateException) { null }
             term.has(Term.Kind.READING.key) -> {
                 val reading = term.optJSONObject(Term.Kind.READING.key) ?: return null
                 val reduction = Reduction.entries.firstOrNull { it.name == reading.optString("reduction") }

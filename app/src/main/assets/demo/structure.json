@@ -655,7 +655,8 @@
               },
               "op": ">=",
               "right": {
-                "variable": "demo-var-km-target"
+                "variable": "demo-var-km-target",
+                "value": "value"
               }
             }
           },
@@ -852,7 +853,8 @@
               {
                 "name": "@chart_col_average",
                 "term": {
-                  "variable": "demo-var-weight-7d"
+                  "variable": "demo-var-weight-7d",
+                  "value": "value"
                 }
               }
             ]
@@ -1328,13 +1330,15 @@
               {
                 "name": "kcal",
                 "term": {
-                  "variable": "demo-var-kcal-day"
+                  "variable": "demo-var-kcal-day",
+                  "value": "value"
                 }
               },
               {
                 "name": "@chart_col_target",
                 "term": {
-                  "variable": "demo-var-kcal-target"
+                  "variable": "demo-var-kcal-target",
+                  "value": "value"
                 }
               }
             ]
@@ -1365,7 +1369,8 @@
               {
                 "name": "@chart_col_target",
                 "term": {
-                  "variable": "demo-var-kcal-target"
+                  "variable": "demo-var-kcal-target",
+                  "value": "value"
                 }
               }
             ]
@@ -2905,15 +2910,19 @@
       "grid_x": 0,
       "grid_y": 11,
       "definition": {
-        "kind": "CONSTANT",
-        "value": 20,
-        "field": {
-          "type": "NUMERIC",
-          "config": {
-            "decimals": 0,
-            "unit": "km"
+        "values": [
+          {
+            "key": "value",
+            "constant": 20,
+            "field": {
+              "type": "NUMERIC",
+              "config": {
+                "decimals": 0,
+                "unit": "km"
+              }
+            }
           }
-        }
+        ]
       }
     },
     {
@@ -2927,8 +2936,6 @@
       "grid_x": 0,
       "grid_y": 12,
       "definition": {
-        "kind": "FORMULA",
-        "formula": "km",
         "terms": {
           "km": {
             "reading": {
@@ -2955,13 +2962,19 @@
             }
           }
         },
-        "field": {
-          "type": "NUMERIC",
-          "config": {
-            "decimals": 1,
-            "unit": "km"
+        "values": [
+          {
+            "key": "value",
+            "formula": "km",
+            "field": {
+              "type": "NUMERIC",
+              "config": {
+                "decimals": 1,
+                "unit": "km"
+              }
+            }
           }
-        }
+        ]
       }
     },
     {
@@ -2975,8 +2988,6 @@
       "grid_x": 2,
       "grid_y": 1,
       "definition": {
-        "kind": "FORMULA",
-        "formula": "average",
         "terms": {
           "average": {
             "reading": {
@@ -3003,13 +3014,18 @@
             }
           }
         },
-        "field": {
-          "type": "NUMERIC",
-          "config": {
-            "decimals": 1,
-            "unit": "kg"
+        "values": [
+          {
+            "key": "value",
+            "formula": "average",
+            "field": {
+              "type": "NUMERIC",
+              "config": {
+                "decimals": 1
+              }
+            }
           }
-        }
+        ]
       }
     },
     {
@@ -3023,15 +3039,19 @@
       "grid_x": 0,
       "grid_y": 6,
       "definition": {
-        "kind": "CONSTANT",
-        "value": 2300,
-        "field": {
-          "type": "NUMERIC",
-          "config": {
-            "decimals": 0,
-            "unit": "kcal"
+        "values": [
+          {
+            "key": "value",
+            "constant": 2300,
+            "field": {
+              "type": "NUMERIC",
+              "config": {
+                "decimals": 0,
+                "unit": "kcal"
+              }
+            }
           }
-        }
+        ]
       }
     },
     {
@@ -3045,8 +3065,6 @@
       "grid_x": 2,
       "grid_y": 6,
       "definition": {
-        "kind": "FORMULA",
-        "formula": "eaten",
         "terms": {
           "eaten": {
             "reading": {
@@ -3073,13 +3091,19 @@
             }
           }
         },
-        "field": {
-          "type": "NUMERIC",
-          "config": {
-            "decimals": 0,
-            "unit": "kcal"
+        "values": [
+          {
+            "key": "value",
+            "formula": "eaten",
+            "field": {
+              "type": "NUMERIC",
+              "config": {
+                "decimals": 0,
+                "unit": "kcal"
+              }
+            }
           }
-        }
+        ]
       }
     },
     {
@@ -3093,16 +3117,20 @@
       "grid_x": 0,
       "grid_y": 8,
       "definition": {
-        "kind": "FORMULA",
-        "formula": "objectif_calorique_demo - kcal_jour_demo",
         "terms": {},
-        "field": {
-          "type": "NUMERIC",
-          "config": {
-            "decimals": 0,
-            "unit": "kcal"
+        "values": [
+          {
+            "key": "value",
+            "formula": "objectif_calorique_demo - kcal_jour_demo",
+            "field": {
+              "type": "NUMERIC",
+              "config": {
+                "decimals": 0,
+                "unit": "kcal"
+              }
+            }
           }
-        }
+        ]
       }
     },
     {
@@ -3115,8 +3143,6 @@
       "grid_x": 0,
       "grid_y": 15,
       "definition": {
-        "kind": "FORMULA",
-        "formula": "hours",
         "terms": {
           "hours": {
             "reading": {
@@ -3142,7 +3168,13 @@
               "field": "data.value"
             }
           }
-        }
+        },
+        "values": [
+          {
+            "key": "value",
+            "formula": "hours"
+          }
+        ]
       }
     }
   ],
@@ -3610,7 +3642,8 @@
           "kind": "condition",
           "condition": {
             "left": {
-              "variable": "demo-var-hours-week"
+              "variable": "demo-var-hours-week",
+              "value": "value"
             },
             "op": ">",
             "right": {

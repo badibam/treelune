@@ -131,7 +131,7 @@ class UndoTest {
             "zone_id" to zoneId,
             "name" to "objectif_calorique",
             "label" to "Objectif calorique",
-            "definition" to mapOf("kind" to "CONSTANT", "value" to 2100, "field" to mapOf("type" to "NUMERIC"))
+            "definition" to mapOf("values" to listOf(mapOf("key" to "value", "constant" to 2100, "field" to mapOf("type" to "NUMERIC"))))
         ))
         assertTrue(variable.error, variable.isSuccess)
         val variableId = variable.data!!["variable_id"] as String

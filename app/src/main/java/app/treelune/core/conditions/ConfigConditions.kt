@@ -45,8 +45,8 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
         suspend fun targetFields(target: app.treelune.core.selection.Reference, view: String?): Map<String, FieldDefinition> =
             if (view == null) toolFields(target.id!!) else throw IllegalStateException(view)
 
-        /** The field of the variable [id] as its definition stores it; null when there is none. */
-        suspend fun variableField(id: String): FieldDefinition?
+        /** The field of the value [value] (its key) of the variable [id] as its definition stores it; null when there is none. */
+        suspend fun variableField(id: String, value: String): FieldDefinition?
 
         /**
          * The fields of the rows the config describes at [path] (RowFields); null when its

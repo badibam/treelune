@@ -55,7 +55,7 @@ class ChartSceneBuilderTest {
         }
     )
 
-    private val stackedBars = """{"source": "grid", "step": "day", "columns": [{"name": "a", "term": {"variable": "v"}}],
+    private val stackedBars = """{"source": "grid", "step": "day", "columns": [{"name": "a", "term": {"variable": "v", "value": "value"}}],
         "mark": {"type": "bar"}, "encoding": {"x": {"field": "timestamp"}, "y": {"field": "kcal", "stack": "zero"},
         "color": {"field": "kind", "scale": {"range": ["GREEN", "RED"]}}}}"""
 
@@ -98,9 +98,9 @@ class ChartSceneBuilderTest {
     fun `a point at the middle of its step stands over the middle of its bar, at its start without bandPosition`() {
         val table = ChartTable(mapOf("timestamp" to timestamp, "kcal" to numeric("kcal")),
             (1..3).map { d -> Row(mapOf("timestamp" to Cell.Value(day(d)), "kcal" to Cell.Value(1500.0)), day(d) to day(d + 1) - 1) })
-        fun layers(band: String) = """{"source": "grid", "step": "day", "columns": [{"name": "a", "term": {"variable": "v"}}],
+        fun layers(band: String) = """{"source": "grid", "step": "day", "columns": [{"name": "a", "term": {"variable": "v", "value": "value"}}],
             "mark": {"type": "bar"}, "encoding": {"x": {"field": "timestamp", "type": "temporal"}, "y": {"field": "kcal"}, "color": {"value": "GREEN"}}},
-            {"source": "grid", "step": "day", "columns": [{"name": "a", "term": {"variable": "v"}}],
+            {"source": "grid", "step": "day", "columns": [{"name": "a", "term": {"variable": "v", "value": "value"}}],
             "mark": {"type": "point"}, "encoding": {"x": {"field": "timestamp", "type": "temporal"$band}, "y": {"field": "kcal"}, "color": {"value": "RED"}}}"""
         fun placed(band: String): Pair<List<DrawShape.Box>, List<DrawShape.Symbol>> {
             val marks = marks(builder().build(spec(layers(band)), listOf(table, table), day(1) to day(4) - 1, 400f))
@@ -121,7 +121,7 @@ class ChartSceneBuilderTest {
         val table = ChartTable(mapOf("timestamp" to timestamp, "kcal" to numeric("kcal")),
             listOf(1, 2).map { d -> Row(mapOf("timestamp" to Cell.Value(day(d) + 12 * 3_600_000L), "kcal" to Cell.Value(1500.0)), day(d) to day(d + 1) - 1) })
         val today = """{"constant": {"relative": {"unit": "DAY", "offset": 0, "edge": "START"}}}"""
-        val layer = """{"source": "grid", "step": "day", "columns": [{"name": "a", "term": {"variable": "v"}}],
+        val layer = """{"source": "grid", "step": "day", "columns": [{"name": "a", "term": {"variable": "v", "value": "value"}}],
             "mark": {"type": "bar"}, "encoding": {"x": {"field": "timestamp"}, "y": {"field": "kcal"},
             "color": {"value": "GREEN", "condition": {"test": {"left": {"field": "timestamp"}, "op": ">=", "right": $today}, "value": "RED"}}}}"""
         val bars = marks(builder.build(spec(layer), listOf(table), day(1) to day(3) - 1, 400f)).filterIsInstance<DrawShape.Box>()
@@ -173,7 +173,7 @@ class ChartSceneBuilderTest {
             val table = ChartTable(mapOf("timestamp" to timestamp, "w" to numeric("w")), (1..5).map { d ->
                 Row(mapOf("timestamp" to Cell.Value(day(d)), "w" to if (d == 3) failed else Cell.Value(70.0 + d)))
             })
-            val layer = """{"source": "grid", "step": "day", "columns": [{"name": "w", "term": {"variable": "v"}}], "mark": {"type": "line", "point": true},
+            val layer = """{"source": "grid", "step": "day", "columns": [{"name": "w", "term": {"variable": "v", "value": "value"}}], "mark": {"type": "line", "point": true},
                 "encoding": {"x": {"field": "timestamp"}, "y": {"field": "w", "scale": {"zero": false}}}}"""
             return builder().build(spec(layer), listOf(table), day(1) to day(5), 400f)
         }
@@ -228,7 +228,7 @@ class ChartSceneBuilderTest {
         // A label is an instant's 13 figures, 91 px: one graduation per 72 px would overlap them
         val table = ChartTable(mapOf("timestamp" to timestamp, "kcal" to numeric("kcal")),
             (1..29).map { d -> Row(mapOf("timestamp" to Cell.Value(day(d)), "kcal" to Cell.Value(1500.0)), day(d) to day(d + 1) - 1) })
-        val layer = """{"source": "grid", "step": "day", "columns": [{"name": "a", "term": {"variable": "v"}}],
+        val layer = """{"source": "grid", "step": "day", "columns": [{"name": "a", "term": {"variable": "v", "value": "value"}}],
             "mark": {"type": "bar"}, "encoding": {"x": {"field": "timestamp"}, "y": {"field": "kcal"}}}"""
         val scene = builder().build(spec(layer), listOf(table), day(1) to day(30) - 1, 400f)
         val dates = scene.drawing.shapes.filterIsInstance<DrawShape.Label>()

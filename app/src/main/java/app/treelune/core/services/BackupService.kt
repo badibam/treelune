@@ -1678,6 +1678,9 @@ class BackupService(private val context: Context) : ExecutableService {
                     data.optJSONArray(key)?.let { rows -> for (i in 0 until rows.length()) rows.getJSONObject(i).put("hidden", false) }
                 }
             }
+            if (fromVersion < 124 && toVersion >= 124) {
+                app.treelune.core.versioning.VariableValuesAtV124.backup(data)
+            }
 
             // Transform app settings
             data.optJSONArray("app_settings_categories")?.let { array ->

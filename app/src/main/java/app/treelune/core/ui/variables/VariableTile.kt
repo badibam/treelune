@@ -53,15 +53,19 @@ data class VariableRow(
     }
 }
 
+/** One value of a variable as its tile shows it: its label (null for a variable of one value) and its value written, or why it has none. */
+data class ShownValue(val label: String?, val text: String)
+
 /**
- * A variable's value now as its tile shows it, or why it has none; null while it is read. Read
- * again when an entry of a tool it reads changes, or a variable does.
+ * A variable's values now as its tile shows them, those « On the tile » in their order, or why
+ * none can be read; null while they are read. Read again when an entry of a tool it reads
+ * changes, or a variable does.
  */
 @Composable
-fun rememberVariableValue(variable: VariableRow): String? {
+fun rememberVariableValues(variable: VariableRow): List<ShownValue>? {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
-    var shown by app.treelune.core.ui.rememberShown<String?>("variable:${variable.id}") { null }
+    var shown by app.treelune.core.ui.rememberShown<List<ShownValue>?>("variable:${variable.id}") { null }
     var version by remember { mutableStateOf(0) }
     LaunchedEffect(variable.toolsRead) {
         DataChangeNotifier.changes.collect { event ->
@@ -74,13 +78,19 @@ fun rememberVariableValue(variable: VariableRow): String? {
         val result = Coordinator(context).processUserAction("variables.evaluate", mapOf(
             "variable_id" to variable.id, "at" to listOf(System.currentTimeMillis())
         ))
-        shown = if (!result.isSuccess) (result.error ?: s.shared("field_reference_unreadable")) else {
-            val field = (result.data?.get("field") as? Map<*, *>)?.let { fieldOf(variable.name, it) }
-            val row = (result.data?.get("values") as? List<*>)?.firstOrNull() as? Map<*, *>
-            when {
-                row?.get("failure") != null -> s.shared("variable_no_value").format(((row["failure"] as Map<*, *>)["message"] as? String) ?: "")
-                field != null && row?.get("value") != null -> field.formatValue(row["value"], context)
-                else -> s.shared("field_reference_unreadable")
+        shown = if (!result.isSuccess) listOf(ShownValue(null, result.error ?: s.shared("field_reference_unreadable"))) else {
+            val results = (result.data?.get("results") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
+            results.filter { results.size == 1 || it["on_tile"] != false }.map { value ->
+                val field = (value["field"] as? Map<*, *>)?.let { fieldOf(variable.name, it) }
+                val row = (value["values"] as? List<*>)?.firstOrNull() as? Map<*, *>
+                ShownValue(
+                    label = if (results.size == 1) null else value["label"] as? String,
+                    text = when {
+                        row?.get("failure") != null -> s.shared("variable_no_value").format(((row["failure"] as Map<*, *>)["message"] as? String) ?: "")
+                        field != null && row?.get("value") != null -> field.formatValue(row["value"], context)
+                        else -> s.shared("field_reference_unreadable")
+                    }
+                )
             }
         }
     }
@@ -88,16 +98,19 @@ fun rememberVariableValue(variable: VariableRow): String? {
 }
 
 /**
- * A variable's tile among its section's tools (UI.LookCard): its look, its value beside its
- * header (LINE) or under it (CONDENSED). Touching it opens the variable.
+ * A variable's tile among its section's tools (UI.LookCard): its look; a variable of one value
+ * shows it beside its header (LINE) or under it (CONDENSED), one of several a line per value
+ * shown on the tile, its label then its value, under its header, what does not hold cut by « … »,
+ * the tile never growing by itself. Touching it opens the variable.
  */
 @Composable
 fun VariableCard(variable: VariableRow, onOpen: () -> Unit, onLongClick: () -> Unit) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
-    val value = rememberVariableValue(variable)
+    val values = rememberVariableValues(variable)
+    val single = values?.singleOrNull()?.takeIf { it.label == null }
     @Composable
-    fun Value() = UI.Text(value ?: s.shared("tools_loading"), TextType.BODY, maxLines = 2)
+    fun Value() = UI.Text(single?.text ?: values?.let { "" } ?: s.shared("tools_loading"), TextType.BODY, maxLines = 2)
     UI.LookCard(
         look = variable.look,
         // Its kind under its label, as a tool's type under its name
@@ -107,9 +120,22 @@ fun VariableCard(variable: VariableRow, onOpen: () -> Unit, onLongClick: () -> U
         running = false,
         onClick = onOpen,
         onLongClick = onLongClick,
-        summary = { Value() },
+        summary = if (values == null || single != null) ({ Value() }) else null,
         glance = { Value() },
-        body = { }
+        body = { _ ->
+            if (values != null && single == null) androidx.compose.foundation.layout.Column(
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(UI.Space.XS)
+            ) {
+                values.forEach { value ->
+                    androidx.compose.foundation.layout.Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(UI.Space.S)) {
+                        androidx.compose.foundation.layout.Box(modifier = androidx.compose.ui.Modifier.weight(1f)) {
+                            UI.Text(value.label ?: "", TextType.CAPTION, maxLines = 1)
+                        }
+                        UI.Text(value.text, TextType.BODY, maxLines = 1)
+                    }
+                }
+            }
+        }
     )
 }
 

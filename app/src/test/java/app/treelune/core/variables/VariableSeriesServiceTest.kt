@@ -55,12 +55,11 @@ class VariableSeriesServiceTest {
             "field" to "timestamp", "reduction" to if (ifNone) "MIN" else "MAX"
         ) + (if (ifNone) mapOf("if_none" to "NOW") else emptyMap()))
         val variable = ok("variables.create", mapOf("zone_id" to zone, "name" to "fast_${names++}", "label" to "Fast", "definition" to mapOf(
-            "kind" to "FORMULA", "formula" to "first_today - last_yesterday",
             "terms" to mapOf(
                 "first_today" to latestOf(mapOf("start" to day(0, "START"), "end" to mapOf("relative" to "NOW")), ifNone = true),
                 "last_yesterday" to latestOf(mapOf("start" to day(-1, "START"), "end" to day(-1, "END")), ifNone = false)
             ),
-            "field" to mapOf("type" to "DURATION")
+            "values" to listOf(mapOf("formula" to "first_today - last_yesterday", "field" to mapOf("type" to "DURATION")))
         ) + (if (series) mapOf("series" to mapOf("unit" to "DAY")) else emptyMap())))["variable_id"] as String
         return meals to variable
     }
@@ -144,7 +143,7 @@ class VariableSeriesServiceTest {
     fun `a variable reading its own series is a loop, refused`() = runBlocking {
         val (_, variable) = fast()
         val changed = coordinator.processUserAction("variables.update", mapOf("variable_id" to variable, "definition" to mapOf(
-            "kind" to "FORMULA", "formula" to "days",
+            "values" to listOf(mapOf("formula" to "days")),
             "terms" to mapOf("days" to mapOf("reading" to mapOf(
                 "selection" to mapOf("target" to mapOf("kind" to "VARIABLE", "id" to variable), "view" to "series", "period" to mapOf("start" to mapOf("relative" to mapOf("unit" to "DAY", "offset" to -7, "edge" to "START")))),
                 "reduction" to "COUNT"

@@ -21,25 +21,28 @@ import java.time.Instant
  * per step. Nothing is stored: each reading computes the steps it needs again, so a correction of
  * what the variable reads corrects its past.
  *
- * An entry of a step holds `timestamp`, the instant its value is computed at, inside its step,
- * and `data.value`, the value; a step without a value (a term without an entry) has no entry.
+ * An entry of a step holds `timestamp`, the instant its values are computed at, inside its step,
+ * and each value under `data.<key>` (`data.value` for a variable's first, VariableDefinition.FIRST_KEY);
+ * a value missing at a step (a term without an entry) is absent from its entry, and a step
+ * without any value has no entry.
  */
 object VariableSeries {
 
-    /** The path of a step's value in its entry. */
-    const val VALUE = "data.value"
+    /** The path of a step's value of [key] in its entry. */
+    fun path(key: String) = "data.$key"
 
     /** The tool type an entry of a series says it is of: no tool type, a variable. */
     const val TOOLTYPE = "variable"
 
     /**
      * The fields of a series' entries, by path, as a tool's are (EntryFilters.filterableFields):
-     * the instant of its step, and its value, of the variable's own type, under [label].
+     * the instant of its step, and each value, of its own type, under [label] for a variable of
+     * one value, its own label after it for one of several.
      */
-    fun fields(definition: VariableDefinition, label: String, text: (String) -> String): Map<String, FieldDefinition> = mapOf(
-        "timestamp" to CoreFields.timestamp(text),
-        VALUE to definition.field.copy(name = "value", displayName = label)
-    )
+    fun fields(definition: VariableDefinition, label: String, text: (String) -> String): Map<String, FieldDefinition> =
+        mapOf("timestamp" to CoreFields.timestamp(text)) + definition.values.associate { value ->
+            path(value.key) to value.field.copy(name = value.key, displayName = VariableDefinition.spoken(label, definition, value))
+        }
 
     /**
      * The instants a series of [unit] is computed at between [start] and [end] read at [at]: each
@@ -76,14 +79,14 @@ object VariableSeries {
         return stepStart(next.toInstant().toEpochMilli(), unit, calendar)
     }
 
-    /** The entry of the step computed at [instant], [value] in [variableId]'s series. */
-    fun entry(variableId: String, instant: Long, value: Any): ToolDataEntity = ToolDataEntity(
+    /** The entry of the step computed at [instant], its [values] by key in [variableId]'s series. */
+    fun entry(variableId: String, instant: Long, values: Map<String, Any>): ToolDataEntity = ToolDataEntity(
         id = "$variableId@$instant",
         toolInstanceId = variableId,
         tooltype = TOOLTYPE,
         timestamp = instant,
         name = null,
-        data = JSONObject().put("value", value).toString(),
+        data = JSONObject().apply { values.forEach { (key, value) -> put(key, value) } }.toString(),
         createdAt = instant,
         updatedAt = instant,
         extra = null,
@@ -118,10 +121,16 @@ object VariableSeries {
                 if (instants.isEmpty()) return emptyList()
                 val result = Coordinator(context).processUserAction("variables.evaluate", mapOf("variable_id" to variableId, "at" to instants))
                 if (!result.isSuccess) throw IllegalStateException(result.error ?: "")
-                return (result.data?.get("values") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().mapNotNull { step ->
-                    val value = step["value"] ?: return@mapNotNull null
-                    entry(variableId, (step["at"] as Number).toLong(), value)
+                // Each instant's values by key, those computed alone
+                val byInstant = linkedMapOf<Long, MutableMap<String, Any>>()
+                instants.forEach { byInstant[it] = mutableMapOf() }
+                (result.data?.get("results") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().forEach { valueResult ->
+                    val key = valueResult["key"] as String
+                    (valueResult["values"] as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().forEach { step ->
+                        step["value"]?.let { byInstant.getValue((step["at"] as Number).toLong())[key] = it }
+                    }
                 }
+                return byInstant.filterValues { it.isNotEmpty() }.map { (instant, values) -> entry(variableId, instant, values) }
             }
         }
     }

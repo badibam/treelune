@@ -197,6 +197,8 @@ object SettingsSchemaGenerator {
                 app.treelune.core.terms.Term.Kind.VARIABLE -> JSONObject().put("type", "string")
                 app.treelune.core.terms.Term.Kind.READING -> JSONObject().put("type", "object")
             })
+            // A variable's value names its key beside the variable
+            if (kind == app.treelune.core.terms.Term.Kind.VARIABLE) properties.put(app.treelune.core.terms.Term.VARIABLE_VALUE, JSONObject().put("type", "string"))
             // A file's reading follows one entry's field, said apart
             if (kind == app.treelune.core.terms.Term.Kind.READING && node.value?.type == app.treelune.core.fields.FieldType.FILE) text("term_schema_reading_file")
             else text("term_schema_${kind.key}")

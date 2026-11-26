@@ -40,10 +40,11 @@ class TermReader(private val context: Context) {
         // Read by the thing judged alone, which puts its value in its place first
         is Term.Self -> throw IllegalStateException(app.treelune.core.strings.Strings.`for`(context = context).shared("term_error_self").format(term.key))
         is Term.Variable -> {
-            val result = Coordinator(context).processUserAction("variables.evaluate", mapOf("variable_id" to term.id, "at" to listOf(at)))
+            val result = Coordinator(context).processUserAction("variables.evaluate", mapOf("variable_id" to term.id, "value" to term.value, "at" to listOf(at)))
             if (!result.isSuccess) throw IllegalStateException(result.error ?: "")
-            val row = (result.data?.get("values") as? List<*>)?.firstOrNull() as? Map<*, *>
-            val field = (result.data?.get("field") as? Map<*, *>)?.let { fieldOf(it, result.data?.get("name") as? String ?: term.id) }
+            val asked = (result.data?.get("results") as? List<*>)?.singleOrNull() as? Map<*, *>
+            val row = (asked?.get("values") as? List<*>)?.firstOrNull() as? Map<*, *>
+            val field = (asked?.get("field") as? Map<*, *>)?.let { fieldOf(it, result.data?.get("name") as? String ?: term.id) }
             (row?.get("failure") as? Map<*, *>)?.let { failure ->
                 val reasons = (failure["causes"] as? List<*>).orEmpty().mapNotNull { (it as? Map<*, *>)?.get("reason")?.toString() }
                 Read.Failed(failure["message"] as? String ?: "", reasons.any { it !in DATA_REASONS })

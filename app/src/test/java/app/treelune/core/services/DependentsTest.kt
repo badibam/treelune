@@ -48,15 +48,14 @@ class DependentsTest {
         val kcalPath = "extra." + (JSONObject(AppDatabase.getDatabase(context).toolInstanceDao().getToolInstanceById(meals)!!.config_json)
             .getJSONArray("extra_fields").getJSONObject(0).getString("name"))
         val total = ok("variables.create", mapOf("zone_id" to zone, "name" to "kcal_today", "label" to "Kcal today", "definition" to mapOf(
-            "kind" to "FORMULA", "formula" to "eaten",
             "terms" to mapOf("eaten" to mapOf("reading" to mapOf(
                 "selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to meals)),
                 "field" to kcalPath, "reduction" to "SUM"))),
-            "field" to mapOf("type" to "NUMERIC", "config" to mapOf("decimals" to 0))
+            "values" to listOf(mapOf("formula" to "eaten", "field" to mapOf("type" to "NUMERIC", "config" to mapOf("decimals" to 0))))
         )))["variable_id"] as String
         ok("variables.create", mapOf("zone_id" to zone, "name" to "kcal_double", "label" to "Kcal doubled", "definition" to mapOf(
-            "kind" to "FORMULA", "formula" to "kcal_today × 2", "terms" to emptyMap<String, Any>(),
-            "field" to mapOf("type" to "NUMERIC", "config" to mapOf("decimals" to 0))
+            "terms" to emptyMap<String, Any>(),
+            "values" to listOf(mapOf("formula" to "kcal_today × 2", "field" to mapOf("type" to "NUMERIC", "config" to mapOf("decimals" to 0))))
         )))
 
         // The tool and its field are read by the total; the total, by name, by the doubled one

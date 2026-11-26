@@ -231,7 +231,7 @@ class ReadoutsTest {
     @Test
     fun aPart_namesWhatItsValuesReadAndWhatItOpens() {
         val settings = org.json.JSONObject(app.treelune.core.utils.JsonUtils.toJSONObject(water() - "zone_id").toString())
-            .put("values", org.json.JSONArray().put(org.json.JSONObject().put("name", "goal").put("value", org.json.JSONObject().put("variable", "var-1"))))
+            .put("values", org.json.JSONArray().put(org.json.JSONObject().put("name", "goal").put("value", org.json.JSONObject().put("variable", "var-1").put("value", "value"))))
         assertEquals(setOf(waterId, "var-1"), app.treelune.core.backup.BackupPart.readoutNames(settings))
     }
 

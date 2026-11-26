@@ -229,7 +229,8 @@ object BackupPart {
                 is JSONObject -> {
                     // A thing designated: a reading's target, a target to open
                     if (value.has("kind") && value.optString("kind") in setOf("TOOL_INSTANCE", "ZONE", "VARIABLE")) value.optString("id").takeIf { it.isNotEmpty() }?.let { names += it }
-                    value.optString("variable").takeIf { it.isNotEmpty() && value.length() == 1 }?.let { names += it }
+                    // A variable's value as a term, `{"variable", "value"}`
+                    value.optString("variable").takeIf { it.isNotEmpty() && value.keys().asSequence().all { k -> k == "variable" || k == "value" } }?.let { names += it }
                     value.keys().forEach { walk(value.get(it)) }
                 }
                 is JSONArray -> (0 until value.length()).forEach { walk(value.get(it)) }

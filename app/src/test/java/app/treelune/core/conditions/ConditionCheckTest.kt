@@ -29,7 +29,7 @@ class ConditionCheckTest {
             "sleep" -> mapOf("data.duration" to field("duration", FieldType.DURATION))
             else -> throw IllegalStateException("no tool $toolInstanceId")
         }
-        override suspend fun variableField(id: String) = if (id == "kcal_goal") field("kcal_goal", FieldType.NUMERIC) else null
+        override suspend fun variableField(id: String, value: String) = if (id == "kcal_goal") field("kcal_goal", FieldType.NUMERIC) else null
         override suspend fun rowFields(root: JSONObject, path: List<Any>) = mapOf("kcal" to field("kcal", FieldType.NUMERIC), "planned" to field("planned", FieldType.NUMERIC), "day" to field("day", FieldType.DATE))
     }
 
@@ -87,8 +87,8 @@ class ConditionCheckTest {
 
     @Test
     fun twoReadSidesOfDifferentTypes_areRefused() {
-        assertEquals("condition_error_types", refuse(criteria(criterion(condition("""{"variable": "kcal_goal"}""", "<", sleepAverage)))))
-        assertNull(refuse(criteria(criterion(condition("""{"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "meals"}}, "field": "data.kcal", "reduction": "SUM"}}""", "<=", """{"variable": "kcal_goal"}""")))))
+        assertEquals("condition_error_types", refuse(criteria(criterion(condition("""{"variable": "kcal_goal", "value": "value"}""", "<", sleepAverage)))))
+        assertNull(refuse(criteria(criterion(condition("""{"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "meals"}}, "field": "data.kcal", "reduction": "SUM"}}""", "<=", """{"variable": "kcal_goal", "value": "value"}""")))))
     }
 
     @Test
@@ -116,13 +116,13 @@ class ConditionCheckTest {
         assertNull(refuse(row(condition("""{"field": "kcal"}""", ">", """{"field": "planned"}"""))))
         assertEquals("condition_error_types", refuse(row(condition("""{"field": "kcal"}""", ">", """{"field": "day"}"""))))
         assertEquals("condition_error_field", refuse(row(condition("""{"field": "protein"}""", ">", """{"constant": 1}"""))))
-        assertEquals("condition_error_row_written", refuse(row(condition("""{"field": "kcal"}""", ">", """{"variable": "kcal_goal"}"""))))
+        assertEquals("condition_error_row_written", refuse(row(condition("""{"field": "kcal"}""", ">", """{"variable": "kcal_goal", "value": "value"}"""))))
     }
 
     @Test
     fun aFilter_takesAWrittenValueOrAVariableOfItsTypeOnItsRight() {
         // A variable, read once where the entries are (FilterTerms), of the field's type
-        assertEquals(null, refuse(filters(condition("""{"field": "data.kcal"}""", "<", """{"variable": "kcal_goal"}"""))))
+        assertEquals(null, refuse(filters(condition("""{"field": "data.kcal"}""", "<", """{"variable": "kcal_goal", "value": "value"}"""))))
         assertEquals("condition_error_field", refuse(filters(condition("""{"field": "data.protein"}""", "<", """{"constant": 1}"""))))
     }
 
