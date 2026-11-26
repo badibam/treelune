@@ -140,8 +140,8 @@ data class Kind(
     fun state(key: String): StateRule? = states.firstOrNull { it.key == key }
 }
 
-/** A link type: what its links mean comes only from the rules that read them; it draws in its [stroke]. */
-data class LinkType(val key: String, val name: String, val stroke: String, val color: String?)
+/** A link type: what its links mean comes only from the rules that read them; it draws in its [stroke], a line of the diagram. */
+data class LinkType(val key: String, val name: String, val stroke: app.treelune.core.drawing.diagram.DiagramLine, val color: String?)
 
 /** How a run opens (the rhythm): by hand, at each unit of the calendar, or as soon as the one before closes. */
 enum class Opens(val key: String) { MANUAL("manual"), SCHEDULED("scheduled"), CHAINED("chained") }
@@ -184,7 +184,9 @@ data class PathGrammar(
             kinds = objects(config.optJSONArray(KINDS)).map { kind(it) },
             rootKind = config.optString(ROOT_KIND),
             linkTypes = objects(config.optJSONArray(LINK_TYPES)).map {
-                LinkType(it.optString("key"), it.optString("name"), it.optString("stroke", "solid"), it.optString("color").takeIf { c -> c.isNotEmpty() })
+                LinkType(it.optString("key"), it.optString("name"),
+                    app.treelune.core.drawing.diagram.DiagramLine.of(it.optString("stroke")) ?: app.treelune.core.drawing.diagram.DiagramLine.NORMAL,
+                    it.optString("color").takeIf { c -> c.isNotEmpty() })
             },
             confirm = config.optBoolean(CONFIRM, false),
             opens = Opens.entries.firstOrNull { it.key == config.optString(OPENS) } ?: Opens.MANUAL,

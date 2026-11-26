@@ -147,7 +147,7 @@ object PathToolType : ToolTypeContract {
                 SettingNode.ListOf(PathGrammar.LINK_TYPES, s.tool("field_link_types"), SettingNode.Item.Of(listOf(
                     key(context, s.tool("schema_link_type_key")),
                     name(context, s.tool("schema_link_type_name")),
-                    SettingNode.Field(field("stroke", s.tool("field_stroke"), FieldType.CHOICE, s.tool("schema_stroke"), choice(listOf("solid", "dashed", "dotted")) { s.tool("stroke_$it") }), default = "solid")
+                    SettingNode.Field(field("stroke", s.tool("field_stroke"), FieldType.CHOICE, s.tool("schema_stroke"), choice(app.treelune.core.drawing.diagram.DiagramLine.entries.map { it.key }) { s.tool("stroke_$it") }), default = app.treelune.core.drawing.diagram.DiagramLine.NORMAL.key)
                 ), description = s.tool("schema_link_type")), summary = listOf("name"), description = s.tool("schema_link_types"))
             )),
             SettingNode.Section(s.tool("section_runs"), listOf(

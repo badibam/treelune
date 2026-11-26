@@ -1,6 +1,14 @@
 package app.treelune.tools.path.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import app.treelune.core.drawing.diagram.DiagramReading
+import app.treelune.core.drawing.diagram.DiagramTouch
+import app.treelune.core.drawing.diagram.DiagramView
+import app.treelune.tools.path.PathDiagram
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,18 +40,28 @@ import app.treelune.tools.path.Stage
 import app.treelune.core.coordinator.isSuccess
 import kotlinx.coroutines.launch
 
-/** What a Path's page and tile show: its current run in the plan's order, each stage's state, or why it cannot be read. */
+/** What a Path's page and tile show: one of its runs, its root and its stages, every run's root, and the replay now; or why it cannot be read. */
 private sealed interface PathShown {
-    data class Run(val path: PathRead, val stages: List<Stage>, val outcome: PathReplay.Outcome) : PathShown
+    data class Run(val path: PathRead, val root: Stage, val stages: List<Stage>, val runs: List<Stage>, val outcome: PathReplay.Outcome) : PathShown {
+        /** The run drawn as the shared diagram, each stage in its state now, a closed run's frozen. */
+        val diagram: DiagramReading.Drawn by lazy {
+            DiagramReading.Drawn(PathDiagram.of(path.grammar, stages, { outcome.states[it.id]?.state }, { outcome.states[it.id]?.marks.orEmpty() }), emptyMap())
+        }
+
+        /** The name of the state [stage] is in now; null when it has none. */
+        fun stateName(stage: Stage): String? = outcome.states[stage.id]?.state?.let { path.grammar.kind(stage.kind)?.state(it)?.name }
+    }
     data object NoRun : PathShown
     data class Problem(val message: String) : PathShown
 }
 
-private suspend fun shown(context: android.content.Context, toolId: String): PathShown {
+/** The run [runId] of the Path [toolId], or by default its current one, else its latest. */
+private suspend fun shown(context: android.content.Context, toolId: String, runId: String? = null): PathShown {
     return try {
         val path = PathRead.of(context, toolId) ?: return PathShown.Problem("")
-        val run = path.currentRun() ?: path.runs().firstOrNull() ?: return PathShown.NoRun
-        PathShown.Run(path, PathOrder.planOrder(path.stages.filter { it.run == run.id }), path.replay(System.currentTimeMillis()))
+        val runs = path.runs()
+        val run = runs.firstOrNull { it.id == runId } ?: path.currentRun() ?: runs.firstOrNull() ?: return PathShown.NoRun
+        PathShown.Run(path, run, path.stages.filter { it.run == run.id }, runs, path.replay(System.currentTimeMillis()))
     } catch (e: kotlinx.coroutines.CancellationException) {
         throw e
     } catch (e: IllegalStateException) {
@@ -51,38 +69,26 @@ private suspend fun shown(context: android.content.Context, toolId: String): Pat
     }
 }
 
-/** One line per stage, indented by its depth: its name, then its state's name; on the page, a touch opens its sheet. */
-@Composable
-private fun Lines(read: PathShown.Run, limit: Int? = null, onOpen: ((String) -> Unit)? = null) {
-    val byId = read.stages.associateBy { it.id }
-    fun depth(stage: Stage): Int = generateSequence(stage.parent?.let { byId[it] }) { it.parent?.let { p -> byId[p] } }.count()
-    val lines = read.stages.filter { !it.isRoot }
-    (limit?.let { lines.take(it) } ?: lines).forEach { stage ->
-        val state = read.outcome.states[stage.id]?.state
-        val name = state?.let { read.path.grammar.kind(stage.kind)?.state(it)?.name } ?: "–"
-        val line = "${"    ".repeat((depth(stage) - 1).coerceAtLeast(0))}${stage.name} · $name"
-        if (onOpen == null) UI.Text(line, TextType.BODY)
-        else androidx.compose.foundation.layout.Box(Modifier.clickable { onOpen(stage.id) }) { UI.Text(line, TextType.BODY) }
-    }
-}
-
 /**
- * A Path's page, before its screens (docs/design/progression.md, « Les écrans »): the current
- * run's stages in the plan's order, each with its state, and what the replay could not do.
+ * A Path's page (docs/design/progression.md, « Les écrans »): what to do with its runs, then the
+ * run shown drawn whole, each stage a box painted by its state, a touch on it or on a group's
+ * title opening its sheet; under it, every run with the state of its root, one touched shown in
+ * its place. By default the current run, else the latest.
  */
 @Composable
 fun PathScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureClick: () -> Unit, openAt: app.treelune.core.tools.OpenAt?) {
     val context = LocalContext.current
     val parts = app.treelune.core.tools.LocalToolParts.current
     // A stage named from outside (a notification) opens its sheet, once
-    var opened by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+    var opened by rememberSaveable { mutableStateOf(false) }
     (openAt as? app.treelune.core.tools.OpenAt.Entry)?.let { entry ->
         if (!opened) LaunchedEffect(entry.id) { opened = true; parts.open(PathParts.stage(entry.id)) }
     }
     val s = remember { Strings.`for`(tool = PathRows.TOOLTYPE, context = context) }
-    var read by remember { androidx.compose.runtime.mutableStateOf<PathShown?>(null) }
+    var runId by rememberSaveable { mutableStateOf<String?>(null) }
+    var read by app.treelune.core.ui.rememberShown<PathShown?>("page:$toolInstanceId:run:$runId") { null }
     var version by remember { mutableIntStateOf(0) }
-    LaunchedEffect(toolInstanceId, version) { read = shown(context, toolInstanceId) }
+    LaunchedEffect(toolInstanceId, runId, version) { read = shown(context, toolInstanceId, runId) }
     LaunchedEffect(toolInstanceId) { DataChangeNotifier.changes.collect { event -> if (event.mayChangeReadings()) version++ } }
     val scroll = rememberScrollState()
     Column(Modifier.fillMaxSize().padding(vertical = UI.Space.L).pageScroll(scroll), verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
@@ -103,8 +109,35 @@ fun PathScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
             PathShown.NoRun -> UI.Text(s.tool("screen_no_run"), TextType.CAPTION)
             is PathShown.Problem -> UI.Text(shown.message, TextType.ERROR)
             is PathShown.Run -> {
-                Lines(shown, onOpen = { parts.open(PathParts.stage(it)) })
+                // The run shown, named with its root's state when it is not the current one
+                if (shown.root.id != shown.path.currentRun()?.id) UI.Text(listOfNotNull(shown.root.name, shown.stateName(shown.root)).joinToString(" · "), TextType.SUBTITLE)
+                if (shown.diagram.spec.nodes.isEmpty()) UI.Text(s.tool("screen_plan_empty"), TextType.CAPTION)
+                else DiagramView(shown.diagram, folded = emptySet(), pageScroll = scroll, onTouch = { touch ->
+                    when (touch) {
+                        is DiagramTouch.Box -> parts.open(PathParts.stage(touch.node.id))
+                        is DiagramTouch.Group -> parts.open(PathParts.stage(touch.id))
+                        // One end of a cut arrow: the view scrolls to the other
+                        is DiagramTouch.Ref -> Unit
+                    }
+                })
                 shown.outcome.problems.forEach { UI.Text(it.message, TextType.ERROR) }
+                if (shown.runs.size > 1) Runs(shown, onShow = { runId = it })
+            }
+        }
+    }
+}
+
+/** Every run, the latest opened first, each with its root's state (final once closed); the one shown marked, another touched shown. */
+@Composable
+private fun Runs(shown: PathShown.Run, onShow: (String) -> Unit) {
+    val context = LocalContext.current
+    val s = remember { Strings.`for`(tool = PathRows.TOOLTYPE, context = context) }
+    Column(verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
+        UI.Text(s.tool("screen_runs"), TextType.HEADING)
+        shown.runs.forEach { root ->
+            val line = listOfNotNull(root.name, shown.stateName(root)).joinToString(" · ")
+            Box(Modifier.fillMaxWidth().clickable { onShow(root.id) }) {
+                UI.Text(line, if (root.id == shown.root.id) TextType.STRONG else TextType.BODY)
             }
         }
     }
@@ -122,7 +155,7 @@ private fun RunButtons(toolInstanceId: String, read: PathShown?) {
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     val parts = app.treelune.core.tools.LocalToolParts.current
     if (read == null || read is PathShown.Problem) return
-    val open = (read as? PathShown.Run)?.let { run -> !run.path.isClosed(run.stages.first { it.isRoot }) } ?: false
+    val open = (read as? PathShown.Run)?.path?.currentRun() != null
     fun send(action: String) = scope.launch {
         val result = coordinator.processUserAction(action, mapOf("tool_instance_id" to toolInstanceId))
         if (!result.isSuccess) UI.Toast(result.error ?: s.shared("service_error_operation_failed"))
@@ -134,12 +167,12 @@ private fun RunButtons(toolInstanceId: String, read: PathShown?) {
     }
 }
 
-/** A Path's tile: its current run's first stages and their states. */
+/** A Path's tile: its root's state as its summary, its current run drawn as its body. */
 @Composable
 fun rememberPathTile(tool: ToolInstance): ToolTile {
     val context = LocalContext.current
     val s = remember { Strings.`for`(tool = PathRows.TOOLTYPE, context = context) }
-    var read by remember { androidx.compose.runtime.mutableStateOf<PathShown?>(null) }
+    var read by app.treelune.core.ui.rememberShown<PathShown?>("tile:${tool.id}:run") { null }
     var version by remember { mutableIntStateOf(0) }
     LaunchedEffect(tool.id, tool.config_json, version) { read = shown(context, tool.id) }
     LaunchedEffect(tool.id) { DataChangeNotifier.changes.collect { event -> if (event.mayChangeReadings()) version++ } }
@@ -149,18 +182,21 @@ fun rememberPathTile(tool: ToolInstance): ToolTile {
             override fun Summary() {
                 when (val shown = read) {
                     is PathShown.Run -> {
-                        val root = shown.stages.first { it.isRoot }
-                        val state = shown.outcome.states[root.id]?.state
-                        UI.Text(state?.let { shown.path.grammar.kind(root.kind)?.state(it)?.name } ?: root.name, TextType.CAPTION, maxLines = 2)
+                        UI.Text(shown.stateName(shown.root) ?: shown.root.name, TextType.CAPTION, maxLines = 2)
                     }
                     PathShown.NoRun -> UI.Text(s.tool("screen_no_run"), TextType.CAPTION, maxLines = 2)
                     is PathShown.Problem, null -> Unit
                 }
             }
 
+            /** The current run's drawing, scaled down to the body (DiagramView), sideways on a body wider than tall, a root in parts aside. */
             @Composable
             override fun Body(room: app.treelune.core.look.TileSize.Room) {
-                (read as? PathShown.Run)?.let { Column { Lines(it, limit = room.rows?.times(2)) } }
+                val run = read as? PathShown.Run ?: return
+                if (run.diagram.spec.nodes.isEmpty()) return
+                if (room.rows == null) DiagramView(run.diagram, emptySet(), onTouch = null)
+                else DiagramView(run.diagram, emptySet(), onTouch = null, modifier = Modifier.fillMaxSize(), reduced = true,
+                    across = room.width > room.rows && !run.diagram.spec.parts)
             }
         }
     }

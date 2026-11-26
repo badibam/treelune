@@ -109,9 +109,9 @@
     <string name="schema_link_type_name">Le nom du type, comme on le lit.</string>
     <string name="field_stroke">Trait</string>
     <string name="schema_stroke">Le trait de ses flèches.</string>
-    <string name="stroke_solid">Plein</string>
-    <string name="stroke_dashed">Tirets</string>
+    <string name="stroke_normal">Plein</string>
     <string name="stroke_dotted">Pointillé</string>
+    <string name="stroke_thick">Épais</string>
     <string name="section_runs">Les passages</string>
     <string name="field_confirm">Valider la fin</string>
     <string name="schema_confirm">À la fin d\'un passage, l\'état de la racine est proposé à valider au lieu d\'être figé.</string>
@@ -239,4 +239,6 @@
     <string name="plan_title">Plan</string>
     <string name="plan_add">+ %1$s</string>
     <string name="screen_stop_confirm">Arrêter ce passage ? L\'état de chacune de ses étapes est figé tel qu\'il est maintenant.</string>
+    <string name="screen_runs">Passages</string>
+    <string name="screen_plan_empty">Rien n\'est encore prévu dans ce passage : écris-le depuis Plan.</string>
 </resources>

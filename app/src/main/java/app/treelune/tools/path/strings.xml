@@ -109,9 +109,9 @@
     <string name="schema_link_type_name">The type\'s name, as it is read.</string>
     <string name="field_stroke">Line</string>
     <string name="schema_stroke">The line of its arrows.</string>
-    <string name="stroke_solid">Solid</string>
-    <string name="stroke_dashed">Dashed</string>
+    <string name="stroke_normal">Solid</string>
     <string name="stroke_dotted">Dotted</string>
+    <string name="stroke_thick">Thick</string>
     <string name="section_runs">Runs</string>
     <string name="field_confirm">Confirm the end</string>
     <string name="schema_confirm">At the end of a run, the root\'s state is offered for confirmation instead of being frozen.</string>
@@ -239,4 +239,6 @@
     <string name="plan_title">Plan</string>
     <string name="plan_add">+ %1$s</string>
     <string name="screen_stop_confirm">Stop this run? The state of each of its stages is frozen as it is now.</string>
+    <string name="screen_runs">Runs</string>
+    <string name="screen_plan_empty">Nothing is planned in this run yet: write it from Plan.</string>
 </resources>

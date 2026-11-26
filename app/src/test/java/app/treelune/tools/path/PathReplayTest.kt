@@ -253,7 +253,7 @@ class PathReplayTest {
         val REQUIRED = filter("id", "in", """{"self": "links", "type": "required"}""")
 
         /** Tree: available when all the stages required are done. */
-        val TREE = """{"root_kind": "tree", "link_types": [{"key": "required", "name": "Required", "stroke": "solid"}, {"key": "see_also", "name": "See also", "stroke": "dotted"}],
+        val TREE = """{"root_kind": "tree", "link_types": [{"key": "required", "name": "Required", "stroke": "normal"}, {"key": "see_also", "name": "See also", "stroke": "dotted"}],
             "kinds": [
             {"key": "tree", "contains": ["skill"], "states": [{"key": "ongoing"}]},
             {"key": "skill", "states": [
