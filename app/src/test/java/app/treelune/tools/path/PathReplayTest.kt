@@ -40,7 +40,7 @@ class PathReplayTest {
         own = { it }
     )
 
-    private fun replay(config: String, stages: List<Stage>, now: Long, judge: Boolean = false) = runBlocking {
+    private fun replay(config: String, stages: List<Stage>, now: Long, judge: Boolean = false, rules: PathRules = this.rules) = runBlocking {
         PathReplay(PathGrammar.fromJson(JSONObject(config)), PATH, rules, { TimeResolver(it, zone, 4, "MONDAY") }, { it }, { it }).replay(stages, now, judge)
     }
 
@@ -218,6 +218,59 @@ class PathReplayTest {
         assertEquals(0, written.getJSONObject(2).getJSONObject("right").getJSONArray("constant").length())
     }
 
+    @Test
+    fun `a goal, its criteria read over the attempt or entered, a sub-goal of at least one, an essential criterion`() {
+        // The entries of the tools the criteria read, by tool: what the core would read, its period the run's own dates written in place of self
+        val entries = mutableMapOf("runs" to listOf(t0 - day, t0 + day, t0 + 2 * day), "yoga" to emptyList<Long>(), "stretching" to emptyList())
+        val goalRules = PathRules(
+            pathId = PATH,
+            external = { term, _ ->
+                val selection = (term as Term.Reading).selection
+                val bounds = (0 until selection.filters.length()).map { selection.filters.getJSONObject(it) }
+                    .filter { it.getJSONObject("left").getString("field") == "timestamp" }
+                    .map { it.getString("op") to it.getJSONObject("right").getLong("constant") }
+                val kept = entries.getValue(selection.target.id!!).filter { at -> bounds.all { (op, bound) -> if (op == ">=") at >= bound else at < bound } }
+                TermReader.Read.Value(kept.size, FieldReading.COUNT_FIELD)
+            },
+            calendar = { TimeResolver(it, zone, 4, "MONDAY") },
+            text = { it },
+            own = { it }
+        )
+        val end = t0 + 7 * day
+        fun week(mood: Int? = null) = listOf(
+            root(kind = "week", plannedEnd = end),
+            stage("runs", "runs", "root", 0).copy(fields = mapOf("essential" to true)),
+            stage("mood", "mood", "root", 1).copy(fields = if (mood != null) mapOf("mood" to mood) else emptyMap()),
+            stage("flexibility", "flexibility", "root", 2),
+            stage("yoga", "yoga", "flexibility", 0),
+            stage("stretching", "stretching", "flexibility", 1)
+        )
+        fun judged(mood: Int?, now: Long) = replay(GOAL, week(mood), now, rules = goalRules)
+        // The setup is one a save accepts: each reading of the Path's own stages anchored on self
+        assertEquals(null, PathCheck.refuse(JSONObject(GOAL)) { it })
+
+        // Two runs in the week, the one before it not counted; the mood not entered yet: not known, so not met
+        val start = judged(null, t0 + 3 * day)
+        assertEquals(listOf("not_met", "not_met", "not_met", "ongoing"), listOf("runs", "mood", "flexibility", "root").map { start.states.of(it) })
+        assertEquals(emptyList<PathReplay.Problem>(), start.problems)
+
+        // A yoga session meets the sub-goal, one of two being enough; the mood entered meets its criterion: two of three, but the essential runs still short
+        entries["yoga"] = listOf(t0 + 3 * day)
+        val essentialShort = judged(4, t0 + 4 * day)
+        assertEquals(listOf("met", "met", "not_met"), listOf("flexibility", "mood", "runs").map { essentialShort.states.of(it) })
+        assertEquals("ongoing", essentialShort.states.of("root"))
+        // The attempt over, still short: failed
+        assertEquals("failed", judged(4, end + day).states.of("root"))
+
+        // A third run in the week: succeeded for now, before the end, as the attempt will be offered for validation
+        entries["runs"] = entries.getValue("runs") + (t0 + 5 * day)
+        assertEquals("succeeded", judged(4, t0 + 6 * day).states.of("root"))
+        // An entered value below its threshold, with the runs met: two of three again, enough
+        val lowMood = judged(2, t0 + 6 * day)
+        assertEquals("not_met", lowMood.states.of("mood"))
+        assertEquals("succeeded", lowMood.states.of("root"))
+    }
+
     private companion object {
         const val PATH = "path"
         const val PRACTICE = "practice"
@@ -267,6 +320,42 @@ class PathReplayTest {
             {"key": "step", "states": [{"key": "passed", "manual": true}, {"key": "current", "manual": true}, {"key": "waiting"}],
              "effects": [{"on": {"left": {"self": "last_move"}, "op": "in", "right": {"constant": ["passed"]}},
                           "set": {"stages": {"target": {"kind": "TOOL_INSTANCE", "id": "self"}, "view": "stages", "filters": [${filter("data.previous", "in", """{"self": "id"}""")}]}, "state": "current"}}]}]}"""
+
+        /** One criterion read: met when the tool [tool] has at least [n] entries over the attempt, its run. */
+        fun readCriterion(key: String, tool: String, n: Int, plan: String = "") = """{"key": "$key", "plan_fields": [$plan], "states": [
+            {"key": "met", "when": {"left": {"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "$tool"}, "filters": [
+                ${filter("timestamp", ">=", """{"self": "run_start"}""")}, ${filter("timestamp", "<", """{"self": "run_end"}""")}]}, "reduction": "COUNT"}},
+                "op": ">=", "right": {"constant": $n}}},
+            {"key": "not_met"}]}"""
+
+        val ESSENTIAL = """{"name": "essential", "display_name": "Essential", "type": "BOOLEAN"}"""
+        val MET = filter("data.state", "in", """{"constant": ["met"]}""")
+        val ESSENTIALS = "$CHILDREN, ${filter("data.essential", "=", """{"constant": true}""")}"
+
+        /** At least [n] of a stage's content met, and every essential one among it. */
+        fun atLeast(n: Int) = """{"all": [
+            {"left": ${stages("$CHILDREN, $MET")}, "op": ">=", "right": {"constant": $n}},
+            {"left": ${stages("$ESSENTIALS, $MET")}, "op": "=", "right": ${stages(ESSENTIALS)}}]}"""
+
+        /**
+         * Goal (« Les montages »): a week's attempt, at least 2 of its 3 criteria, the runs essential;
+         * a criterion read is a kind of its own, its rule reading its tool over the run; one entered,
+         * a field to fill compared with its threshold; a sub-goal, a kind whose content is its criteria.
+         */
+        val GOAL = """{"root_kind": "week", "confirm": true, "run_opens": "scheduled", "run_unit": "WEEK", "kinds": [
+            {"key": "week", "contains": ["runs", "mood", "flexibility"], "states": [
+                {"key": "succeeded", "when": ${atLeast(2)}},
+                {"key": "failed", "when": {"left": {"self": "run_end"}, "op": "<=", "right": {"constant": {"relative": "NOW"}}}},
+                {"key": "ongoing"}]},
+            ${readCriterion("runs", "runs", 3, ESSENTIAL)},
+            {"key": "mood", "plan_fields": [$ESSENTIAL], "fill_fields": [{"name": "mood", "display_name": "Mood", "type": "SCALE", "config": {"min": 1, "max": 5}}], "states": [
+                {"key": "met", "when": {"left": {"self": "mood"}, "op": ">=", "right": {"constant": 3}}},
+                {"key": "not_met"}]},
+            {"key": "flexibility", "contains": ["yoga", "stretching"], "plan_fields": [$ESSENTIAL], "states": [
+                {"key": "met", "when": ${atLeast(1)}},
+                {"key": "not_met"}]},
+            ${readCriterion("yoga", "yoga", 1, ESSENTIAL)},
+            ${readCriterion("stretching", "stretching", 3, ESSENTIAL)}]}"""
 
         /** Two effects that give each other, without end. */
         val PING_PONG = """{"root_kind": "loop", "kinds": [
