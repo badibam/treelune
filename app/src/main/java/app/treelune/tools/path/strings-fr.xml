@@ -212,4 +212,14 @@
     <string name="field_unit">Un passage par</string>
     <string name="schema_unit">L\'unité du calendrier dont chaque passage couvre une, de son début à sa fin.</string>
     <string name="path_check_unit">Un passage ouvert à chaque unité du calendrier dit laquelle.</string>
+    <string name="sheet_since">depuis le %1$s</string>
+    <string name="sheet_closed">Son passage est fermé : cet état est figé.</string>
+    <string name="sheet_fill">À remplir</string>
+    <string name="sheet_links_of">%1$s :</string>
+    <string name="sheet_back_to">Revenir à %1$s</string>
+    <string name="sheet_unnote">Annuler « %1$s »</string>
+    <string name="sheet_history">Historique</string>
+    <string name="sheet_move_start">Ouvert</string>
+    <string name="sheet_move_end">Fermé</string>
+    <string name="sheet_by_effect">par un effet</string>
 </resources>

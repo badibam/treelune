@@ -212,4 +212,14 @@
     <string name="field_unit">One run a</string>
     <string name="schema_unit">The unit of the calendar each run covers one of, from its start to its end.</string>
     <string name="path_check_unit">A run opened at each unit of the calendar says which.</string>
+    <string name="sheet_since">since %1$s</string>
+    <string name="sheet_closed">Its run is closed: this state is frozen.</string>
+    <string name="sheet_fill">To fill in</string>
+    <string name="sheet_links_of">%1$s:</string>
+    <string name="sheet_back_to">Back to %1$s</string>
+    <string name="sheet_unnote">Undo “%1$s”</string>
+    <string name="sheet_history">History</string>
+    <string name="sheet_move_start">Opened</string>
+    <string name="sheet_move_end">Closed</string>
+    <string name="sheet_by_effect">by an effect</string>
 </resources>

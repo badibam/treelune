@@ -1,5 +1,6 @@
 package app.treelune.tools.path.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,16 +49,18 @@ private suspend fun shown(context: android.content.Context, toolId: String): Pat
     }
 }
 
-/** One line per stage, indented by its depth: its name, then its state's name. */
+/** One line per stage, indented by its depth: its name, then its state's name; on the page, a touch opens its sheet. */
 @Composable
-private fun Lines(read: PathShown.Run, limit: Int? = null) {
+private fun Lines(read: PathShown.Run, limit: Int? = null, onOpen: ((String) -> Unit)? = null) {
     val byId = read.stages.associateBy { it.id }
     fun depth(stage: Stage): Int = generateSequence(stage.parent?.let { byId[it] }) { it.parent?.let { p -> byId[p] } }.count()
     val lines = read.stages.filter { !it.isRoot }
     (limit?.let { lines.take(it) } ?: lines).forEach { stage ->
         val state = read.outcome.states[stage.id]?.state
         val name = state?.let { read.path.grammar.kind(stage.kind)?.state(it)?.name } ?: "–"
-        UI.Text("${"    ".repeat((depth(stage) - 1).coerceAtLeast(0))}${stage.name} · $name", TextType.BODY)
+        val line = "${"    ".repeat((depth(stage) - 1).coerceAtLeast(0))}${stage.name} · $name"
+        if (onOpen == null) UI.Text(line, TextType.BODY)
+        else androidx.compose.foundation.layout.Box(Modifier.clickable { onOpen(stage.id) }) { UI.Text(line, TextType.BODY) }
     }
 }
 
@@ -66,8 +69,14 @@ private fun Lines(read: PathShown.Run, limit: Int? = null) {
  * run's stages in the plan's order, each with its state, and what the replay could not do.
  */
 @Composable
-fun PathScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureClick: () -> Unit) {
+fun PathScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureClick: () -> Unit, openAt: app.treelune.core.tools.OpenAt?) {
     val context = LocalContext.current
+    val parts = app.treelune.core.tools.LocalToolParts.current
+    // A stage named from outside (a notification) opens its sheet, once
+    var opened by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+    (openAt as? app.treelune.core.tools.OpenAt.Entry)?.let { entry ->
+        if (!opened) LaunchedEffect(entry.id) { opened = true; parts.open(PathParts.stage(entry.id)) }
+    }
     val s = remember { Strings.`for`(tool = PathRows.TOOLTYPE, context = context) }
     var read by remember { androidx.compose.runtime.mutableStateOf<PathShown?>(null) }
     var version by remember { mutableIntStateOf(0) }
@@ -91,7 +100,7 @@ fun PathScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
             PathShown.NoRun -> UI.Text(s.tool("screen_no_run"), TextType.CAPTION)
             is PathShown.Problem -> UI.Text(shown.message, TextType.ERROR)
             is PathShown.Run -> {
-                Lines(shown)
+                Lines(shown, onOpen = { parts.open(PathParts.stage(it)) })
                 shown.outcome.problems.forEach { UI.Text(it.message, TextType.ERROR) }
             }
         }
