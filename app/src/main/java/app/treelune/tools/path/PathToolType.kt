@@ -161,7 +161,8 @@ object PathToolType : ToolTypeContract {
                 SettingNode.Field(field(PathGrammar.OPENS, s.tool("field_opens"), FieldType.CHOICE, s.tool("schema_opens"),
                     choice(Opens.entries.map { it.key }) { s.tool("opens_$it") }), default = Opens.MANUAL.key),
                 SettingNode.Field(field(PathGrammar.LASTS, s.tool("field_lasts"), FieldType.DURATION, s.tool("schema_lasts"))),
-                SettingNode.Field(field(PathGrammar.CONFIRM, s.tool("field_confirm"), FieldType.BOOLEAN, s.tool("schema_confirm")))
+                SettingNode.Field(field(PathGrammar.CONFIRM, s.tool("field_confirm"), FieldType.BOOLEAN, s.tool("schema_confirm"))),
+                SettingNode.Field(field(PathGrammar.NOTIFY_VALIDATION, s.tool("field_notify_validation"), FieldType.BOOLEAN, s.tool("schema_notify_validation")))
             )),
             SettingNode.Section(s.tool("section_scheduled"), listOf(
                 SettingNode.Field(field(PathGrammar.UNIT, s.tool("field_unit"), FieldType.CHOICE, s.tool("schema_unit"),
@@ -269,6 +270,10 @@ object PathToolType : ToolTypeContract {
             ToolOperation("state", s.tool("operation_state"), emptyList())
         )
     }
+
+    /** A run awaiting its validation waits for the user, its root marked (`awaiting`). */
+    override fun getWaiting(config: JSONObject): List<JSONObject> =
+        listOf(app.treelune.core.conditions.Conditions.onField("state.${PathStages.AWAITING}", "present", null))
 
     override fun getService(context: Context): ExecutableService = PathService(context)
 

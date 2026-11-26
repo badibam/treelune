@@ -55,6 +55,8 @@ data class Link(val from: String, val type: String) {
  * @property moves Its journal, in the order written
  * @property finalState The state it was frozen in when its run closed; null while it is open
  * @property plannedEnd On the root, the date its run closes at, which its rhythm set; null otherwise
+ * @property awaiting On the root of an open run whose end came with `confirm`, since when it awaits
+ *   validation; null otherwise
  */
 data class Stage(
     val id: String,
@@ -67,7 +69,8 @@ data class Stage(
     val fields: Map<String, Any?> = emptyMap(),
     val moves: List<Move> = emptyList(),
     val finalState: String? = null,
-    val plannedEnd: Long? = null
+    val plannedEnd: Long? = null,
+    val awaiting: Long? = null
 ) {
     val isRoot: Boolean get() = parent == null
 }
@@ -150,6 +153,7 @@ enum class Opens(val key: String) { MANUAL("manual"), SCHEDULED("scheduled"), CH
  * A Path's grammar, its config read: the kinds, the root's among them, the link types, the rhythm.
  *
  * @property confirm At closing, the root's state is offered for validation rather than frozen
+ * @property notifyValidation A notification is sent when a run starts awaiting its validation
  * @property opens How a run opens
  * @property unit For a run opened at each unit of the calendar, the unit: it runs to its end
  * @property lasts For a run opened by hand or chained, how long it lasts, in milliseconds; null
@@ -160,6 +164,7 @@ data class PathGrammar(
     val rootKind: String,
     val linkTypes: List<LinkType>,
     val confirm: Boolean,
+    val notifyValidation: Boolean = false,
     val opens: Opens = Opens.MANUAL,
     val unit: app.treelune.core.selection.PeriodType? = null,
     val lasts: Long? = null
@@ -171,6 +176,7 @@ data class PathGrammar(
         const val ROOT_KIND = "root_kind"
         const val LINK_TYPES = "link_types"
         const val CONFIRM = "confirm"
+        const val NOTIFY_VALIDATION = "notify_validation"
         const val OPENS = "run_opens"
         const val UNIT = "run_unit"
         const val LASTS = "run_lasts"
@@ -189,6 +195,7 @@ data class PathGrammar(
                     app.treelune.core.themes.TagColor.entries.firstOrNull { c -> c.name == it.optString("color") })
             },
             confirm = config.optBoolean(CONFIRM, false),
+            notifyValidation = config.optBoolean(NOTIFY_VALIDATION, false),
             opens = Opens.entries.firstOrNull { it.key == config.optString(OPENS) } ?: Opens.MANUAL,
             unit = app.treelune.core.selection.PeriodType.entries.firstOrNull { it.name == config.optString(UNIT) },
             lasts = (config.opt(LASTS) as? Number)?.toLong()?.takeIf { it > 0 }

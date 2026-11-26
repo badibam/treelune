@@ -174,4 +174,30 @@ class PathServiceTest {
         assertFalse(refused.isSuccess)
         assertTrue(refused.error, refused.error!!.contains("Chords") && refused.error!!.contains("Scales"))
     }
+
+    @Test
+    fun `a run reaching its end with confirm awaits its validation, the tile marked, until validated`() = runBlocking {
+        val zone = ok("zones.create", mapOf("name" to "Running"))["zone_id"] as String
+        val config = json("""{"name": "Week", "root_kind": "week", "confirm": true, "notify_validation": true, "run_lasts": 1, "kinds": [
+            {"name": "Week", "key": "week", "contains": ["run"], "states": [{"key": "ongoing", "name": "Ongoing"}]},
+            {"name": "Run", "key": "run", "states": [{"key": "done", "name": "Done", "manual": true}, {"key": "todo", "name": "To do"}]}]}""")
+        val path = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to PathRows.TOOLTYPE, "config" to config))["tool_instance_id"] as String
+        val run = ok("path.start", mapOf("tool_instance_id" to path, "name" to "Week 1"))["run"] as String
+        Thread.sleep(5)
+        // Its end past: the judge leaves it open, awaiting, rather than freezing it
+        ok("path.judge", mapOf("tool_instance_id" to path))
+        val read = PathRead.of(context, path)!!
+        assertFalse(read.isClosed(read.stage(run)!!))
+        assertEquals(listOf(run), read.awaiting().map { it.id })
+        val waiting = coordinator.processUserAction("tools.waiting", emptyMap())
+        assertEquals("the tile's dot", 1, (waiting.data!!["tools"] as Map<*, *>)[path])
+
+        ok("path.validate", mapOf("tool_instance_id" to path, "run" to run))
+        val validated = PathRead.of(context, path)!!
+        assertTrue(validated.isClosed(validated.stage(run)!!))
+        assertTrue(validated.awaiting().isEmpty())
+        assertEquals("ongoing", validated.stage(run)!!.finalState)
+        val after = coordinator.processUserAction("tools.waiting", emptyMap())
+        assertEquals("no dot once validated", 0, (after.data!!["tools"] as Map<*, *>)[path])
+    }
 }

@@ -154,6 +154,13 @@ fun StageSheet(toolInstanceId: String, stageId: String, onName: (String) -> Unit
                     if (current.closed) UI.Text(s.tool("sheet_closed"), TextType.CAPTION)
                 }
 
+                // A root awaiting its validation: frozen as it stands
+                if (stage.isRoot && stage.awaiting != null && !current.closed) {
+                    val validate = rememberValidate(toolInstanceId)
+                    UI.Text(s.tool("screen_awaiting").format(stage.name, rule?.name ?: "–"), TextType.BODY)
+                    UI.Button(type = ButtonType.PRIMARY, onClick = { validate(stage.id) }) { UI.Text(s.tool("screen_validate"), TextType.LABEL) }
+                }
+
                 if (!current.closed) StateButtons(kind, rule, stage, current.refusals, writing, { write("path.note", mapOf("state" to it)) }, { write("path.unnote", emptyMap()) })
 
                 // The plan's fields, written by « Modifier »

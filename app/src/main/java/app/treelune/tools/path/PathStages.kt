@@ -44,7 +44,8 @@ object PathStages {
             fields = app.treelune.core.utils.JsonUtils.toMap(JSONObject(entity.data)),
             moves = objects(state.optJSONArray(MOVES)).map { Move.fromJson(it) },
             finalState = state.optString(FINAL_STATE).takeIf { it.isNotEmpty() },
-            plannedEnd = (state.opt(PLANNED_END) as? Number)?.toLong()
+            plannedEnd = (state.opt(PLANNED_END) as? Number)?.toLong(),
+            awaiting = (state.opt(AWAITING) as? Number)?.toLong()
         )
     }
 

@@ -37,6 +37,9 @@ class PathRead private constructor(
     /** Whether the run [root] heads is closed: its journal holds its end. */
     fun isClosed(root: Stage): Boolean = root.moves.any { it.state == Move.END }
 
+    /** The roots of the open runs awaiting their validation, the latest opened first. */
+    fun awaiting(): List<Stage> = runs().filter { it.awaiting != null && !isClosed(it) }
+
     /** The current run: the latest opened of those still open; null when none is. */
     fun currentRun(): Stage? = runs().firstOrNull { !isClosed(it) }
 

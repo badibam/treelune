@@ -242,4 +242,10 @@
     <string name="screen_stop_confirm">Arrêter ce passage ? L\'état de chacune de ses étapes est figé tel qu\'il est maintenant.</string>
     <string name="screen_runs">Passages</string>
     <string name="screen_plan_empty">Rien n\'est encore prévu dans ce passage : écris-le depuis Plan.</string>
+    <string name="field_notify_validation">Prévenir quand un passage attend sa validation</string>
+    <string name="schema_notify_validation">Une notification part quand un passage arrive à sa fin et attend sa validation (confirm).</string>
+    <string name="notification_awaiting">%1$s attend ta validation : %2$s pour le moment.</string>
+    <string name="screen_awaiting">%1$s attend ta validation : %2$s pour le moment.</string>
+    <string name="screen_validate">Valider</string>
+    <string name="screen_view_run">Voir</string>
 </resources>

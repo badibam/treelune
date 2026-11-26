@@ -242,4 +242,10 @@
     <string name="screen_stop_confirm">Stop this run? The state of each of its stages is frozen as it is now.</string>
     <string name="screen_runs">Runs</string>
     <string name="screen_plan_empty">Nothing is planned in this run yet: write it from Plan.</string>
+    <string name="field_notify_validation">Notify when a run awaits validation</string>
+    <string name="schema_notify_validation">A notification is sent when a run reaches its end and awaits validation (confirm).</string>
+    <string name="notification_awaiting">%1$s awaits your validation: %2$s for now.</string>
+    <string name="screen_awaiting">%1$s awaits your validation: %2$s for now.</string>
+    <string name="screen_validate">Validate</string>
+    <string name="screen_view_run">View</string>
 </resources>

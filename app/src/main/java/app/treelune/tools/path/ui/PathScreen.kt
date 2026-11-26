@@ -109,6 +109,7 @@ fun PathScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
             PathShown.NoRun -> UI.Text(s.tool("screen_no_run"), TextType.CAPTION)
             is PathShown.Problem -> UI.Text(shown.message, TextType.ERROR)
             is PathShown.Run -> {
+                shown.path.awaiting().forEach { root -> Awaiting(toolInstanceId, shown, root, onView = { runId = root.id }) }
                 // The run shown, named with its root's state when it is not the current one
                 if (shown.root.id != shown.path.currentRun()?.id) UI.Text(listOfNotNull(shown.root.name, shown.stateName(shown.root)).joinToString(" · "), TextType.SUBTITLE)
                 if (shown.diagram.spec.nodes.isEmpty()) UI.Text(s.tool("screen_plan_empty"), TextType.CAPTION)
@@ -123,6 +124,38 @@ fun PathScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
                 shown.outcome.problems.forEach { UI.Text(it.message, TextType.ERROR) }
                 if (shown.runs.size > 1) Runs(shown, onShow = { runId = it })
             }
+        }
+    }
+}
+
+/** A run awaiting its validation: its root's state for now, « View » showing it, « Validate » freezing it as it stands. */
+@Composable
+private fun Awaiting(toolInstanceId: String, shown: PathShown.Run, root: Stage, onView: () -> Unit) {
+    val context = LocalContext.current
+    val s = remember { Strings.`for`(tool = PathRows.TOOLTYPE, context = context) }
+    val validate = rememberValidate(toolInstanceId)
+    UI.Card(type = app.treelune.core.ui.CardType.DEFAULT) {
+        Column(Modifier.padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+            UI.Text(s.tool("screen_awaiting").format(root.name, shown.stateName(root) ?: "–"), TextType.BODY)
+            app.treelune.core.ui.components.ButtonRow {
+                UI.Button(type = app.treelune.core.ui.ButtonType.PRIMARY, onClick = { validate(root.id) }) { UI.Text(s.tool("screen_validate"), TextType.LABEL) }
+                if (root.id != shown.root.id) UI.Button(type = app.treelune.core.ui.ButtonType.DEFAULT, onClick = onView) { UI.Text(s.tool("screen_view_run"), TextType.LABEL) }
+            }
+        }
+    }
+}
+
+/** Validates the run its root names: its state frozen as it stands (path.validate); a refusal said. */
+@Composable
+internal fun rememberValidate(toolInstanceId: String): (String) -> Unit {
+    val context = LocalContext.current
+    val s = remember { Strings.`for`(tool = PathRows.TOOLTYPE, context = context) }
+    val coordinator = remember { app.treelune.core.coordinator.Coordinator(context) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    return { run ->
+        scope.launch {
+            val result = coordinator.processUserAction("path.validate", mapOf("tool_instance_id" to toolInstanceId, "run" to run))
+            if (!result.isSuccess) UI.Toast(result.error ?: s.shared("service_error_operation_failed"))
         }
     }
 }

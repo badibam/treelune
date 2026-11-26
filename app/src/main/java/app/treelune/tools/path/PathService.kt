@@ -413,7 +413,10 @@ class PathService(private val context: Context) : ExecutableService {
         var closed = 0
         for (root in ending) {
             if (!path.grammar.confirm) { close(fresh, root, now); closed++ }
-            else if (fresh.entity(root.id)?.state?.let { JSONObject(it).has(PathStages.AWAITING) } != true) setState(root.id, mapOf(PathStages.AWAITING to now))
+            else if (fresh.entity(root.id)?.state?.let { JSONObject(it).has(PathStages.AWAITING) } != true) {
+                setState(root.id, mapOf(PathStages.AWAITING to now))
+                if (path.grammar.notifyValidation) notifyAwaiting(path, root, outcome)
+            }
         }
         // The rhythm: the next run chained once one closed, or opened at its unit's start
         if (closed > 0) chain(fresh, now)
@@ -421,6 +424,19 @@ class PathService(private val context: Context) : ExecutableService {
         // Then the stages of a run the rhythm opened
         if (closed > 0 || path.grammar.opens == Opens.SCHEDULED) PathRead.of(context, path.toolId)?.let { tell(it, now) }
         return OperationResult.success(mapOf("records" to outcome.records.size, "closed" to closed))
+    }
+
+    /** Says that the run [root] heads awaits its validation, with the state its root holds for now; it opens the Path. */
+    private suspend fun notifyAwaiting(path: PathRead, root: Stage, outcome: PathReplay.Outcome) {
+        val state = outcome.states[root.id]?.state?.let { path.grammar.kind(root.kind)?.state(it)?.name } ?: "–"
+        val sent = coordinator.processUserAction("notifications.send", mapOf(
+            "title" to path.config.optString("name").ifEmpty { s.tool("display_name") },
+            "content" to s.tool("notification_awaiting").format(root.name, state),
+            "priority" to "default",
+            "icon_name" to path.config.optString("icon_name").ifEmpty { PathToolType.getDefaultIconName() },
+            "tool_instance_id" to path.toolId
+        ))
+        if (!sent.isSuccess) app.treelune.core.utils.LogManager.service("Path ${path.toolId}: ${root.name} awaiting, not notified: ${sent.error}", "ERROR")
     }
 
     /** For a Path whose runs are chained, the next opened at [now], its plan copied, unless one is open already. */
