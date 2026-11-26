@@ -252,4 +252,11 @@
     <string name="view_stages">Ses étapes</string>
     <string name="view_moves">Ses mouvements</string>
     <string name="phrase_links_of">%1$s « %2$s »</string>
+    <string name="field_readout">Repère</string>
+    <string name="schema_readout">Un repère calculé sur chaque étape de la sorte, ses valeurs lues avec self (« {done} / {total} ») : sa forme courte sous le nom de l\'étape, sa jauge en bas de sa boîte. Il ne dit jamais la couleur, que donne l\'état.</string>
+    <string name="schema_readout_core">Sa forme courte, les valeurs écrites {nom} : « {done} / {total} ».</string>
+    <string name="path_check_readout_value">Une valeur du repère de %1$s n\'a pas son nom ou son terme.</string>
+    <string name="path_check_readout_twice">Deux valeurs du repère de %1$s s\'appellent « %2$s ».</string>
+    <string name="path_check_readout_name">Le repère de %1$s écrit « %2$s », qu\'aucune de ses valeurs ne porte. Ses valeurs : %3$s.</string>
+    <string name="path_check_readout_gauge">La jauge du repère de %1$s ne se lit pas : %2$s.</string>
 </resources>

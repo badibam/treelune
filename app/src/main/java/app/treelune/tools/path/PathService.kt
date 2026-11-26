@@ -258,28 +258,7 @@ class PathService(private val context: Context) : ExecutableService {
     suspend fun refuseNote(path: PathRead, stage: Stage, state: StateRule, now: Long): String? {
         val rule = state.noteIf ?: return null
         val outcome = path.replay(now)
-        val reader = app.treelune.core.terms.TermReader(context)
-        val rules = PathRules(path.toolId, { term, at -> reader.read(term, at, null) }, { app.treelune.core.selection.TimeResolver.at(it) }, { s.shared(it) }, { s.tool(it) })
-        val kind = path.grammar.kind(stage.kind)!!
-        val children = path.stages.filter { it.run == stage.run }.groupBy { it.parent }
-        val self = object : PathSelf.Of {
-            override val stage = stage
-            override val kind = kind
-            override fun previous() = PathOrder.previous(stage, children)
-            override fun siblings() = children[stage.parent].orEmpty().filter { it.id != stage.id }.sortedBy { it.position }
-            override fun content() = children[stage.id].orEmpty().sortedBy { it.position }
-            override fun lastMove() = outcome.states[stage.id]?.lastMove
-            override fun state() = outcome.states[stage.id]?.let { (it.state ?: return null) to it.since }
-            override fun runStart() = path.stage(stage.run)?.moves?.firstOrNull { it.state == Move.START }?.at
-            override fun runEnd() = path.stage(stage.run)?.plannedEnd
-        }
-        val rows = object : PathRules.Rows {
-            override fun stages() = outcome.rows
-            override fun moves() = outcome.moves
-            override val stageFields = PathRows.stageFields(path.grammar)
-            override val moveFields = PathRows.moveFields(path.grammar)
-        }
-        return when (val judged = rules.judge(rule, self, rows, now)) {
+        return when (val judged = path.rules().judge(rule, path.selfOf(stage, outcome), path.rowsOf(outcome), now)) {
             is PathRules.Judged.Answer -> if (judged.holds == true) null else s.tool("path_error_note_if").format(state.name, stage.name)
             is PathRules.Judged.Failed -> judged.message
         }

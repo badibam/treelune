@@ -76,7 +76,7 @@ class PathRules(
             is JSONArray -> (0 until rawRight.length()).map { rawRight.opt(it) }
             else -> listOf(rawRight)
         }
-        val sides = (listOf(json.opt(Conditions.LEFT)) + rights).map { side(it, self, rows, at) }
+        val sides = (listOf(json.opt(Conditions.LEFT)) + rights).map { read(it, self, rows, at) }
         when {
             // What it reads gone fails; data missing is not known
             sides.any { it is TermReader.Read.Failed && it.broken } -> Judged.Failed((sides.first { it is TermReader.Read.Failed && it.broken } as TermReader.Read.Failed).message)
@@ -100,8 +100,8 @@ class PathRules(
         Judged.Failed(e.message ?: text("message_validation_error_simple"))
     }
 
-    /** One side read: `self`, a written value, a reading of the Path's views, or a term of the core. */
-    private suspend fun side(raw: Any?, self: PathSelf.Of, rows: Rows, at: Long): TermReader.Read {
+    /** One term read on [self]: `self`, a written value, a reading of the Path's views, or a term of the core; a side of a rule, a value of a kind's readout. */
+    suspend fun read(raw: Any?, self: PathSelf.Of, rows: Rows, at: Long): TermReader.Read {
         val json = raw as? JSONObject ?: throw IllegalArgumentException(text("condition_error_side").format(self.kind.name, raw.toString()))
         if (json.has(Term.SELF)) return PathSelf.value(json, self, own).let { TermReader.Read.Value(it.value, it.field) }
         if (Conditions.fieldOf(JSONObject().put(Conditions.LEFT, json)) != null) throw IllegalArgumentException(own("path_error_rule_field"))

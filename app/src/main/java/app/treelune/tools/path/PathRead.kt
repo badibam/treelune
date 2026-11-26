@@ -26,9 +26,7 @@ class PathRead private constructor(
 
     /** The replay at [now]; with [judge], the judge's records to write among what it gives. */
     suspend fun replay(now: Long, judge: Boolean = false): PathReplay.Outcome {
-        val reader = TermReader(context)
-        val rules = PathRules(toolId, { term, at -> reader.read(term, at, null) }, { TimeResolver.at(it) }, { s.shared(it) }, { s.tool(it) })
-        return PathReplay(grammar, toolId, rules, { TimeResolver.at(it) }, { s.shared(it) }, { s.tool(it) }).replay(stages, now, judge)
+        return PathReplay(grammar, toolId, rules(), { TimeResolver.at(it) }, { s.shared(it) }, { s.tool(it) }).replay(stages, now, judge)
     }
 
     /** The roots of its runs, the latest opened first. */
@@ -44,6 +42,51 @@ class PathRead private constructor(
     fun currentRun(): Stage? = runs().firstOrNull { !isClosed(it) }
 
     fun stage(id: String): Stage? = stages.firstOrNull { it.id == id }
+
+    /** [stage] as `self` reads it in the replay [outcome]: its relations in its run, its state and its last move there. */
+    fun selfOf(stage: Stage, outcome: PathReplay.Outcome): PathSelf.Of {
+        val kind = grammar.kind(stage.kind) ?: throw IllegalStateException(s.tool("path_problem_kind").format(stage.kind))
+        val children = stages.filter { it.run == stage.run }.groupBy { it.parent }
+        return object : PathSelf.Of {
+            override val stage = stage
+            override val kind = kind
+            override fun previous() = PathOrder.previous(stage, children)
+            override fun siblings() = children[stage.parent].orEmpty().filter { it.id != stage.id }.sortedBy { it.position }
+            override fun content() = children[stage.id].orEmpty().sortedBy { it.position }
+            override fun lastMove() = outcome.states[stage.id]?.lastMove
+            override fun state() = outcome.states[stage.id]?.let { (it.state ?: return null) to it.since }
+            override fun runStart() = stage(stage.run)?.moves?.firstOrNull { it.state == Move.START }?.at
+            override fun runEnd() = stage(stage.run)?.plannedEnd
+        }
+    }
+
+    /** The rows of its views in the replay [outcome], as a rule reads them. */
+    fun rowsOf(outcome: PathReplay.Outcome): PathRules.Rows = object : PathRules.Rows {
+        override fun stages() = outcome.rows
+        override fun moves() = outcome.moves
+        override val stageFields = PathRows.stageFields(grammar)
+        override val moveFields = PathRows.moveFields(grammar)
+    }
+
+    /** How its rules read: its own views in the rows given, anything else by the core. */
+    fun rules(): PathRules {
+        val reader = TermReader(context)
+        return PathRules(toolId, { term, at -> reader.read(term, at, null) }, { TimeResolver.at(it) }, { s.shared(it) }, { s.tool(it) })
+    }
+
+    /**
+     * The readout of each of [of] whose kind has one (« L'apparence d'une brique »), computed on
+     * it at [now] in the replay [outcome]: its values read with `self`, its short form and its gauge.
+     */
+    suspend fun readouts(of: List<Stage>, outcome: PathReplay.Outcome, now: Long): Map<String, app.treelune.core.readouts.ReadoutComputed> {
+        val rules = rules()
+        val rows = rowsOf(outcome)
+        return of.mapNotNull { stage ->
+            val readout = grammar.kind(stage.kind)?.readout ?: return@mapNotNull null
+            val self = selfOf(stage, outcome)
+            stage.id to app.treelune.core.readouts.ReadoutComputed.of(readout, now, stage.name, context) { json, _ -> rules.read(json, self, rows, now) }
+        }.toMap()
+    }
 
     fun entity(id: String): ToolDataEntity? = entities.firstOrNull { it.id == id }
 

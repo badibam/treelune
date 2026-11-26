@@ -51,9 +51,27 @@ object PathCheck {
                 if (state.closesRun && kind.key != grammar.rootKind) return own("path_check_closes_run").format(kind.name, state.name)
                 state.whenRule?.let { rule -> unanchored(rule)?.let { return own("path_check_unanchored").format(kind.name, state.name) } }
             }
+            kind.readout?.let { readout -> refuseReadout(kind, readout, own)?.let { return it } }
             for (effect in kind.effects) {
                 if (grammar.kinds.none { it.state(effect.setState) != null }) return own("path_check_effect_state").format(kind.name, effect.setState)
             }
+        }
+        return null
+    }
+
+    /** Why [kind]'s readout cannot be computed: a value without its name or twice, a name its short form or its gauge writes that no value has, a gauge that does not read. */
+    private fun refuseReadout(kind: Kind, readout: JSONObject, own: (String) -> String): String? {
+        val values = objects(readout.optJSONArray(app.treelune.core.readouts.ReadoutSettings.VALUES))
+        val names = values.map { it.optString(app.treelune.core.readouts.ReadoutSettings.NAME) }
+        if (names.any { it.isEmpty() } || values.any { it.optJSONObject(app.treelune.core.readouts.ReadoutSettings.VALUE) == null }) return own("path_check_readout_value").format(kind.name)
+        duplicate(names)?.let { return own("path_check_readout_twice").format(kind.name, it) }
+        val core = readout.optString(app.treelune.core.readouts.ReadoutSettings.CORE)
+        app.treelune.core.readouts.ReadoutComputed.PLACEHOLDER.findAll(core).map { it.groupValues[1] }.firstOrNull { it !in names }
+            ?.let { return own("path_check_readout_name").format(kind.name, it, names.joinToString(", ").ifEmpty { "-" }) }
+        readout.optString(app.treelune.core.readouts.ReadoutSettings.GAUGE).takeIf { it.isNotBlank() }?.let { gauge ->
+            val formula = (app.treelune.core.variables.Formula.parse(gauge) as? app.treelune.core.variables.Formula.Parsed.Read)?.formula
+                ?: return own("path_check_readout_gauge").format(kind.name, gauge)
+            formula.names().firstOrNull { it !in names }?.let { return own("path_check_readout_name").format(kind.name, it, names.joinToString(", ").ifEmpty { "-" }) }
         }
         return null
     }

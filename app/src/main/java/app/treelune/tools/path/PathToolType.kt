@@ -132,6 +132,17 @@ object PathToolType : ToolTypeContract {
             ), required = true, description = s.tool("schema_set"))
         ), description = s.tool("schema_effect")), summary = listOf("label"), description = s.tool("schema_effects"))
         val definitions = app.treelune.core.fields.settings.FieldTypeSettings.definitionNodes({ shared.shared(it) })
+        // A readout computed on each stage of the kind, its values read with self: its short form and its gauge
+        val readout = SettingNode.Group("readout", s.tool("field_readout"), listOf(
+            SettingNode.ListOf(app.treelune.core.readouts.ReadoutSettings.VALUES, shared.shared("readout_values"), SettingNode.Item.Of(listOf(
+                SettingNode.Field(field(app.treelune.core.readouts.ReadoutSettings.NAME, shared.shared("readout_value_name"), FieldType.TEXT, shared.shared("readout_schema_value_name"), short()), required = true),
+                SettingNode.Term(app.treelune.core.readouts.ReadoutSettings.VALUE, shared.shared("readout_value_term"),
+                    setOf(app.treelune.core.terms.Term.Kind.CONSTANT, app.treelune.core.terms.Term.Kind.VARIABLE, app.treelune.core.terms.Term.Kind.READING),
+                    s.tool("reference_judged"), shared.shared("readout_empty_period"), required = true)
+            ), description = shared.shared("readout_schema_value")), summary = listOf(app.treelune.core.readouts.ReadoutSettings.NAME), description = shared.shared("readout_schema_values")),
+            SettingNode.Field(field(app.treelune.core.readouts.ReadoutSettings.CORE, shared.shared("readout_core"), FieldType.TEXT, s.tool("schema_readout_core"), short())),
+            SettingNode.Field(field(app.treelune.core.readouts.ReadoutSettings.GAUGE, shared.shared("readout_gauge"), FieldType.TEXT, shared.shared("readout_schema_gauge"), short()))
+        ), description = s.tool("schema_readout"))
         return listOf(
             SettingNode.Section(s.tool("section_kinds"), listOf(
                 SettingNode.ListOf(PathGrammar.KINDS, s.tool("field_kinds"), SettingNode.Item.Of(listOf(
@@ -144,7 +155,7 @@ object PathToolType : ToolTypeContract {
                         summary = listOf("display_name", "type"), description = s.tool("schema_plan_fields")),
                     SettingNode.ListOf("fill_fields", s.tool("field_fill_fields"), SettingNode.Item.Of(definitions), fieldDefinitions = true,
                         summary = listOf("display_name", "type"), description = s.tool("schema_fill_fields")),
-                    states, marks, effects,
+                    states, marks, effects, readout,
                     SettingNode.Field(field("layout", s.tool("field_layout"), FieldType.CHOICE, s.tool("schema_layout"), choice(listOf("graph", "parts")) { s.tool("layout_$it") }), default = "graph")
                 ), description = s.tool("schema_kind")), required = true, minItems = 1, summary = listOf("name"), description = s.tool("schema_kinds")),
                 SettingNode.Field(field(PathGrammar.ROOT_KIND, s.tool("field_root_kind"), FieldType.TEXT, s.tool("schema_root_kind"), short()), required = true)

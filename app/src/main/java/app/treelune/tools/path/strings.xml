@@ -252,4 +252,11 @@
     <string name="view_stages">Its stages</string>
     <string name="view_moves">Its moves</string>
     <string name="phrase_links_of">%1$s “%2$s”</string>
+    <string name="field_readout">Readout</string>
+    <string name="schema_readout">A readout computed on each stage of the kind, its values read with self (“{done} / {total}”): its short form under the stage\'s name, its gauge at the bottom of its box. It never says the colour, which the state gives.</string>
+    <string name="schema_readout_core">Its short form, the values written {name}: “{done} / {total}”.</string>
+    <string name="path_check_readout_value">A value of the readout of %1$s lacks its name or its term.</string>
+    <string name="path_check_readout_twice">Two values of the readout of %1$s are called “%2$s”.</string>
+    <string name="path_check_readout_name">The readout of %1$s writes “%2$s”, which none of its values is called. Its values: %3$s.</string>
+    <string name="path_check_readout_gauge">The gauge of the readout of %1$s does not read: %2$s.</string>
 </resources>

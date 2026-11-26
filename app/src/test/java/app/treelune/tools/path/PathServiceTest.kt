@@ -200,4 +200,34 @@ class PathServiceTest {
         val after = coordinator.processUserAction("tools.waiting", emptyMap())
         assertEquals("no dot once validated", 0, (after.data!!["tools"] as Map<*, *>)[path])
     }
+
+    @Test
+    fun `a kind's readout computed on each stage with self, its short form and its gauge, a name no value has refused`() = runBlocking {
+        val zone = ok("zones.create", mapOf("name" to "Drawing"))["zone_id"] as String
+        fun count(filters: String) = """{"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "self"}, "view": "stages", "filters": [$filters]}, "reduction": "COUNT"}}"""
+        val content = """{"left": {"field": "data.parent"}, "op": "in", "right": {"self": "id"}}"""
+        val done = """{"left": {"field": "data.state"}, "op": "in", "right": {"constant": ["done"]}}"""
+        fun config(core: String) = json("""{"name": "Cycle", "root_kind": "cycle", "kinds": [
+            {"name": "Cycle", "key": "cycle", "contains": ["week"], "states": [{"key": "ongoing", "name": "Ongoing"}]},
+            {"name": "Week", "key": "week", "contains": ["session"], "states": [{"key": "open", "name": "Open"}],
+             "readout": {"values": [{"name": "done", "value": ${count("$content, $done")}}, {"name": "total", "value": ${count(content)}}],
+                         "core": "$core", "gauge": "done / total"}},
+            {"name": "Session", "key": "session", "states": [{"key": "done", "name": "Done", "manual": true}, {"key": "todo", "name": "To do"}]}]}""")
+        // A short form naming no value of the readout is refused when written
+        assertFalse(coordinator.processUserAction("tools.create", mapOf("zone_id" to zone, "tooltype" to PathRows.TOOLTYPE, "config" to config("{done} / {all}"))).isSuccess)
+        val path = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to PathRows.TOOLTYPE, "config" to config("{done} / {total}")))["tool_instance_id"] as String
+        ok("path.start", mapOf("tool_instance_id" to path, "name" to "July"))
+        val ids = ok("path.write_plan", mapOf("tool_instance_id" to path, "stages" to listOf(mapOf("key" to "w", "kind" to "week", "name" to "Week 1", "content" to listOf(
+            mapOf("key" to "a", "kind" to "session", "name" to "Session 1"), mapOf("key" to "b", "kind" to "session", "name" to "Session 2"))))))["ids"] as Map<*, *>
+        ok("path.note", mapOf("tool_instance_id" to path, "stage" to ids["a"], "state" to "done"))
+        val read = PathRead.of(context, path)!!
+        val now = System.currentTimeMillis()
+        val outcome = read.replay(now)
+        val readouts = read.readouts(read.stages, outcome, now)
+        val week = readouts.getValue(ids["w"] as String)
+        assertEquals("1 / 2", week.core)
+        assertEquals(0.5, week.gauge!!, 1e-9)
+        // A kind without a readout has none
+        assertFalse(readouts.containsKey(ids["a"]))
+    }
 }

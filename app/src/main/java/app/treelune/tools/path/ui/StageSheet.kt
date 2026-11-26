@@ -53,7 +53,8 @@ private sealed interface SheetShown {
     /**
      * @property refusals Why each manual state of its kind may not be noted now (its `note_if`), by key; absent when it may
      */
-    data class Found(val path: PathRead, val stage: Stage, val kind: Kind, val outcome: PathReplay.Outcome, val closed: Boolean, val refusals: Map<String, String>) : SheetShown
+    data class Found(val path: PathRead, val stage: Stage, val kind: Kind, val outcome: PathReplay.Outcome, val closed: Boolean, val refusals: Map<String, String>,
+                     val readout: app.treelune.core.readouts.ReadoutComputed?) : SheetShown
     data object Gone : SheetShown
     data class Problem(val message: String) : SheetShown
 }
@@ -71,7 +72,8 @@ private suspend fun sheet(context: android.content.Context, toolId: String, stag
             val service = PathService(context)
             val refusals = if (closed) emptyMap() else kind.states.filter { it.manual }
                 .mapNotNull { state -> service.refuseNote(path, stage, state, now)?.let { state.key to it } }.toMap()
-            SheetShown.Found(path, stage, kind, path.replay(now), closed, refusals)
+            val outcome = path.replay(now)
+            SheetShown.Found(path, stage, kind, outcome, closed, refusals, path.readouts(listOf(stage), outcome, now)[stage.id])
         }
     }
 } catch (e: kotlinx.coroutines.CancellationException) {
@@ -162,6 +164,15 @@ fun StageSheet(toolInstanceId: String, stageId: String, onName: (String) -> Unit
                 }
 
                 if (!current.closed) StateButtons(kind, rule, stage, current.refusals, writing, { write("path.note", mapOf("state" to it)) }, { write("path.unnote", emptyMap()) })
+
+                // Its kind's readout, in its state's colour: never a colour of its own
+                current.readout?.let { readout ->
+                    Column(verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
+                        if (readout.core.isNotBlank()) UI.Text(readout.core, TextType.BODY)
+                        readout.gauge?.let { UI.Gauge(it.toFloat(), rule?.paint?.color?.let { name -> TagColor.entries.firstOrNull { c -> c.name == name } }) }
+                        (readout.failures.map { it["message"].toString() } + listOfNotNull(readout.gaugeFailure)).forEach { UI.Text(it, TextType.CAPTION) }
+                    }
+                }
 
                 // The plan's fields, written by « Modifier »
                 val planShown = kind.planFields.filter { stage.fields[it.name] != null }
