@@ -115,7 +115,8 @@ class VariableService(private val context: Context) : ExecutableService {
             iconName = tile.iconName!!, iconColor = tile.iconColor, texture = tile.texture, tileSize = tile.tileSize.stored,
             gridX = 0, gridY = 0,
             definitionJson = definition.toJson().toString(),
-            createdAt = now, updatedAt = now
+            createdAt = now, updatedAt = now,
+            itemWidth = itemWidthOf(params, null)
         )
         AppDatabase.getDatabase(context).transaction {
             val place = sections.arrive(SectionItem.of(variable), zone.tool_groups)
@@ -154,6 +155,7 @@ class VariableService(private val context: Context) : ExecutableService {
             definitionJson = definition?.toJson()?.toString()
                 // A rename alone leaves the definition, whose field carries the name
                 ?: existing.definitionJson,
+            itemWidth = itemWidthOf(params, existing.itemWidth),
             updatedAt = System.currentTimeMillis()
         )
         // Its section or its size changed, it moves in the grids, the tiles around with it
@@ -215,6 +217,15 @@ class VariableService(private val context: Context) : ExecutableService {
         val look = Looks.read(VariableLook.SPEC, values)
         if (look.name.isBlank()) throw Refused(s.shared("variable_error_param").format("label"))
         return look.copy(name = look.name.trim()) to kept
+    }
+
+    /** How its tile lays its values, `item_width` among VariableLook.ITEMS's widths; [kept] when not given, null emptying it. */
+    private fun itemWidthOf(params: JSONObject, kept: String?): String? {
+        if (!params.has(app.treelune.core.look.ItemLayout.WIDTH)) return kept
+        if (params.isNull(app.treelune.core.look.ItemLayout.WIDTH)) return null
+        val given = params.optString(app.treelune.core.look.ItemLayout.WIDTH)
+        if (app.treelune.core.look.ItemWidth.of(given) !in VariableLook.ITEMS.widths) throw Refused(s.shared("page_error_value").format(app.treelune.core.look.ItemLayout.WIDTH, given))
+        return given
     }
 
     private suspend fun checkName(name: String, id: String): String {
@@ -470,6 +481,7 @@ class VariableService(private val context: Context) : ExecutableService {
             "grid_x" to entity.gridX,
             "grid_y" to entity.gridY,
             "hidden" to entity.hidden,
+            app.treelune.core.look.ItemLayout.WIDTH to VariableLook.items(entity.itemWidth).width.stored,
             "definition" to JsonUtils.toMap(definition),
             "tools_read" to toolsRead(entity, dao.getAll().associateBy { it.id }).toList()
         )

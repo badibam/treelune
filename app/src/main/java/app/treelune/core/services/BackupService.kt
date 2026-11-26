@@ -718,6 +718,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("grid_x", variable.gridX)
                                 put("grid_y", variable.gridY)
                                 put("hidden", variable.hidden)
+                                put("item_width", variable.itemWidth ?: JSONObject.NULL)
                                 put("definition_json", variable.definitionJson)
                                 put("created_at", variable.createdAt)
                                 put("updated_at", variable.updatedAt)
@@ -1412,6 +1413,8 @@ class BackupService(private val context: Context) : ExecutableService {
                         gridX = item.getInt("grid_x"),
                         gridY = item.getInt("grid_y"),
                         hidden = item.getBoolean("hidden"),
+                        // Absent from a backup made before v125: the default layout
+                        itemWidth = item.optString("item_width").takeIf { !item.isNull("item_width") && it.isNotEmpty() },
                         definitionJson = item.getString("definition_json"),
                         createdAt = item.getLong("created_at"),
                         updatedAt = item.getLong("updated_at")

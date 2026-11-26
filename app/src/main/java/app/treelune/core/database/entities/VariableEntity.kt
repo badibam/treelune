@@ -51,5 +51,7 @@ data class VariableEntity(
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
     /** Hidden from its page until the page shows its hidden tiles: placed in its section's hidden part, grid_x and grid_y counted there (docs/design/phone-inbox.md). */
-    val hidden: Boolean = false
+    val hidden: Boolean = false,
+    /** How its tile lays its values when it has several (ItemLayout.WIDTH, VariableLook.ITEMS): by halves, a label over its value, or the whole width, side by side; null for the default */
+    @ColumnInfo(name = "item_width") val itemWidth: String? = null
 )

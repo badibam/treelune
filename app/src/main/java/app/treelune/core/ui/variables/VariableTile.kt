@@ -33,6 +33,8 @@ data class VariableRow(
     val gridY: Int,
     val definition: Map<*, *>,
     val toolsRead: Set<String>,
+    /** How its tile lays its values when it has several */
+    val items: app.treelune.core.look.ItemLayout = app.treelune.core.variables.VariableLook.items(null),
     /** Hidden from its page, in its section's hidden part (docs/design/phone-inbox.md) */
     val hidden: Boolean = false
 ) {
@@ -48,7 +50,8 @@ data class VariableRow(
             gridY = (map["grid_y"] as Number).toInt(),
             definition = map["definition"] as? Map<*, *> ?: emptyMap<String, Any>(),
             toolsRead = (map["tools_read"] as? List<*>)?.map { it.toString() }?.toSet() ?: emptySet(),
-            hidden = map["hidden"] as Boolean
+            hidden = map["hidden"] as Boolean,
+            items = app.treelune.core.variables.VariableLook.items(map[app.treelune.core.look.ItemLayout.WIDTH] as String)
         )
     }
 }
@@ -99,9 +102,12 @@ fun rememberVariableValues(variable: VariableRow): List<ShownValue>? {
 
 /**
  * A variable's tile among its section's tools (UI.LookCard): its look; a variable of one value
- * shows it beside its header (LINE) or under it (CONDENSED), one of several a line per value
- * shown on the tile, its label then its value, under its header, what does not hold cut by « … »,
- * the tile never growing by itself. Touching it opens the variable.
+ * shows it beside its header (LINE) or under it (CONDENSED); one of several a value per place of
+ * its body (TileGrid, its ItemLayout): by halves its label over its value, on the whole width side
+ * by side, the tile never growing by itself, « +N » saying what does not fit. Each value at the
+ * largest of the theme's text sizes that holds in its place (UI.FittedText), its label small. In
+ * icons two cells wide, the first value shown on the tile in the second cell, without its label.
+ * Touching it opens the variable.
  */
 @Composable
 fun VariableCard(variable: VariableRow, onOpen: () -> Unit, onLongClick: () -> Unit) {
@@ -110,7 +116,7 @@ fun VariableCard(variable: VariableRow, onOpen: () -> Unit, onLongClick: () -> U
     val values = rememberVariableValues(variable)
     val single = values?.singleOrNull()?.takeIf { it.label == null }
     @Composable
-    fun Value() = UI.Text(single?.text ?: values?.let { "" } ?: s.shared("tools_loading"), TextType.BODY, maxLines = 2)
+    fun Value() = if (values == null) UI.Text(s.shared("tools_loading"), TextType.BODY, maxLines = 1) else UI.FittedText(single?.text ?: "")
     UI.LookCard(
         look = variable.look,
         // Its kind under its label, as a tool's type under its name
@@ -122,20 +128,26 @@ fun VariableCard(variable: VariableRow, onOpen: () -> Unit, onLongClick: () -> U
         onLongClick = onLongClick,
         summary = if (values == null || single != null) ({ Value() }) else null,
         glance = { Value() },
-        body = { _ ->
-            if (values != null && single == null) androidx.compose.foundation.layout.Column(
-                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(UI.Space.XS)
-            ) {
-                values.forEach { value ->
-                    androidx.compose.foundation.layout.Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(UI.Space.S)) {
+        body = { room ->
+            if (values != null && single == null) androidx.compose.runtime.CompositionLocalProvider(app.treelune.core.ui.components.LocalItemLayout provides variable.items) {
+                app.treelune.core.ui.components.TileGrid(room, values) { value ->
+                    if (variable.items.width == app.treelune.core.look.ItemWidth.HALVES) androidx.compose.foundation.layout.Column {
+                        UI.Text(value.label ?: "", TextType.CAPTION, maxLines = 1)
+                        UI.FittedText(value.text, cap = TextType.HEADING)
+                    } else androidx.compose.foundation.layout.Row(
+                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(UI.Space.S),
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                    ) {
                         androidx.compose.foundation.layout.Box(modifier = androidx.compose.ui.Modifier.weight(1f)) {
                             UI.Text(value.label ?: "", TextType.CAPTION, maxLines = 1)
                         }
-                        UI.Text(value.text, TextType.BODY, maxLines = 1)
+                        UI.FittedText(value.text, cap = TextType.HEADING)
                     }
                 }
             }
-        }
+        },
+        // In icons two cells wide: the first value, alone, beside the icon
+        second = values?.firstOrNull()?.let { first -> { UI.FittedText(first.text) } }
     )
 }
 

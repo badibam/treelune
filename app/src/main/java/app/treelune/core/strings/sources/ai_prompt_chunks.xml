@@ -718,7 +718,8 @@ Creates a variable in a zone. Its name is unique in the app and can be written i
 - `icon_name` (string, optional): a Lucide icon name, `variable` when left out
 - `icon_color` (string, optional): as a tool's
 - `texture` (string, optional): as a tool's
-- `tile_size` (string, optional): the size of its tile; `4x1` (its value beside its label) when left out, `2x2` its value below
+- `tile_size` (string, optional): the size of its tile; `4x1` (its value beside its label) when left out, `2x2` its value below, `icons_2x1` its icon and its first value; with several values, a place per value in the tile\'s body
+- `item_width` (string, optional): with several values, how its tile lays them: `full` (the default), each label and value side by side across the width, or `halves`, two a row, each label over its value
 - `group` (string, optional): a group of the zone
 - `definition` (object, **required**): `{ "terms"?: { ... }, "values": [ ... ], "series"?: ... }`
   - `values`, at least one, each `{ "key", "label", "formula" or "constant", "field"?, "on_tile"? }`: `key` (lower-case letters, digits, `_`) is what reads it names, never shown, `value` for a single one (left out, it is given); `label` names it on screen, required once there are several; a constant is `"constant": 2100` with its `"field": { "type": "NUMERIC", "config": { "decimals": 0, "unit": "kcal" } }`; a formula is written on the `terms` its variable\'s values share; `"on_tile": false` keeps a value off the tile
@@ -774,6 +775,7 @@ Changes a variable. Only what you give changes; a `definition` given replaces th
 - `icon_color` (string, optional): null empties it
 - `texture` (string, optional): null empties it
 - `tile_size` (string, optional): as CREATE_VARIABLE
+- `item_width` (string, optional): as CREATE_VARIABLE
 - `definition` (object, optional)
 - `group` (string, optional): one of its zone's tool groups
 - `zone_id` (string, optional): the zone to move it to; its group stays behind unless you give one of the new zone's]]></string>

@@ -757,6 +757,28 @@ object UI {
     }
 
     /**
+     * [text] on one line at the largest of the theme's text sizes, [cap] the largest allowed,
+     * that holds in the room it is given, width and height; the smallest, cut by « … », when none
+     * does. The steps are the theme's own (a pixel theme's whole pixels among them), measured
+     * here: a value on a tile (a variable's) is as large as its place lets it be, never larger
+     * than [cap]. Its label, beside it, stays small.
+     */
+    @Composable
+    fun FittedText(text: String, cap: TextType = TextType.TITLE) {
+        val steps = listOf(TextType.TITLE, TextType.SUBTITLE, TextType.HEADING, TextType.BODY).let { all -> all.drop(all.indexOf(cap).coerceAtLeast(0)) }
+        androidx.compose.ui.layout.SubcomposeLayout { constraints ->
+            // Each step measured at its natural width, the largest first by what it measures
+            val measured = steps.map { type -> type to subcompose(type) { Text(text, type, maxLines = 1) }.first().measure(androidx.compose.ui.unit.Constraints()) }
+                .sortedByDescending { it.second.height }
+            val chosen = measured.firstOrNull { (_, placeable) ->
+                placeable.width <= constraints.maxWidth && (!constraints.hasBoundedHeight || placeable.height <= constraints.maxHeight)
+            }?.first ?: measured.last().first
+            val shown = subcompose("shown") { Text(text, chosen, maxLines = 1) }.first().measure(constraints.copy(minWidth = 0, minHeight = 0))
+            layout(shown.width, shown.height) { shown.place(0, 0) }
+        }
+    }
+
+    /**
      * [content] with the size of the zone's own icon on its tile laid [laid] (LocalZoneIcon): the
      * largest the theme draws (largestItemIcon) in its place less the theme's smallest space on
      * each side. Its place is its header's row with text, the grid's row less the tile's frame;

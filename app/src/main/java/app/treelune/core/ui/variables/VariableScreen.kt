@@ -82,6 +82,8 @@ fun VariableScreen(zoneId: String, variableId: String?, onDone: () -> Unit) {
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     // Its group among the zone's, none for the ungrouped section
     var group by rememberSaveable { mutableStateOf<String?>(null) }
+    // How its tile lays its values when it has several (VariableLook.ITEMS)
+    var itemWidth by rememberSaveable { mutableStateOf(app.treelune.core.variables.VariableLook.ITEMS.defaultWidth.stored) }
     var groups by remember { mutableStateOf<List<String>>(emptyList()) }
 
     LaunchedEffect(variableId) {
@@ -95,6 +97,7 @@ fun VariableScreen(zoneId: String, variableId: String?, onDone: () -> Unit) {
             if (variable != null) {
                 name = variable["name"] as String
                 group = (variable["group"] as? String)?.takeIf { it.isNotEmpty() }
+                (variable[app.treelune.core.look.ItemLayout.WIDTH] as? String)?.let { itemWidth = it }
                 look = JSONObject().apply {
                     app.treelune.core.look.Looks.keys(app.treelune.core.variables.VariableLook.SPEC).forEach { key -> variable[key]?.let { put(key, it) } }
                 }
@@ -248,6 +251,12 @@ fun VariableScreen(zoneId: String, variableId: String?, onDone: () -> Unit) {
                 list.put(JSONObject().put(Def.KEY, "value_$n").put(Def.LABEL, "").put(Def.FORMULA, ""))
             }
         }) { UI.Text(text = s.shared("variable_add_value"), type = TextType.LABEL) }
+        // With several values, how its tile lays them
+        if (several) {
+            val widths = app.treelune.core.variables.VariableLook.ITEMS.widths.map { it.stored to s.shared("item_width_${it.stored}") }
+            UI.FormSelection(label = s.shared("tools_config_label_item_width"), options = widths.map { it.second },
+                selected = widths.first { it.first == itemWidth }.second, onSelect = { label -> itemWidth = widths.first { it.second == label }.first }, required = true)
+        }
 
         SeriesEditor(json.optJSONObject(app.treelune.core.variables.VariableDefinition.SERIES)?.optString(app.treelune.core.variables.VariableDefinition.UNIT), s) { unit ->
             edit { if (unit == null) remove(app.treelune.core.variables.VariableDefinition.SERIES) else put(app.treelune.core.variables.VariableDefinition.SERIES, JSONObject().put(app.treelune.core.variables.VariableDefinition.UNIT, unit)) }
@@ -259,7 +268,8 @@ fun VariableScreen(zoneId: String, variableId: String?, onDone: () -> Unit) {
             UI.Button(type = ButtonType.PRIMARY, onClick = {
                 scope.launch {
                     // Every setting of its look is sent: an absent one as null, which empties it
-                    val params = mutableMapOf<String, Any>("name" to name, "definition" to JsonUtils.toMap(JSONObject(draft)))
+                    val params = mutableMapOf<String, Any>("name" to name, "definition" to JsonUtils.toMap(JSONObject(draft)),
+                        app.treelune.core.look.ItemLayout.WIDTH to itemWidth)
                     app.treelune.core.look.Looks.keys(app.treelune.core.variables.VariableLook.SPEC).forEach { key -> params[key] = look.opt(key) ?: JSONObject.NULL }
                     val result = if (variableId == null) {
                         coordinator.processUserAction("variables.create", params + ("zone_id" to zoneId) + (group?.let { mapOf("group" to it) } ?: emptyMap()))

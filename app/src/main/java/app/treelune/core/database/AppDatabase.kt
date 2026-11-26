@@ -116,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 124
+        const val VERSION = 125
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2363,6 +2363,14 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** A variable's tile lays its values by halves or on the whole width: its column `item_width`, none set. */
+        private val MIGRATION_124_125 = object : ConnectionMigration(124, 125) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("ALTER TABLE variables ADD COLUMN item_width TEXT")
+                LogManager.database("MIGRATION 124->125: variables.item_width added", "INFO")
+            }
+        }
+
         /**
          * A variable is a list of values, each with a key, which whatever reads it names: each
          * definition, each formula's `{var:ID}` and each term `{"variable"}` given the key `value`,
@@ -3819,7 +3827,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_120_121,
                     MIGRATION_121_122,
                     MIGRATION_122_123,
-                    MIGRATION_123_124
+                    MIGRATION_123_124,
+                    MIGRATION_124_125
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

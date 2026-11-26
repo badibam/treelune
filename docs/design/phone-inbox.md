@@ -2,22 +2,6 @@
 
 Les items de la section « En provenance du tel » de `TODO.md`, tranchés un à un, pour implémentation ultérieure.
 
-## Une variable à plusieurs valeurs
-
-Codé le 2026-11-26 (migration 124) : le modèle (`VariableDefinition`, `values` et `terms` partagés), `{var:ID.key}`, `{"variable", "value"}`, la série en `data.<clé>`, l'écran (une carte par valeur), la tuile en version simple (une ligne par valeur, libellé et valeur côte à côte, coupée par « … »), ce que lit l'IA. Restent les trois derniers points ci-dessous : la place d'une valeur par `ItemLayout` (une colonne de plus sur la variable), la taille de la valeur au plus grand cran qui tient, la taille icônes à deux cases.
-
-L'idée : une variable qui rend plusieurs valeurs d'un coup (« Apports du jour » : calories, protéines, glucides), sa série portant plusieurs champs par ligne, qu'un Graphique ou un repère lit ensemble. Aujourd'hui une variable rend une valeur, et sa série (la vue `series`, `VariableSeries`) une ligne par pas avec le seul `data.value`.
-
-- Les termes (`Term` : une constante, une autre variable, une lecture d'entrées) se déclarent une fois dans la variable et chaque valeur a sa formule sur eux : une sélection, sa période et ses filtres écrits une fois au lieu d'être recopiés dans trois variables, chaque terme lu une fois par instant pour toutes les valeurs. Une valeur peut se calculer sur les autres termes partagés (« part des protéines = protéines × 4 / calories »).
-- Un seul modèle : toute variable est une liste de valeurs, une seule par défaut. Une migration fait de la formule (ou de la constante) de chaque variable existante sa valeur unique. Jamais deux sortes de variables.
-- Chaque valeur a une clé, unique dans sa variable et jamais montrée (`protein`), un libellé montré (« Protéines ») et son champ (NUMERIC, SCALE ou DURATION). Une formule la vise toujours par sa clé, `{var:ID.protein}`, même dans une variable d'une seule valeur : une valeur ajoutée plus tard ne rend ambigu rien de ce qui la lisait. À l'écran, une variable d'une valeur se dit par son nom seul, une de plusieurs par « Apports › Protéines ».
-- La migration donne la clé `value` à la valeur unique de chaque variable existante : sa série garde `data.value`, ce qui la lit ne change pas ; une valeur ajoutée arrive en `data.<clé>` à côté.
-- La tuile montre une ligne par valeur, dans l'ordre de la liste, sous le libellé de la variable ; une case « Sur la tuile » par valeur, cochée par défaut, retire une valeur de calcul. La taille de la tuile reste celle choisie : ce qui ne tient pas est coupé par « … », jamais la tuile ne grandit seule. Une variable d'une valeur se montre comme aujourd'hui.
-- La place d'une valeur sur la tuile passe par la brique `ItemLayout`, réglée pour toute la tuile comme Notes : en demi (2 cases) le libellé au-dessus de la valeur, en entière le libellé et la valeur côte à côte ; « Une colonne » les empile déjà. Le nombre de lignes n'est pas proposé (une valeur, c'est un libellé et une valeur). Une variable d'une valeur n'en a pas besoin : sa valeur se place comme aujourd'hui selon la taille de la tuile, à côté de l'en-tête en 4×1, dessous en 2×2 (`VariableCard`, `UI.LookCard`).
-- Une valeur s'écrit dans la plus grande taille qui la fait tenir sur une ligne à sa place, plafonnée, le thème donnant ses crans (le retro, des multiples entiers de son pixel) ; le libellé reste petit. Aujourd'hui elle est en `TextType.BODY` sur deux lignes, dans une demi-tuile. Même règle que celle des icônes de zone (« le plus grand cran qui tient », `largestItemIcon`, codée le 2026-11-26) : les crans d'un texte à poser à côté de ceux d'une icône.
-- En taille icônes à deux cases, l'icône en case 1, la valeur en case 2, par la case que `UI.LookCard` offre déjà (`second`, que remplissent la Tâche, la routine, Messages) ; la variable gagne ainsi cette taille. Une seule valeur y va, la première de la liste parmi celles « Sur la tuile » : sans libellé, plusieurs nombres ne se distingueraient pas.
-- Ce que l'IA écrit et lit d'une variable (`CREATE_VARIABLE`, `UPDATE_VARIABLE`, le connecteur) suit le modèle : une liste de valeurs, chacune sa clé, son libellé, son champ et sa formule, les termes à côté.
-
 ## Refaire la démo et le Guide
 
 L'idée : une fois l'outil Parcours fait, reprendre la démo et le Guide pour montrer ce que l'app sait faire aujourd'hui (Giulia pourrait y introduire l'identité) ; le site ne change pas d'apparence, il gagne seulement une mention que l'app a évolué depuis.

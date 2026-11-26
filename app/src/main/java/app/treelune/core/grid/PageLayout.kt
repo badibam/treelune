@@ -89,7 +89,8 @@ class PageLayout(private val context: Context) {
                 tool.grid_x, tool.grid_y, items?.width?.stored, items?.lines, hidden = tool.hidden)
         }
         val variables = database.variableDao().getByZone(zoneId).map {
-            at(it.group) to PageTile(it.id, "variable", it.label, size(it.tileSize), it.iconName, it.iconColor, it.texture, it.gridX, it.gridY, hidden = it.hidden)
+            at(it.group) to PageTile(it.id, "variable", it.label, size(it.tileSize), it.iconName, it.iconColor, it.texture, it.gridX, it.gridY,
+                VariableLook.items(it.itemWidth).width.stored, VariableLook.items(it.itemWidth).lines, hidden = it.hidden)
         }
         val routines = database.aiDao().getRoutinesByZone(zoneId).map {
             at(it.group) to PageTile(it.id, "routine", it.name, size(it.tileSize), it.iconName, it.iconColor, it.texture, it.gridX, it.gridY, hidden = it.hidden)
@@ -176,10 +177,14 @@ class PageLayout(private val context: Context) {
                     toWrite += { writes.updateTool(updated.copy(updated_at = now)) }
                 }
             } ?: variables[tile.id]?.let { variable ->
-                noItems(variable.label, changes)
+                // Its values laid by halves or on the whole width, one line each
+                if (changes.containsKey(ItemLayout.LINES) && changes[ItemLayout.LINES] != 1) throw Refusal(s.shared("page_error_value").format(ItemLayout.LINES, changes[ItemLayout.LINES] ?: "null"))
+                val width = (changes[ItemLayout.WIDTH] as? String)?.also { width ->
+                    if (ItemWidth.of(width) !in VariableLook.ITEMS.widths) throw Refusal(s.shared("page_error_value").format(ItemLayout.WIDTH, width))
+                } ?: variable.itemWidth
                 val look = looked(VariableLook.SPEC, variable.iconName, variable.iconColor, variable.texture, variable.tileSize, changes)
                 val icon = look.icon ?: throw Refusal(s.shared("page_error_value").format(Looks.ICON, "null"))
-                val updated = variable.copy(group = tile.section, iconName = icon, iconColor = look.color, texture = look.texture, tileSize = look.size, gridX = tile.column, gridY = tile.row, hidden = tile.hidden)
+                val updated = variable.copy(group = tile.section, iconName = icon, iconColor = look.color, texture = look.texture, tileSize = look.size, gridX = tile.column, gridY = tile.row, hidden = tile.hidden, itemWidth = width)
                 if (updated != variable) toWrite += { writes.updateVariable(updated.copy(updatedAt = now)) }
             } ?: routines[tile.id]?.let { routine ->
                 noItems(routine.name, changes)
