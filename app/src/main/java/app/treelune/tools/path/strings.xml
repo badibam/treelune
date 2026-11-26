@@ -111,6 +111,7 @@
     <string name="schema_stroke">The line of its arrows.</string>
     <string name="stroke_normal">Solid</string>
     <string name="stroke_dotted">Dotted</string>
+    <string name="stroke_dashed">Dashed</string>
     <string name="stroke_thick">Thick</string>
     <string name="section_runs">Runs</string>
     <string name="field_confirm">Confirm the end</string>

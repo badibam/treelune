@@ -34,9 +34,9 @@ enum class DiagramShape(val key: String) {
     }
 }
 
-/** An arrow's line. */
+/** An arrow's line. Dashed is not Mermaid's, which a schema writes in: a Path's link types alone draw it. */
 enum class DiagramLine(val key: String) {
-    NORMAL("normal"), DOTTED("dotted"), THICK("thick");
+    NORMAL("normal"), DOTTED("dotted"), DASHED("dashed"), THICK("thick");
 
     companion object {
         fun of(key: String): DiagramLine? = entries.firstOrNull { it.key == key }
@@ -68,8 +68,8 @@ data class DiagramNode(
     val faded: Boolean = false
 )
 
-/** An arrow between two boxes; without [head], a plain line. */
-data class DiagramEdge(val from: String, val to: String, val label: String?, val line: DiagramLine, val head: Boolean)
+/** An arrow between two boxes; without [head], a plain line; in [color], a name of the palette, or the theme's ink without one. */
+data class DiagramEdge(val from: String, val to: String, val label: String?, val line: DiagramLine, val head: Boolean, val color: TagColor? = null)
 
 /**
  * A diagram (docs/design/schema.md): boxes, some inside others, and arrows between any two of

@@ -111,6 +111,7 @@
     <string name="schema_stroke">Le trait de ses flèches.</string>
     <string name="stroke_normal">Plein</string>
     <string name="stroke_dotted">Pointillé</string>
+    <string name="stroke_dashed">Tirets</string>
     <string name="stroke_thick">Épais</string>
     <string name="section_runs">Les passages</string>
     <string name="field_confirm">Valider la fin</string>

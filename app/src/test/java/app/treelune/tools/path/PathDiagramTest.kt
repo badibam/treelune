@@ -14,13 +14,13 @@ import org.junit.Test
  * A run drawn as the shared diagram (PathDiagram, docs/design/progression.md, « L'apparence d'une
  * brique »): the root is the drawing, never a box; a box hangs in the stage that holds it, bears
  * its kind's icon and is painted by its state, a mark colouring it where the state does not and
- * fading it; a link is an arrow in its type's line, from its source to the stage it arrives on,
+ * fading it; a link is an arrow in its type's line and colour, from its source to the stage it arrives on,
  * those that cannot be drawn left out; a kind in parts reads its content in parts.
  */
 class PathDiagramTest {
 
     private val grammar = PathGrammar.fromJson(JSONObject("""{"root_kind": "year", "link_types": [
-        {"key": "required", "name": "Required", "stroke": "normal"}, {"key": "see", "name": "See also", "stroke": "dotted"}],
+        {"key": "required", "name": "Required", "stroke": "normal"}, {"key": "see", "name": "See also", "stroke": "dashed", "color": "BLUE"}],
         "kinds": [
         {"key": "year", "contains": ["month"], "layout": "parts", "states": [{"key": "ongoing"}]},
         {"key": "month", "icon": "calendar", "contains": ["session"], "states": [{"key": "open"}],
@@ -69,8 +69,9 @@ class PathDiagramTest {
     }
 
     @Test
-    fun `a link is an arrow from its source in its type's line, one to what holds it or from a stage gone left out`() {
-        assertEquals(listOf(Triple("a", "b", DiagramLine.NORMAL), Triple("b", "c", DiagramLine.DOTTED)),
+    fun `a link is an arrow from its source in its type's line and colour, one to what holds it or from a stage gone left out`() {
+        assertEquals(listOf(Triple("a", "b", DiagramLine.NORMAL), Triple("b", "c", DiagramLine.DASHED)),
             spec.edges.map { Triple(it.from, it.to, it.line) })
+        assertEquals(listOf(null, TagColor.BLUE), spec.edges.map { it.color })
     }
 }

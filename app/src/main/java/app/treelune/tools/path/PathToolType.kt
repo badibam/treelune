@@ -77,14 +77,20 @@ object PathToolType : ToolTypeContract {
     private fun name(context: Context, description: String) =
         SettingNode.Field(field("name", s(context).tool("field_name"), FieldType.TEXT, description, short()), required = true)
 
-    /** How a state or a mark shows on a box: a colour of the palette, full or outlined, faded (`paint`). */
-    private fun paint(context: Context): SettingNode {
+    /** A colour of the palette, the theme's neutral without one: a state's or a mark's paint, a link type's arrows. */
+    private fun color(context: Context): SettingNode {
         val s = s(context)
         val shared = Strings.`for`(context = context)
         val colors = TagColor.entries.map { it.name }
+        return SettingNode.Field(field("color", s.tool("field_color"), FieldType.CHOICE, s.tool("schema_color"), mapOf("options" to ChoiceSettings.storedOptions(
+            colors, colors.associateWith { shared.shared("tag_color_${it.lowercase()}") }, TagColor.entries.associate { it.name to it }))))
+    }
+
+    /** How a state or a mark shows on a box: a colour of the palette, full or outlined, faded (`paint`). */
+    private fun paint(context: Context): SettingNode {
+        val s = s(context)
         return SettingNode.Group("paint", s.tool("field_paint"), listOf(
-            SettingNode.Field(field("color", s.tool("field_color"), FieldType.CHOICE, s.tool("schema_color"), mapOf("options" to ChoiceSettings.storedOptions(
-                colors, colors.associateWith { shared.shared("tag_color_${it.lowercase()}") }, TagColor.entries.associate { it.name to it })))),
+            color(context),
             SettingNode.Field(field("fill", s.tool("field_fill"), FieldType.CHOICE, s.tool("schema_fill"), choice(listOf("outline", "full")) { s.tool("fill_$it") }), default = "outline"),
             SettingNode.Field(field("faded", s.tool("field_faded"), FieldType.BOOLEAN, s.tool("schema_faded")))
         ), description = s.tool("schema_paint"))
@@ -147,7 +153,8 @@ object PathToolType : ToolTypeContract {
                 SettingNode.ListOf(PathGrammar.LINK_TYPES, s.tool("field_link_types"), SettingNode.Item.Of(listOf(
                     key(context, s.tool("schema_link_type_key")),
                     name(context, s.tool("schema_link_type_name")),
-                    SettingNode.Field(field("stroke", s.tool("field_stroke"), FieldType.CHOICE, s.tool("schema_stroke"), choice(app.treelune.core.drawing.diagram.DiagramLine.entries.map { it.key }) { s.tool("stroke_$it") }), default = app.treelune.core.drawing.diagram.DiagramLine.NORMAL.key)
+                    SettingNode.Field(field("stroke", s.tool("field_stroke"), FieldType.CHOICE, s.tool("schema_stroke"), choice(app.treelune.core.drawing.diagram.DiagramLine.entries.map { it.key }) { s.tool("stroke_$it") }), default = app.treelune.core.drawing.diagram.DiagramLine.NORMAL.key),
+                    color(context)
                 ), description = s.tool("schema_link_type")), summary = listOf("name"), description = s.tool("schema_link_types"))
             )),
             SettingNode.Section(s.tool("section_runs"), listOf(

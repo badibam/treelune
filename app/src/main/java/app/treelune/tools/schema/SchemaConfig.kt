@@ -55,6 +55,9 @@ object SchemaConfig {
         return DiagramSpec(direction, nodes, edges, config.optBoolean(SchemaKeys.PARTS, false)).also { check(it, own) }
     }
 
+    /** The lines a schema's arrows take: Mermaid's, which a schema is written and copied in. */
+    val LINES = listOf(DiagramLine.NORMAL, DiagramLine.DOTTED, DiagramLine.THICK)
+
     private fun refuse(message: String): Nothing = throw IllegalArgumentException(message)
 
     private fun JSONObject.objects(key: String): List<JSONObject> =
@@ -83,7 +86,7 @@ object SchemaConfig {
     private fun edge(json: JSONObject, own: (String) -> String): DiagramEdge {
         val from = json.text(SchemaKeys.FROM) ?: refuse(own("error_edge_end"))
         val to = json.text(SchemaKeys.TO) ?: refuse(own("error_edge_end"))
-        val line = json.text(SchemaKeys.LINE)?.let { DiagramLine.of(it) ?: refuse(own("error_line").format(from, to, it)) } ?: DiagramLine.NORMAL
+        val line = json.text(SchemaKeys.LINE)?.let { key -> DiagramLine.of(key)?.takeIf { it in LINES } ?: refuse(own("error_line").format(from, to, key)) } ?: DiagramLine.NORMAL
         return DiagramEdge(from, to, json.text(SchemaKeys.LABEL), line, json.optBoolean(SchemaKeys.HEAD, true))
     }
 

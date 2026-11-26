@@ -12,9 +12,9 @@ import app.treelune.core.themes.TagColor
  * A run drawn as the shared diagram (docs/design/progression.md, « Les écrans », « L'apparence
  * d'une brique »): one box per stage, inside the stage that holds it, the root being the drawing
  * itself and never a box; an arrow per link, from the stage it comes from to the one it arrives
- * on, in its type's line. The icon says what a stage is (its kind's), the paint how it stands:
- * its state's colour, fill and fading, a mark's colour where the state has none, and faded as soon
- * as one of its marks is. A kind in parts, the root's included, reads its content in parts.
+ * on, in its type's line and colour. The icon says what a stage is (its kind's), the paint how it
+ * stands: its state's colour, fill and fading, a mark's colour where the state has none, and faded
+ * as soon as one of its marks is. A kind in parts, the root's included, reads its content in parts.
  */
 object PathDiagram {
 
@@ -50,7 +50,7 @@ object PathDiagram {
                 val type = grammar.linkTypes.firstOrNull { it.key == link.type } ?: return@mapNotNull null
                 // A link from a stage gone, from the root, or between a stage and what holds it cannot be drawn
                 if (link.from !in byId || link.from == stage.id || link.from in ancestors(stage.id) || stage.id in ancestors(link.from)) return@mapNotNull null
-                DiagramEdge(link.from, stage.id, null, type.stroke, head = true)
+                DiagramEdge(link.from, stage.id, null, type.stroke, head = true, color = type.color)
             }
         }
         return DiagramSpec(DiagramDirection.TOP_DOWN, nodes, edges, parts = grammar.kind(root.kind)?.inParts == true)

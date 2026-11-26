@@ -104,7 +104,7 @@ object SchemaToolType : ToolTypeContract {
                     SettingNode.Field(field(SchemaKeys.TO, s.tool("field_to"), FieldType.TEXT, s.tool("schema_to"), short()), required = true, rowField = true),
                     SettingNode.Field(field(SchemaKeys.LABEL, s.tool("field_edge_label"), FieldType.TEXT, s.tool("schema_edge_label"), short())),
                     SettingNode.Field(field(SchemaKeys.LINE, s.tool("field_line"), FieldType.CHOICE, s.tool("schema_line"),
-                        choice(DiagramLine.entries.map { it.key }) { s.tool("line_$it") }), default = DiagramLine.NORMAL.key),
+                        choice(SchemaConfig.LINES.map { it.key }) { s.tool("line_$it") }), default = DiagramLine.NORMAL.key),
                     SettingNode.Field(field(SchemaKeys.HEAD, s.tool("field_head"), FieldType.BOOLEAN, s.tool("schema_head")), default = true)
                 ), description = s.tool("schema_edge")), summary = listOf(SchemaKeys.FROM, SchemaKeys.TO, SchemaKeys.LABEL), description = s.tool("schema_edges"))
             ))

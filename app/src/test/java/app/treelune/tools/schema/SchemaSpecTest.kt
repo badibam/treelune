@@ -70,6 +70,12 @@ class SchemaSpecTest {
         assertTrue(refusal("""{"nodes": [{"id": "A", "label": "a", "fill": "solid"}]}""").startsWith("error_fill A"))
     }
 
+    /** Mermaid has no dashes: a schema, written and copied in it, refuses them (SchemaConfig.LINES). */
+    @Test
+    fun `a dashed arrow is refused`() {
+        assertTrue(refusal("""{"nodes": [$twoBoxes], "edges": [{"from": "A", "to": "B", "line": "dashed"}]}""").startsWith("error_line A B dashed"))
+    }
+
     @Test
     fun `a sideways direction is refused`() {
         assertTrue(refusal("""{"direction": "LR"}""").startsWith("error_direction LR"))

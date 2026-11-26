@@ -76,6 +76,8 @@ class SchemaMermaid(private val own: (String) -> String) {
                 DiagramLine.NORMAL -> if (edge.head) "-->" else "---"
                 DiagramLine.DOTTED -> if (edge.head) "-.->" else "-.-"
                 DiagramLine.THICK -> if (edge.head) "==>" else "==="
+                // Refused in a schema's config (SchemaConfig.LINES)
+                DiagramLine.DASHED -> throw IllegalStateException("A schema's arrow is never dashed")
             }
             val label = edge.label?.let { "|${quoted(it)}|" }.orEmpty()
             out.append("    ").append(edge.from).append(' ').append(link).append(label).append(' ').append(edge.to).append('\n')

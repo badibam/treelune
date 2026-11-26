@@ -387,9 +387,7 @@ class DiagramSceneBuilder(private val density: Float, private val unit: Float, p
             // The points run along the arrow as it was placed: turned back for a schema running upward
             val placed = if (upward) route.points.reversed() else route.points
             val points = reachingOutlines(placed, byId[edge.from], byId[edge.to], placement.boxes)
-            val strokeWidth = (if (edge.line == DiagramLine.THICK) max(unit * 2, dp(3f)) else thin()).let { if (solid) max(unit, it * 0.7f) else it }
-            val dash = if (edge.line == DiagramLine.DOTTED) listOf(dp(4f), dp(3f)) else null
-            val ink = DrawColor.Ink(InkLevel.MEDIUM)
+            val (strokeWidth, dash, ink) = edgeStyle(edge, solid)
             val headSize = if (solid) dp(5f) else dp(8f)
             val line = if (edge.head) shortened(points, headSize * 0.7f) else points
             val labelled = route.label.takeIf { labels[route.edges.first()] != null }
@@ -493,9 +491,7 @@ class DiagramSceneBuilder(private val density: Float, private val unit: Float, p
         val downward = source === upper
         val a = PlacedPoint(lineX, if (downward) start else bottom)
         val b = PlacedPoint(lineX, if (downward) bottom else start)
-        val ink = DrawColor.Ink(InkLevel.MEDIUM)
-        val strokeWidth = (if (edge.line == DiagramLine.THICK) max(unit * 2, dp(3f)) else thin()).let { if (solid) max(unit, it * 0.7f) else it }
-        val dash = if (edge.line == DiagramLine.DOTTED) listOf(dp(4f), dp(3f)) else null
+        val (strokeWidth, dash, ink) = edgeStyle(edge, solid)
         val headSize = if (solid) dp(5f) else dp(8f)
         val points = listOf(a, b)
         val line = if (edge.head) shortened(points, headSize * 0.7f) else points
@@ -506,6 +502,17 @@ class DiagramSceneBuilder(private val density: Float, private val unit: Float, p
                 add(DrawShape.Label(label, DrawPoint(lineX + dp(6f), (a.y + b.y) / 2 - text.height / 2), TextAnchor.START, TextBaseline.TOP, ink))
             }
         }
+    }
+
+    /** How [edge] is stroked: its width (thick, or thinner at the solid levels), its dashes (dotted, dashed), its colour (its own, or the theme's ink). */
+    private fun edgeStyle(edge: DiagramEdge, solid: Boolean): Triple<Float, List<Float>?, DrawColor> {
+        val width = (if (edge.line == DiagramLine.THICK) max(unit * 2, dp(3f)) else thin()).let { if (solid) max(unit, it * 0.7f) else it }
+        val dash = when (edge.line) {
+            DiagramLine.DOTTED -> listOf(dp(4f), dp(3f))
+            DiagramLine.DASHED -> listOf(dp(9f), dp(5f))
+            DiagramLine.NORMAL, DiagramLine.THICK -> null
+        }
+        return Triple(width, dash, edge.color?.let { DrawColor.Palette(it) } ?: DrawColor.Ink(InkLevel.MEDIUM))
     }
 
     /** One end of a cut arrow: a small circle with its letter, from the compact level up. */
