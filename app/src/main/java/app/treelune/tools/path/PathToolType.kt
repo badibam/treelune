@@ -36,10 +36,6 @@ object PathToolType : ToolTypeContract {
 
     private fun s(context: Context) = Strings.`for`(tool = PathRows.TOOLTYPE, context = context)
 
-    /** The units of the calendar a run may be opened at. */
-    private val UNITS = listOf(app.treelune.core.selection.PeriodType.DAY, app.treelune.core.selection.PeriodType.WEEK,
-        app.treelune.core.selection.PeriodType.MONTH, app.treelune.core.selection.PeriodType.YEAR)
-
     override fun getDisplayName(context: Context): String = s(context).tool("display_name")
     override fun getGuideConfig(context: Context): String = s(context).tool("guide_config")
     override fun getGuideScreen(context: Context): String = s(context).tool("guide_screen")
@@ -176,8 +172,7 @@ object PathToolType : ToolTypeContract {
                 SettingNode.Field(field(PathGrammar.NOTIFY_VALIDATION, s.tool("field_notify_validation"), FieldType.BOOLEAN, s.tool("schema_notify_validation")))
             )),
             SettingNode.Section(s.tool("section_scheduled"), listOf(
-                SettingNode.Field(field(PathGrammar.UNIT, s.tool("field_unit"), FieldType.CHOICE, s.tool("schema_unit"),
-                    choice(UNITS.map { it.name }) { shared.shared("period_type_${it.lowercase()}") }))
+                app.treelune.core.fields.settings.ScheduleSettings.group(s.tool("field_schedule"), shared::shared)
             ), shownWith = SettingNode.ShownWith(PathGrammar.OPENS, Opens.SCHEDULED.key))
         )
     }

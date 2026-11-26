@@ -114,12 +114,13 @@ class PathServiceTest {
     }
 
     @Test
-    fun `a run opened each day by the judge, once, a chained run opened as soon as the one before closes, its states told once`() = runBlocking {
+    fun `a run opened on its schedule by the judge, once, ending at the next start or its length, a chained run opened as soon as the one before closes, its states told once`() = runBlocking {
         val zone = ok("zones.create", mapOf("name" to "Habits"))["zone_id"] as String
         val done = """{"left": {"field": "data.state"}, "op": "in", "right": {"constant": ["done"]}}"""
         val children = """{"left": {"field": "data.parent"}, "op": "in", "right": {"self": "id"}}"""
         fun count(filters: String) = """{"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "self"}, "view": "stages", "filters": [$filters]}, "reduction": "COUNT"}}"""
-        fun config(opens: String) = json("""{"name": "Day", "root_kind": "day", "run_opens": "$opens", "run_unit": "DAY", "kinds": [
+        fun config(opens: String, lasts: Long? = null) = json("""{"name": "Day", "root_kind": "day", "run_opens": "$opens", ${lasts?.let { "\"run_lasts\": $it," } ?: ""}
+            "schedule": {"pattern": {"type": "DailyMultiple", "times": ["06:00"]}}, "kinds": [
             {"name": "Day", "key": "day", "contains": ["task"], "states": [
                 {"key": "finished", "name": "Finished", "closes_run": true, "when": {"all": [
                     {"left": ${count("$children, $done")}, "op": "=", "right": ${count(children)}},
@@ -127,15 +128,33 @@ class PathServiceTest {
                 {"key": "ongoing", "name": "Ongoing"}]},
             {"name": "Task", "key": "task", "states": [{"key": "done", "name": "Done", "manual": true, "notify": true}, {"key": "todo", "name": "To do"}]}]}""")
 
-        // Each day: the judge opens today's run at the day's start, ending with it, and opens no second one
-        val daily = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to PathRows.TOOLTYPE, "config" to config("scheduled")))["tool_instance_id"] as String
-        ok("path.judge", mapOf("tool_instance_id" to daily))
-        ok("path.judge", mapOf("tool_instance_id" to daily))
-        val days = PathRead.of(context, daily)!!.runs()
-        assertEquals(1, days.size)
-        val resolver = app.treelune.core.selection.TimeResolver.at(System.currentTimeMillis())
-        assertEquals(resolver.instant(app.treelune.core.selection.TimePoint.Relative(app.treelune.core.selection.PeriodType.DAY, 0, app.treelune.core.selection.Edge.START)), days.single().moves.first().at)
-        assertEquals(resolver.instant(app.treelune.core.selection.TimePoint.Relative(app.treelune.core.selection.PeriodType.DAY, 0, app.treelune.core.selection.Edge.END)), days.single().plannedEnd)
+        // Each day at 06:00: the judge opens the run of the last start come since the Path was
+        // made (two days ago here), ending at the next start, and opens no second one
+        val now = System.currentTimeMillis()
+        val pattern = app.treelune.core.utils.SchedulePattern.DailyMultiple(listOf("06:00"))
+        val lastStart = app.treelune.core.utils.ScheduleCalculator.calculateNextExecution(pattern, now - 24 * 3600_000L)!!
+        val nextStart = app.treelune.core.utils.ScheduleCalculator.calculateNextExecution(pattern, lastStart)!!
+        suspend fun scheduledPath(lasts: Long?): String {
+            val id = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to PathRows.TOOLTYPE, "config" to config("scheduled", lasts)))["tool_instance_id"] as String
+            val dao = app.treelune.core.database.AppDatabase.getDatabase(context).toolInstanceDao()
+            dao.updateToolInstance(dao.getToolInstanceById(id)!!.copy(created_at = now - 2 * 24 * 3600_000L))
+            ok("path.judge", mapOf("tool_instance_id" to id))
+            ok("path.judge", mapOf("tool_instance_id" to id))
+            return id
+        }
+        val daily = PathRead.of(context, scheduledPath(null))!!.runs()
+        assertEquals(1, daily.size)
+        assertEquals(lastStart, daily.single().moves.first().at)
+        assertEquals(nextStart, daily.single().plannedEnd)
+        // A length beyond the next start: the next start closes the run all the same
+        assertEquals(nextStart, PathRead.of(context, scheduledPath(3 * 24 * 3600_000L))!!.runs().single().plannedEnd)
+        // A length short of it: the run closes at its end
+        assertEquals(lastStart + 3600_000L, PathRead.of(context, scheduledPath(3600_000L))!!.runs().single().plannedEnd)
+
+        // A run opened on a schedule without one: refused
+        val refused = coordinator.processUserAction("tools.create", mapOf("zone_id" to zone, "tooltype" to PathRows.TOOLTYPE,
+            "config" to config("scheduled") - "schedule"))
+        assertFalse(refused.isSuccess)
 
         // Chained: the root finished closes the run, and the next opens at once with the plan copied
         val chained = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to PathRows.TOOLTYPE, "config" to config("chained")))["tool_instance_id"] as String

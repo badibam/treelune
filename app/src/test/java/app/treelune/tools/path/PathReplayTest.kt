@@ -342,7 +342,7 @@ class PathReplayTest {
          * a criterion read is a kind of its own, its rule reading its tool over the run; one entered,
          * a field to fill compared with its threshold; a sub-goal, a kind whose content is its criteria.
          */
-        val GOAL = """{"root_kind": "week", "confirm": true, "run_opens": "scheduled", "run_unit": "WEEK", "kinds": [
+        val GOAL = """{"root_kind": "week", "confirm": true, "run_opens": "scheduled", "schedule": {"pattern": {"type": "WeeklySimple", "days_of_week": [1], "time": "06:00"}}, "kinds": [
             {"key": "week", "contains": ["runs", "mood", "flexibility"], "states": [
                 {"key": "succeeded", "when": ${atLeast(2)}},
                 {"key": "failed", "when": {"left": {"self": "run_end"}, "op": "<=", "right": {"constant": {"relative": "NOW"}}}},

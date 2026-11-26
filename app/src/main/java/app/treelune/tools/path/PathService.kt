@@ -4,15 +4,13 @@ import android.content.Context
 import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
+import app.treelune.core.database.AppDatabase
 import app.treelune.core.fields.FieldType
-import app.treelune.core.selection.Edge
-import app.treelune.core.selection.PeriodType
-import app.treelune.core.selection.TimePoint
-import app.treelune.core.selection.TimeResolver
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.services.OperationResult
 import app.treelune.core.strings.Strings
 import app.treelune.core.utils.JsonUtils
+import kotlinx.coroutines.sync.withLock
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -287,24 +285,18 @@ class PathService(private val context: Context) : ExecutableService {
 
     /**
      * A run opened at [at], named [name] or as the latest run, its plan copied from the latest
-     * run when [copy] and there is one, an empty plan otherwise. Its planned end is the rhythm's:
-     * the end of the unit [at] falls in for a run opened at each unit, [at] plus its length
-     * otherwise, none without one.
+     * run when [copy] and there is one, an empty plan otherwise. Its planned end is the rhythm's
+     * (PathGrammar.plannedEnd): [at] plus its length, the next start of its schedule if it comes
+     * first, none without either.
      */
     private suspend fun open(path: PathRead, name: String?, at: Long, copy: Boolean): String {
         val latest = path.runs().firstOrNull()
         val rootKind = path.grammar.kind(path.grammar.rootKind) ?: throw Refused(s.tool("path_problem_kind").format(path.grammar.rootKind))
         val named = name ?: latest?.name ?: rootKind.name
-        val plannedEnd = when (path.grammar.opens) {
-            Opens.SCHEDULED -> path.grammar.unit?.let { unit -> unitBound(unit, at, Edge.END) }
-            else -> path.grammar.lasts?.let { at + it }
-        }
+        val plannedEnd = path.grammar.plannedEnd(at)
         return if (copy && latest != null) copyPlan(path, latest, named, at, plannedEnd)
         else create(path.toolId, named, emptyMap(), PathStages.state(rootKind.key, null, 0, emptyList(), listOf(Move(at, Move.START)), plannedEnd = plannedEnd))
     }
-
-    /** The [edge] of the unit of the calendar [at] falls in. */
-    private fun unitBound(unit: PeriodType, at: Long, edge: Edge): Long = TimeResolver.at(at).instant(TimePoint.Relative(unit, 0, edge))
 
     /**
      * A new run whose plan is [from]'s: its stages copied with their plan fields, never the
@@ -397,7 +389,7 @@ class PathService(private val context: Context) : ExecutableService {
                 if (path.grammar.notifyValidation) notifyAwaiting(path, root, outcome)
             }
         }
-        // The rhythm: the next run chained once one closed, or opened at its unit's start
+        // The rhythm: the next run chained once one closed, or opened at its schedule's start
         if (closed > 0) chain(fresh, now)
         if (path.grammar.opens == Opens.SCHEDULED) PathRead.of(context, path.toolId)?.let { scheduled(it, now) }
         // Then the stages of a run the rhythm opened
@@ -419,26 +411,36 @@ class PathService(private val context: Context) : ExecutableService {
     }
 
     /** For a Path whose runs are chained, the next opened at [now], its plan copied, unless one is open already. */
-    private suspend fun chain(path: PathRead, now: Long) {
-        if (path.grammar.opens != Opens.CHAINED) return
-        val fresh = PathRead.of(context, path.toolId) ?: return
+    private suspend fun chain(path: PathRead, now: Long) = rhythm.withLock {
+        if (path.grammar.opens != Opens.CHAINED) return@withLock
+        val fresh = PathRead.of(context, path.toolId) ?: return@withLock
         if (fresh.runs().none { !fresh.isClosed(it) && fresh.entity(it.id)?.state?.let { s -> JSONObject(s).has(PathStages.AWAITING) } != true }) open(fresh, null, now, copy = true)
     }
 
     /**
-     * For a Path whose runs open at each unit of the calendar, the run of the unit [now] falls in,
-     * opened at its start, its plan copied, when none started in it: the run before, if still
-     * open, closes first, unless it awaits validation, which it keeps waiting for.
+     * For a Path whose runs open on a schedule, the run of the last start come since the latest
+     * run opened (since the Path was made, for the first), the starts in between not caught up,
+     * opened at that start, its plan copied: the run before, if still open, closes first, unless
+     * it awaits validation, which it keeps waiting for. Read again under the lock: two judges at
+     * once (a tick, a change of the Path) would each open the same run.
      */
-    private suspend fun scheduled(path: PathRead, now: Long) {
-        val unit = path.grammar.unit ?: return
-        val start = unitBound(unit, now, Edge.START)
-        val latest = path.runs().firstOrNull()
-        if (latest != null && (latest.moves.firstOrNull { it.state == Move.START }?.at ?: Long.MIN_VALUE) >= start) return
+    private suspend fun scheduled(stale: PathRead, now: Long): Unit = rhythm.withLock {
+        val path = PathRead.of(context, stale.toolId) ?: return@withLock
+        val latest = path.runs().firstOrNull()?.moves?.firstOrNull { it.state == Move.START }?.at
+        var cursor = latest ?: AppDatabase.getDatabase(context).toolInstanceDao().getToolInstanceById(path.toolId)?.created_at ?: return@withLock
+        var due: Long? = null
+        var steps = 0
+        while (steps++ < MAX_STEPS) {
+            val next = path.grammar.nextStart(cursor) ?: break
+            if (next > now || next <= cursor) break
+            due = next
+            cursor = next
+        }
+        val start = due ?: return@withLock
         path.currentRun()?.let { current ->
             if (path.entity(current.id)?.state?.let { JSONObject(it).has(PathStages.AWAITING) } != true) close(path, current, now)
         }
-        open(PathRead.of(context, path.toolId) ?: return, null, start, copy = true)
+        open(PathRead.of(context, path.toolId) ?: return@withLock, null, start, copy = true)
     }
 
     /**
@@ -519,5 +521,11 @@ class PathService(private val context: Context) : ExecutableService {
 
         /** The operations that change the Path, after which the judge passes. */
         private val CHANGES = setOf("write_plan", "update_stage", "move_stage", "delete_stage", "note", "unnote", "start")
+
+        /** Held while the rhythm opens a run, read again under it, so that no two judges open the same one. */
+        private val rhythm = kotlinx.coroutines.sync.Mutex()
+
+        /** Guards the walk through a schedule's starts. */
+        private const val MAX_STEPS = 10_000
     }
 }

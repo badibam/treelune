@@ -155,9 +155,9 @@ enum class Opens(val key: String) { MANUAL("manual"), SCHEDULED("scheduled"), CH
  * @property confirm At closing, the root's state is offered for validation rather than frozen
  * @property notifyValidation A notification is sent when a run starts awaiting its validation
  * @property opens How a run opens
- * @property unit For a run opened at each unit of the calendar, the unit: it runs to its end
- * @property lasts For a run opened by hand or chained, how long it lasts, in milliseconds; null
- *   for a run without a planned end
+ * @property schedule For runs opened on a schedule, its starts (the Schedule brick)
+ * @property lasts How long a run lasts, in milliseconds; null for a run without a planned end.
+ *   A run opened on a schedule lasts at most until the next start, which closes it
  */
 data class PathGrammar(
     val kinds: List<Kind>,
@@ -166,10 +166,20 @@ data class PathGrammar(
     val confirm: Boolean,
     val notifyValidation: Boolean = false,
     val opens: Opens = Opens.MANUAL,
-    val unit: app.treelune.core.selection.PeriodType? = null,
+    val schedule: app.treelune.core.utils.StoredSchedule = app.treelune.core.utils.StoredSchedule.None,
     val lasts: Long? = null
 ) {
     fun kind(key: String): Kind? = kinds.firstOrNull { it.key == key }
+
+    /** For runs opened on a schedule, its first start after [after]; null otherwise, or when none is to come. */
+    fun nextStart(after: Long): Long? = (schedule as? app.treelune.core.utils.StoredSchedule.Readable)?.takeIf { opens == Opens.SCHEDULED }
+        ?.let { app.treelune.core.utils.ScheduleCalculator.calculateNextExecution(it.schedule.pattern, after) }
+
+    /**
+     * The planned end of a run opened at [at]: [at] plus its length, and for a run opened on a
+     * schedule, the next start if it comes first; null when neither applies.
+     */
+    fun plannedEnd(at: Long): Long? = listOfNotNull(lasts?.let { at + it }, nextStart(at)).minOrNull()
 
     companion object {
         const val KINDS = "kinds"
@@ -178,7 +188,6 @@ data class PathGrammar(
         const val CONFIRM = "confirm"
         const val NOTIFY_VALIDATION = "notify_validation"
         const val OPENS = "run_opens"
-        const val UNIT = "run_unit"
         const val LASTS = "run_lasts"
 
         /**
@@ -197,7 +206,7 @@ data class PathGrammar(
             confirm = config.optBoolean(CONFIRM, false),
             notifyValidation = config.optBoolean(NOTIFY_VALIDATION, false),
             opens = Opens.entries.firstOrNull { it.key == config.optString(OPENS) } ?: Opens.MANUAL,
-            unit = app.treelune.core.selection.PeriodType.entries.firstOrNull { it.name == config.optString(UNIT) },
+            schedule = app.treelune.core.utils.StoredSchedule.of(config),
             lasts = (config.opt(LASTS) as? Number)?.toLong()?.takeIf { it > 0 }
         )
 
