@@ -990,11 +990,7 @@ object DefaultTheme : ThemeContract {
             tint = tint ?: CurrentTheme.getCurrentColorScheme().onSurface
         )
     }
-
-    /** The icon's badge is half again its size. */
-    @Composable
-    override fun largestItemIcon(room: Dp): Dp = room / ITEM_BADGE_SCALE
-
+    
     /**
      * The icon on a rounded badge half again its size: a coloured one on its tag's colour, in a
      * deep tone of the same hue (a light one in the dark palette, on that deep tone); a neutral

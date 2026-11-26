@@ -519,10 +519,6 @@ object CosyTheme : ThemeContract {
         }
     }
 
-    /** The icon's round is half again its size. */
-    @Composable
-    override fun largestItemIcon(room: Dp): Dp = room / ITEM_ROUND
-
     /**
      * A zone's or a tool's icon in a round pastel of its colour, drawn in the colour's own ink, as
      * the mockup's icon tiles; a neutral one in a round of the well's colour, in the ink. The round

@@ -52,12 +52,6 @@ fun zoneGridTile(zone: app.treelune.core.database.entities.Zone, pieces: List<Li
 /** Whether what is drawn here is a piece of a zone's tile: its icon is then the small one (UI.TileIcon), the zone's standing out. */
 val LocalZonePiece = androidx.compose.runtime.staticCompositionLocalOf { false }
 
-/**
- * The size of the zone's own icon on the zone's tile drawn here, null outside one: the largest the
- * theme draws in its place (UI.ZoneIconSized), its pieces taking two thirds of it (UI.TileIcon).
- */
-val LocalZoneIcon = androidx.compose.runtime.staticCompositionLocalOf<androidx.compose.ui.unit.Dp?> { null }
-
 /** What a piece of a zone's tile does when touched, from the home screen: what its own tile does in its zone. */
 @Composable
 fun PieceContent(tile: SectionTile, zoneId: String) {
