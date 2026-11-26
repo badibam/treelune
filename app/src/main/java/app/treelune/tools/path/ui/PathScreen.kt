@@ -42,10 +42,11 @@ import kotlinx.coroutines.launch
 
 /** What a Path's page and tile show: one of its runs, its root and its stages, every run's root, and the replay now; or why it cannot be read. */
 private sealed interface PathShown {
-    data class Run(val path: PathRead, val root: Stage, val stages: List<Stage>, val runs: List<Stage>, val outcome: PathReplay.Outcome) : PathShown {
+    data class Run(val path: PathRead, val root: Stage, val stages: List<Stage>, val runs: List<Stage>, val outcome: PathReplay.Outcome,
+                   val readouts: Map<String, app.treelune.core.readouts.ReadoutComputed>) : PathShown {
         /** The run drawn as the shared diagram, each stage in its state now, a closed run's frozen. */
         val diagram: DiagramReading.Drawn by lazy {
-            DiagramReading.Drawn(PathDiagram.of(path.grammar, stages, { outcome.states[it.id]?.state }, { outcome.states[it.id]?.marks.orEmpty() }), emptyMap())
+            DiagramReading.Drawn(PathDiagram.of(path.grammar, stages, { outcome.states[it.id]?.state }, { outcome.states[it.id]?.marks.orEmpty() }, { readouts[it.id] }), emptyMap())
         }
 
         /** The name of the state [stage] is in now; null when it has none. */
@@ -61,7 +62,10 @@ private suspend fun shown(context: android.content.Context, toolId: String, runI
         val path = PathRead.of(context, toolId) ?: return PathShown.Problem("")
         val runs = path.runs()
         val run = runs.firstOrNull { it.id == runId } ?: path.currentRun() ?: runs.firstOrNull() ?: return PathShown.NoRun
-        PathShown.Run(path, run, path.stages.filter { it.run == run.id }, runs, path.replay(System.currentTimeMillis()))
+        val now = System.currentTimeMillis()
+        val outcome = path.replay(now)
+        val stages = path.stages.filter { it.run == run.id }
+        PathShown.Run(path, run, stages, runs, outcome, path.readouts(stages, outcome, now))
     } catch (e: kotlinx.coroutines.CancellationException) {
         throw e
     } catch (e: IllegalStateException) {
@@ -200,6 +204,21 @@ private fun RunButtons(toolInstanceId: String, read: PathShown?) {
     }
 }
 
+/**
+ * Where the tile is too small even for the drawing's dots: the short form of the root's readout
+ * and its gauge (« 4 / 9 »), in the root's state's colour; the root's state without a readout.
+ */
+@Composable
+private fun Glance(run: PathShown.Run) {
+    val readout = run.readouts[run.root.id]
+    val state = run.outcome.states[run.root.id]?.state?.let { run.path.grammar.kind(run.root.kind)?.state(it) }
+    val color = state?.paint?.color?.let { name -> app.treelune.core.themes.TagColor.entries.firstOrNull { it.name == name } }
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(UI.Space.XS, androidx.compose.ui.Alignment.CenterVertically)) {
+        UI.Text(readout?.core?.takeIf { it.isNotBlank() } ?: state?.name ?: run.root.name, TextType.BODY, maxLines = 1)
+        readout?.gauge?.let { UI.Gauge(it.toFloat(), color) }
+    }
+}
+
 /** A Path's tile: its root's state as its summary, its current run drawn as its body. */
 @Composable
 fun rememberPathTile(tool: ToolInstance): ToolTile {
@@ -229,7 +248,7 @@ fun rememberPathTile(tool: ToolInstance): ToolTile {
                 if (run.diagram.spec.nodes.isEmpty()) return
                 if (room.rows == null) DiagramView(run.diagram, emptySet(), onTouch = null)
                 else DiagramView(run.diagram, emptySet(), onTouch = null, modifier = Modifier.fillMaxSize(), reduced = true,
-                    across = room.width > room.rows && !run.diagram.spec.parts)
+                    across = room.width > room.rows && !run.diagram.spec.parts, none = { Glance(run) })
             }
         }
     }

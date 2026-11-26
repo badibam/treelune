@@ -14,7 +14,8 @@ import app.treelune.core.themes.TagColor
  * itself and never a box; an arrow per link, from the stage it comes from to the one it arrives
  * on, in its type's line and colour. The icon says what a stage is (its kind's), the paint how it
  * stands: its state's colour, fill and fading, a mark's colour where the state has none, and faded
- * as soon as one of its marks is. A kind in parts, the root's included, reads its content in parts.
+ * as soon as one of its marks is; its kind's readout, its short form under its name and its gauge.
+ * A kind in parts, the root's included, reads its content in parts.
  */
 object PathDiagram {
 
@@ -22,7 +23,8 @@ object PathDiagram {
      * The diagram of the run [stages] belong to, root included, each stage in the state [stateOf]
      * gives (its final state in a closed run) with the marks [marksOf] gives.
      */
-    fun of(grammar: PathGrammar, stages: List<Stage>, stateOf: (Stage) -> String?, marksOf: (Stage) -> List<String>): DiagramSpec {
+    fun of(grammar: PathGrammar, stages: List<Stage>, stateOf: (Stage) -> String?, marksOf: (Stage) -> List<String>,
+           readoutOf: (Stage) -> app.treelune.core.readouts.ReadoutComputed? = { null }): DiagramSpec {
         val root = stages.first { it.isRoot }
         val drawn = PathOrder.planOrder(stages).filter { !it.isRoot }
         val byId = drawn.associateBy { it.id }
@@ -41,7 +43,9 @@ object PathDiagram {
                 parent = stage.parent?.takeIf { it != root.id },
                 parts = kind?.inParts == true,
                 fill = if (state?.paint?.fill == true) DiagramFill.FULL else DiagramFill.OUTLINE,
-                faded = state?.paint?.faded == true || marks.any { it.paint?.faded == true }
+                faded = state?.paint?.faded == true || marks.any { it.paint?.faded == true },
+                readout = readoutOf(stage)?.core?.takeIf { it.isNotBlank() },
+                gauge = readoutOf(stage)?.gauge?.toFloat()
             )
         }
         fun ancestors(id: String) = generateSequence(byId[id]?.parent) { byId[it]?.parent }

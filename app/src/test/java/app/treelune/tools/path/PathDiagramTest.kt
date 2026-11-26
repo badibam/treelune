@@ -74,4 +74,14 @@ class PathDiagramTest {
             spec.edges.map { Triple(it.from, it.to, it.line) })
         assertEquals(listOf(null, TagColor.BLUE), spec.edges.map { it.color })
     }
+
+    @Test
+    fun `a box carries its stage's readout, its short form and its gauge`() {
+        val readout = app.treelune.core.readouts.ReadoutComputed("1 / 3", "1 / 3", null, false, 1.0 / 3, null, emptyList())
+        val drawn = PathDiagram.of(grammar, stages, { states[it.id] }, { emptyList() }, { if (it.id == "m") readout else null })
+        val month = drawn.nodes.first { it.id == "m" }
+        assertEquals("1 / 3", month.readout)
+        assertEquals(1f / 3, month.gauge!!, 0.0001f)
+        assertNull(drawn.nodes.first { it.id == "a" }.gauge)
+    }
 }
