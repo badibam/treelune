@@ -31,7 +31,7 @@ L'idée : une tuile cachée n'apparaît que quand un bouton à bascule, une icô
 - L'IA, celle de l'app comme celle du connecteur (`ZONE_CONTENTS`, `app_context`), voit les cachées comme les autres, marquées cachées : une cachée travaille toujours, et l'ignorer ferait recréer ou casser une tuyauterie. Elle peut cacher une tuile, comme elle en déplace en rangeant une page (`docs/design/ai-page-layout.md`).
 - Cacher ne touche que la page : une cachée choisie comme pièce sur la tuile de sa zone y reste, une boîte du Schéma ou un lien qui la vise l'ouvre toujours.
 
-## En cours : une variable à plusieurs valeurs
+## Une variable à plusieurs valeurs
 
 L'idée : une variable qui rend plusieurs valeurs d'un coup (« Apports du jour » : calories, protéines, glucides), sa série portant plusieurs champs par ligne, qu'un Graphique ou un repère lit ensemble. Aujourd'hui une variable rend une valeur, et sa série (la vue `series`, `VariableSeries`) une ligne par pas avec le seul `data.value`.
 
@@ -41,3 +41,6 @@ L'idée : une variable qui rend plusieurs valeurs d'un coup (« Apports du jour 
 - La migration donne la clé `value` à la valeur unique de chaque variable existante : sa série garde `data.value`, ce qui la lit ne change pas ; une valeur ajoutée arrive en `data.<clé>` à côté.
 - La tuile montre une ligne par valeur, dans l'ordre de la liste, sous le libellé de la variable ; une case « Sur la tuile » par valeur, cochée par défaut, retire une valeur de calcul. La taille de la tuile reste celle choisie : ce qui ne tient pas est coupé par « … », jamais la tuile ne grandit seule. Une variable d'une valeur se montre comme aujourd'hui.
 - La place d'une valeur sur la tuile passe par la brique `ItemLayout`, réglée pour toute la tuile comme Notes : en demi (2 cases) le libellé au-dessus de la valeur, en entière le libellé et la valeur côte à côte ; « Une colonne » les empile déjà. Le nombre de lignes n'est pas proposé (une valeur, c'est un libellé et une valeur). Une variable d'une valeur n'en a pas besoin : sa valeur se place comme aujourd'hui selon la taille de la tuile, à côté de l'en-tête en 4×1, dessous en 2×2 (`VariableCard`, `UI.LookCard`).
+- Une valeur s'écrit dans la plus grande taille qui la fait tenir sur une ligne à sa place, plafonnée, le thème donnant ses crans (le retro, des multiples entiers de son pixel) ; le libellé reste petit. Aujourd'hui elle est en `TextType.BODY` sur deux lignes, dans une demi-tuile. Même règle que celle voulue pour les icônes de zone en retro (« le plus grand cran qui tient ») : à poser une fois pour les deux.
+- En taille icônes à deux cases, l'icône en case 1, la valeur en case 2, par la case que `UI.LookCard` offre déjà (`second`, que remplissent la Tâche, la routine, Messages) ; la variable gagne ainsi cette taille. Une seule valeur y va, la première de la liste parmi celles « Sur la tuile » : sans libellé, plusieurs nombres ne se distingueraient pas.
+- Ce que l'IA écrit et lit d'une variable (`CREATE_VARIABLE`, `UPDATE_VARIABLE`, le connecteur) suit le modèle : une liste de valeurs, chacune sa clé, son libellé, son champ et sa formule, les termes à côté.
