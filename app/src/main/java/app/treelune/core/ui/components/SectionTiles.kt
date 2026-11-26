@@ -139,11 +139,10 @@ fun SectionTileContent(
 
 /**
  * Whether [tile] has a second cell in icons (docs/design/icon-tiles.md): a tool as its type
- * declares (ToolTypeContract.tileSecond), a variable never — its value is text —, a routine, a
- * Task and a readout always.
+ * declares (ToolTypeContract.tileSecond); a variable, a routine, a Task and a readout always — a
+ * variable's first value shown on its tile (VariableCard).
  */
 fun hasSecond(tile: SectionTile): Boolean = when (tile) {
     is SectionTile.Tool -> app.treelune.core.tools.ToolTypeManager.getToolType(tile.tool.tooltype)?.tileSecond != app.treelune.core.tools.IconSecond.NONE
-    is SectionTile.Variable -> false
     else -> true
 }
