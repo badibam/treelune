@@ -534,6 +534,15 @@ object RetroTheme : ThemeContract {
         )
     }
 
+    /** The largest whole multiple of the grid's pixel whose icon box holds in [room], one at least, as [Icon] draws it. */
+    @Composable
+    override fun largestItemIcon(room: Dp): Dp {
+        val grid = retroGrid()
+        val density = LocalDensity.current
+        val times = with(density) { (room.toPx() / grid.px(RetroGrid.ICON)).toInt().coerceAtLeast(1) }
+        return grid.dp(times * RetroGrid.ICON)
+    }
+
     /** The icon's own pixels in its colour, which read on the surface it is drawn on; no badge, a frame in a frame. */
     @Composable
     override fun ItemIcon(resourceId: Int, size: Dp, color: TagColor?) {
@@ -544,7 +553,8 @@ object RetroTheme : ThemeContract {
      * A small icon on its own whole number of screen pixels per pixel of its drawing
      * (RetroGrid.smallIconUnit), which may differ from the text's: the one place the register
      * leaves its single pixel size, so that a small icon stays smaller than a tile's at every
-     * size step. [size] is not read: the unit follows the tile's icon on this screen.
+     * size step. [size] is not read: the unit follows the tile's icon on this screen, or on a
+     * zone's tile the zone's own icon there.
      */
     @Composable
     override fun SmallItemIcon(resourceId: Int, size: Dp, kind: app.treelune.core.themes.SmallIcon, color: TagColor?) {
@@ -556,7 +566,10 @@ object RetroTheme : ThemeContract {
         val pageWidth = with(density) { (screenWidth - edge * 2).roundToPx() }
         val row = gridRowPx(gridCellPx(pageWidth))
         val tileIconPx = (row - with(density) { tileFrame(TileSize.Icon).roundToPx() }) / 2f
-        val zoneUnit = (tileIconPx / grid.px(RetroGrid.ICON)).roundToInt().coerceAtLeast(1) * grid.scale
+        // On a zone's tile, the zone's own icon as it is drawn there (UI.TileIcon), which its pieces follow
+        val zoneIcon = app.treelune.core.ui.components.LocalZoneIcon.current?.takeIf { kind == app.treelune.core.themes.SmallIcon.PIECE }
+        val zoneUnit = if (zoneIcon != null) with(density) { (zoneIcon.toPx() / RetroGrid.ICON).roundToInt().coerceAtLeast(1) }
+            else (tileIconPx / grid.px(RetroGrid.ICON)).roundToInt().coerceAtLeast(1) * grid.scale
         val side = with(density) { (RetroGrid.ICON * RetroGrid.smallIconUnit(kind, zoneUnit, grid.scale)).toDp() }
         Image(
             painter = painterResource(resourceId),

@@ -737,18 +737,50 @@ object UI {
     val ReadoutIcon = 20.dp
 
     /**
-     * A tile's icon with its two marks, square, the same size in every tile of every mode, one
-     * column included: half of what an ICON tile holds, a row of the grid as the theme gives it (LocalGridIconRow) less its
-     * frame. Sized by the space it stands in, it would grow with each header. A piece of a zone's
-     * tile (LocalZonePiece) takes two thirds of it, which tells the zone's own icon from its pieces'.
+     * A tile's icon with its two marks, square. A tool's is the same size in every tile of every
+     * mode, one column included: half of what an ICON tile holds, a row of the grid as the theme
+     * gives it (LocalGridIconRow) less its frame; sized by the space it stands in, it would grow
+     * with each header. On a zone's tile (LocalZoneIcon), the zone's own icon is the largest that
+     * holds in its place, and a piece's (LocalZonePiece) two thirds of it, which tells the zone's
+     * icon from its pieces' and lets them grow with it; a piece outside a zone's tile keeps two
+     * thirds of a tool's.
      */
     @Composable
     fun TileIcon(iconName: String?, iconColor: TagColor?, waiting: Boolean, running: Boolean) {
-        val full = (app.treelune.core.ui.components.LocalGridIconRow.current - CurrentTheme.current.tileFrame(app.treelune.core.look.TileSize.Icon)) / 2
+        val zone = app.treelune.core.ui.components.LocalZoneIcon.current
+        val full = zone ?: ((app.treelune.core.ui.components.LocalGridIconRow.current - CurrentTheme.current.tileFrame(app.treelune.core.look.TileSize.Icon)) / 2)
         val piece = app.treelune.core.ui.components.LocalZonePiece.current
         Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
             MarkedIcon(iconName, iconColor, waiting, running, if (piece) full * 2f / 3 else full,
                 if (piece) app.treelune.core.themes.SmallIcon.PIECE else null)
+        }
+    }
+
+    /**
+     * [content] with the size of the zone's own icon on its tile laid [laid] (LocalZoneIcon): the
+     * largest the theme draws (largestItemIcon) in its place less the theme's smallest space on
+     * each side. Its place is its header's row with text, the grid's row less the tile's frame;
+     * in icons, its cell of the strip, an equal share of the tile ([cells], what the strip shows,
+     * the zone's own first), or the whole tile when the icon stands alone.
+     */
+    @Composable
+    private fun ZoneIconSized(laid: app.treelune.core.look.TileSize, frameOf: app.treelune.core.look.TileSize, cells: List<Int>, content: @Composable () -> Unit) {
+        val margin = Space.XS * 2
+        val theme = CurrentTheme.current
+        @Composable
+        fun Sized(room: Dp) = androidx.compose.runtime.CompositionLocalProvider(
+            app.treelune.core.ui.components.LocalZoneIcon provides theme.largestItemIcon((room - margin).coerceAtLeast(1.dp)), content = content)
+        if (!laid.isIcon && !laid.inIcons) Sized(app.treelune.core.ui.components.LocalGridRow.current - theme.tileFrame(frameOf))
+        else androidx.compose.foundation.layout.BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val shown = cells.take(app.treelune.core.ui.components.IconStrips.fitting(laid.length, cells))
+            val (width, height) = when {
+                laid.isIcon || shown.size <= 1 -> maxWidth to maxHeight
+                app.treelune.core.ui.components.folds(laid) -> maxWidth / app.treelune.core.ui.components.IconStrips.ONE_COLUMN_ROW to
+                    maxHeight / app.treelune.core.ui.components.IconStrips.fold(shown, app.treelune.core.ui.components.IconStrips.ONE_COLUMN_ROW).size
+                laid.vertical -> maxWidth to maxHeight / laid.length
+                else -> maxWidth / laid.length to maxHeight
+            }
+            Sized(minOf(width, height))
         }
     }
 
@@ -1032,7 +1064,8 @@ object UI {
                 }
             }
 
-            when {
+            @Composable
+            fun Shown() = when {
                 // The icon alone, centered in its cell
                 laid.isIcon -> OwnIcon(waiting)
                 // In icons: its icon, its second cell and a zone's pieces on its cells; its icon alone without them
@@ -1085,6 +1118,8 @@ object UI {
                     }
                 }
             }
+            // A zone's own icon as large as its place holds, its pieces growing with it
+            if (zone) ZoneIconSized(laid, size, listOf(1) + pieces.map { it.cells }) { Shown() } else Shown()
         }
     }
 

@@ -564,6 +564,10 @@ object MetroTheme : ThemeContract {
         )
     }
 
+    /** The icon's roundel is a third larger than it, except on a line, where it stands bare. */
+    @Composable
+    override fun largestItemIcon(room: Dp): Dp = if (LocalMetroOnLine.current) room else room / BADGE_SCALE
+
     /**
      * A zone's or a tool's icon in a roundel of its line's colour, as a line's number, the icon in
      * white or the deep night blue, whichever reads; a neutral one in a roundel of the same size

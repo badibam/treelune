@@ -347,6 +347,14 @@ interface ThemeContract {
     @Composable
     fun SmallItemIcon(resourceId: Int, size: Dp, kind: SmallIcon, color: TagColor?) = ItemIcon(resourceId, size, color)
 
+    /**
+     * The largest size an item's icon ([ItemIcon]) takes whose drawing, its badge included, holds
+     * in [room], on the theme's own steps: any size in a smooth theme, whole pixels of its grid
+     * in a pixel one. A zone's icon on its tile takes it (UI.TileIcon).
+     */
+    @Composable
+    fun largestItemIcon(room: Dp): Dp = room
+
     @Composable
     fun Dialog(
         type: DialogType,

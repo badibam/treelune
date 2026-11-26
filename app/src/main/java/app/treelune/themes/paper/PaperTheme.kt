@@ -544,6 +544,10 @@ object PaperTheme : ThemeContract {
         }
     }
 
+    /** The icon's cut sheet is a third larger than it. */
+    @Composable
+    override fun largestItemIcon(room: Dp): Dp = room / BADGE_SCALE
+
     /**
      * A zone's or a tool's icon on a round cut by hand, on its small shadow: of its colour, the
      * icon in the ink that reads on it, or cream without one; on a tile, cut from the tile's own
