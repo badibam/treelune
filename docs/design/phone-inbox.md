@@ -44,3 +44,9 @@ L'idée : une variable qui rend plusieurs valeurs d'un coup (« Apports du jour 
 - Une valeur s'écrit dans la plus grande taille qui la fait tenir sur une ligne à sa place, plafonnée, le thème donnant ses crans (le retro, des multiples entiers de son pixel) ; le libellé reste petit. Aujourd'hui elle est en `TextType.BODY` sur deux lignes, dans une demi-tuile. Même règle que celle voulue pour les icônes de zone en retro (« le plus grand cran qui tient ») : à poser une fois pour les deux.
 - En taille icônes à deux cases, l'icône en case 1, la valeur en case 2, par la case que `UI.LookCard` offre déjà (`second`, que remplissent la Tâche, la routine, Messages) ; la variable gagne ainsi cette taille. Une seule valeur y va, la première de la liste parmi celles « Sur la tuile » : sans libellé, plusieurs nombres ne se distingueraient pas.
 - Ce que l'IA écrit et lit d'une variable (`CREATE_VARIABLE`, `UPDATE_VARIABLE`, le connecteur) suit le modèle : une liste de valeurs, chacune sa clé, son libellé, son champ et sa formule, les termes à côté.
+
+## En cours : les icônes de zone
+
+L'idée : l'icône d'une zone sur sa tuile au plus grand cran qui tient dans sa place, avec une marge minimale, les pièces grandissant avec elle. Aujourd'hui elle a la taille de toute icône de tuile (`UI.TileIcon` : la rangée d'icône moins le cadre, divisée par deux), sans regard sur la place ; une pièce en fait les deux tiers, jamais moins qu'un repère (`RetroGrid.smallIconUnit`). Rejoint l'item de `TODO.md` qui veut distinguer l'icône de la zone de celles de ses outils.
+
+- Tous les thèmes : la même règle que la valeur d'une variable (le plus grand cran qui tient, plafonné), écrite une fois ; seuls les crans diffèrent, continus dans un thème lisse, multiples entiers du pixel en retro.
