@@ -31,14 +31,17 @@ object PathRows {
      */
     fun stageFields(grammar: PathGrammar): Map<String, FieldDefinition> = buildMap {
         val states = grammar.kinds.flatMap { k -> k.states.map { it.key } }.distinct()
+        // Each state, kind and mark named as its kind names it, the first kind that has it
+        val stateNames = grammar.kinds.flatMap { k -> k.states.map { it.key to it.name } }.reversed().toMap()
+        val markNames = grammar.kinds.flatMap { k -> k.marks.map { it.key to it.name } }.reversed().toMap()
         put("id", PathSelf.choice("id", emptyList()))
         put("name", field("name", FieldType.TEXT))
-        put("data.${PathSelf.KIND}", PathSelf.choice(PathSelf.KIND, grammar.kinds.map { it.key }))
+        put("data.${PathSelf.KIND}", PathSelf.choice(PathSelf.KIND, grammar.kinds.map { it.key }, labels = grammar.kinds.associate { it.key to it.name }))
         listOf(PathSelf.PARENT, PathSelf.PREVIOUS, RUN).forEach { put("data.$it", PathSelf.choice(it, emptyList())) }
         put("data.$ANCESTORS", PathSelf.choice(ANCESTORS, emptyList(), multiple = true))
-        put("data.${PathSelf.STATE}", PathSelf.choice(PathSelf.STATE, states))
-        put("data.${PathSelf.LAST_MOVE}", PathSelf.choice(PathSelf.LAST_MOVE, states))
-        put("data.$MARKS", PathSelf.choice(MARKS, grammar.kinds.flatMap { k -> k.marks.map { it.key } }.distinct(), multiple = true))
+        put("data.${PathSelf.STATE}", PathSelf.choice(PathSelf.STATE, states, labels = stateNames))
+        put("data.${PathSelf.LAST_MOVE}", PathSelf.choice(PathSelf.LAST_MOVE, states, labels = stateNames))
+        put("data.$MARKS", PathSelf.choice(MARKS, grammar.kinds.flatMap { k -> k.marks.map { it.key } }.distinct(), multiple = true, labels = markNames))
         put("data.${PathSelf.POSITION}", field(PathSelf.POSITION, FieldType.NUMERIC))
         listOf(PathSelf.SINCE, PathSelf.LAST_MOVE_AT, PathSelf.RUN_START, PathSelf.RUN_END)
             .forEach { put("data.$it", field(it, FieldType.DATETIME)) }

@@ -63,6 +63,9 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
          * @throws IllegalArgumentException naming a value the thing judged does not have
          */
         suspend fun selfField(root: JSONObject, path: List<Any>, self: app.treelune.core.terms.Term.Self): FieldDefinition? = null
+
+        /** What the thing judged is called in a condition's phrase (« l'étape jugée »); null where none is (ConditionPhrase). */
+        val judged: String? get() = null
     }
 
     /** How a condition is judged, which says what its sides may be. */

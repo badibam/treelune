@@ -248,4 +248,8 @@
     <string name="screen_awaiting">%1$s attend ta validation : %2$s pour le moment.</string>
     <string name="screen_validate">Valider</string>
     <string name="screen_view_run">Voir</string>
+    <string name="phrase_judged">l\'étape jugée</string>
+    <string name="view_stages">Ses étapes</string>
+    <string name="view_moves">Ses mouvements</string>
+    <string name="phrase_links_of">%1$s « %2$s »</string>
 </resources>

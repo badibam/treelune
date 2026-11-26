@@ -3519,4 +3519,17 @@
     <string name="diagram_auto_folded">%1$d groups folded to fit the screen</string>
     <string name="diagram_auto_folded_one">1 group folded to fit the screen</string>
     <string name="diagram_thing_deleted">deleted</string>
+    <!-- A condition in words (ConditionPhrase) -->
+    <string name="phrase_all">all of:</string>
+    <string name="phrase_any">at least one of:</string>
+    <string name="phrase_and_then">;</string>
+    <string name="phrase_between_and">and</string>
+    <string name="phrase_of">of</string>
+    <string name="phrase_where">where</string>
+    <string name="phrase_and">, and</string>
+    <string name="phrase_while">while</string>
+    <string name="phrase_this_tool">this tool</string>
+    <string name="phrase_of_judged">%1$s of %2$s</string>
+    <string name="phrase_edit_condition">Edit the condition</string>
+    <string name="phrase_constant_title">Change this value</string>
 </resources>

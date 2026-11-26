@@ -3519,4 +3519,17 @@
     <string name="diagram_auto_folded">%1$d groupes repliés pour tenir dans l\'écran</string>
     <string name="diagram_auto_folded_one">1 groupe replié pour tenir dans l\'écran</string>
     <string name="diagram_thing_deleted">supprimée</string>
+    <!-- A condition in words (ConditionPhrase) -->
+    <string name="phrase_all">toutes :</string>
+    <string name="phrase_any">au moins une :</string>
+    <string name="phrase_and_then">\u00a0;</string>
+    <string name="phrase_between_and">et</string>
+    <string name="phrase_of">de</string>
+    <string name="phrase_where">dont</string>
+    <string name="phrase_and">, et</string>
+    <string name="phrase_while">tant que</string>
+    <string name="phrase_this_tool">cet outil</string>
+    <string name="phrase_of_judged">%1$s de %2$s</string>
+    <string name="phrase_edit_condition">Modifier la condition</string>
+    <string name="phrase_constant_title">Changer cette valeur</string>
 </resources>

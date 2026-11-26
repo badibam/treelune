@@ -85,9 +85,17 @@ interface RowFields {
 
 /**
  * Where a form stands in the config it edits, for the settings that depend on it: the rows' fields
- * (RowFields), the fields a config defines at its root (SettingNode.FieldValues).
+ * (RowFields), the fields a config defines at its root (SettingNode.FieldValues); where its
+ * conditions read what they name, by the whole config ([conditions]), and the tool type it is a
+ * config of ([tooltype]), whose views a condition reads of the tool itself (ConditionPhrase).
  */
-private data class Place(val root: JSONObject, val path: List<Any>, val rows: RowFields?) {
+private data class Place(
+    val root: JSONObject,
+    val path: List<Any>,
+    val rows: RowFields?,
+    val conditions: ((JSONObject) -> app.treelune.core.conditions.ConfigConditions.Sources)? = null,
+    val tooltype: String? = null
+) {
     fun into(vararg steps: Any) = copy(path = path + steps)
 }
 
@@ -332,6 +340,8 @@ fun SettingsForm(
     origins: ListOrigins? = null,
     pages: SettingsPages = rememberSettingsPages(),
     rootBack: String? = null,
+    conditions: ((JSONObject) -> app.treelune.core.conditions.ConfigConditions.Sources)? = null,
+    tooltype: String? = null,
     root: (@Composable () -> Unit)? = null
 ) {
     var trail by pages::trail
@@ -353,7 +363,7 @@ fun SettingsForm(
     val page = reached.lastOrNull()
     androidx.compose.runtime.CompositionLocalProvider(
         LocalPages provides Pages(shown) { trail = it },
-        LocalPlace provides Place(config, keys, rows),
+        LocalPlace provides Place(config, keys, rows, conditions, tooltype),
         LocalListOrigins provides origins
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
@@ -410,10 +420,15 @@ internal fun PageLine(
     config: JSONObject,
     context: Context,
     onOpen: () -> Unit,
+    onChange: ((JSONObject) -> Unit)? = null,
     trailing: @Composable () -> Unit
 ) {
     val counts = counts(nodes, config, context)
     val phrases = brickPhrases(nodes, config, context)
+    // Each condition judged once, as its phrase, its constants written over in place when the line may write
+    val conditions = nodes.shown(config).filterIsInstance<SettingNode.Condition>().filter { !it.onRow }
+        .mapNotNull { node -> config.optJSONObject(node.name)?.let { node to it } }
+    val place = LocalPlace.current
     Row(verticalAlignment = Alignment.CenterVertically) {
         Row(
             modifier = Modifier
@@ -425,6 +440,16 @@ internal fun PageLine(
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
                 title?.invoke()
                 summary()
+                conditions.forEach { (node, condition) ->
+                    val root = place?.root ?: config
+                    val at = (place?.path ?: emptyList()) + node.name
+                    val phrase = remember(root.toString(), at) {
+                        val base = app.treelune.core.conditions.AppConditionSources(context, place?.rows)
+                        app.treelune.core.conditions.ConditionPhrase(context, place?.conditions?.invoke(root) ?: base, root, at, place?.tooltype)
+                    }
+                    app.treelune.core.ui.selectors.ConditionPhraseLine(node.label, condition, phrase,
+                        onChange?.let { write -> { next: JSONObject -> write(JSONObject(config.toString()).put(node.name, next)) } })
+                }
                 phrases.forEach { UI.Text(it, TextType.CAPTION, maxLines = 2) }
                 if (counts.isNotEmpty()) UI.Text(counts.joinToString(" ${Strings.`for`(context = context).shared("list_item_summary_separator")} "), TextType.CAPTION, maxLines = 2)
                 // A problem on the page or one under it, followed down line by line to its setting
@@ -447,8 +472,9 @@ private fun brickPhrases(nodes: List<SettingNode>, config: JSONObject, context: 
         when (node) {
             is SettingNode.Term -> config.optJSONObject(node.name)?.let { node.label to it }
             is SettingNode.Selection -> config.optJSONObject(node.name)?.let { node.label to JSONObject().put("selection", it) }
-            // Put on the entry, its left is the value entered there, named by the setting declaring it
-            is SettingNode.Condition -> config.optJSONObject(node.name)?.let { condition ->
+            // Put on the entry, its left is the value entered there, named by the setting declaring
+            // it; one judged once is its phrase (ConditionPhraseLine)
+            is SettingNode.Condition -> if (!node.onRow) null else config.optJSONObject(node.name)?.let { condition ->
                 node.label to JSONObject().put("condition", condition)
                     .put("entered", node.enteredField?.takeIf { config.optJSONObject(it) != null }?.let { nodes.labelOf(it) } ?: "")
             }
@@ -680,14 +706,17 @@ private fun NodeForm(
             val pages = LocalPages.current
             if (editor != null) editor.Edit(config.optJSONObject(node.name)) { set(node.name, it) }
             else if (pages != null && node.nodes.isPage()) UI.Card(type = CardType.DEFAULT) {
-                PageLine(
-                    title = { UI.Text(node.label, TextType.SUBTITLE) },
-                    summary = {},
-                    nodes = node.nodes,
-                    config = config.optJSONObject(node.name) ?: JSONObject(),
-                    context = context,
-                    onOpen = { pages.open(Step.Group(node.name)) }
-                ) { onRemove?.let { UI.ActionButton(action = ButtonAction.DELETE, display = ButtonDisplay.ICON, size = Size.S, onClick = it) } }
+                Into(node.name) {
+                    PageLine(
+                        title = { UI.Text(node.label, TextType.SUBTITLE) },
+                        summary = {},
+                        nodes = node.nodes,
+                        config = config.optJSONObject(node.name) ?: JSONObject(),
+                        context = context,
+                        onOpen = { pages.open(Step.Group(node.name)) },
+                        onChange = { set(node.name, it) }
+                    ) { onRemove?.let { UI.ActionButton(action = ButtonAction.DELETE, display = ButtonDisplay.ICON, size = Size.S, onClick = it) } }
+                }
             }
             else Titled(node.label, onRemove = onRemove) {
                 Into(node.name) {
@@ -946,16 +975,19 @@ private fun ListForm(
                 val pages = LocalPages.current
                 // An element holding more than values is a line opening its page
                 if (pages != null && shape.nodes.isPage()) {
-                    PageLine(
-                        title = null,
-                        summary = { Summary(list.summary, shape.nodes, element, context) },
-                        nodes = shape.nodes,
-                        config = element,
-                        context = context,
-                        onOpen = { pages.open(Step.Element(list.name, index)) }
-                    ) {
-                        DragHandle()
-                        UI.ActionButton(action = ButtonAction.DELETE, display = ButtonDisplay.ICON, size = Size.S, onClick = { remove() })
+                    Into(index) {
+                        PageLine(
+                            title = null,
+                            summary = { Summary(list.summary, shape.nodes, element, context) },
+                            nodes = shape.nodes,
+                            config = element,
+                            context = context,
+                            onOpen = { pages.open(Step.Element(list.name, index)) },
+                            onChange = { changed -> publish(values.toMutableList().also { it[index] = changed }) }
+                        ) {
+                            DragHandle()
+                            UI.ActionButton(action = ButtonAction.DELETE, display = ButtonDisplay.ICON, size = Size.S, onClick = { remove() })
+                        }
                     }
                     return@Card
                 }

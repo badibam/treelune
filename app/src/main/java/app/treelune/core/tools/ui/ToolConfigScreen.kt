@@ -207,7 +207,10 @@ fun ToolConfigScreen(
 
         // Values given for a former version of the change answer nothing about this one
         val pages = app.treelune.core.fields.settings.rememberSettingsPages()
-        SettingsForm(nodes, config, { config = it; fill = JSONObject() }, context, editors, rows = toolType.getRowFields(), scroll = scroll, pages = pages) {
+        SettingsForm(nodes, config, { config = it; fill = JSONObject() }, context, editors, rows = toolType.getRowFields(), scroll = scroll, pages = pages,
+            // Its conditions read what its type names (`self`, its own views), in the config being written
+            conditions = { root -> toolType.conditionSources(app.treelune.core.conditions.AppConditionSources(context, toolType.getRowFields()), root, context) },
+            tooltype = tooltype) {
             toolType.ConfigTools(config) { config = it; fill = JSONObject() }
             // The zone is the tool's place, not a setting of its config: offered once the tool
             // exists, on the root page alone

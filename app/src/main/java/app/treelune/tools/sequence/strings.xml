@@ -287,4 +287,5 @@
     <string name="error_program_shown">“%1$s” is not a program field</string>
     <string name="playable_entry">Entry</string>
     <string name="launch_row_gone">What was to be played is no longer offered here</string>
+    <string name="view_playable">What it can play</string>
 </resources>

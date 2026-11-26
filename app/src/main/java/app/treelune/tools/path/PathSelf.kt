@@ -147,17 +147,17 @@ object PathSelf {
     fun fieldOf(key: String, kind: Kind, text: (String) -> String): FieldDefinition = when (key) {
         // A stage designates stages by their ids, compared as options: `id in self.links`
         ID, PARENT, PREVIOUS, SIBLINGS, CONTENT, LINKS -> choice(key, emptyList())
-        KIND -> choice(key, listOf(kind.key))
-        STATE, LAST_MOVE -> choice(key, kind.states.map { it.key })
+        KIND -> choice(key, listOf(kind.key), labels = mapOf(kind.key to kind.name))
+        STATE, LAST_MOVE -> choice(key, kind.states.map { it.key }, labels = kind.states.associate { it.key to it.name })
         NAME -> field(key, FieldType.TEXT)
         POSITION -> field(key, FieldType.NUMERIC)
         SINCE, LAST_MOVE_AT, RUN_START, RUN_END -> field(key, FieldType.DATETIME)
         else -> kind.fields.firstOrNull { it.name == key } ?: throw IllegalArgumentException(text("path_error_self_unknown").format(key, kind.name))
     }
 
-    /** A choice among [options], their keys standing for their labels; [multiple] for a list of them. */
-    fun choice(key: String, options: List<String>, multiple: Boolean = false) = FieldDefinition(key, key, null, FieldType.CHOICE, false,
-        mapOf("options" to app.treelune.core.fields.ChoiceSettings.storedOptions(options, options.associateWith { it }, emptyMap())) + if (multiple) mapOf("multiple" to true) else emptyMap())
+    /** A choice among [options], named by [labels] (a state by its name), a key standing for its own label without one; [multiple] for a list of them. */
+    fun choice(key: String, options: List<String>, multiple: Boolean = false, labels: Map<String, String> = emptyMap()) = FieldDefinition(key, key, null, FieldType.CHOICE, false,
+        mapOf("options" to app.treelune.core.fields.ChoiceSettings.storedOptions(options, options.associateWith { labels[it] ?: it }, emptyMap())) + if (multiple) mapOf("multiple" to true) else emptyMap())
 
     private fun field(key: String, type: FieldType) = FieldDefinition(key, key, null, type, false, null)
 }

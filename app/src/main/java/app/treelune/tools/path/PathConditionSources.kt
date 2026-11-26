@@ -21,6 +21,8 @@ class PathConditionSources(
 
     private val grammar = PathGrammar.fromJson(config)
 
+    override val judged: String get() = own("phrase_judged")
+
     override suspend fun targetFields(target: Reference, view: String?): Map<String, FieldDefinition> =
         if (target.kind == ReferenceKind.TOOL_INSTANCE && target.id == Term.SELF_TOOL) when (view) {
             PathRows.STAGES -> PathRows.stageFields(grammar)
@@ -32,6 +34,8 @@ class PathConditionSources(
         // A rule of a kind stands at kinds[i], in a state, a mark or an effect
         if (path.size < 2 || path[0] != PathGrammar.KINDS) return null
         val kind = grammar.kinds.getOrNull(path[1] as? Int ?: return null) ?: return null
-        return PathSelf.fieldOf(self.key, kind, own)
+        val field = PathSelf.fieldOf(self.key, kind, own)
+        // Links of a type, named by it: « links “Required” »
+        return self.type?.let { type -> field?.copy(displayName = own("phrase_links_of").format(field.displayName, grammar.linkTypes.firstOrNull { it.key == type }?.name ?: type)) } ?: field
     }
 }

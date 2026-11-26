@@ -287,4 +287,5 @@
     <string name="error_program_shown">« %1$s » n\'est pas un champ des programmes</string>
     <string name="playable_entry">Entrée</string>
     <string name="launch_row_gone">Ce qui devait être joué n\'est plus proposé ici</string>
+    <string name="view_playable">Ce qu\'elle peut jouer</string>
 </resources>
