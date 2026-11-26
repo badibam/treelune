@@ -53,3 +53,10 @@ L'idée : l'icône d'une zone sur sa tuile au plus grand cran qui tient dans sa 
 - L'icône de la zone seule, sur sa tuile : l'icône d'en-tête d'une tuile d'outil, sans pièces, ne bouge pas et laisse sa place au nom. Les pièces gardent leurs deux tiers de l'icône de la zone et grandissent avec elle ; l'écart de taille distingue la zone de ses pièces, ce qui règle l'item de `TODO.md`.
 - La marge minimale est un espacement du thème, par un nom existant de `UI.Space` (jamais des dp écrits, `scripts/check_spacing.py`) ; en retro un nombre entier de pixels de sa grille.
 - En taille icônes, chaque case de la bande a sa règle : l'icône de la zone au plus grand cran qui tient dans sa case, les pièces aux deux tiers.
+
+## En cours : refaire la démo et le Guide
+
+L'idée : une fois l'outil Parcours fait, reprendre la démo et le Guide pour montrer ce que l'app sait faire aujourd'hui (Giulia pourrait y introduire l'identité) ; le site ne change pas d'apparence, il gagne seulement une mention que l'app a évolué depuis.
+
+- Le site cesse de lire la démo vivante. Aujourd'hui `scripts/make_site_data.py` tire la zone Italien de la démo dans `site/private/generated.json` (ses outils, sa routine, son identité, leurs icônes), et relève une empreinte des fichiers de la démo que `--check`, lancé par `./run release-tag`, compare : une démo changée bloquerait la release jusqu'à une régénération, qui réécrirait la zone du site depuis la nouvelle démo. La partie zone de `generated.json` reste donc telle qu'elle est, l'empreinte disparaît ; le script ne garde de l'app que ce qui ne casse pas l'apparence du site (types d'outils, thèmes, Android minimal, icônes). Les captures et vidéos actuelles font référence.
+- Les captures françaises et les cartes du site encore en attente (`TODO.md`, « Site treelune.app ») se prennent avant de toucher la démo, sinon elles partiraient de la nouvelle.
