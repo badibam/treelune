@@ -29,6 +29,8 @@ import app.treelune.tools.path.PathReplay
 import app.treelune.tools.path.PathRows
 import app.treelune.tools.path.PathToolType
 import app.treelune.tools.path.Stage
+import app.treelune.core.coordinator.isSuccess
+import kotlinx.coroutines.launch
 
 /** What a Path's page and tile show: its current run in the plan's order, each stage's state, or why it cannot be read. */
 private sealed interface PathShown {
@@ -95,6 +97,7 @@ fun PathScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
             onLeftClick = onNavigateBack,
             onRightClick = onConfigureClick
         )
+        RunButtons(toolInstanceId, read)
         when (val shown = read) {
             null -> UI.LoadingIndicator()
             PathShown.NoRun -> UI.Text(s.tool("screen_no_run"), TextType.CAPTION)
@@ -104,6 +107,30 @@ fun PathScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
                 shown.outcome.problems.forEach { UI.Text(it.message, TextType.ERROR) }
             }
         }
+    }
+}
+
+/**
+ * What the page does with its runs: open the plan of the current one, stop it, or start one
+ * when none is open (its plan copied from the latest, path.start).
+ */
+@Composable
+private fun RunButtons(toolInstanceId: String, read: PathShown?) {
+    val context = LocalContext.current
+    val s = remember { Strings.`for`(tool = PathRows.TOOLTYPE, context = context) }
+    val coordinator = remember { app.treelune.core.coordinator.Coordinator(context) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val parts = app.treelune.core.tools.LocalToolParts.current
+    if (read == null || read is PathShown.Problem) return
+    val open = (read as? PathShown.Run)?.let { run -> !run.path.isClosed(run.stages.first { it.isRoot }) } ?: false
+    fun send(action: String) = scope.launch {
+        val result = coordinator.processUserAction(action, mapOf("tool_instance_id" to toolInstanceId))
+        if (!result.isSuccess) UI.Toast(result.error ?: s.shared("service_error_operation_failed"))
+    }
+    app.treelune.core.ui.components.ButtonRow {
+        if (open) UI.Button(type = app.treelune.core.ui.ButtonType.PRIMARY, onClick = { parts.open(PathParts.PLAN) }) { UI.Text(s.tool("plan_title"), TextType.LABEL) }
+        if (open) UI.ActionButton(action = ButtonAction.STOP, requireConfirmation = true, confirmMessage = s.tool("screen_stop_confirm"), onClick = { send("path.stop") })
+        else UI.ActionButton(action = ButtonAction.START, onClick = { send("path.start") })
     }
 }
 

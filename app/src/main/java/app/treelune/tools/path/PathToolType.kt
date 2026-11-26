@@ -280,12 +280,13 @@ object PathToolType : ToolTypeContract {
         app.treelune.tools.path.ui.PathScreen(toolInstanceId = toolInstanceId, onNavigateBack = onNavigateBack, onConfigureClick = onLongClick, openAt = openAt)
     }
 
-    /** Its pages (PathParts): a stage's sheet, the edit of its plan. */
+    /** Its pages (PathParts): a stage's sheet, the edit of its plan, the plan. */
     @Composable
     override fun PartScreen(toolInstanceId: String, configJson: String, part: String, onName: (String) -> Unit, onBack: () -> Unit, onGone: () -> Unit) {
         val parts = app.treelune.tools.path.ui.PathParts
         parts.stageOf(part)?.let { return app.treelune.tools.path.ui.StageSheet(toolInstanceId, it, onName, onBack, onGone) }
         parts.editOf(part)?.let { return app.treelune.tools.path.ui.StageEdit(toolInstanceId, it, onName, onBack, onGone) }
+        if (part == parts.PLAN) return app.treelune.tools.path.ui.PlanEditor(toolInstanceId, onName, onBack)
         throw IllegalArgumentException("No page '$part' in a Path")
     }
 

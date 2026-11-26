@@ -2,11 +2,12 @@ package app.treelune.tools.path.ui
 
 /**
  * The pages inside a Path (Place.ToolPart), each named by what it shows: a stage's sheet
- * (`stage/<id>`), the edit of its plan (`edit/<id>`).
+ * (`stage/<id>`), the edit of its plan (`edit/<id>`), the plan of the current run (`plan`).
  */
 object PathParts {
     private const val STAGE = "stage/"
     private const val EDIT = "edit/"
+    const val PLAN = "plan"
 
     fun stage(id: String) = "$STAGE$id"
 
